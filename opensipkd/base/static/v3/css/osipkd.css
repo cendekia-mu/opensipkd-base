@@ -1,0 +1,44 @@
+
+/* dataTables Customize */
+table.dataTable thead {
+    -- background-color: #EAEAEA;
+}
+table.table-hover>tbody>tr:hover {
+    background-color: #9FAFD1;
+}
+table.dataTable tr.even.selected td {
+	background-color: #B0BED9;
+}
+table.dataTable tr.odd.selected td {
+	background-color: #9FAFD1;
+}
+@media only screen and (max-width: 980px) {
+    aside {
+        padding-bottom:60px;
+    }
+}
+aside span.footer-side {
+    position:absolute;
+    bottom:10px;
+    display:block;
+    text-align:center;
+    width:100%;
+    font-size:12px;
+    color:#c0bbb7;
+}
+.minified aside span.footer-side {
+    display:none;
+}
+
+.loading {
+    background:url(../img/loading.gif) left center no-repeat;
+    padding-left:30px !Important;
+}
+input.tt-hint { 
+    padding-left:30px !Important;
+}
+
+.tab-content { padding-top:20px }
+.help-block { color: #ff0000; font-weight: bold; }
+.SmallBox p { letter-spacing: 0.1px; }
+.SmallBox span { letter-spacing: 0.1px; }

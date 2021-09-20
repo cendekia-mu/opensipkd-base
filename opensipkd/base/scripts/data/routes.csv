@@ -1,0 +1,133 @@
+kode,path,nama,status,type
+home,/,Home,0
+home-auth,/home,Home Auth,0
+home-about,/home/{id}/about,Home About
+login,/login,Login,0
+logout,/logout,,0
+change-password,/password/{code},Ubah password,0
+password,/password,Ubah password,0
+reset-password,/reset-password,0
+reset-password-sent,/reset-password-sent,0
+user,/user,Daftar User
+user-add,/user/add,Tambah User
+user-edit,/user/{id}/edit,Edit User
+user-view,/user/{id}/view,View User
+user-delete,/user/{id}/delete,Hapus User
+user-act,/user/{act}/act,Act User
+register,/register,Register
+register-external,/register/external,Register External
+profile,/profile,Profile
+profile-external,/profile/external,Profile  External
+
+user-ws,/user/ws,Daftar WS Users
+user-ws-add,/user/ws/add,Tambah WS user
+user-ws-edit,/user/ws/{id}/edit,Edit WS user
+user-ws-delete,/user/ws/{id}/delete,Hapus WS user
+user-ws-act,/user/ws/{act}/act,Act WS user
+
+group,/group,Daftar group
+group-add,/group/add,Tambah group
+group-edit,/group/{id}/edit,Edit group
+group-view,/group/{id}/view,View group
+group-delete,/group/{id}/delete,Hapus group
+group-act,/group/{act}/act,Act Groups
+group-rpt,/group/{rpt}/rpt,Groups Report
+
+user-group,/user/group,Daftar User groups
+user-group-add,/user/group/add,Tambah user groups
+user-group-edit,/user/group/{id}/edit,Edit user groups
+user-group-view,/user/group/{id}/view,View user groups
+user-group-delete,/user/group/{id}/delete,Hapus user groups
+user-group-act,/user/group/{act}/act,Act User-Groups
+
+routes,/routes,Routes
+routes-add,/routes/add,Tambah route
+routes-edit,/routes/{id}/edit,Edit route
+routes-view,/routes/{id}/view,View route
+routes-delete,/routes/{id}/delete,Hapus route
+routes-act,/routes/{act}/act,Act route
+
+group-routes,/group/routes,Group Permission
+group-routes-add,/group/routes/add,Tambah group permission
+group-routes-edit,/group/routes/{group_id}/{route_id}/edit,Edit group permission
+group-routes-delete,/group/routes/{group_id}/{route_id}/delete,Hapus group permission
+group-routes-act,/group/routes/{act}/act,Act grouppermission
+
+parameter,/parameter,Parameter
+parameter-add,/parameter/add,Tambah paramater
+parameter-edit,/parameter/{id}/edit,Edit parameter
+parameter-view,/parameter/{id}/view,View parameter
+parameter-delete,/parameter/{id}/delete,Hapus parameter
+parameter-act,/parameter/{act}/act,Act parameter
+
+upload-logo,/upload/logo,Unggah Logo
+upload-background,/upload/background,Unggah Background
+user-rpt,/user/{rpt}/rpt,Urser Report
+group-rpt,/group/{rpt}/rpt,Group Report
+routes-rpt,/routes/{rpt}/rpt,Routes Report
+
+partner,/partner,Partner
+partner-act,/partner/{act}/act,Partner Action
+partner-rpt,/partner/{rpt}/rpt,Partner Report
+partner-edt,/partner/{id}/edt,Partner Edt
+partner-view,/partner/{id}/view,Partner view
+partner-del,/partner/{id}/del,Partner Del
+partner-add,/partner/add,Partner Add
+
+departemen,/departemen,Organisasi
+departemen-act,/departemen/{act}/act,Organisasi Act
+departemen-add,/departemen/add,Organisasi Tambah
+departemen-edt,/departemen/{id}/edt,Organisasi Edit
+departemen-view,/departemen/{id}/view,Organisasi view
+departemen-del,/departemen/{id}/del,Organisasi Hapus
+departemen-rpt,/departemen/{rpt}/rpt,Organisasi Report
+departemen-chg,/departemen/chg,Ubah Organisasi
+departemen-upload,/departemen/upload,Upload Departemen,1,0
+
+departemen-user,/departemen/user,User Organisasi,1,0
+departemen-user-act,/departemen/user/{act}/act,User Organisasi Act,1,0
+departemen-user-add,/departemen/user/add,User Organisasi Tambah,1,0
+departemen-user-edt,/departemen/user/{id}/edt,User Organisasi Edit,1,0
+departemen-user-view,/departemen/user/{id}/view,User Organisasi view,1,0
+departemen-user-del,/departemen/user/{id}/del,User Organisasi Hapus,1,0
+departemen-user-rpt,/departemen/user/{rpt}/rpt,User Organisasi Report,1,0
+
+rpc-user,/rpc/user,WebService User Management,,1
+recreate-api-key,/recreate-api-key,Buat ulang API Key,0
+googleOauth2,/googleOauth2,'Google OAuth2'
+googleOauth2,/googleOauth2,'Google OAuth2'
+googlesignin,/googlesignin, "Google SignIn"
+
+permission,/permission,Daftar Permission
+permission-add,/permission/add,Tambah Permission
+permission-edit,/permission/{id}/edit,Edit Permission
+permission-view,/permission/{id}/view,Permission view
+permission-delete,/permission/{id}/delete,Hapus Permission
+permission-act,/permission/{act}/act,Act Permission
+
+eselon,/eselon,Daftar Eselon
+eselon-add,/eselon/add,Tambah Eselon
+eselon-edit,/eselon/{id}/edit,Edit Eselon
+eselon-view,/eselon/{id}/view,View Eselon
+eselon-delete,/eselon/{id}/delete,Hapus Eselon
+eselon-act,/eselon/{act}/act,Act Eselon
+
+jabatan,/jabatan,Daftar Jabatan
+jabatan-add,/jabatan/add,Tambah Jabatan
+jabatan-edit,/jabatan/{id}/edit,Edit Jabatan
+jabatan-view,/jabatan/{id}/view,View Jabatan
+jabatan-delete,/jabatan/{id}/delete,Hapus Jabatan
+jabatan-act,/jabatan/{act}/act,Act Jabatan
+jabatan-rpt,/jabatan/{rpt}/rpt,Rpt Jabatan
+
+partner-departemen,/partner/departemen,Partner Departemen
+partner-departemen-add,/partner/departemen/add,Partner Departemen Add
+partner-departemen-edit,/partner/departemen/{id}/edit,Partner Departemen Edit
+partner-departemen-view,/partner/departemen/{id}/view,Partner Departemen View
+partner-departemen-delete,/partner/departemen/{id}/delete,Partner Departemen Hapus
+partner-departemen-act,/partner/departemen/{act}/act,Partner Departemen Act
+partner-departemen-rpt,/partner/departemen/{rpt}/rpt,Partner Departemen Report
+
+log,/log,Log Aplikasi
+log-act,/log/{act}/act,Log Aplikasi Act
+log-view,/log/{id}/view,Log Aplikasi View

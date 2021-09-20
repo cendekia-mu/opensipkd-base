@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" tal:define="home request.route_url('home');">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <meta name="viewport" 
+           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta tal:condition="request.google_signin_client_id"
+              name="google-signin-client_id"
+              content="${request.google_signin_client_id}">
+        <link rel="shortcut icon" href="${home}static/img/favicon.png">
+
+        <title>Logout</title>
+        <!-- Basic Styles -->
+        <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/font-awesome.min.css">
+
+        <!-- SmartAdmin Styles : Caution! DO NOT change the order -->
+        <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-production-plugins.min.css">
+        <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-production.min.css">
+        <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-skins.min.css">
+
+        <!-- SmartAdmin RTL Support -->
+        <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-rtl.min.css">
+        <link rel="stylesheet" type="text/css" href="${home}static/css/home.css">
+
+    </head>
+
+    <body onload="onLoad();">
+
+        <div id="content" class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-6 col-md-offset-3 col-lg-4 col-lg-offset-4" style="margin-top:50px">
+                    <div class="well no-padding">
+                        <form id="deform" method="POST" enctype="multipart/form-data" accept-charset="utf-8"
+                              class="smart-form client-form panel form-signin" style="border:0px;">
+                            <header class="bg-color-blue">
+                                    <h1 class="txt-color-white login-header-big" align="center" style="letter-spacing:1px;">${request.app_name}</h1>
+                            </header>
+
+                            <fieldset class="deformFormFieldset">
+                                <input type="hidden" name="_charset_" />
+                                <input type="hidden" name="__formid__" value="deform"/>
+                                <div tal:condition="request.session.peek_flash()">
+                                    <div tal:repeat="message request.session.pop_flash()"
+                                         class="alert alert-success">${message}</div>
+                                </div>
+                                <div tal:condition="request.session.peek_flash('error')">
+                                    <div class="alert alert-danger"
+                                         tal:repeat="message request.session.pop_flash('error')">${message}</div>
+                                </div>
+                                <div class="col-md-12" align="center">
+                                    <img src="${home}static/img/logo.png"
+                                         class="img-float img-thumbnail" style="height:auto;width:auto;border:none;"/>
+                                </div>
+                                <div class="clearfix"></div>
+                            </fieldset>
+                            <footer>
+                                <button type="submit" name="batal"
+                                    class="btn btn-primary"
+                                    value="batal">
+                                    Batal
+                                </button>
+                                <button type="button" name="logout"
+                                    class="btn btn-danger"
+                                    value="logout"
+                                    onclick="signOut();">
+                                    Logout
+                                </button>
+                            </footer>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Bootstrap core JavaScript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/javascript" src="${home}deform_static/scripts/jquery-2.0.3.min.js"></script>
+        <script type="text/javascript" src="${home}deform_static/scripts/bootstrap.min.js"></script>
+        <script type="text/javascript" src="${home}deform_static/scripts/deform.js"></script>
+        <script tal:condition="request.google_signin_client_id"
+                src="https://apis.google.com/js/platform.js" async defer></script>
+        <script tal:condition="request.google_signin_client_id">
+            function signOut() {
+              console.log("Prepare Sign Out");
+              var auth2 = gapi.auth2.getAuthInstance();
+              auth2.signOut().then(function () {
+                console.log('User signed out.');
+              });
+              document.getElementById("deform").submit();
+            }
+            function onLoad() {
+              gapi.load('auth2', function() {
+                gapi.auth2.init();
+              });
+            }
+        </script>
+        <script tal:condition="not request.google_signin_client_id">
+            function signOut() {
+              document.getElementById("deform").submit();
+            }
+            function onLoad() {
+            }
+        </script>
+
+    </body>
+</html>

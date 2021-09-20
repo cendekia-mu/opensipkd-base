@@ -1,0 +1,5 @@
+<tr>
+    <td style="tableBody">{group_name}</td>
+    <td style="tableBody"><para style="tableBody">{description}</para></td>
+    <td style="tableBody">{member_count}</td>
+</tr>

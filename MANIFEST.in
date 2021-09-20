@@ -1,0 +1,3 @@
+include *.txt *.ini *.cfg *.rst *.tpl *.csv *.ttf *.woff *.woff2 *.svg
+recursive-include opensipkd *.ico *.png *.css *.gif *.jpg *.pt *.txt
+recursive-include opensipkd  *.js *.html *.xml *.csv *.ttf *.woff *.woff2 *.svg

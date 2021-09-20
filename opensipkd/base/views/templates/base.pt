@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"  tal:define="home request.route_url('home');">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="shortcut icon" href="${home}static/img/favicon.png">
+  <title tal:content="request.title" />
+
+  <!-- SmartAdmin Styles : Caution! DO NOT change the order -->
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-production-plugins.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-production.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-skins.min.css">
+
+  <!-- Bootstrap core CSS -->
+  <link href="${home}static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/font-awesome.min.css">
+
+  <!-- Jquery CSS -->
+  <link href="${home}static/jqueryui/themes/smoothness/jquery-ui.min.css" rel="stylesheet">
+  <!-- DataTables -->
+  <link href="${home}static/datatables/1.10/media/css/dataTables.bootstrap.css" rel="stylesheet">
+
+  <link href="${home}deform_static/css/form.css" rel="stylesheet">
+  <link href="${home}deform_static/css/typeahead.css" rel="stylesheet">
+  <link href="${home}static/css/theme.css" rel="stylesheet">
+  <link href="${home}static/css/navbar-fixed-top.css" rel="stylesheet">
+  <!-- Home CSS -->
+  <link href="${home}static/css/custom.css" rel="stylesheet" type="text/css">
+  <metal:css define-slot="css_files"></metal:css>
+  <style>
+    #content {
+        padding-top: 0px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- <div metal:define-slot="header"></div> -->
+  <!-- Fixed navbar -->
+  <div class="container-fluid">
+    <div class="navbar navbar-default navbar-fixed-top bg-color-blue" role="navigation">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar bg-color-white"></span>
+          <span class="icon-bar bg-color-white"></span>
+          <span class="icon-bar bg-color-white"></span>
+        </button>
+        <!-- Define App Name -->
+        <a metal:define-slot="apps" class="navbar-brand txt-color-white" href="${home}">${request.app_name}</a>
+        <!-- End App Name -->
+      </div>
+
+      <!-- <div class="navbar-collapse collapse" tal.condition="not request.user"> -->
+        <!-- <ul class="nav navbar-nav"> -->
+          <!-- <li><a href="${home}eis/sipkd" class="navbar-brand txt-color-white"><strong>${request.company}</strong></a></li> -->
+        <!-- </ul> -->
+
+        <!-- <ul class="nav navbar-nav navbar-right" style="margin-right:0px;"> -->
+          <!-- <li class="dropdown"> -->
+            <!-- <a href="${home}login" class="button txt-color-white"><i class="fa fa-user"></i> Masuk</a> -->
+          <!-- </li> -->
+        <!-- </ul> -->
+      <!-- </div> -->
+
+      <div class="navbar-collapse collapse" tal:condition="request.user">
+        <!-- Define Tombol Navigator -->
+        <div metal:define-slot="navs"></div>
+        <!-- End Tombol Navigator -->
+        <ul class="nav navbar-nav navbar-right" style="margin-right:0px;">
+          <!-- Admin Menu -->
+          <li
+              class="dropdown"
+              tal:condition="has_permission(request, ['user-view', 'user-edit'])"
+              tal:attributes="class request.matched_route.name in ['user', 'user-add', 'user-edit', 'user-delete', 'group', 'group-add', 'group-edit', 'group-delete'] and 'active'">
+            <a href="#" class="dropdown-toggle txt-color-white" data-toggle="dropdown">Admin <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                <li tal:condition="has_permission(request, ['user-view', 'user-edit'])">
+                    <a href="${home}user">User</a>
+                </li>
+              <li tal:condition="has_permission(request, ['user-view', 'user-edit'])">
+                  <a href="${home}group">Group</a>
+              </li>
+              <li tal:condition="has_permission(request, 'routes')"><a href="${home}routes">Routes</a></li>
+              <li tal:condition="has_permission(request, 'upload-logo')"><a href="${home}upload/logo">Upload Logo</a></li>
+              <li tal:condition="has_permission(request, 'parameter')">
+                  <a href="${home}parameter">Parameter</a></li>
+              <li tal:condition="has_permission(request, 'departemen')">
+                  <a href="${home}departemen">Departemen</a></li>
+              <li tal:condition="has_permission(request, 'partner')">
+                  <a href="${home}partner">Partner</a></li>
+              <li tal:condition="has_permission(request, 'parameter')">
+                   <a href="${home}parameter">Parameter</a></li>
+            </ul>
+          </li>
+
+          <!-- User Login Menu-->
+          <li class="dropdown" tal:attributes="class request.path in
+              ['/password', '/recreate-api-key'] and 'active'">
+            <a href="#" class="dropdown-toggle txt-color-white" data-toggle="dropdown">My Account <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a style="text-transform:capitalize" href="${home}logout">${request.user.nice_username()} Logout</a></li>
+              <li><a style="text-transform:capitalize" href="${home}password">Ubah password</a></li>
+              <li tal:condition="request.user.api_key">
+                  <a style="text-transform:capitalize" href="${home}recreate-api-key">
+                      API Key
+                  </a>
+              </li>
+              <li tal:condition="'core' in request.modules and change_unit(request)"><a style="text-transform:capitalize" href="${home}departemen/chg">Ubah Organisasi</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+  </div>
+  <div class="container-fluid">
+      <!-- Error session flash -->
+      <div tal:condition="request.session.peek_flash()">
+        <div class="alert alert-success" tal:repeat="message request.session.pop_flash()"><i class="fa fa-fw fa-lg fa-check-circle"></i>&nbsp;${message}</div>
+      </div>
+      <div tal:condition="request.session.peek_flash('error')">
+        <div class="alert alert-danger" tal:repeat="message request.session.pop_flash('error')"><i class="fa fa-fw fa-lg fa-times-circle"></i>&nbsp;${message}</div>
+      </div>
+      <!-- Error session flash -->
+
+     <!--<div>-->
+       <!--<div class="alert alert-danger" id="errors" name="errors" style="display:none;">errors</div>-->
+       <!--<div class="alert alert-success" id="success" name="success" style="display:none;">success</div>-->
+     <!--</div>-->
+     <div metal:define-slot="left-menu"></div>
+     <div metal:define-slot="content"></div>
+  </div> <!-- /container -->
+
+    <!-- Bootstrap core JavaScript
+      ================================================== -->
+      <!-- Placed at the end of the document so the pages load faster -->
+      <script type="text/javascript" src="${home}static/jquery/jquery.min.js"></script>
+      <script type="text/javascript" src="${home}static/jqueryui/jquery-ui.js"></script>
+      <script type="text/javascript">
+        // Change JQueryUI plugin names to fix name collision with Bootstrap.
+        $.widget.bridge('uitooltip', $.ui.tooltip);
+        $.widget.bridge('uibutton', $.ui.button);
+      </script>
+      <script type="text/javascript" src="${home}static/bootstrap/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="${home}static/datatables/1.10/media/js/jquery.dataTables.min.js"></script>
+      <script type="text/javascript" src="${home}static/datatables/1.10/media/js/dataTables.bootstrap.js"></script>
+      <script type="text/javascript" src="${home}static/datatables/1.10/media/js/jquery.dataTables.ext.js"></script>
+      <script type="text/javascript" src="${home}deform_static/scripts/deform.js"></script>
+      <script type="text/javascript" src="${home}deform_static/scripts/typeahead.min.js"></script>
+      <script type="text/javascript" src="${home}static/js/tools.js"></script>
+      <metal:js define-slot="js_files"></metal:js>
+
+      <script metal:define-slot="scripts"></script>
+</body>
+</html>

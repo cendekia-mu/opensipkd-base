@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en"
+     tal:define="home request.route_url('home');">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta tal:condition="request.google_signin_client_id"
+              name="google-signin-client_id"
+              content="${request.google_signin_client_id}">
+        <link rel="shortcut icon" href="${home}static/img/favicon.png">
+
+        <title tal:content="request.title" />
+
+    <!-- Basic Styles -->
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/font-awesome.min.css">
+
+    <!-- SmartAdmin Styles : Caution! DO NOT change the order -->
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-production-plugins.min.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-production.min.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-skins.min.css">
+
+    <!-- SmartAdmin RTL Support -->
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-rtl.min.css"> 
+    <link rel="stylesheet" type="text/css" href="${home}static/css/custom.css">
+
+    </head>
+
+    <body>
+        <div id="content" class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-6 col-md-offset-3 col-lg-4 col-lg-offset-4" style="margin-top:50px">
+                    <div class="well no-padding">
+                        <form id="deform" method="POST" enctype="multipart/form-data" accept-charset="utf-8"
+                              class="smart-form client-form panel form-signin" style="border:0px;">
+                            <header class="bg-color-blue">
+                                    <h1 class="txt-color-white login-header-big" align="center" style="letter-spacing:1px;">${request.app_name}</h1>
+                            </header>
+
+                            <fieldset class="deformFormFieldset">
+                                <input type="hidden" name="_charset_" />
+                                <input type="hidden" name="__formid__" value="deform"/>
+                                <div tal:condition="request.session.peek_flash()">
+                                      <div class="alert alert-success" tal:repeat="message request.session.pop_flash()"><i
+                                          class="fa fa-fw fa-lg fa-check-circle"></i>&nbsp;${message}
+                                      </div>
+                                    </div>
+                                    <div tal:condition="request.session.peek_flash('error')">
+                                      <div class="alert alert-danger" tal:repeat="message request.session.pop_flash('error')"><i
+                                          class="fa fa-fw fa-lg fa-times-circle"></i>&nbsp;${message}
+                                      </div>
+                                    </div>
+
+                                <div class="col-md-12" align="center">
+                                    <img src="${home}static/img/logo.png"
+                                         class="img-float img-thumbnail" style="height:auto;width:auto;border:none;"/>
+                                </div>
+
+                                <div class="clearfix"></div>
+
+                                <section>
+                                    <label class="label">USERNAME</label>
+                                    <label class="input"> <i class="icon-append fa fa-user"></i>
+                                        <input id="username" type="text" name="username" class="form-control">
+                                        <b class="tooltip tooltip-top-right">
+                                            <i class="fa fa-user txt-color-teal"></i>
+                                            ISI DENGAN USERNAME ANDA</b></label>
+                                </section>
+
+                                <section>
+                                    <label class="label">PASSWORD</label>
+                                    <label class="input"> <i class="icon-append fa fa-lock"></i>
+                                        <input id="password" type="password" name="password" class="form-control">
+                                        <b class="tooltip tooltip-top-right"><i class="fa fa-lock txt-color-teal"></i> ISI DENGAN PASSWORD ANDA</b> </label>
+                                    <div class="note">
+                                        <a id="lupa" name="lupa"
+                                            href="/reset-password">Lupa Password?</a>
+                                    </div>
+                                </section>
+                                <section>
+                                  <input id="provider_name" type="hidden" name="provider_name" class="form-control">
+                                  <input id="id_token" type="hidden" name="id_token" class="form-control">
+                                </section>
+
+                            </fieldset>
+                            <footer>
+                                <div style="float:right">
+                                <button type="submit" id="login-btn" name="login" 
+                                    class="btn btn-primary" style="float:left"
+                                    value="Login">
+                                    Login
+                                </button>
+                                <button tal:condition="allow_register(request)"
+                                    id="register" name="register" class="btn btn-info"
+                                    value="Register" style="float:left">
+                                    Register
+                                </button>
+                                <div class="clearfix"></div>
+                                </div>
+                                <div
+                                    style="margin-top:10px;" tal:condition="request.google_signin_client_id and allow_register(request)"
+                                    class="g-signin2 text-center"
+                                    data-onsuccess="onSignIn">
+                                </div>
+                              
+                            </footer>
+                              
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap core JavaScript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/javascript" src="/deform_static/scripts/jquery-2.0.3.min.js"></script>
+        <script type="text/javascript" src="/deform_static/scripts/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/deform_static/scripts/deform.js"></script>
+        <script tal:condition="request.google_signin_client_id"
+                src="https://apis.google.com/js/platform.js" async defer></script>
+        <script tal:condition="request.google_signin_client_id">
+            function onSignIn(googleUser) {
+              var profile = googleUser.getBasicProfile();
+              // console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+              // console.log('Name: ' + profile.getName());
+              // console.log('Image URL: ' + profile.getImageUrl());
+              // console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+              var id_token = googleUser.getAuthResponse().id_token;
+              document.getElementById('provider_name').value = "google";
+              document.getElementById('id_token').value = id_token;
+              document.getElementById("deform").submit();
+              
+              // var xhr = new XMLHttpRequest();
+              // xhr.open('POST', '/googlesignin');
+              // xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+              // xhr.onload = function() {
+              //   console.log('Signed in as: ' + xhr.responseText);
+              // };
+              // xhr.send('idtoken=' + id_token);
+              
+            }
+
+            $( document ).ready(function() {
+              $("form#deform").keypress(function(event) {
+                  var keycode = (event.keyCode ? event.keyCode : event.which);
+                  if(keycode == '13'){
+                      event.preventDefault();
+                      $("button#login-btn").click();
+                  }
+              });
+            });        
+        </script>
+    </body>
+</html>

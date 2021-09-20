@@ -1,0 +1,21 @@
+
+<html>
+<body>
+  <div class="well">
+    <h2>${request.app_name}</h2>
+    <h3>Not Found</h3>
+    <!-- Error session flash -->
+    <div tal:condition="request.session.peek_flash()">
+      <div class="alert alert-success" tal:repeat="message request.session.pop_flash()"><i class="fa fa-fw fa-lg fa-check-circle"></i>&nbsp;${message}</div>
+    </div>
+    <div tal:condition="request.session.peek_flash('error')">
+      <div class="alert alert-danger" tal:repeat="message request.session.pop_flash('error')"><i class="fa fa-fw fa-lg fa-times-circle"></i>&nbsp;${message}</div>
+    </div>
+    <!-- Error session flash -->
+
+    <p><img src="${request._host}/static/img/logo.png" class="img-float img-thumbnail"/></p>
+    Halaman yang anda cari tidak ada (${request.url})
+    
+  </div>
+</body>
+</html>

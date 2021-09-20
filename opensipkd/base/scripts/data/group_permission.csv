@@ -1,0 +1,11 @@
+group_id/groups.group_name,perm_name
+"Superuser","user-edit"
+"Superuser","user-view"
+"Superuser","user-group"
+"Superuser","upload-logo"
+"Superuser","departemen"
+"Superuser","partner"
+"Superuser","parameter"
+"Superuser","permission"
+"Web Service","web-service"
+"Pindah Departemen","departemen-all"

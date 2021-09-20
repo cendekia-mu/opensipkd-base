@@ -1,0 +1,7 @@
+<div metal:use-macro="load: ../main.pt">
+  <div metal:fill-slot="content">
+    <div class="well">
+      <div tal:content="structure form"/>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,156 @@
+3.0.0 26-08-2021
+1. Penghapusan folder src
+2. Perubahan ke base ciamis
+3. Penambahan api sicantik
+
+2.1.5 06-03-2021
+Minor change
+1. Perbaikan datatable sorting dengan inherite data di common.py
+2. Penghapusan dukungan ke web-r authentication
+3. Penambahan module External module login
+
+2.1.4 06-01-2021
+1. Penambahan function request.api_has_permission
+
+2.0.3 25-12-2020
+1. Penambahan tinymce
+2. Perubahan MaskMoney
+3. Pengurangan library static
+
+2.0.2 22-11-2020
+1. Penambahan field app_id pada tabel routes
+2. Perubahan struktur csv di scripts/data/routes.csv mejadi
+   kode,path,nama,app_id,status,type
+
+3. Functionality penggunakan config pyramid.includes
+    pyramid.includes =
+        pyramid_tm
+        pyramid_beaker
+        pyramid_chameleon
+        pyramid_rpc.jsonrpc
+        bjb.samsat
+        pyramid_debugtoolbar
+
+4. Penggunaan Parameter modules depreceated
+   Setiap modules harus terdapat function includeme
+   def includeme():
+       app_id = 1
+       set_routes(app_id
+	   config.scan('.')
+
+5. function main() pada modules.__init__  depreceated
+6. config(ini) depreceated
+	modules = module1, module2, ...
+
+7. Penambahan Logging terhadap database::
+	[handlers]
+	keys = console, tabel, dblog
+
+	[handler_dblog]
+    class = opensipkd.base.handlers.SQLAlchemyHandler
+    args = ()
+    level = INFO
+
+    [logger_root]
+    level = INFO
+    handlers = console, filelog, dblog
+
+    [logger_opensipkd]
+    level = INFO
+    handlers = dblog
+    qualname = opensipkd
+
+    [handler_filelog]
+    class = FileHandler
+    args = ('file_location','a')
+    level = INFO
+    formatter = generic
+
+8. Penambahan script import_log:
+	Digunakan untuk import data dari file log ke database
+	Sebaiknya diimport pada saat akan berpindah logging
+	$import_log config log_file
+
+2.0.1 16-08-2020
+Penambahan Error Rpc
+
+2.0.0 16-08-2020
+Pembuatan Branch Ciamis
+Perbaikan Step PIP install
+Perubahan setup.py
+Perubahan ini file nama aplikasi opensipkd.base menjadi opensipkd_base
+Perubahan penamaan folder src/opensipkd/base menjadi opensipkd/base
+Penambahan Template Horizontal
+Old
+${structure form}
+Label
+Input
+New
+${structure form}
+Label  Input
+
+0.1.4 08-11-2019
+----------------
+Pembuatan Branch Bandung
+Penambahan method pada models user
+Penambahan custom render 
+
+0.1.3 08-11-2019
+----------------
+- ZopeTransactionExtension diganti dengan register().
+- README yang lebih baik.
+
+0.1.2 10-02-2019
+----------------
+- Penambahan parameter 'db_session=DBSession' pada append_csv berfungsi apabila
+  caller mempunyai Session database yang berbeda
+- Penambahan modules tools sub api.py, db.py, pbb.py
+
+0.1.1 17-12-2018
+----------------
+- Form edit user bisa ubah password karena user non-manusia (host to host)
+  tidak punya email. 
+- .gitignore ditambah .DS_Store.
+
+0.1 12-12-2018
+--------------
+- get_login_headers() menyimpan user.id pada cookie ketimbang user.user_email.
+  Akhirnya ini berdampak pada group_finder().
+- RootFactory yang lebih efisien yaitu cukup berisi daftar hak akses, tidak
+  perlu melibatkan request.
+- groups.py kini menyertakan hak akses dengan memanfaatkan tabel
+  groups_permissions bawaan ziggurat. Sebagai pendukung dibuatlah tabel
+  permissions yang berisi daftar hak akses sebagaimana yang tertera pada
+  function argument permission di setiap view function.
+- Hak akses yang lebih ringkas dimana user.py dan groups.py menggunakan
+  satu hak akses saja yang bernama user-edit yang bermakna bisa SELECT, INSERT,
+  UPDATE, dan DELETE tabel users dan tabel groups. Jika nanti ada kebutuhan
+  grup yang hanya bisa SELECT maka bisa dibuat hak akses bernama user-view.
+- initializedb.py saat INSERT data kini menggunakan format csv saja
+  dengan menggunakan dua fungsi:
+  - restore_csv() yang akan INSERT data hanya jika tabelnya masih kosong. Ini
+    cocok untuk tabel users.
+  - append_csv() yang akan INSERT data jika key pada tabel tidak ditemukan.
+- Jika field pada csv merupakan foreign key maka nama field ditulis dengan
+  susunan nama-field-tabel-csv/nama-tabel-foreign.nama-field-foreign, contoh:
+  pemda_id/va_pemda.kode.
+- Tabel user_ws diganti dengan field users.api_key.
+- Admin bisa membuatkan API Key saat membuat user baru atau saat sedang edit.
+- User bisa membuat ulang API Key jika memang terisi.
+- Ada prosedur lupa password.
+
+0.0.1 21-10-2017
+----------------
+- Penambahan Field type pada route default 0
+- alter table routes add type not null default 0
+- Field ini digunakan untuk menentukan jenis-renderer 
+  - 0 Route Standar
+  - 1 Route JSON_RPC
+
+0.0 24-9-2017 aa.gusti
+----------------------
+- Penambahan tabel parameters
+
+0.0
+---
+- Initial version

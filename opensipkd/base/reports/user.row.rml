@@ -1,0 +1,5 @@
+<tr>
+    <td style="tableBody">{user_name}</td>
+    <td style="tableBody"><para style="tableBody">{email}</para></td>
+    <td style="tableBody">{registered_date}</td>
+</tr>

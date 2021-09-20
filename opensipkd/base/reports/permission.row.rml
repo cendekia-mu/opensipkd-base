@@ -1,0 +1,4 @@
+<tr>
+    <td style="tableBody">{perm_name}</td>
+    <td style="tableBody">{description}</td>
+</tr>

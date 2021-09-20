@@ -1,0 +1,118 @@
+<html metal:use-macro="load: base.pt">
+<div metal:fill-slot="content">
+<style>
+    .box { padding:25px; color:#fff; min-height:150px; font-size:14px;
+	    line-height:30px; display:block; }
+    .box i { font-size:30px; margin:0px 5px; }
+    .box img { max-width:100%;max-height:120px }
+    .about { background: #138d9c; }
+    .appname { background: #5d41af; padding:0px; }
+    .module a { background: #ac284f; color:#fff !important; text-decoration:none !important; }
+    .module i { margin-top:25px; }
+    .module:nth-child(2n) a { background: #3372d9; }
+    .module:nth-child(4n) a { background: #138d9c; }
+    .module:nth-child(5n) a { background: #0f850e; }
+    .module:nth-child(3n) a { background: #1956af; }
+    .module .box i { font-size:45px;display:block; }
+    .module .box span { font-size:18px; line-height:18px; }
+    .boxf { background: #890f95; min-height:40px; }
+    .boxf img { height:32px; margin:0px 15px }
+    .about-text { font-size:24px;font-weight:normal; }
+    .about-appname { font-size:25px; font-weight:normal; letter-spacing: 1px; }
+    .about-company { font-size:28px; font-weight:bold; letter-spacing: 1px; }
+    .padding-thin { padding:2px }
+    .padding-medium { padding:15px }
+    .padding-high { padding:15px }
+    .no-padding { padding:0px }
+    .bold { font-weight:bold }
+    .box i.icon-normal { font-size:18px }
+    .modal h1 { text-align:center; color:#57889c }
+    .modal .modal-body { font-size:15px }
+    .modal .modal-body img { width:100%; margin-bottom:10px }
+    .modal .modal-body img.powered { height:30px; width:auto; }
+    img.icon-modul { display:block; max-width:80px; }
+    .organization { display:block; line-height:20px; font-weight:normal; }
+</style>
+    <!-- MAIN CONTENT -->
+    <div id="content" class="container">
+        <div class="row">
+            <div class="col-sm-10 col-sm-offset-1">
+                <!--div class="col-sm-4 padding-thin">
+                    <div class="box about">
+                        <a href="#" data-toggle="modal"
+                           data-target="#about-us"
+                           style="color:#fff; text-decoration:none;">
+                            <i class="fa fa-info-circle"></i>
+                            <span class="about-text">Powered by</span>
+                            <img id="" src="${home}static/img/opensipkd.png"
+			         alt="">
+                        </a>
+                    </div>
+                </div-->
+                <div class="col-sm-12 padding-thin">
+                    <div class="box appname">
+                        <div class="col-sm-3 padding-medium" align="center">
+                            <img src="${home}static/img/logo.png" alt="">
+                        </div>
+                        <div class="col-sm-9 padding-high">
+                            <span class="about-appname">${request.app_name}</span><br>
+                            <span class="about-company">${request.company}</span><br>
+                            <b tal:condition="request.user" class="organization">
+                            ${'departemen_nm' in request.session and 'ORGANISASI : '+request.session['departemen_nm'] or ''}</b>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 no-padding" align="center">
+                    <div tal:repeat="modul modules" class="col-sm-3 col-xs-6 module padding-thin">
+                        <a href="${home}${modul}" icon="${modul.replace('/','_')}" class="box">
+                            <img alt="" class="icon-modul" src="${home}static/icon/${modul.replace('/','_')}.png">
+                            <span>${modules[modul]}</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+<div id="about-us" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <h1>ABOUT <span class="bold">OPENSIPKD</span></h1>
+        <img src="${home}static/img/slide-home-3.jpg" alt="">
+        Kami adalah perusahaan yang bergerak di bidang perancangan dan pembuatan aplikasi keuangan yang telah digunakan oleh Pemerintah Daerah.<br>
+        Aplikasi ini dibangun dengan menggunakan platform Open Source yang terdiri dari :
+        <div class="clearfix" style="margin-top:20px"></div>
+        <div class="col-sm-6">
+            <img class="powered" src="${home}static/img/python.png" alt=""> <a href="https://www.python.org/">Python</a><br>
+            <img class="powered" src="${home}static/img/pyramid.png" alt=""> <a href="http://pylonsproject.org/">Pyramid</a><br>
+            <a href="https://pypi.python.org/pypi/ziggurat-foundations">Ziggurat Foundations</a><br>
+            <a href="http://docs.pylonsproject.org/projects/pyramid-chameleon/en/latest/">Chameleon</a><br>
+            <a href="http://docs.pylonsproject.org/projects/deform/">Deform</a>
+        </div>
+        <div class="col-sm-6">
+            <img class="powered" src="${home}static/img/bootstrap.png" alt=""> <a href="http://getbootstrap.com">Bootstrap</a><br>
+            <img class="powered" src="${home}static/img/smartadmin.png" alt=""> <a href="https://github.com/kalichaudhary/SmartAdmin">Smart Admin</a><br>
+            <img class="powered" src="${home}static/img/postgree.png" alt=""> <a href="http://postgresql.org">Postgres SQL</a>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<script metal:fill-slot="scripts">
+$( ".module a" ).each(function() {
+    var modul = $(this);
+    var modulenm = modul.attr('icon');
+    $.ajax({
+        url:'${home}static/icon/'+ modulenm+'.png',
+        type:'HEAD',
+        error: function()
+        {
+          modul.find('img.icon-modul').attr('src','${home}static/icon/default.png');
+        },
+    });
+});
+</script>
+</html>

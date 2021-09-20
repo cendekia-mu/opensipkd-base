@@ -1,0 +1,170 @@
+<div metal:use-macro="load: ../main.pt">
+  <div metal:fill-slot="content">
+    <div class="jarviswidget" style="border-top:1px solid #ccc!important">
+      <div role="content">
+        <table id="table1" class="table table-bordered table-hover table-condensed">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nama Group</th>
+            <th>Deskripsi</th>
+            <th>Jml. Anggota</th>
+          </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript" metal:fill-slot="scripts">
+    var mID;
+    var oTable;
+    var oTableUri = "${home}/group"
+    var oTableUrl = oTableUri + "/grid/act";
+
+    $(document).ready(function () {
+      oTable = $('#table1').DataTable({
+        dom: '<"row"<"col-md-8"<"toolbar">l><"col-md-4"f>>rtip',
+        processing: true,
+        serverSide: true,
+        ajax: oTableUrl,
+        stateSave: true,
+        scrollCollapse: true,
+        sort: true,
+        info: false,
+        filter: true,
+        autoWidth: false,
+        paginate: true,
+        paginationType: "full_numbers",
+
+        lengthMenu: [
+          [10, 25, 50, 100],
+          [10, 25, 50, 100]
+        ],
+        columnDefs: [{
+          searchable: false,
+          visible: false,
+          targets: [0]
+        }],
+        columns: [{
+          "data": "id"
+        },
+          {
+            "data": "name",
+            "width": "200px",
+            "class": "left"
+          },
+          {
+            "data": "desc"
+          },
+          {
+            "data": "member",
+            "width": "200px",
+            "class": "center"
+          },
+        ],
+        "language": {
+          "search": "Cari: ",
+          "paginate": {
+            "first": "Pertama ",
+            "last": "Akhir ",
+            "previous": "",
+            "next": "",
+          },
+          "lengthMenu": "Tampil _MENU_ baris "
+        },
+      });
+
+      var tb_array = [
+        '<div class="btn-group pull-left"> ',
+        '   <button id="btn_view" class="btn btn btn-warning" type="button" data-toggle="tooltip" title="View"> ' +
+        '     <i class="fa fa-eye"></i></button>',
+        '   <button id="btn_add" class="btn btn btn-success" type="button" data-toggle="tooltip" title="Tambah">' +
+        '     <i class="fa fa-plus"></i></button>',
+        '   <button id="btn_edit" class="btn btn btn-warning" type="button" data-toggle="tooltip" title="Ubah">' +
+        '     <i class="fa fa-edit"></i></button>',
+        '   <button id="btn_delete" class="btn btn btn-danger" type="button" data-toggle="tooltip" title="Hapus">' +
+        '     <i class="fa fa-trash-o"></i></button>',
+        '   <button id="btn_pdf" class="btn btn btn-primary" type="button" data-toggle="tooltip" title="PDF">' +
+        '     <i class="fa fa-file-pdf-o"></i></button>',
+        '   <button id="btn_csv" class="btn btn btn-primary" type="button" data-toggle="tooltip" title="CSV">' +
+        '     <i class="fa fa-file-excel-o"></i></button>',
+        '   <button id="btn_close" class="btn btn btn-warning" type="button" data-toggle="tooltip" title="Tutup">' +
+        '     <i class="fa fa-arrow-right"></i></button>',
+        '   &nbsp;',
+        '</div>',
+      ];
+      var tb = tb_array.join(' ');
+      $("div.toolbar").html(tb);
+      $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
+      $('#table1 tbody').on('click', 'tr', function () {
+        if ($(this).hasClass('selected')) {
+          $(this).removeClass('selected');
+        } else {
+          var aData = oTable.row(this).data();
+          oTable.$('tr.selected').removeClass('selected');
+          $(this).addClass('selected');
+          mID = aData.id;
+          console.log(mID);
+          oTable.$('tr.row_selected').removeClass('row_selected');
+          $(this).addClass('row_selected');
+          /*oTable2.fnReloadAjax("egaji/grid2?id=" + mID);*/
+        }
+      });
+
+      $('#btn_add').click(function () {
+        window.location = oTableUri + '/add';
+      });
+
+      $('#btn_edit').click(function () {
+        if (mID) window.location = oTableUri + '/' + mID + '/edit';
+        else
+          $.SmartMessageBox({
+            title: "Edit",
+            content: "Pilih Baris yang akan di edit...",
+            buttons: '[Oke]'
+          });
+        ;
+      });
+      $('#btn_view').click(function () {
+        if (mID) window.location = oTableUri + '/' + mID + '/view';
+        else
+          $.SmartMessageBox({
+            title: "View",
+            content: "Pilih Baris yang akan di lihat...",
+            buttons: '[Ok]'
+          });
+        ;
+      });
+
+      $('#btn_delete').click(function () {
+        if (mID) window.location = oTableUri + '/' + mID + '/delete';
+        else
+          $.SmartMessageBox({
+            title: "Hapus",
+            content: "Pilih Baris yang akan di hapus...",
+            buttons: '[Oke]'
+          });
+      });
+
+      $('#btn_csv').click(function () {
+        url = oTableUri + "/csv/rpt";
+        window.open(url);
+      });
+
+      $('#btn_pdf').click(function () {
+        url = oTableUri + "/pdf/rpt";
+        window.open(url);
+      });
+
+      $("#btn_close").click(function () {
+        window.location = '/';
+        return false;
+      });
+
+    });
+  </script>
+
+</div>

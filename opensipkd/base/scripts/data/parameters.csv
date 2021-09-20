@@ -1,0 +1,16 @@
+kode,value,nama
+company,open SIPKD, Nama Organisasi
+ibukota,BEKASI
+departement,Divisi Teknologi Informasi
+address_1,Jati Asih
+address_2,Bekasi
+unoconv_py,"",path_python_libreoffice
+unoconv_bin,"",env_unoconv_executable
+ocr_bin,"",path_for_ocr_executable
+menus,login:LOGIN,"List Menu Separated By comma"
+modules_default,"","Module Default"
+app_name,DEMO,"Nama Aplikasi"
+allow_register,False,"Allow User Self Register"
+change_unit,False,"Allow User to change Unit"
+departemen_chg_id,3,"Devault Level Departemen to change"
+default_group,Guest,"Default group for new user"

@@ -1,0 +1,13 @@
+perm_name,description
+admin,Administrator
+user-edit,User management
+user-view,User view
+user-group,User Group
+edit-title,Edit Title
+upload-logo,Upload Logo
+departemen,Departemen
+partner,Partner
+parameter,Parameter
+permission,Permission
+web-service,WEB SERVICE RPC
+departemen-all,Pindah antar Departemen

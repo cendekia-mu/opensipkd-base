@@ -1,0 +1,9 @@
+kode,nama,pangkat,ruang,tunjangan,status
+"II/A","Eselon II A",2,"A",4000000,1
+"II/B","Eselon II B",2,"B",8000000,1
+"III/A","Eselon III A",3,"A",5500000,1
+"III/B","Eselon III B",3,"B",5000000,1
+"IV/A","Eselon IV A",4,"A",3500000,1
+"IV/B","Eselon IV B",4,"B",2250000,1
+"V/A","Eselon V A",5,"A",1500000,1
+"STAFF","Staff",0,"0",1500000,1

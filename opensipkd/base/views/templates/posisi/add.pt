@@ -1,0 +1,131 @@
+<html metal:use-macro="load: ../base3.1.pt">
+  <div metal:fill-slot="content">
+  <div  class="panel panel-default">
+      <div class="panel-heading">
+          <h3 class="panel-title">${request.title}</h3>
+      </div>
+      <div class="panel-body">
+
+        <form method="post" accept-charset="utf-8" id="myform" class="form-horizontal" enctype="multipart/form-data">
+        <div class="alert alert-danger" tal:condition="form and form.error and True or False">
+          <div class="error-msg-lbl">Kesalahan Pengisian Form</div>
+          <p class="error-msg">${form.errormsg}</p>
+        </div>
+        <div class="form-group" tal:repeat="f form">
+            <div id="item-${f.oid}" style="${f.widget.hidden and 'display:none;' or 'display:block;'}">
+                <label for="${f.oid}" class="control-label col-md-2 ${f.required and 'required' or ''} " id="req-${f.oid}">
+                        ${f.title}</label>
+
+                <div class="col-md-3">
+                    ${structure:f.serialize()}
+                    <p id="error-${f.oid}" class="help-block" tal:condition="f.error"
+                       tal:repeat="error f.error.messages()">
+                       ${error}</p>
+                </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="control-label col-md-3"></label>
+            <button type="submit" class="btn btn-primary" id="simpan" name="simpan">Simpan</button>
+            <button type="submit" class="btn btn-warning" id="batal"  name="batal">Tutup</button>
+          </div>
+        </form>
+
+      </div>  <!--panel-body-->
+
+    </div>
+  </div>
+  <div metal:fill-slot="scripts">
+    <script type="text/javascript">
+      $(document).ready(function () {
+
+         $('#pegawai_nm').typeahead({
+            "hint"     : true,
+            "highlight": true,
+            "minLength": 1,
+            "remote"   : {
+                    url: "/partner/hon/act?term=%QUERY",
+                    beforeSend: function () {
+                        $('#partner_nm').addClass("loading");
+                    },
+                    filter: function(parsedResponse){
+                        $('#partner_nm').removeClass('loading');
+                        return parsedResponse;
+                    }
+            },
+        },{
+            "name"      : 'partner_nm',
+            "displayKey": 'value',
+        });
+
+        $('#partner_nm').bind('typeahead:selected', function(obj, datum, name) {
+          $('#partner_id').val(datum.id);
+          $('#partner_nm').val(datum.nama);
+        });
+
+        $('#departemen_nm').typeahead({
+            "hint"     : true,
+            "highlight": true,
+            "minLength": 1,
+            "remote"   : {
+                    url: "/departemen/hon/act?term=%QUERY",
+                    beforeSend: function () {
+                        $('#departemen_nm').addClass("loading");
+                    },
+                    filter: function(parsedResponse){
+                        $('#departemen_nm').removeClass('loading');
+                        return parsedResponse;
+                    }
+            },
+        },{
+            "name"      : 'departemen_nm',
+            "displayKey": 'value',
+        });
+
+        $('#departemen_nm').bind('typeahead:selected', function(obj, datum, name) {
+          $('#departemen_id').val(datum.id);
+        });
+
+
+
+         $('#jabatan_nm').typeahead({
+            "hint"     : true,
+            "highlight": true,
+            "minLength": 1,
+            "remote"   : {
+                    url: "/partner/departemen/hon_jabatannm/act?term=%QUERY",
+                    beforeSend: function () {
+                        $('#jabatan_nm').addClass("loading");
+                    },
+                    filter: function(parsedResponse){
+                        $('#jabatan_nm').removeClass('loading');
+                        return parsedResponse;
+                    }
+            },
+        },{
+            "name"      : 'jabatan_nm',
+            "displayKey": 'value',
+        });
+
+        $('#jabatan_nm').bind('typeahead:selected', function(obj, datum, name) {
+          $('#jabatan_id').val(datum.id);
+          $('#jabatan_nm').val(datum.value);
+          
+        });
+
+
+
+        $('#mulai, #selesai').attr('readonly',false);
+        $('#mulai, #selesai').datepicker({
+          changeMonth: true,
+          changeYear: true,
+          format:'dd-mm-yyyy'
+        });
+      });
+    </script>
+   </div>
+   <style metal:fill-slot="css_files">
+    .tt-suggestion p { text-transform:uppercase }
+   </style>
+</html>

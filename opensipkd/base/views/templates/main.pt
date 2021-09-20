@@ -1,0 +1,5 @@
+<html metal:use-macro="load: base3.1.pt">
+    <ol class="breadcrumb" metal:fill-slot="breadcrumb">
+        <li>${request.title}</li>
+    </ol>
+</html>

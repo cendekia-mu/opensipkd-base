@@ -1,0 +1,162 @@
+<html metal:use-macro="load: ../base3.1.pt">
+    <link metal:fill-slot="css_files" rel="stylesheet" type="text/css" media="screen" href="${request._host}/static/v3/css/custom-datatable.css">
+  <div metal:fill-slot="content">
+    <div class="jarviswidget" style="border-top:1px solid #ccc!important">
+        <div role="content">
+            <table id="table1" class="table table-bordered table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Kode</th>
+                        <th>Uraian</th>
+                        <th>Status</th>
+                        <th>Urusan</th>
+                        <th>Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+  <div metal:fill-slot="scripts">
+    <script>
+      var mID;
+      var mThn;
+      var oTable;
+      var iPos;
+      var oTableUrl = "${home}/departemen";
+      var oTableUri = oTableUrl+"/grid/act";
+      $(document).ready(function () {
+        oTable = $('#table1').DataTable({
+          dom           : '<"toolbar">lfrtip',
+          processing    : true,
+          serverSide    : true,
+          ajax          : oTableUri,
+          stateSave     : true,
+          scrollCollapse: true,
+          sort          : true,
+          info          : false,
+          filter        : true,
+          autoWidth     : false,
+          paginate      : true,
+          paginationType: "full_numbers",
+
+          lengthMenu: [
+              [10, 25, 50, 100],
+              [10, 25, 50, 100]
+          ],
+          columnDefs: [{
+                        searchable: false,
+                        visible: false,
+                        targets: [0]
+                    }],
+          columns: [
+              { "data": "id" },
+              { "data": "kode", "width": "100px", "class":"left"},
+              { "data": "nama" },
+              { "data": "status", "width": "100px", "class":"center",
+              "render": function (data, type, full, meta){
+                                           if (data==0) return 'Tidak Aktif';
+                                           else if (data==1) return 'Aktif';
+                                           else return "-";
+                                         }
+              },
+              { "data": "parent" },
+              { "data": "level_id" },
+          ],
+          "language": {
+                "search"  : "Cari: ",
+                "paginate":{
+                    "first"   : "Awal ",
+                    "last"    : "Akhir ",
+                    "previous": "",
+                    "next"    : "",
+                },
+                "lengthMenu": " _MENU_ baris "
+            }
+        });
+
+        var tb_array = [
+          '<div class="btn-group pull-left">',
+          ' <button id="btn_view" class="btn btn btn-warning"  type="button" data-toggle="tooltip" title="View"> <i class="fa fa-eye"></i></button>',
+          ' <button id="btn_add" class="btn btn btn-success" type="button" data-toggle="tooltip" title="Tambah"><i class="fa fa-plus"></i></button>',
+          ' <button id="btn_edt" class="btn btn btn-warning" type="button" data-toggle="tooltip" title="Koreksi"><i class="fa fa-edit"></i></button>',
+          ' <button id="btn_del" class="btn btn btn-danger" type="button" data-toggle="tooltip" title="Hapus"><i class="fa fa-trash-o"></i></button>',
+          ' <button id="btn_upload" class="btn btn btn-warning" type="button" data-toggle="tooltip" title="Upload"><i class="fa fa-upload"></i></button>',
+          ' <button id="btn_print" class="btn btn btn-primary" type="button" data-toggle="tooltip" title="PDF"><i class="fa fa-file-pdf-o"></i></button>',
+          ' <button id="btn_csv" class="btn btn btn-primary" type="button" data-toggle="tooltip" title="CSV"><i class="fa fa-file-excel-o"></i></button>',
+          ' <button id="btn_close" class="btn btn btn-warning" type="button" data-toggle="tooltip" title="Tutup"><i class="fa fa-arrow-right"></i></button>',
+          ' &nbsp;',
+          '</div>',
+        ];
+
+        var tb = tb_array.join(' ');
+        $("div.toolbar").html(tb);
+        $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
+        $('#table1 tbody').on('click', 'tr', function () {
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+            } else {
+                var aData = oTable.row( this ).data();
+                oTable.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+                mID = aData.id;
+                console.log(mID);
+                //oTable.$('tr.row_selected').removeClass('row_selected');
+                //$(this).addClass('row_selected');
+            }
+        });
+
+        $('#btn_add').click(function () {
+            window.location = oTableUrl+'/add';
+        });
+
+        $('#btn_edt').click(function () {
+            if (mID) window.location = oTableUrl+'/'+mID+'/edt';
+            else alert('Pilih Baris yang akan di koreksi');
+        });
+		$('#btn_view').click(function() {
+                if (mID) window.location = oTableUri + '/' + mID + '/view';
+                else
+                $.SmartMessageBox({
+                    title : "View",
+                    content : "Pilih Baris yang akan di lihat...",
+                    buttons : '[Ok]'
+                });;
+            });
+
+        $('#btn_del').click(function () {
+            if (mID) window.location = oTableUrl+'/'+mID+'/del';
+            else alert('Pilih Baris yang akan di hapus');
+        });
+// #edit
+        // $('#btn_print').click(function () {
+        //     window.location = oTableUrl+'/pdf/rpt';
+        //     window.open(url);
+        // });
+        $('#btn_print').click(function () {
+            url = oTableUrl+"/pdf/rpt";
+            window.open(url);
+        });
+        $('#btn_csv').click(function () {
+            url = oTableUrl+"/csv/rpt";
+            window.open(url);
+        });
+        $('#btn_upload').click(function () {
+            url = oTableUrl+"/upload";
+            window.location = url;
+        });
+        // $('#btn_csv').click(function () {
+        //     window.location = oTableUrl+'/csv/rpt';
+        //     window.open(url);
+        // });
+        $("#btn_close").click(function () {
+            window.location = '/core';
+            return false;
+        });
+        })
+    </script>
+  </div>
+</html>

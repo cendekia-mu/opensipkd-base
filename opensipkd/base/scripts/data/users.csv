@@ -1,0 +1,3 @@
+email,status,user_name
+admin@local.host,1,admin
+guest@local.host,1,guest

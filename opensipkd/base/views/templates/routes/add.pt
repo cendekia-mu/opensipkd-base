@@ -1,0 +1,49 @@
+<html metal:use-macro="load: ../main.pt">
+
+    <!-- content -->
+    <div metal:fill-slot="content">
+
+        <div class="row">
+            <div class="col-sm-12 col-md-12 col-lg-6 col-lg-offset-3">
+
+                <div  class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Tambah Route</h3>
+                    </div>
+
+                    <div class="panel-body">
+                        <div class="alert alert-danger" tal:condition="form and form.error and True or False">
+                            <div class="error-msg-lbl">Kesalahan Pengisian Form</div>
+                            <p class="error-msg">${form.errormsg}</p>
+                        </div>
+
+                        <form method="post" accept-charset="utf-8" id="myform" class="form-horizontal" enctype="multipart/form-data">
+                            <div class="form-group" tal:repeat="f form">
+                                <div id="item-${f.oid}" style="${f.widget.hidden and 'display:none;' or 'display:block;'}">
+                                    <label for="${f.oid}" class="control-label col-md-4 ${f.required and 'required' or ''} " id="req-${f.oid}">
+                                    ${f.title}</label>
+                                    <div class="col-md-8">
+                                        ${structure:f.serialize()}
+                                        <p id="error-${f.oid}" class="help-block" tal:condition="f.error"
+                                            tal:repeat="error f.error.messages()">
+                                            ${error}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pull-right">
+                                <button type="submit" class="btn btn-primary" id="simpan" name="simpan">Simpan</button>
+                                <button type="submit" class="btn btn-warning" id="batal"  name="batal">Tutup</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- end content -->
+
+</html>
