@@ -18,12 +18,12 @@ Buat Python Virtual Environment, biasanya pada home directory::
 Install Production
 ------------------
 
-    $ ~/env/bin/pippip install git+https://git.opensipkd.com/bekasi/base.git@ciamis
+    $ ~/env/bin/pip install git+https://git.opensipkd.com/aa.gusti/opensipkd-base.git
     $ cp ~/env/etc/live_opensipkd.tpl  ~/env/etc/live_opensipkd.ini 
 
 Install Development::
 -------------------
-
+    $ source ~/env/bin/activate 
     $ mkdir apps
     $ cd apps
     $ git clone https://git.opensipkd.com/bekasi/base.git@ciamis
@@ -38,9 +38,11 @@ pada baris berikut ini::
 
     [alembic_ziggurat]
     sqlalchemy.url = postgresql://user:password@localhost:5432/db
+    script_location = ziggurat_foundation:migration
 
     [alembic_base]
     sqlalchemy.url = postgresql://user:password@localhost:5432/db
+    script_location = opensipkd.base:alembic
 
 Handling Log File:
 ==================
