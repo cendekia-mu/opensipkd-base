@@ -15,15 +15,15 @@
   <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-skins.min.css">
 
   <!-- Bootstrap core CSS -->
-  <link href="${home}static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="${home}static/v3/css/bootstrap.min.css" rel="stylesheet">
 
   <!-- Font Awesome -->
   <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/font-awesome.min.css">
 
   <!-- Jquery CSS -->
-  <link href="${home}static/jqueryui/themes/smoothness/jquery-ui.min.css" rel="stylesheet">
+  <link href="${home}static/v3/plugin/jqueryui/themes/base/jquery-ui.min.css" rel="stylesheet">
   <!-- DataTables -->
-  <link href="${home}static/datatables/1.10/media/css/dataTables.bootstrap.css" rel="stylesheet">
+  <link href="${home}static/v3/plugin/datatables/1.10/media/css/dataTables.bootstrap.css" rel="stylesheet">
 
   <link href="${home}deform_static/css/form.css" rel="stylesheet">
   <link href="${home}deform_static/css/typeahead.css" rel="stylesheet">
@@ -139,17 +139,17 @@
     <!-- Bootstrap core JavaScript
       ================================================== -->
       <!-- Placed at the end of the document so the pages load faster -->
-      <script type="text/javascript" src="${home}static/jquery/jquery.min.js"></script>
-      <script type="text/javascript" src="${home}static/jqueryui/jquery-ui.js"></script>
+      <script type="text/javascript" src="${home}static/v3/js/jquery-2.1.1.min.js"></script>
+      <script type="text/javascript" src="${home}static/v3/js/jquery-ui-1.10.3.min.js"></script>
       <script type="text/javascript">
         // Change JQueryUI plugin names to fix name collision with Bootstrap.
         $.widget.bridge('uitooltip', $.ui.tooltip);
         $.widget.bridge('uibutton', $.ui.button);
       </script>
-      <script type="text/javascript" src="${home}static/bootstrap/js/bootstrap.min.js"></script>
-      <script type="text/javascript" src="${home}static/datatables/1.10/media/js/jquery.dataTables.min.js"></script>
-      <script type="text/javascript" src="${home}static/datatables/1.10/media/js/dataTables.bootstrap.js"></script>
-      <script type="text/javascript" src="${home}static/datatables/1.10/media/js/jquery.dataTables.ext.js"></script>
+      <script type="text/javascript" src="${home}static/v3/js/bootstrap/bootstrap.min.js"></script>
+      <script type="text/javascript" src="${home}static/v3/plugin/datatables/1.10/media/js/jquery.dataTables.min.js"></script>
+      <script type="text/javascript" src="${home}static/v3/plugin/datatables/1.10/media/js/dataTables.bootstrap.js"></script>
+      <script type="text/javascript" src="${home}static/v3/plugin/datatables/1.10/media/js/jquery.dataTables.ext.js"></script>
       <script type="text/javascript" src="${home}deform_static/scripts/deform.js"></script>
       <script type="text/javascript" src="${home}deform_static/scripts/typeahead.min.js"></script>
       <script type="text/javascript" src="${home}static/js/tools.js"></script>

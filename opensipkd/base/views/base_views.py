@@ -2,7 +2,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from pyramid.httpexceptions import HTTPFound
 
-from .. import DBSession
+from .. import DBSession, get_params
 from opensipkd.tools import dmy, dmy_to_date, get_settings
 import colander
 from deform import (widget, Form, ValidationFailure, )
@@ -118,6 +118,8 @@ class BaseView(object):
     @staticmethod
     def form_validator(form, value):
         pass
+    def get_params(self, params):
+        return get_params(params)
 
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel)):
         schema = class_form(validator=self.form_validator)

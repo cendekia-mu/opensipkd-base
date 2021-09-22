@@ -81,6 +81,7 @@ def view_login(request):
             set_user_log(msg, request, log, identity)
             request.session.flash(msg, 'error')
             return HTTPFound(location=request.route_url('login'))
+
         values = dict(c)
         # start cek external module
         pckgs = get_params('external-uim')
@@ -105,7 +106,8 @@ def view_login(request):
                 msg = "Login Gagal"
                 set_user_log(msg, request, log, identity)
                 request.session.flash(msg, "error")
-                return HTTPFound(location=request.route_url('login'))
+                next_url=f"{request.route_url('login')}?next={next_url}"
+                return HTTPFound(location=next_url)
 
         return redirect_login(request, user)
 
@@ -160,7 +162,7 @@ def redirect_login(request, user):
         url = get_params('modules_default', 'home')
         return HTTPFound(location=request.route_url(url),
                              headers=headers)
-    return HTTPFound(location=request.url, headers=headers)
+    return HTTPFound(location=next_url, headers=headers)
 
 
 @view_config(route_name='logout', renderer="templates/logout.pt")
