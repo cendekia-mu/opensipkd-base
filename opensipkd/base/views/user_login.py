@@ -332,8 +332,9 @@ def regenerate_security_code(user):
 
 @view_config(route_name='reset-password', renderer='templates/reset-password.pt')
 def view_reset_password(request):
-    if request.authenticated_userid(request):
+    if request.authenticated_userid:
         return HTTPFound(location=f"{request.route_url('home')}")
+
     resp = dict(title=_('Reset password'))
     schema = ResetPassword(validator=reset_password_validator)
     btn_submit = Button('submit', _('Send password reset email'))
