@@ -66,6 +66,7 @@ setup(
                                 'base/reports/*.*',
                                 'base/alembic/*.*',
                                 'base/alembic/versions/*.*',
+                                'base/views/*.tpl',
                                 ],},
     data_files=[('etc',['etc/live_opensipkd.tpl',
                         'etc/test_opensipkd.tpl',])],

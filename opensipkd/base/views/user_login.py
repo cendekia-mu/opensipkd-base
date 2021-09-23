@@ -200,7 +200,7 @@ def change_password_validator(form, value):
 
 @view_config(route_name='change-password', renderer='templates/change-password.pt')
 def view_change_password(request):
-    if request.authenticated_userid(request):
+    if request.authenticated_userid:
         request.session.flash('Anda sudah login', 'error')
         return HTTPFound(location=f"{request.route_url('home')}")
     schema = ChangePassword(validator=change_password_validator)
@@ -300,7 +300,7 @@ def send_email_security_code(
     # if 'base_url' not in settings:
     #     return
 
-    url = '{}/password/{}'.format(
+    url = '{}password/{}'.format(
         request.route_url('home'), user.security_code)
     minutes = int(time_remain.seconds / 60)
     data = dict(url=url, minutes=minutes)
