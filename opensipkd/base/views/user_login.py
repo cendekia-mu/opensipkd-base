@@ -297,11 +297,11 @@ def send_email_security_code(
             or 'mail.username' not in settings:
         return
 
-    if 'base_url' not in settings:
-        return
+    # if 'base_url' not in settings:
+    #     return
 
     url = '{}/password/{}'.format(
-        settings['base_url'], user.security_code)
+        request.route_url('home'), user.security_code)
     minutes = int(time_remain.seconds / 60)
     data = dict(url=url, minutes=minutes)
     here = os.path.abspath(os.path.dirname(__file__))
