@@ -95,7 +95,9 @@
 <div metal:fill-slot="scripts">
   <script tal:condition=captcha>
     $(document).ready(function () {
-      $("#captcha").parent().prepend('<img style="height:30px; width:auto; margin-bottom:5px;" src="/captcha/${captcha}.png">')
+      $("#captcha").parent().prepend(
+              '<img style="height:30px; width:auto; margin-bottom:5px;" ' +
+              'src="${home}/captcha/${captcha}.png">')
     
       $('#captcha').on('input', function(evt) {
           $(this).val(function(_, val) {

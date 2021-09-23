@@ -50,7 +50,7 @@ class RegSchema(colander.Schema):
         colander.String(),
         validator=colander.Length(max=18, max_err='Maximum ${max} Digit',
                                   min=15, min_err='Minimimum ${min} Digit'),
-        title="NIK",
+        title="No.Identitas/NIK",
         oid="kode")
     detail = NamaSchema()
     captcha = colander.SchemaNode(

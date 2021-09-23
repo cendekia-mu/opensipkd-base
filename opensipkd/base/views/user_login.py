@@ -25,6 +25,7 @@ from importlib import import_module
 import colander
 from deform import widget, Form, ValidationFailure, Button
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+from pyramid.renderers import render_to_response
 from pyramid.security import remember, forget
 from pyramid.view import view_config
 from ziggurat_foundations.models.services.external_identity import ExternalIdentityService
@@ -61,6 +62,7 @@ def get_login_headers(request, user):
 @view_config(route_name='login', renderer='templates/login.pt')
 def view_login(request):
     next_url = request.params.get('next', request.referrer)
+    login_tpl = get_params('login_tpl', 'templates/login.pt')
     if not next_url:
         next_url = request.route_url('home') # get_params('_host')+
 
@@ -145,12 +147,16 @@ def view_login(request):
             return redirect_login(request, user)
     message=""
     login=""
-    return dict(form=form.render(),
-        message=message,
-        url=request.route_url('login'),
-        next_url=next_url,
-        login=login,
-    )
+    return render_to_response(login_tpl,
+                              dict(form=form.render(),
+                                  message=message,
+                                  url=request.route_url('login'),
+                                  next_url=next_url,
+                                  login=login,),
+                              request=request)
+
+    # return dict(
+    # )
 
 
 def redirect_login(request, user):
