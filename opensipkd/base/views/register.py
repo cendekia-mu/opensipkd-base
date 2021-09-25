@@ -13,6 +13,7 @@ from opensipkd.tools import get_settings
 from opensipkd.tools.captcha import get_captcha
 from ziggurat_foundations.models.services.user import UserService
 from .user_group import save as save_groups
+
 _ = TranslationStringFactory('user')
 
 
@@ -62,7 +63,6 @@ class RegEditSchema(colander.Schema):
     kode = colander.SchemaNode(
         colander.String(),
         widget=widget.TextInputWidget(readonly=True),
-        missing=colander.drop,
         title="NIK",
         oid="kode")
     detail = NamaSchema()
@@ -75,7 +75,16 @@ class RegEditSchema(colander.Schema):
         colander.Integer(),
         missing=colander.drop,
         widget=widget.HiddenWidget(readonly=True),
-        )
+    )
+
+    def after_bin(self, schema, kwargs):
+        request = kwargs["request"]
+        if "kode" not in request.params:
+            self.kode["widget"] = widget.TextInputWidget()
+        if "email" in request.params:
+            print(self.detail)
+            self.detail.email["widget"] = widget.TextInputWidget(readonly=True)
+            self.detail.email["missing"] = colander.drop
 
 
 def email_found_user(email):
@@ -181,13 +190,11 @@ def form_validator(form, value):
             err_email()
 
 
-def get_form(request, class_form, buttons=None, validator=form_validator):
+def get_form(request, class_form, buttons=('batal', 'simpan'),
+             validator=form_validator):
     schema = class_form(validator=validator)
-    schema = schema.bind()
-    schema.request = request
-    if buttons:
-        return Form(schema, buttons=buttons)
-    return Form(schema, buttons=('batal', 'simpan'))
+    schema = schema.bind(request = request)
+    return Form(schema, buttons=buttons)
 
 
 def save_partner(values, row=None):
@@ -228,12 +235,12 @@ def save_request(values, request, row=None):
         # if not external identity send security code
         if 'external' not in request.session or not request.session['external']:
             send_email_security_code(
-                 request, user, remain, 'Welcome new user', 'email-new-user',
-                 'email-new-user.tpl')
+                request, user, remain, 'Welcome new user', 'email-new-user',
+                'email-new-user.tpl')
             data = dict(email=user.email)
             ts = _(
                 'user-added',
-                default='${email} berhasil ditambahkan dan email untuk ubah '\
+                default='${email} berhasil ditambahkan dan email untuk ubah ' \
                         'kata kunci sudah dikirim.',
                 mapping=data)
             request.session.flash(ts)
@@ -249,15 +256,15 @@ def save_request(values, request, row=None):
     row = save_partner(values, row)
     ##Untuk SIMKEL##
     settings = get_settings()
-    if 'default_group'in settings:
+    if 'default_group' in settings:
         groups = settings['default_group'].split(',')
         for group in groups:
             group_data = Group.query_group_name(group).first()
             if not group_data:
-                raise custom_error(-1,"Group Not Found.")
-            data = dict(group_id = group_data.id,
-                        user_id = user.id)
-            save_groups(data,None)
+                raise custom_error(-1, "Group Not Found.")
+            data = dict(group_id=group_data.id,
+                        user_id=user.id)
+            save_groups(data, None)
     return row
 
 
@@ -273,15 +280,16 @@ def reg_buttons():
 
 
 class RegistrasiAdd(BaseView):
-    @view_config(route_name='register', renderer='templates/register.pt')
+    @view_config(route_name='register', renderer='templates/form_input.pt')
     def view_add(self):
         request = self.req
         if request.user:
-            partner = Partner.query_user_id(request.user.id).first()
-            if partner:
-                return HTTPFound(location=request.route_url("profile", id=partner.id))
+            # partner = Partner.query_user_id(request.user.id).first()
+            # if partner:
+            return HTTPFound(location=request.route_url("profile"))
 
         form = get_form(request, RegSchema, reg_buttons())
+
         if request.POST:
             if 'register' in request.POST:
                 controls = request.POST.items()
@@ -295,7 +303,7 @@ class RegistrasiAdd(BaseView):
                 request.session.flash('Registrasi Sukses.')
 
                 if 'captcha' in request.session:
-                    del(request.session['captcha'])
+                    del (request.session['captcha'])
 
             return route_list(request)
         values = {}
@@ -303,9 +311,10 @@ class RegistrasiAdd(BaseView):
             values['email'] = request.user.email
 
         form.set_appstruct(values)
-        return dict(form=form, captcha=get_captcha(request))
+        return dict(form=form.render(), captcha=get_captcha(request),
+                    scripts="")
 
-    @view_config(route_name='profile', renderer='templates/register-edt.pt',
+    @view_config(route_name='profile', renderer='templates/form_input.pt',
                  permission='view')
     def es_reg_edt(self):
         request = self.req
@@ -332,19 +341,18 @@ class RegistrasiAdd(BaseView):
             values = row.to_dict()
             values['detail'] = row.to_dict()
         else:
-            values = dict(email=request.user.email)
+            values = dict(detail=dict(email=request.user.email))
 
         form.set_appstruct(values)
-        return dict(form=form)
+        return dict(form=form.render(), scripts="")
 
 
 ########
 # Edit #
 ########
 def query_id(request):
-
-    return DBSession.query(Partner).\
-        join(User, Partner.user_id == User.id).\
+    return DBSession.query(Partner). \
+        join(User, Partner.email == User.email). \
         filter(User.id == request.user.id)
 
 

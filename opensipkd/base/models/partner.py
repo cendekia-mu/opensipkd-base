@@ -74,3 +74,12 @@ class Partner(Base, PartnerModel):
     @classmethod
     def query_user(cls, user):
         return cls.query_user_id(user.id)
+
+    @classmethod
+    def query_identity(cls, ident):
+        row = cls.query().filter_by(kode=ident).first()
+        if not row:
+            row = cls.query().filter_by(email=ident).first()
+        if not row:
+            row = cls.query().filter_by(mobile=ident).first()
+        return row

@@ -5,7 +5,7 @@ from alembic import context
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
-    )
+)
 from sqlalchemy import engine_from_config
 from opensipkd.base.models.meta import Base
 
@@ -34,7 +34,8 @@ def run_migrations_offline():
     script output.
 
     """
-    context.configure(url=settings['sqlalchemy.url'])
+    context.configure(url=settings['sqlalchemy.url'],
+                      version_table='alembic_pbb_pelayanan')
     with context.begin_transaction():
         context.run_migrations()
 
@@ -52,7 +53,9 @@ def run_migrations_online():
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
-        helpers=helpers
+        helpers=helpers,
+        version_table='alembic_pbb_pelayanan',
+        version_table_schema='pbb'
     )
     try:
         with context.begin_transaction():
