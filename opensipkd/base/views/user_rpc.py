@@ -124,7 +124,7 @@ def validasi_data(dat):
     return dat
 
 
-def register_user_(data, user):
+def register_user_(data, user, groups=None):
     is_list = isinstance(data, list)
     if is_list:
         data_list = data
@@ -173,6 +173,15 @@ def register_user_(data, user):
                 data['group_id'] = group_data.id
                 data['user_id'] = row.id
                 save_groups(data, None)
+
+        ret_groups = []
+        if groups:
+            for group in groups:
+                group_data = Group.query_group_name(group).first()
+                if group_data:
+                    row = save_groups(data, None)
+                    ret_groups.append(dict(group_name=group))
+            data['groups']=ret_groups
         result.append(data)
 
     if not is_list:
@@ -182,11 +191,11 @@ def register_user_(data, user):
 
 # url /rpc/user , permission='web-service'
 @jsonrpc_method(method='register', endpoint='rpc-user')
-def register_user(request, data):
+def register_user(request, data, groups=''):
     # Digunakan untuk registrasi user via aplikasi lain
     # parameter user_name, password, email, nama, mobile, nik
     user = auth_from_rpc(request)
-    result = register_user_(data, user)
+    result = register_user_(data, user, groups)
     return dict(message="Sukses Register User", data=result)
 
 
