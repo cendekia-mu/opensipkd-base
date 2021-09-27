@@ -173,14 +173,23 @@ def register_user_(data, user, groups=None):
                 data['group_id'] = group_data.id
                 data['user_id'] = row.id
                 save_groups(data, None)
-
+        if not groups:
+            raise Exception("Groups Kosong")
         ret_groups = []
         if groups:
-            for group in groups:
+            for group in groups.split(','):
                 group_data = Group.query_group_name(group).first()
+                if not group_data:
+                    print(group)
+                    raise Exception("Groups Data Kosong")
+
                 if group_data:
+                    data['group_id'] = group_data.id
+                    data['user_id'] = row.id
                     row = save_groups(data, None)
                     ret_groups.append(dict(group_name=group))
+                    del data['group_id']
+                    del data['user_id']
             data['groups']=ret_groups
         result.append(data)
 
