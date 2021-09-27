@@ -22,6 +22,7 @@ from ..views import ColumnDT, DataTables, BaseView
 SESS_ADD_FAILED = 'Tambah departemen gagal'
 SESS_EDIT_FAILED = 'Edit departemen gagal'
 
+
 def get_departemen_list():
     r = []
     q = DBSession.query(Departemen).order_by(Departemen.nama)
@@ -30,50 +31,53 @@ def get_departemen_list():
         r.append(g)
     return r
 
+
 @colander.deferred
 def departemen_widget(node, kw):
     values = kw.get('departemen_list', [])
     return widget.Select2Widget(values=values)
 
+
 class AddSchema(colander.Schema):
     parent_id = colander.SchemaNode(colander.Integer(),
-        widget=widget.HiddenWidget(), oid="parent_id", missing=colander.drop, )
+                                    widget=widget.HiddenWidget(), oid="parent_id", missing=colander.drop, )
 
     parent_nm = colander.SchemaNode(colander.String(), missing=colander.drop,
-        widget=AutocompleteInputWidget(size=60, min_length=3, ),
-        oid="parent_nm", title="Induk")
+                                    widget=AutocompleteInputWidget(size=60, min_length=3, ),
+                                    oid="parent_nm", title="Induk")
     parent_kd = colander.SchemaNode(colander.String(),
-        widget=widget.TextInputWidget(css_class="readonly"),
-        missing=colander.drop, oid="parent_kd", title="Kode Induk")
+                                    widget=widget.TextInputWidget(css_class="readonly"),
+                                    missing=colander.drop, oid="parent_kd", title="Kode Induk")
 
     kode = colander.SchemaNode(colander.String(),
-        validator=colander.Length(max=32), oid="kode")
+                               validator=colander.Length(max=32), oid="kode")
 
     nama = colander.SchemaNode(colander.String(), oid="nama")
 
     singkat = colander.SchemaNode(colander.String(), missing=colander.drop,
-        oid="singkat")
+                                  oid="singkat")
 
     kategori = colander.SchemaNode(colander.String(), missing=colander.drop,
-        oid="kategori")
+                                   oid="kategori")
 
     alamat = colander.SchemaNode(colander.String(), missing=colander.drop,
-        oid="alamat")
+                                 oid="alamat")
 
     status = colander.SchemaNode(colander.Boolean(), oid="status")
 
     def after_bind(self, schema, kwargs):
         request = kwargs["request"]
         self["parent_nm"] = colander.SchemaNode(colander.String(),
-            missing=colander.drop,
-            widget=AutocompleteInputWidget(size=60, min_length=3,
-                values=f"{request._host}/departemen/hon/act"), oid="parent_nm",
-            title="Induk", )
+                                                missing=colander.drop,
+                                                widget=AutocompleteInputWidget(size=60, min_length=3,
+                                                                               values=f"{request._host}/departemen/hon/act"),
+                                                oid="parent_nm",
+                                                title="Induk", )
 
 
 class EditSchema(AddSchema):
     id = colander.SchemaNode(colander.String(), missing=colander.drop,
-        widget=widget.HiddenWidget(readonly=True))
+                             widget=widget.HiddenWidget(readonly=True))
 
 
 class ViewDepartemen(BaseView):
@@ -237,11 +241,11 @@ class ViewDepartemen(BaseView):
         dep_alias = aliased(Departemen)
         if url_dict['act'] == 'grid':
             columns = [ColumnDT(Departemen.id, mData='id'),
-                ColumnDT(Departemen.kode, mData='kode'),
-                ColumnDT(Departemen.nama, mData='nama'),
-                ColumnDT(dep_alias.nama, mData='parent'),
-                ColumnDT(Departemen.status, mData='status'),
-                ColumnDT(Departemen.level_id, mData='level_id'), ]
+                       ColumnDT(Departemen.kode, mData='kode'),
+                       ColumnDT(Departemen.nama, mData='nama'),
+                       ColumnDT(dep_alias.nama, mData='parent'),
+                       ColumnDT(Departemen.status, mData='status'),
+                       ColumnDT(Departemen.level_id, mData='level_id'), ]
             query = DBSession.query().select_from(Departemen).outerjoin(
                 dep_alias, Departemen.parent_id == dep_alias.id)
             row_table = DataTables(request.GET, query, columns)
@@ -249,10 +253,10 @@ class ViewDepartemen(BaseView):
 
         elif url_dict['act'] == 'hon':
             term = 'term' in params and params['term'] or ''
-            q = DBSession.query(Departemen).filter(Departemen.status == 1,
-                                                   Departemen.nama.ilike(
-                                                       '%%%s%%' %
-                                                       term)).order_by(
+            q = DBSession.query(Departemen). \
+                filter(Departemen.status == 1,
+                       Departemen.nama.ilike('%%%s%%' % term)) \
+                .order_by(
                 Departemen.nama)
             rows = q.all()
             r = []
@@ -264,13 +268,12 @@ class ViewDepartemen(BaseView):
 
         elif url_dict['act'] == 'honk':
             term = 'term' in params and params['term'] or ''
-            q = DBSession.query(Departemen).filter(Departemen.status == 1,
-                                                   func.concat(Departemen.nama,
-                                                               ';',
-                                                               Departemen.kode).ilike(
-                                                       '%%%s%%' %
-                                                       term)).order_by(
-                Departemen.nama)
+            q = DBSession.query(Departemen) \
+                .filter(Departemen.status == 1,
+                        func.concat(Departemen.nama, ';',
+                                    Departemen.kode) \
+                        .ilike('%%%s%%' % term)) \
+                .order_by(Departemen.nama)
             rows = q.all()
             r = []
             for k in rows:

@@ -367,7 +367,8 @@ def save_request(request, values, row=None):
             values['selesai'] = date_from_str(values['selesai'])
         else:
             values['selesai'] = None
-    query_struktural = PartnerDBSession.query(Jabatan.jenis).filter(Jabatan.id == values['jabatan_id']).first()
+    query_struktural = DBSession.query(Jabatan.jenis).\
+        filter(Jabatan.id == values['jabatan_id']).scalar()
     values['struktural_id'] = query_struktural
     row = save(values, request, row)
     request.session.flash('Posisi Partner sudah disimpan.')

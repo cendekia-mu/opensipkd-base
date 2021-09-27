@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from email.utils import parseaddr
 
 import transaction
@@ -17,9 +18,8 @@ from .user import add_member_count
 from .user import save_user
 from .user_group import save as save_groups
 from .. import get_params, log
-from ..models import DBSession, UserService
-from ..models import (
-    User, Partner, Group, UserGroup)
+from ..models import DBSession, UserService, Departemen
+from ..models import (User, Partner, Group, UserGroup, PartnerDepartemen)
 from opensipkd.tools import create_now, get_settings
 from opensipkd.tools.api import custom_error
 from opensipkd.base.tools.api import (
@@ -229,13 +229,27 @@ def login_(request, data):
     for group in groups:
         group = group.to_dict()
         group_data.append(dict(group_name=group['group_name']))
+    now = datetime.now().date()
+    partner_dep = Departemen.query() \
+        .join(PartnerDepartemen, Departemen.id == PartnerDepartemen.departemen_id) \
+        .join(Partner, Partner.id == PartnerDepartemen.partner_id) \
+        .filter(Partner.email == row.email,
+                PartnerDepartemen.mulai <= now,
+                PartnerDepartemen.selesai >= now).first()
+    if partner_dep:
+        departemen = dict(id=partner_dep.id,
+                          kode=partner_dep.kode,
+                          nama=partner_dep.nama)
+    else:
+        departemen = None
 
     result = dict(user_name=row.user_name,
                   token=row.security_code,
                   nik=partner and partner.kode or '',
                   nama=partner and partner.nama or '',
                   is_pegawai=is_pegawai,
-                  group=group_data)
+                  group=group_data,
+                  departemens=departemen)
     result = is_list and [result] or result
     return dict(data=result)
 
@@ -277,7 +291,7 @@ def get_profile(request, data):
     auth_from_rpc(request)
     user = get_user(data)
     if not user or not UserService.check_password(user, data['password']):
-         raise JsonRpcInvalidLoginError
+        raise JsonRpcInvalidLoginError
     return get_profile_(user)
 
 
