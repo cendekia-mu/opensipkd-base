@@ -104,7 +104,7 @@ def validasi_data(dat):
     nik = ""
     if 'nik' in dat:
         nik = re.sub('\D', '', dat['nik'])
-        if len(nik) != 15:
+        if len(nik) != 16:
             log.info("Validasi NIK Error")
             raise JsonRpcInvalidNikError
 
