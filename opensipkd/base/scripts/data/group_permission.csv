@@ -4,6 +4,7 @@ group_id/groups.group_name,perm_name
 "Superuser","user-group"
 "Superuser","upload-logo"
 "Superuser","departemen"
+"Superuser","partner-departemen"
 "Superuser","partner"
 "Superuser","parameter"
 "Superuser","permission"

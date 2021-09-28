@@ -74,7 +74,7 @@
         });
 
         $("#btn_close").click(function () {
-          window.location = '${home}pbb/master';
+          window.location = '${home}';
           return false;
         });
 

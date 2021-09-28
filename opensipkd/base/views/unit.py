@@ -84,11 +84,32 @@ class ViewDepartemen(BaseView):
     def __init__(self, request):
         super(ViewDepartemen, self).__init__(request)
         self.form_scripts = """
-         $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
-              $('#parent_id').val(datum.id);
-              $('#parent_kd').val(datum.kode);
+        $(document).ready(function () {
+            $('#parent_nm').typeahead({
+                "hint"     : true,
+                "highlight": true,
+                "minLength": 1,
+                "remote"   : {
+                        url: "/departemen/hon/act?term=%QUERY",
+                        beforeSend: function () {
+                            $('#parent_nm').addClass("loading");
+                        },
+                        filter: function(parsedResponse){
+                            $('#parent_nm').removeClass('loading');
+                            return parsedResponse;
+                        }
+                },
+            },{
+                "name"      : 'parent_nm',
+                "displayKey": 'value',
+            });
+            $('#parent_nm').bind('typeahead:selected', function(obj, datum, name) {
+                  $('#parent_id').val(datum.id);
+                  $('#parent_kd').val(datum.kode);
 
-        });"""
+            });
+        });
+        """
 
         self.list_col_defs = json.dumps(
             [{"searchable": False, "visible": False, "targets": [0], }, {
@@ -355,7 +376,7 @@ class ViewDepartemen(BaseView):
     ########
     # Edit #
     ########
-    @view_config(route_name='departemen-edt',
+    @view_config(route_name='departemen-edit',
                  renderer='templates/form_input.pt', permission='departemen')
     def view_edt(self):
         request = self.req
@@ -381,7 +402,7 @@ class ViewDepartemen(BaseView):
     ##########
     # Delete #
     ##########
-    @view_config(route_name='departemen-del',
+    @view_config(route_name='departemen-delete',
                  renderer='templates/form_input.pt', permission='departemen')
     def view_delete(self):
         request = self.req
