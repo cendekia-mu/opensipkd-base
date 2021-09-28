@@ -77,9 +77,9 @@ partner-add,/partner/add,Partner Add
 departemen,/departemen,Organisasi
 departemen-act,/departemen/{act}/act,Organisasi Act
 departemen-add,/departemen/add,Organisasi Tambah
-departemen-edt,/departemen/{id}/edt,Organisasi Edit
+departemen-edit,/departemen/{id}/edit,Organisasi Edit
 departemen-view,/departemen/{id}/view,Organisasi view
-departemen-del,/departemen/{id}/del,Organisasi Hapus
+departemen-delete,/departemen/{id}/delete,Organisasi Hapus
 departemen-rpt,/departemen/{rpt}/rpt,Organisasi Report
 departemen-chg,/departemen/chg,Ubah Organisasi
 departemen-upload,/departemen/upload,Upload Departemen,1,0

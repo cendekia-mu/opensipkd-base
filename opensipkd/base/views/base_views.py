@@ -192,7 +192,8 @@ class BaseView(object):
 
     def get_values(self, row):
         d = row.to_dict()
-        d["tanggal"] = dmy(row.tanggal)
+        if 'tanggal' in d and d['tanggal']:
+            d["tanggal"] = dmy(row.tanggal)
         return d
 
     def view_edit(self):
