@@ -7,6 +7,8 @@ from sqlalchemy import (
     SmallInteger,
     DateTime
 )
+
+from . import DefaultModel
 from sqlalchemy.orm import (
     relationship,
     backref
@@ -83,3 +85,8 @@ class Partner(Base, PartnerModel):
         if not row:
             row = cls.query().filter_by(mobile=ident).first()
         return row
+
+class PartnerUserModel(Base, DefaultModel):
+    __tablename__ = 'partner_user'
+    partner_id = Column(Integer, ForeignKey(Partner.id))
+    user_id = Column(Integer, ForeignKey(User.id))
