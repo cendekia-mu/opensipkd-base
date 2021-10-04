@@ -170,7 +170,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     continue
             else:
                 row = table()
-
+            user = False
             for fname in cf:
                 if not fname:
                     continue
@@ -179,13 +179,23 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                 val = data[fname_orig]
                 if not val:
                     continue
-                setattr(row, fname_orig, val)
-                if fname_orig=="user_password":
-                    init_model()
-                    UserService.set_password(row, val)
+                if fname_orig == "user_password":
+                    user = True
+                    password = val
+                else:
+                    print(fname_orig)
+                    setattr(row, fname_orig, val)
 
             db_session.add(row)
             db_session.flush()
+            if user:
+                row = db_session.query(User).filter_by(id=row.id).first()
+                init_model()
+                UserService.set_password(row, password)
+                db_session.add(row)
+                db_session.flush()
+
+
             transaction.commit()  # diperlukan commit per record khususnya untuk yang internal link
 
 
@@ -236,6 +246,7 @@ def base_alembic_run(ini_file, name=None):
 def main(argv=sys.argv):
     if len(argv) != 2:
         usage(argv)
+
     config_uri = argv[1]
     setup_logging(config_uri)
     settings = get_appsettings(config_uri)

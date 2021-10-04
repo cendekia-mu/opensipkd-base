@@ -357,3 +357,17 @@ def id_not_found(request):
     msg = 'Partner ID %s Tidak Ditemukan.' % request.matchdict['id']
     request.session.flash(msg, 'error')
     return route_list(request)
+
+def get_partner_list():
+    r = []
+    q = DBSession.query(Partner).order_by(Partner.nama)
+    for row in q:
+        g = (str(row.id), (f"{row.kode}/ {row.nama}"))
+        r.append(g)
+    return r
+
+
+@colander.deferred
+def partner_widget(node, kw):
+    values = kw.get('partner_list', [])
+    return widget.Select2Widget(values=values)

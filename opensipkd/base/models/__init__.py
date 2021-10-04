@@ -368,6 +368,14 @@ class Holiday(Base, DefaultModel):
         return db_session.query(cls).filter_by(tanggal=tanggal)
 
 
+class UserDeviceModel(Base, KodeModel):
+    __tablename__ = 'user_device'
+    user_id=Column(Integer, ForeignKey(User.id))
+    kode = Column(String(256))
+    token = Column(String(256))
+    logged_in = Column(Integer)
+    las_login_date = Column(DateTime)
+
 # from .ws_user import WsUser
 from .targets import Targets
 from .departemen import Departemen, DepartemenUser
