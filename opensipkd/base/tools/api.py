@@ -55,11 +55,11 @@ def renew_token(user_device):
 def get_user_device(request, user):
     user_device = UserDeviceModel.query() \
         .filter_by(user_id=user.id,
-                   kode=request.headers.environ["HTTP_USER_AGENT"]).first()
+                   kode=request.environ["HTTP_USER_AGENT"]).first()
     if not user_device:
         user_device = UserDeviceModel()
         user_device.user_id = user.id
-        user_device.kode = request.headers.environ["HTTP_USER_AGENT"]
+        user_device.kode = request.environ["HTTP_USER_AGENT"]
         user_device.token = get_random_string(32)
         DBSession.add(user_device)
         DBSession.flush()

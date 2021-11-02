@@ -116,13 +116,13 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=None):
 # sperti salah route url asalkan kode msh sama
 def append_csv(table, filename, keys, get_file_func=get_file,
                db_session=DBSession, update_exist=False):
-    print(table, filename)
     with get_file_func(filename) as f:
         reader = csv.DictReader(f)
         filter_ = dict()
         foreigns = dict()
         is_first = True
         fmap = dict()
+        print(f, reader)
         for cf in reader:
             if is_first:
                 is_first = False
@@ -136,9 +136,19 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                         raise e
 
                     fname_orig = t[0]
+                    schema="public"
                     if t[1:]:
-                        foreign_table, foreign_field = t[1].split('.')
-                        foreign_table = Table(foreign_table, Base.metadata, autoload=True)
+                        t_array = t[1].split('.')
+                        if len(t_array)==2:
+                            foreign_table=t_array[0]
+                            foreign_field = t_array[1]
+                        else:
+                            schema=t_array[0]
+                            foreign_table=t_array[1]
+                            foreign_field = t_array[2]
+
+                        foreign_table = Table(foreign_table, Base.metadata, autoload=True,
+                                              schema=schema)
                         foreign_field = getattr(foreign_table.c, foreign_field)
                         foreigns[fname] = (foreign_table, foreign_field)
 
@@ -151,7 +161,6 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                 if fname in foreigns:
                     foreign_table, foreign_field = foreigns[fname]
                     value = cf[fname]
-                    vala = value
                     sql = select([foreign_table]).where(foreign_field == value)
                     q = Base.metadata.bind.execute(sql)
                     row = q.fetchone()
@@ -174,7 +183,6 @@ def append_csv(table, filename, keys, get_file_func=get_file,
             for fname in cf:
                 if not fname:
                     continue
-
                 fname_orig = fmap[fname]
                 val = data[fname_orig]
                 if not val:
@@ -183,7 +191,6 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     user = True
                     password = val
                 else:
-                    print(fname_orig)
                     setattr(row, fname_orig, val)
 
             db_session.add(row)
@@ -195,9 +202,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                 db_session.add(row)
                 db_session.flush()
 
-
             transaction.commit()  # diperlukan commit per record khususnya untuk yang internal link
-
 
 def ask_password(name):
     while True:

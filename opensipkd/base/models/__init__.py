@@ -2,7 +2,8 @@ from datetime import datetime
 
 import sqlalchemy as sa
 import ziggurat_foundations.models
-from pyramid.security import (Allow, Authenticated, ALL_PERMISSIONS)
+# from pyramid.security import (Allow, Authenticated, ALL_PERMISSIONS)
+from pyramid.authorization import (Allow, Authenticated, ALL_PERMISSIONS)
 from sqlalchemy import (
     Column, Integer, DateTime, ForeignKey, String, SmallInteger, func)
 from sqlalchemy.ext.hybrid import hybrid_property

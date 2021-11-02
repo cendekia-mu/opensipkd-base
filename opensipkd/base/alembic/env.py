@@ -35,7 +35,7 @@ def run_migrations_offline():
 
     """
     context.configure(url=settings['sqlalchemy.url'],
-                      version_table='alembic_pbb_pelayanan')
+                      version_table='alembic_base')
     with context.begin_transaction():
         context.run_migrations()
 
@@ -54,8 +54,8 @@ def run_migrations_online():
         connection=connection,
         target_metadata=target_metadata,
         helpers=helpers,
-        version_table='alembic_pbb_pelayanan',
-        version_table_schema='pbb'
+        version_table='alembic_base',
+        version_table_schema='public'
     )
     try:
         with context.begin_transaction():
