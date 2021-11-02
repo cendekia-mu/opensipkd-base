@@ -189,7 +189,7 @@ def register_user_(data, user, groups=None):
                     row = save_groups(data, None)
                     ret_groups.append(dict(group_name=group))
                     del data['group_id']
-                    del data['user_id']
+                    # del data['user_id']
             data['groups']=ret_groups
         result.append(data)
 

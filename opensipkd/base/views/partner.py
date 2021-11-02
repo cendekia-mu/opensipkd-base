@@ -17,6 +17,7 @@ from opensipkd.tools.buttons import btn_save, btn_cancel, btn_delete
 
 from ..models import DBSession
 from ..models import Partner
+from ..models.partner import PartnerUserModel
 from ..views import ColumnDT, DataTables, BaseView
 
 SESS_ADD_FAILED = 'Tambah partner gagal'
@@ -266,6 +267,10 @@ class ViewPartner(BaseView):
         form = get_form(request, EditSchema, buttons=(btn_delete, btn_cancel,))
         if request.POST:
             if 'delete' in request.POST:
+                partner_user = DBSession.query(PartnerUserModel). \
+                    filter_by(partner_id=request.matchdict['id'])
+                if partner_user.first():
+                    partner_user.delete()
                 msg = 'Partner ID %d %s sudah dihapus.' % (row.id, row.nama)
                 q.delete()
                 DBSession.flush()
