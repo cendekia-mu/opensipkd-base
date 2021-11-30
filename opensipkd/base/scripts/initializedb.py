@@ -52,9 +52,7 @@ def get_file(filename):
     return open(fullpath)
 
 
-def restore_csv(table, filename, get_file_func=get_file, db_session=None):
-    if not db_session:
-        db_session = DBSession
+def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
     q = db_session.query(table)
     if q.first():
         return
@@ -65,20 +63,36 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=None):
         is_first = True
         fmap = dict()
         for cf in reader:
-            # print(cf)
-            # sys.exit()
             if is_first:
+                is_first = False
                 for fieldname in cf.keys():
-                    t = fieldname.split('/')
+                    if not fieldname:
+                        continue
+                    try:
+                        t = fieldname.split('/')
+                    except Exception as e:
+                        print(fieldname, cf.keys())
+                        raise e
+
                     fname_orig = t[0]
+                    schema = "public"
                     if t[1:]:
-                        foreign_table, foreign_field = t[1].split('.')
-                        foreign_table = Table(foreign_table, Base.metadata, autoload=True)
+                        t_array = t[1].split('.')
+                        if len(t_array) == 2:
+                            foreign_table = t_array[0]
+                            foreign_field = t_array[1]
+                        else:
+                            schema = t_array[0]
+                            foreign_table = t_array[1]
+                            foreign_field = t_array[2]
+
+                        # foreign_table, foreign_field = t[1].split('.')
+                        foreign_table = Table(foreign_table, Base.metadata,
+                                              autoload=True, schema=schema)
                         foreign_field = getattr(foreign_table.c, foreign_field)
                         foreigns[fieldname] = (foreign_table, foreign_field)
 
                     fmap[fieldname] = fname_orig
-                is_first = False
 
             row = table()
             for fieldname in cf:
@@ -122,7 +136,6 @@ def append_csv(table, filename, keys, get_file_func=get_file,
         foreigns = dict()
         is_first = True
         fmap = dict()
-        print(f, reader)
         for cf in reader:
             if is_first:
                 is_first = False
@@ -136,19 +149,19 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                         raise e
 
                     fname_orig = t[0]
-                    schema="public"
+                    schema = "public"
                     if t[1:]:
                         t_array = t[1].split('.')
-                        if len(t_array)==2:
-                            foreign_table=t_array[0]
+                        if len(t_array) == 2:
+                            foreign_table = t_array[0]
                             foreign_field = t_array[1]
                         else:
-                            schema=t_array[0]
-                            foreign_table=t_array[1]
+                            schema = t_array[0]
+                            foreign_table = t_array[1]
                             foreign_field = t_array[2]
 
-                        foreign_table = Table(foreign_table, Base.metadata, autoload=True,
-                                              schema=schema)
+                        foreign_table = Table(foreign_table, Base.metadata,
+                                              autoload=True, schema=schema)
                         foreign_field = getattr(foreign_table.c, foreign_field)
                         foreigns[fname] = (foreign_table, foreign_field)
 
@@ -203,6 +216,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                 db_session.flush()
 
             transaction.commit()  # diperlukan commit per record khususnya untuk yang internal link
+
 
 def ask_password(name):
     while True:

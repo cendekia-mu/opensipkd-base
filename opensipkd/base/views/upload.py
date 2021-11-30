@@ -51,11 +51,15 @@ class AddSchema(colander.Schema):
         FileData(),
         widget=widget.FileUploadWidget(tmpstore),
         title='Unggah')
+    typ = colander.SchemaNode(
+        colander.String(),
+        widget=widget.SelectWidget(values=(('img', "Image"), ('icon', "Icon"))),
+        title='Jenis')
 
 
 def get_form(schema_cls):
     schema = schema_cls()
-    return Form(schema, buttons=('simpan', 'batalkan'))
+    return Form(schema, buttons=('simpan', 'batal'))
 
 
 @view_config(route_name='upload-logo',
@@ -65,7 +69,6 @@ def view_file(request):
     form = get_form(AddSchema)
     if request.POST:
         if 'simpan' in request.POST:
-            settings = get_settings()
             input_file = request.POST['upload'].file
             filename = request.POST['upload'].filename.lower()
             ext = get_ext(filename).lower()
@@ -81,8 +84,13 @@ def view_file(request):
             elif filename.startswith('background'):
                 fname = f"background{ext}"
             else:
-                fname=filename
-            fullpath = os.path.join( static_path, 'img/'+fname)
+                fname = filename
+            folder = os.path.join(static_path, request.POST['typ'])
+
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+
+            fullpath = os.path.join(folder, fname)
             output_file = open(fullpath, 'wb')
             input_file.seek(0)
             while True:

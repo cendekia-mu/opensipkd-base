@@ -248,7 +248,13 @@ def get_menus(request):
 
     result = {}
     for menu in menus:
-        if menu.find(':') > -1:
+
+        if menu.find(',') > -1:
+            key, val = menu.strip().split(',')
+            key = key.strip().strip('/')
+            val = re.sub('[//-]', ' ', val)
+
+        elif menu.find(':') > -1:
             key, val = menu.strip().split(':')
             key = key.strip().strip('/')
             val = re.sub('[//-]', ' ', val)

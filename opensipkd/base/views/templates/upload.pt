@@ -1,25 +1,24 @@
 <html metal:use-macro="load: main.pt">
 
-    <!-- content -->
-    <div metal:fill-slot="content">
+<!-- content -->
+<div metal:fill-slot="content">
 
-        <div class="row">
+    <div class="row">
 
-                <div  class="panel panel-default">
+        <div class="panel panel-default">
 
-                    <div class="panel-body">
-            <div class="col-md-10 col-md-offset-1">
-                        <blockquote>
-                            <p>Untuk Background, beri nama background pada file<br>Untuk Logo beri nama logo pada file</p>
-                        </blockquote>
-                        <div tal:content="structure form"/>
-            </div>
-                    </div>
+            <div class="panel-body">
+                <div class="col-md-10 col-md-offset-1">
+                    <blockquote>
+                        <p>Untuk Background, beri nama background pada file<br>Untuk Logo beri nama logo pada file</p>
+                    </blockquote>
+                    <div tal:content="structure form"/>
                 </div>
-
+            </div>
         </div>
-
     </div>
-    <!-- end content -->
+
+</div>
+<!-- end content -->
 
 </html>

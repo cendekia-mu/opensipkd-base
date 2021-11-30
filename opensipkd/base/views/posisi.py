@@ -77,6 +77,7 @@ class EditSchema(AddSchema):
                              missing=colander.drop,
                              widget=widget.HiddenWidget())
 
+
 class ViewPartner(BaseView):
     def __init__(self, request):
         super(ViewPartner, self).__init__(request)
@@ -165,12 +166,12 @@ class ViewPartner(BaseView):
             }])
         self.list_cols = [{'title': "ID", 'data': "id"},
                           {'title': "NIP", 'data': "nik", 'width': '100pt'},
-                          {'title': "Nama", 'data': "nama"}, 
+                          {'title': "Nama", 'data': "nama"},
                           {'title': "Unit Kerja", 'data': "departemen"},
                           {'title': "Jabatan", 'data': "jabatan"},
                           {'title': "Jenis Jabatan", 'data': "jenis"},
                           {'title': "Mulai", 'data': "mulai"},
-                          {'title': "Selesai", 'data': "selesai"},]
+                          {'title': "Selesai", 'data': "selesai"}, ]
         self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
                             'btn_close'
         self.form_params = dict(scripts="")
@@ -198,7 +199,6 @@ class ViewPartner(BaseView):
         elif not value['partner_id']:
             err_partner()
 
-            
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel)):
         schema = class_form(validator=self.form_validator)
         schema = schema.bind(request=self.req)
@@ -215,7 +215,6 @@ class ViewPartner(BaseView):
         PartnerDBSession.flush()
         return row
 
-
     def save_request(self, values, row=None):
         request = self.req
         if 'id' in request.matchdict:
@@ -230,32 +229,27 @@ class ViewPartner(BaseView):
                 values['selesai'] = date_from_str(values['selesai'])
             else:
                 values['selesai'] = None
-        query_struktural = DBSession.query(Jabatan.jenis).\
+        query_struktural = DBSession.query(Jabatan.jenis). \
             filter(Jabatan.id == values['jabatan_id']).scalar()
         values['struktural_id'] = query_struktural
         row = self.save(values, request.user, row)
         request.session.flash('Posisi Partner sudah disimpan.')
 
-
     def route_list(self, ):
         return HTTPFound(location=self.req.route_url(self.list_route))
-
 
     def session_failed(self, session_name):
         r = dict(form=self.request.session[session_name])
         del self.request.session[session_name]
         return r
 
-
     def query_id(self):
         return PartnerDBSession.query(PartnerDepartemen).filter_by(id=self.req.matchdict['id'])
 
-
     def id_not_found(self):
         msg = 'Posisi Partner ID %s Tidak Ditemukan.' % self.req.matchdict['id']
-        self.request.session.flash(msg, 'error')
-        return route_list()
-
+        self.req.session.flash(msg, 'error')
+        return self.route_list()
 
     ########
     # List #
@@ -414,7 +408,6 @@ class ViewPartner(BaseView):
         form.set_appstruct(self.get_values(row, values))
         return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
-
     #########
     #  Add  #
     #########       
@@ -430,7 +423,7 @@ class ViewPartner(BaseView):
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
-                    form.render(appstruct = e.cstruct)
+                    form.render(appstruct=e.cstruct)
                     return dict(form=form.render(), scripts=self.form_scripts)
                 self.save_request(dict(controls))
             return self.route_list()
@@ -522,7 +515,7 @@ class ViewPartner(BaseView):
             if jb:
                 values['struktural_nm'] = jb.nama
         form.set_appstruct(self.get_values(row, values))
-        return dict(row=row,form=form.render(readonly=True), scripts=self.form_scripts)
+        return dict(row=row, form=form.render(readonly=True), scripts=self.form_scripts)
 
     def get_values(self, row, values=None):
         if not values:

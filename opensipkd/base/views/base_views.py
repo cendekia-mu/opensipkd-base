@@ -112,12 +112,13 @@ class BaseView(object):
         self.add_schema = ""
         self.table = ""
 
-    def route_list(self, ):
+    def route_list(self, msg=None, error=""):
         return HTTPFound(location=self.req.route_url(self.list_route))
 
-    @staticmethod
-    def form_validator(form, value):
+
+    def form_validator(self, form, value):
         pass
+
     def get_params(self, params):
         return get_params(params)
 

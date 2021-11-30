@@ -37,18 +37,6 @@
     <div id="content" class="container">
         <div class="row">
             <div class="col-sm-10 col-sm-offset-1">
-                <!--div class="col-sm-4 padding-thin">
-                    <div class="box about">
-                        <a href="#" data-toggle="modal"
-                           data-target="#about-us"
-                           style="color:#fff; text-decoration:none;">
-                            <i class="fa fa-info-circle"></i>
-                            <span class="about-text">Powered by</span>
-                            <img id="" src="${home}static/img/opensipkd.png"
-			         alt="">
-                        </a>
-                    </div>
-                </div-->
                 <div class="col-sm-12 padding-thin">
                     <div class="box appname">
                         <div class="col-sm-3 padding-medium" align="center">
@@ -64,8 +52,15 @@
                 </div>
                 <div class="col-sm-12 no-padding" align="center">
                     <div tal:repeat="modul modules" class="col-sm-3 col-xs-6 module padding-thin">
-                        <a href="${home}${modul}" icon="${modul.replace('/','_')}" class="box">
+                        <a tal:condition="modul.find('://')<0"
+                           href="${home}${modul}" icon="${modul.replace('/','_')}" class="box">
                             <img alt="" class="icon-modul" src="${home}static/icon/${modul.replace('/','_')}.png">
+                            <span>${modules[modul]}</span>
+                        </a>
+                        <a tal:condition="modul.find('://')>-1" target="_blank"
+                           href="${modul}" class="box">
+                            <img alt="" class="icon-modul"
+                                 src="${home}static/icon/${modul.replace('://','').replace('https','').replace('http','')}.png">
                             <span>${modules[modul]}</span>
                         </a>
                     </div>

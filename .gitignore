@@ -105,6 +105,8 @@ ENV/
 
 
 opensipkd/base/static/img/*
+opensipkd/base/static/icon/*
+!opensipkd/base/static/icon/default.png
 !opensipkd/base/static/img/pyramid.png
 !opensipkd/base/static/img/opensipkd.png
 !opensipkd/base/static/img/opensipkd_bg.png
