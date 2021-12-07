@@ -11,7 +11,7 @@
   <link rel="shortcut icon" href="${home}static/img/favicon.png">
   <title tal:content="request.title"/>
   <link rel="stylesheet" type="text/css"
-        href="${home}static/bootstrap/css/bootstrap.min.css">
+        href="${home}static/v3/css/bootstrap.min.css">
   </link>
   <link rel="stylesheet" type="text/css"
         href="${home}static/bootstrap/css/font-awesome.min.css"/>
@@ -134,9 +134,9 @@ var gmapKey = '${request.gmap_key}';
   </div>
 </div>
 <script type="text/javascript"
-        src="${home}static/jquery/jquery.min.js"></script>
+        src="${home}static/v3/js/jquery-2.1.1.min.js"></script>
 <script type="text/javascript"
-        src="${home}static/bootstrap/js/bootstrap.min.js"></script>
+        src="${home}static/v3/js/bootstrap/bootstrap.min.js"></script>
 <script type="text/javascript"
         src="${home}deform_static/scripts/typeahead.min.js"></script>
 
