@@ -56,8 +56,8 @@ log = logging.getLogger(__name__)
 # version 2.0.0 digunakan untuk change default template
 deform_templates = resource_filename('deform', 'templates')
 path = os.path.dirname(__file__)
-path = os.path.join(path, 'views', 'templates')
-search_path = (path, deform_templates)
+path = os.path.join(path, 'views', 'widgets')
+search_path = (path, deform_templates) #,
 renderer = ZPTRendererFactory(search_path)
 Form.set_zpt_renderer(search_path)
 main_title = 'openSIPKD'
@@ -385,12 +385,11 @@ def main(global_config, **settings):
 
     authn_policy = AuthTktAuthenticationPolicy(
         'sosecret', callback=group_finder, hashalg='sha512')
-    # authn_policy = MyAuthenticationPolicy(
-    #     'sosecret', callback=group_finder, hashalg='sha512')
 
     authz_policy = ACLAuthorizationPolicy()
 
     config.set_authentication_policy(authn_policy)
+    # config.set_security_policy(authz_policy)
     config.set_authorization_policy(authz_policy)
 
     config.add_request_method(get_user, 'user', reify=True)
@@ -417,10 +416,9 @@ def main(global_config, **settings):
     # config.add_notfound_view(RemoveSlashNotFoundViewFactory())
     config.add_static_view('static', 'opensipkd.base:static', cache_max_age=3600)
     config.add_static_view('deform_static', 'deform:static')
-    config.add_static_view('files', settings['static_files'])
-    config.add_static_view('captcha', settings['captcha_files'])
-    if 'tts_files' in settings and settings['tts_files']:
-        config.add_static_view(name='tts', path=settings['tts_files'])
+    # config.add_static_view('files', get_params('static_files'))
+    # config.add_static_view('captcha', get_params('captcha_files'))
+    # config.add_static_view('tts', path=get_params('tts_files'))
 
     config.add_renderer('csv', 'opensipkd.tools.CSVRenderer')
 

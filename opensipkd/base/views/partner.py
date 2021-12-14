@@ -7,6 +7,7 @@ from deform import (
     widget,
     ValidationFailure,
 )
+from opensipkd.base.models import User
 from pyramid.httpexceptions import (
     HTTPFound,
 )
@@ -17,7 +18,7 @@ from opensipkd.tools.buttons import btn_save, btn_cancel, btn_delete
 
 from ..models import DBSession
 from ..models import Partner
-from ..models.partner import PartnerUserModel
+# from ..models.partner import PartnerUserModel
 from ..views import ColumnDT, DataTables, BaseView
 
 SESS_ADD_FAILED = 'Tambah partner gagal'
@@ -159,12 +160,17 @@ class ViewPartner(BaseView):
                                 Partner.kode, Partner.nama). \
                 filter(Partner.nama.ilike('%%%s%%' % term)). \
                 order_by(Partner.nama)
-            keys = q.first().keys()
-            r = []
-            for k in q.all():
-                d = dict(zip(keys, k))
-                r.append(d)
+            row = q.first()
+            if not row:
+                return []
+
+            keys = row.keys()
+            r = [dict(zip(keys, k)) for k in q.all()]
+            # for k in q.all():
+            #     d = )
+            #     r.append(d)
             return r
+
         elif url_dict['act'] == 'vendor':  # vendor only
             term = 'term' in params and params['term'] or ''
             prefix = 'prefix' in params and params['prefix'] or ''
@@ -267,10 +273,11 @@ class ViewPartner(BaseView):
         form = get_form(request, EditSchema, buttons=(btn_delete, btn_cancel,))
         if request.POST:
             if 'delete' in request.POST:
-                partner_user = DBSession.query(PartnerUserModel). \
+                user = User.query(). \
                     filter_by(partner_id=request.matchdict['id'])
-                if partner_user.first():
-                    partner_user.delete()
+                if user.first():
+                    request.session.flash('Partner digunakan oleh User')
+                    return route_list(request)
                 msg = 'Partner ID %d %s sudah dihapus.' % (row.id, row.nama)
                 q.delete()
                 DBSession.flush()

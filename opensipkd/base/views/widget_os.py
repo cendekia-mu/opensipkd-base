@@ -1,5 +1,5 @@
 from colander import SchemaNode, null, Mapping, Invalid, text_
-from deform.widget import Widget, DatePartsWidget, _StrippedString
+from deform.widget import Widget, _StrippedString
 
 
 class DokumenWidget(Widget):

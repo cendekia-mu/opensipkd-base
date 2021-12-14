@@ -7,7 +7,7 @@ from datetime import datetime
 import colander
 from deform import (Form, widget, ValidationFailure, )
 from deform.widget import AutocompleteInputWidget
-from opensipkd.base.models import DepartemenUser
+# from opensipkd.base.models import DepartemenUser
 from pyramid.httpexceptions import (HTTPFound, )
 from pyramid.view import (view_config, )
 from sqlalchemy import func
@@ -16,7 +16,8 @@ from opensipkd.tools import (get_ext, get_random_string, get_settings)
 from opensipkd.tools.buttons import btn_cancel, btn_save, btn_delete, btn_close
 
 from .upload import AddSchema as UploadSchema
-from ..models import DBSession, Departemen
+from .. import renderer
+from ..models import DBSession, Departemen, Partner, PartnerDepartemen
 from ..views import ColumnDT, DataTables, BaseView
 
 SESS_ADD_FAILED = 'Tambah departemen gagal'
@@ -304,10 +305,10 @@ class ViewDepartemen(BaseView):
             return r
 
         elif url_dict['act'] == 'hon_level':
+            # todo Check ulang untuk hon
             term = 'term' in params and params['term'] or ''
             settings = get_settings()
-            level_id = 'departemen_chg_id' in settings and settings[
-                'departemen_chg_id'] or 0
+            level_id = self.req.get_params('departemen_chg_id', 0)
             q = DBSession.query(Departemen).filter(Departemen.status == 1,
                                                    Departemen.nama.ilike(
                                                        '%%%s%%' %
@@ -317,7 +318,10 @@ class ViewDepartemen(BaseView):
                 q = q.filter(Departemen.level_id == int(level_id))
             if request.user.id > 1 and not request.has_permission(
                     "departemen-all"):
-                user_dep = DepartemenUser.query_user_id(request.user.id).first()
+                partner = Partner.query_id(request.user.id).first()
+                if partner:
+                    PartnerDepartemen.query_jabatan(partner.id, datetime.now())
+                user_dep = PartnerDepartemen.query_user_id().first()
                 if not user_dep:
                     return []
 

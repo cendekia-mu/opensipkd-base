@@ -182,7 +182,7 @@ class BaseView(object):
         DBSession.flush()
         return row
 
-    def save_request(self, values, row):
+    def save_request(self, values, row=None):
         return self.save(values, self.req.user, row)
 
     def id_not_found(self):

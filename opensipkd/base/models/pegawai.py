@@ -56,15 +56,15 @@ class PartnerDepartemen(Base, DefaultModel):
     __tablename__ = 'partner_departemen'
     partner_id = Column(Integer, ForeignKey(Partner.id))
     departemen_id = Column(Integer, ForeignKey(Departemen.id))
-    jabatan_id = Column(Integer, ForeignKey(Jabatan.id))
-    struktural_id = Column(SmallInteger, ForeignKey(Jabatan.id))
+    # fungsional_id = Column(Integer, ForeignKey(Jabatan.id))
+    jabatan_id = Column(SmallInteger, ForeignKey(Jabatan.id))
     mulai = Column(DateTime(timezone=False))
     selesai = Column(DateTime(timezone=False))
 
     partner = relationship(Partner, backref=backref("partner_departemen"))
     departemen = relationship(Departemen, foreign_keys=[departemen_id], backref=backref("partner_departemen"))
-    jabatan = relationship(Jabatan, foreign_keys=[jabatan_id], backref=backref("partner_departemen"), )
-    struktural = relationship(Jabatan, foreign_keys=[struktural_id], backref=backref("partner_struktural", ))
+    # fungsional = relationship(Jabatan, foreign_keys=[fungsional_id], backref=backref("partner_funsional"), )
+    jabatan = relationship(Jabatan, foreign_keys=[jabatan_id], backref=backref("partner_jabatan", ))
     __table_args__ = (UniqueConstraint('partner_id', 'departemen_id', 'jabatan_id',
                                        'mulai', name='partner_dept_uq'),
                       TABLE_ARGS)
@@ -99,14 +99,14 @@ class PartnerDepartemen(Base, DefaultModel):
     #                cls.tmt <= tmt)
     #
 
-class PartnerLogin(Base):
-    __tablename__ = 'partner_login'
-    partner_id = Column(Integer, ForeignKey(Partner.id), unique=True)
-    user_id = Column(Integer, ForeignKey(User.id), primary_key=True, )  # ,
-    partner = relationship(Partner, backref=backref('partner_login'))
-    users = relationship(User, backref=backref('partner_login'))
-    __table_args__ = TABLE_ARGS
-
-    @classmethod
-    def query_user(cls, user_id):
-        return DBSession.query(cls).filter_by(user_id=user_id)
+# class PartnerLogin(Base):
+#     __tablename__ = 'partner_login'
+#     partner_id = Column(Integer, ForeignKey(Partner.id), unique=True)
+#     user_id = Column(Integer, ForeignKey(User.id), primary_key=True, )  # ,
+#     partner = relationship(Partner, backref=backref('partner_login'))
+#     users = relationship(User, backref=backref('partner_login'))
+#     __table_args__ = TABLE_ARGS
+#
+#     @classmethod
+#     def query_user(cls, user_id):
+#         return DBSession.query(cls).filter_by(user_id=user_id)

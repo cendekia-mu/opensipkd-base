@@ -164,10 +164,27 @@ class view_eselon(BaseView):
         form.render(appstruct=values)
         return dict(form=form)
 
+    @view_config(route_name='eselon-view', renderer='templates/form_input.pt',
+                 permission='eselon')
+    def view_view(self):
+        request = self.req
+        q = query_id(request)
+        row = q.first()
+        if not row:
+            return id_not_found(request)
+        uid = row.id
+
+        form = Form(EditSchema(), buttons=('tutup',))
+        if request.POST:
+            return route_list(request)
+        values = row.to_dict()
+        form = form.render(appstruct=values, readonly=True)
+        return dict(form=form, scripts="")
+
     ##########
     # Delete #
-    ##########    
-    @view_config(route_name='eselon-delete', renderer='templates/eselon/del.pt',
+    ##########
+    @view_config(route_name='eselon-delete', renderer='templates/form_input.pt',
                  permission='eselon')
     def view_del(self):
         request = self.req
@@ -177,7 +194,7 @@ class view_eselon(BaseView):
         if not row:
             return id_not_found(request)
 
-        form = Form(colander.Schema(), buttons=('hapus', 'batal'))
+        form = Form(EditSchema(), buttons=('hapus', 'batal'))
         if request.POST:
             if 'hapus' in request.POST:
                 msg = 'eselon ID %d %s sudah dihapus.' % (row.id, row.nama)
@@ -185,7 +202,8 @@ class view_eselon(BaseView):
                 DBSession.flush()
                 request.session.flash(msg)
             return route_list(request)
-        return dict(row=row, form=form.render())
+        form.set_appstruct(row.to_dict())
+        return dict(row=row, form=form.render(readonly=True), scripts='')
 
 
 #######

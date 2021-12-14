@@ -38,6 +38,7 @@ class AddSchema(colander.Schema):
 
     value = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextAreaWidget(rows=5),
         oid="value",
         title="Nilai")
 

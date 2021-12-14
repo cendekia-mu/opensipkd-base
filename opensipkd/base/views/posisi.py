@@ -231,7 +231,7 @@ class ViewPartner(BaseView):
                 values['selesai'] = None
         query_struktural = DBSession.query(Jabatan.jenis). \
             filter(Jabatan.id == values['jabatan_id']).scalar()
-        values['struktural_id'] = query_struktural
+        values['jabatan_id'] = query_struktural
         row = self.save(values, request.user, row)
         request.session.flash('Posisi Partner sudah disimpan.')
 
@@ -286,7 +286,7 @@ class ViewPartner(BaseView):
                 .outerjoin(Departemen, PartnerDepartemen.departemen_id == Departemen.id) \
                 .outerjoin(Partner, Partner.id == PartnerDepartemen.partner_id) \
                 .outerjoin(Jabatan, (PartnerDepartemen.jabatan_id == Jabatan.id)) \
-                .outerjoin(struktural, (PartnerDepartemen.struktural_id == struktural.id)) \
+                .outerjoin(struktural, (PartnerDepartemen.jabatan_id == struktural.id)) \
                 .order_by(Partner.nama)
 
             row_table = DataTables(request.GET, query, columns)
@@ -398,10 +398,10 @@ class ViewPartner(BaseView):
         values['departemen'] = row.departemen.nama
         values['mulai'] = dmy(row.mulai)
         values['selesai'] = dmy(row.selesai)
-        if not row.struktural_id:
-            values['struktural_id'] = 0
+        if not row.jabatan_id:
+            values['jabatan_id'] = 0
         else:
-            jb = Jabatan.query_id(row.struktural_id).first()
+            jb = Jabatan.query_id(row.jabatan_id).first()
             if jb:
                 values['struktural_nm'] = jb.nama
 
@@ -463,10 +463,10 @@ class ViewPartner(BaseView):
         values['departemen'] = row.departemen.nama
         values['mulai'] = dmy(row.mulai)
         values['selesai'] = dmy(row.selesai)
-        if not row.struktural_id:
-            values['struktural_id'] = 0
+        if not row.jabatan_id:
+            values['jabatan_id'] = 0
         else:
-            jb = Jabatan.query_id(row.struktural_id).first()
+            jb = Jabatan.query_id(row.jabatan_id).first()
             if jb:
                 values['struktural_nm'] = jb.nama
 
@@ -508,10 +508,10 @@ class ViewPartner(BaseView):
         values['departemen'] = row.departemen.nama
         values['mulai'] = dmy(row.mulai)
         values['selesai'] = dmy(row.selesai)
-        if not row.struktural_id:
-            values['struktural_id'] = 0
+        if not row.jabatan_id:
+            values['jabatan_id'] = 0
         else:
-            jb = Jabatan.query_id(row.struktural_id).first()
+            jb = Jabatan.query_id(row.jabatan_id).first()
             if jb:
                 values['struktural_nm'] = jb.nama
         form.set_appstruct(self.get_values(row, values))

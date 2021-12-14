@@ -131,3 +131,32 @@ partner-departemen-rpt,/partner/departemen/{rpt}/rpt,Partner Departemen Report
 log,/log,Log Aplikasi
 log-act,/log/{act}/act,Log Aplikasi Act
 log-view,/log/{id}/view,Log Aplikasi View
+
+provinsi,/provinsi,Provinsi,1,0
+provinsi-add,/provinsi/add,Provinsi Add,1,0
+provinsi-edit,/provinsi/{id}/edit,Provinsi Edit,1,0
+provinsi-view,/provinsi/{id}/view,Provinsi View,1,0
+provinsi-delete,/provinsi/{id}/delete,Provinsi Hapus,1,0
+provinsi-act,/provinsi/{act}/act,Provinsi Act,1,0
+provinsi-rpt,/provinsi/{rpt}/rpt,Provinsi Report,1,0
+dati2,/dati2,Kabupaten/Kota,1,0
+dati2-add,/dati2/add,Kabupaten/Kota Add,1,0
+dati2-edit,/dati2/{id}/edit,Kabupaten/Kota Edit,1,0
+dati2-view,/dati2/{id}/view,Kabupaten/Kota View,1,0
+dati2-delete,/dati2/{id}/delete,Kabupaten/Kota Hapus,1,0
+dati2-act,/dati2/{act}/act,Kabupaten/Kota Act,1,0
+dati2-rpt,/dati2/{rpt}/rpt,Kabupaten/Kota Report,1,0
+kecamatan,/kecamatan,Kecamatan,1,0
+kecamatan-add,/kecamatan/add,Kecamatan Add,1,0
+kecamatan-edit,/kecamatan/{id}/edit,Kecamatan Edit,1,0
+kecamatan-view,/kecamatan/{id}/view,Kecamatan View,1,0
+kecamatan-delete,/kecamatan/{id}/delete,Kecamatan Hapus,1,0
+kecamatan-act,/kecamatan/{act}/act,Kecamatan Act,1,0
+kecamatan-rpt,/kecamatan/{rpt}/rpt,Kecamatan Report,1,0
+desa,/desa,Desa/Kelurahan,1,0
+desa-add,/desa/add,Desa/Kelurahan Add,1,0
+desa-edit,/desa/{id}/edit,Desa/Kelurahan Edit,1,0
+desa-view,/desa/{id}/view,Desa/Kelurahan View,1,0
+desa-delete,/desa/{id}/delete,Desa/Kelurahan Hapus,1,0
+desa-act,/desa/{act}/act,Desa/Kelurahan Act,1,0
+desa-rpt,/desa/{rpt}/rpt,Desa/Kelurahan Report,1,0

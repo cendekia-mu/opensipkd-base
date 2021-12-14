@@ -170,7 +170,8 @@ class ViewJabatan(BaseView):
                 r.append(d)
             return r
 
-    @view_config(route_name='jabatan-add', renderer='templates/form_input.pt',
+    @view_config(route_name='jabatan-add',
+                 renderer='templates/form_input.pt',
                  permission='jabatan')
     def view_add(self):
         request = self.req
@@ -188,7 +189,8 @@ class ViewJabatan(BaseView):
         return dict(form=form.render(), scripts="")
         # return dict(form=form.render())
 
-    @view_config(route_name='jabatan-edit', renderer='templates/form_input.pt',
+    @view_config(route_name='jabatan-edit',
+                 renderer='templates/form_input.pt',
                  permission='jabatan')
     def view_edt(self):
         request = self.req

@@ -103,7 +103,7 @@
             else alert('Pilih Baris yang akan di koreksi');
         });
 		$('#btn_view').click(function() {
-                if (mID) window.location = oTableUri + '/' + mID + '/view';
+                if (mID) window.location = oTableUrl + '/' + mID + '/view';
                 else
                 $.SmartMessageBox({
                     title : "View",

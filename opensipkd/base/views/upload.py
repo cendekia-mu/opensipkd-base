@@ -7,15 +7,12 @@ from deform import (
     FileData,
 )
 from deform.interfaces import FileUploadTempStore
-from pyramid.httpexceptions import HTTPFound
-from pyramid.view import view_config
-
 from opensipkd.tools import (
     get_ext,
-    get_settings,
     dict_to_str,
-    SaveFile,
 )
+from pyramid.httpexceptions import HTTPFound
+from pyramid.view import view_config
 
 
 # from unggah import DbUpload
@@ -73,7 +70,7 @@ def view_file(request):
             filename = request.POST['upload'].filename.lower()
             ext = get_ext(filename).lower()
 
-            if ext.lower() != '.png':
+            if ext.lower() not in ['.png', '.ico']:
                 request.session.flash('File harus format png', 'error')
                 return dict(form=form.render())
 
@@ -85,8 +82,8 @@ def view_file(request):
                 fname = f"background{ext}"
             else:
                 fname = filename
-            folder = os.path.join(static_path, request.POST['typ'])
 
+            folder = os.path.join(static_path, request.POST['typ'])
             if not os.path.exists(folder):
                 os.makedirs(folder)
 
