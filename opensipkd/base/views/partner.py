@@ -1,4 +1,3 @@
-# from ..tools import row2dict, xls_reader
 from datetime import datetime
 
 import colander
@@ -7,26 +6,22 @@ from deform import (
     widget,
     ValidationFailure,
 )
-from opensipkd.base.models.common import ResCompany
-
-from opensipkd.base.models import User, ResProvinsi, ResDati2, ResKecamatan, ResDesa
+from opensipkd.tools.buttons import btn_save, btn_cancel, btn_delete
 from pyramid.httpexceptions import (
     HTTPFound,
 )
 from pyramid.view import (
     view_config,
 )
-from opensipkd.tools.buttons import btn_save, btn_cancel, btn_delete
 
-from .dati2 import dati2_widget
-from .desa import desa_widget
-from .kecamatan import kecamatan_widget
+from opensipkd.base.models import (
+    User, ResProvinsi, ResDati2, ResKecamatan, ResDesa)
+from opensipkd.base.models.common import ResCompany
+from .company import company_widget
 from .partner_base import PartnerSchema
-from .provinsi import provinsi_widget
 from ..models import DBSession
 from ..models import Partner
 from ..views import ColumnDT, DataTables, BaseView
-from .company import company_widget
 
 SESS_ADD_FAILED = 'Tambah partner gagal'
 SESS_EDIT_FAILED = 'Edit partner gagal'
@@ -46,6 +41,12 @@ class AddSchema(PartnerSchema):
         widget=company_widget,
         oid="company_id",
         title="Company")
+
+    def after_bind(self, schema, kwargs):
+        request = kwargs["request"]
+        if request.user.company_id:
+            self["company_id"].widget = widget.HiddenWidget()
+            self["company_id"].default = request.user.company_id
 
 
 class EditSchema(AddSchema):
@@ -81,6 +82,8 @@ class ViewPartner(BaseView):
                 ColumnDT(Partner.status, mData='status'),
             ]
             query = DBSession.query().select_from(Partner)
+            if self.req.user.company_id:
+                query = query.filter(Partner.company_id == self.req.user.company_id)
             row_table = DataTables(request.GET, query, columns)
             return row_table.output_result()
 

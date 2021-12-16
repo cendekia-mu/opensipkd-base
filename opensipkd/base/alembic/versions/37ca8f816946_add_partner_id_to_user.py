@@ -21,6 +21,8 @@ def upgrade():
     helpers = context.opts['helpers']
     if not helpers.table_has_column('users', 'partner_id'):
         op.add_column('users', sa.Column('partner_id', sa.Integer))
+    if not helpers.table_has_column('users', 'company_id'):
+        op.add_column('users', sa.Column('company_id', sa.Integer))
     if not helpers.table_has_column('partner', 'company_id'):
         op.add_column('partner', sa.Column('company_id', sa.Integer))
 

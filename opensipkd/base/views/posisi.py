@@ -6,7 +6,7 @@ from pyramid.view import (view_config, )
 from sqlalchemy import or_
 from sqlalchemy.orm import aliased
 
-from ..models import DBSession as PartnerDBSession, DBSession
+from ..models import DBSession as PartnerDBSession, DBSession, ResCompany
 from ..models import Departemen, Jabatan
 from ..models import Partner, PartnerDepartemen
 from opensipkd.tools import dmy, date_from_str
@@ -169,7 +169,7 @@ class ViewPartner(BaseView):
                           {'title': "Nama", 'data': "nama"},
                           {'title': "Unit Kerja", 'data': "departemen"},
                           {'title': "Jabatan", 'data': "jabatan"},
-                          {'title': "Jenis Jabatan", 'data': "jenis"},
+                          {'title': "Pemda", 'data': "jenis"},
                           {'title': "Mulai", 'data': "mulai"},
                           {'title': "Selesai", 'data': "selesai"}, ]
         self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
@@ -277,19 +277,22 @@ class ViewPartner(BaseView):
                 ColumnDT(Partner.nama, mData='nama'),
                 ColumnDT(Departemen.nama, mData='departemen'),
                 ColumnDT(Jabatan.nama, mData='jabatan'),
-                ColumnDT(Jabatan.jenis, mData='jenis'),
+                ColumnDT(ResCompany.nama, mData='jenis'),
                 ColumnDT(struktural.nama, mData='struktural_nm'),
                 ColumnDT(PartnerDepartemen.mulai, mData='mulai'),
                 ColumnDT(PartnerDepartemen.selesai, mData='selesai'),
             ]
-            query = PartnerDBSession.query().select_from(PartnerDepartemen) \
-                .outerjoin(Departemen, PartnerDepartemen.departemen_id == Departemen.id) \
+            q = PartnerDBSession.query().select_from(PartnerDepartemen) \
+                .join(Departemen, PartnerDepartemen.departemen_id == Departemen.id) \
+                .outerjoin(ResCompany, Departemen.company_id == ResCompany.id) \
                 .outerjoin(Partner, Partner.id == PartnerDepartemen.partner_id) \
                 .outerjoin(Jabatan, (PartnerDepartemen.jabatan_id == Jabatan.id)) \
                 .outerjoin(struktural, (PartnerDepartemen.jabatan_id == struktural.id)) \
                 .order_by(Partner.nama)
+            if self.req.user.company_id:
+                q = q.filter(Departemen.company_id == self.req.user.company_id)
+            row_table = DataTables(request.GET, q, columns)
 
-            row_table = DataTables(request.GET, query, columns)
             return row_table.output_result()
 
         elif url_dict['act'] == 'hon_departemen':
@@ -305,6 +308,9 @@ class ViewPartner(BaseView):
                 filter(PartnerDepartemen.departemen_id == ses['departemen_id']). \
                 filter(or_(Jabatan.kode == '101', Jabatan.kode == '102')). \
                 order_by(Partner.nama)
+            if self.req.user.company_id:
+                q = q.filter(Departemen.company_id == self.req.user.company_id)
+
             rows = q.all()
             r = []
             keys = ('id', 'value', 'nik', 'nama', 'jabatan_id', 'jabatan_nm')
@@ -327,6 +333,8 @@ class ViewPartner(BaseView):
                 filter(Partner.nama.ilike('%%%s%%' % term)). \
                 filter(PartnerDepartemen.departemen_id == ses['departemen_id']). \
                 order_by(Partner.nama)
+            if self.req.user.company_id:
+                q = q.filter(Departemen.company_id == self.req.user.company_id)
             rows = q.all()
             r = []
             keys = ('id', 'value', 'nik', 'nama', 'jabatan_id', 'jabatan_nm')
@@ -349,6 +357,8 @@ class ViewPartner(BaseView):
                 filter(or_(Jabatan.kode == '101', Jabatan.kode == '102', Jabatan.kode == '103', Jabatan.kode ==
                            '104')). \
                 order_by(Partner.nama)
+            if self.req.user.company_id:
+                q = q.filter(Departemen.company_id == self.req.user.company_id)
             rows = q.all()
             r = []
             keys = ('id', 'value', 'nik', 'nama', 'jabatan_id', 'jabatan_nm')
@@ -362,6 +372,8 @@ class ViewPartner(BaseView):
             q = DBSession.query(Jabatan.id, Jabatan.kode, Jabatan.nama, Jabatan.jenis). \
                 filter(Jabatan.nama.ilike('%%%s%%' % term)). \
                 order_by(Jabatan.nama)
+            if self.req.user.company_id:
+                q = q.filter(Departemen.company_id == self.req.user.company_id)
             rows = q.all()
             r = []
             for k in rows:

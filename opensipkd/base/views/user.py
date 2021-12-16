@@ -4,18 +4,19 @@ import re
 import colander
 from datatables import (ColumnDT, DataTables, )
 from deform import (Form, widget, ValidationFailure, Button, )
+from opensipkd.tools import create_now
+from opensipkd.tools.buttons import btn_cancel, btn_save, btn_close
+from opensipkd.tools.report import open_rml_row, csv_response, open_rml_pdf, pdf_response
 from pyramid.httpexceptions import (HTTPFound, HTTPNotFound, )
 from pyramid.i18n import TranslationStringFactory
 from pyramid.view import view_config
 from sqlalchemy import (func, or_, )
 from ziggurat_foundations.models.services.user import UserService
 
+from .company import company_widget
 from .user_login import (
     regenerate_security_code, send_email_security_code, generate_api_key, )
-from ..models import (DBSession, User, Group, UserGroup, )
-from opensipkd.tools import create_now
-from opensipkd.tools.buttons import btn_cancel, btn_save, btn_view, btn_close
-from opensipkd.tools.report import open_rml_row, csv_response, open_rml_pdf, pdf_response
+from ..models import (DBSession, User, Group, UserGroup, ResCompany, )
 
 _ = TranslationStringFactory('user')
 
@@ -130,7 +131,6 @@ def form_validator(form, value):
     pass
 
 
-# save_user ngambil dari base lama
 def save_user(values, user, row=None):
     if not row:
         row = User()
@@ -158,38 +158,15 @@ class AddSchema(colander.Schema):
     password = colander.SchemaNode(
         colander.String(), widget=widget.CheckedPasswordWidget(),
         missing=colander.drop)
-    # retype_password = colander.SchemaNode(
-    #     colander.String(), widget=widget.PasswordWidget(),
-    #     missing=colander.drop, title=_('Ulangi kata kunci'))
-
-
-# class AddSchema2(AddSchema):
-#     id_dept_asal = colander.SchemaNode(colander.String(), missing=colander.drop,
-#                                        title=_('ID Dept Asal'), oid='id_dept_asal',
-#                                        widget=widget.HiddenWidget())
-#     dept_asal = colander.SchemaNode(colander.String(), missing=colander.drop,
-#                                     title=_('Departemen Asal'), oid='dept_asal')
-#     id_dept_pad = colander.SchemaNode(colander.String(), missing=colander.drop,
-#                                       title=_('ID Dept PAD'), oid='id_dept_pad', widget=widget.HiddenWidget())
-#     dept_pad = colander.SchemaNode(colander.String(), missing=colander.drop,
-#                                    title=_('Departemen PAD'), oid='dept_pad')
+    company_id = colander.SchemaNode(
+        colander.Integer(), widget=company_widget,
+        title="Company",
+        missing=colander.drop)
 
 
 class EditSchema(AddSchema):
     status = colander.SchemaNode(
         colander.String(), widget=status_widget, title=_('Status'))
-
-
-# class EditSchema2(EditSchema):
-#     id_dept_asal = colander.SchemaNode(colander.String(), missing=colander.drop,
-#                                        title=_('ID Dept Asal'), oid='id_dept_asal',
-#                                        widget=widget.HiddenWidget())
-#     dept_asal = colander.SchemaNode(colander.String(), missing=colander.drop,
-#                                     title=_('Departemen Asal'), oid='dept_asal')
-#     id_dept_pad = colander.SchemaNode(colander.String(), missing=colander.drop,
-#                                       title=_('ID Dept PAD'), oid='id_dept_pad', widget=widget.HiddenWidget())
-#     dept_pad = colander.SchemaNode(colander.String(), missing=colander.drop,
-#                                    title=_('Departemen PAD'), oid='dept_pad')
 
 
 def get_group_list():
@@ -204,7 +181,7 @@ def get_group_list():
 def get_form(request, class_form, user=None, buttons=(btn_save, btn_cancel)):
     status_list = (
         ('1', _('Active')),
-        ('0', _('Inactive')))
+        ('0', _('Archived')))
     if user and user.api_key:
         api_key_list = (
             ('', _(user.api_key)),
@@ -217,7 +194,9 @@ def get_form(request, class_form, user=None, buttons=(btn_save, btn_cancel)):
     group_list = get_group_list()
     schema = schema.bind(
         status_list=status_list, group_list=group_list, user=user,
-        api_key_list=api_key_list)
+        api_key_list=api_key_list,
+        company_list=ResCompany.get_list()
+    )
 
     return Form(schema, buttons=buttons)
 
@@ -241,6 +220,8 @@ def insert(request, values):
     user.email = values['email'].lower()
     user.user_name = re.sub(' ', '', values['user_name'])  # .lower()
     user.security_code_date = create_now()
+    company_id = request.user.company_id or values["company_id"]
+    user.company_id = company_id
     remain = regenerate_security_code(user)
     if 'is_api_key' in values:
         user.api_key = generate_api_key()
@@ -255,12 +236,6 @@ def insert(request, values):
             ug.group_id = gid
             DBSession.add(ug)
             add_member_count(gid)
-    # if 'opensipkd.webr.models' in get_modules():
-    #     from opensipkd.webr.models import UserWebr
-    #     userwebr = UserWebr()
-    #     userwebr.from_dict(values)
-    #     DBSession.add(userwebr)
-    #     DBSession.flush()
     return user, remain
 
 
@@ -305,9 +280,6 @@ def view_add(request):
     return HTTPFound(location=request.route_url('user'))
 
 
-########
-# Edit #
-########
 def user_group_set(user):
     q = DBSession.query(UserGroup).filter_by(user_id=user.id)
     r = []
@@ -317,7 +289,6 @@ def user_group_set(user):
 
 
 def update(request, user, values):
-    fnames = ['email', 'user_name']
     user.email = values['email'].lower()
     user.user_name = re.sub(' ', '', values['user_name'])  # .lower())
     if user.id != request.user.id:
@@ -329,6 +300,8 @@ def update(request, user, values):
         user.api_key = generate_api_key()
     if 'password' in values:
         UserService.set_password(user, values['password'])
+    company_id = request.user.company_id or values["company_id"]
+    user.company_id = company_id
     DBSession.add(user)
     existing = user_group_set(user)
     unused = existing - values['groups']
@@ -345,15 +318,6 @@ def update(request, user, values):
         ug.group_id = gid
         DBSession.add(ug)
         add_member_count(gid)
-    # if 'opensipkd.webr.models' in get_modules():
-    #     from opensipkd.webr.models import UserWebr
-    #     q_webr = DBSession.query(UserWebr).filter_by(user_id=user.id).first()
-    #     if q_webr:
-    #         userwebr = UserWebr()
-    #         values['id'] = q_webr.id
-    #         userwebr.from_dict(values)
-    #         DBSession.add(userwebr)
-    #         DBSession.flush()
 
 
 @view_config(
@@ -361,13 +325,12 @@ def update(request, user, values):
     permission='user-edit')
 def view_edit(request):
     q = DBSession.query(User).filter_by(id=request.matchdict['id'])
+    if request.user.company_id:
+        q = q.filter_by(company_id=request.user.company_id)
     user = q.first()
     if not user:
         return HTTPNotFound()
     if user.id == request.user.id:
-        # if 'opensipkd.webr.models' in get_modules():
-        #     form = get_form(request, AddSchema2, user)
-        # else:
         form = get_form(request, AddSchema, user)
     else:
         # if 'opensipkd.webr.models' in get_modules():
@@ -401,6 +364,8 @@ def view_edit(request):
     permission='user-view')
 def view_view(request):
     q = DBSession.query(User).filter_by(id=request.matchdict['id'])
+    if request.user.company_id:
+        q = q.filter_by(company_id=request.user.company_id)
     user = q.first()
     if not user:
         return HTTPNotFound()
@@ -415,29 +380,16 @@ def view_view(request):
         d['groups'] = user_group_set(user)
         resp['form'] = form.render(appstruct=d, readonly=True)
         return resp
-    # if 'save' not in request.POST:
-    #     return HTTPFound(location=request.route_url('user'))
-    # items = request.POST.items()
-    # try:
-    #     c = form.validate(items)
-    # except ValidationFailure:
-    #     resp['form'] = form.render()
-    #     return resp
-    # update(request, user, dict(c.items()))
-    # data = dict(username=user.user_name)
-    # ts = _('user-updated', default='${username} profile updated', mapping=data)
-    # request.session.flash(ts)
     return HTTPFound(location=request.route_url('user'))
 
 
-##########
-# Delete #
-##########
 @view_config(
     route_name='user-delete', renderer='templates/user/delete.pt',
     permission='user-edit')
 def view_delete(request):
     q = DBSession.query(User).filter_by(id=request.matchdict['id'])
+    if request.user.company_id:
+        q = q.filter_by(company_id=request.user.company_id)
     user = q.first()
     if not user:
         return HTTPNotFound()
@@ -458,25 +410,14 @@ def view_delete(request):
         default='User ${email} ID ${uid} has been deleted',
         mapping=data)
     q.delete()
-    # if 'opensipkd.webr.models' in get_modules():
-    #     from opensipkd.webr.models import UserWebr
-    #     q_webr = DBSession.query(UserWebr).filter_by(user_id=user.id)
-    #     userwebr = q_webr.first()
-    #     if userwebr:
-    #         q_webr.delete()
     request.session.flash(ts)
     return HTTPFound(location=request.route_url('user'))
 
 
-##########
-# Action #
-##########
 @view_config(
     route_name='user-act', renderer='json', permission='user-view')
 def view_act(request):
-    ses = request.session
     req = request
-    params = req.params
     url_dict = req.matchdict
     if url_dict['act'] == 'grid':
         columns = [
@@ -490,38 +431,11 @@ def view_act(request):
                      mData='registered'),
         ]
         query = DBSession.query().select_from(User)
-        rowTable = DataTables(req.GET, query, columns)
-        return rowTable.output_result()
+        if request.user.company_id:
+            query = query.filter(User.company_id == request.user.company_id)
 
-    elif url_dict['act'] == 'hon':
-        term = 'term' in params and params['term'] or ''
-        rows = DBSession.query(User.id, User.user_name, User.email.label('value')) \
-            .filter(User.id > 1,
-                    or_(User.email.ilike('%%%s%%' % term),
-                        User.user_name.ilike('%%%s%%' % term))
-                    ).all()
-        r = []
-        for k in rows:
-            d = dict(id=k[0],
-                     value=k[1] + '(' + k[2] + ')')
-            r.append(d)
-        return r
-
-    elif url_dict['act'] == 'hom':
-        term = 'term' in params and params['term'] or ''
-        rows = DBSession.query(User.id, User.email
-                               ).filter(User.id != '1',
-                                        User.id != '2',
-                                        User.email.ilike('%%%s%%' % term)
-                                        ).all()
-        r = []
-        for k in rows:
-            d = dict(id=k[0],
-                     value=k[1],
-                     kode=k[1],
-                     nama=k[2])
-            r.append(d)
-        return r
+        row_table = DataTables(req.GET, query, columns)
+        return row_table.output_result()
 
     elif url_dict['act'] == 'csv':
         query = query_register()
@@ -538,6 +452,7 @@ def view_act(request):
         }
         return csv_response(request, value, filename)
     elif url_dict['act'] == 'pdf':
+        # todo ganti rml jadi openoffice
         query = query_register()
         _here = os.path.dirname(__file__)  # get current folder -> views
         path = os.path.dirname(_here)  # mundur 1 level
@@ -554,29 +469,7 @@ def view_act(request):
                                      address=request.address)
         return pdf_response(request, pdf, filename)
 
-    # elif url_dict['act'] == 'hon_dept':
-    #     term = 'term' in params and params['term'] or ''
-    #     id_dept_asal = 'id_dept_asal' in params and params['id_dept_asal'] or 0
-    #     q = DBSession.query(Departemen.id, Departemen.nama). \
-    #         filter(Departemen.status == 1,
-    #                # Departemen.level_id==4,
-    #                Departemen.nama.ilike('%%%s%%' % term))
-    #     rows = q.all()
-    #     r = []
-    #     for k in rows:
-    #         d = dict(id=k.id,
-    #                  value=k.nama,
-    #                  # kode   = k.kode,
-    #                  nama=k.nama,
-    #                  # level_id = k.level_id
-    #                  )
-    #         r.append(d)
-    #     return r
 
-
-#######
-# RPT #
-#######
 def query_register():
     return DBSession.query(User.user_name, User.email,
                            func.to_char(User.registered_date, "DD-MM-YYYY").label("registered_date")).order_by(

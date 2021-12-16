@@ -73,6 +73,7 @@ class User(UserMixin, BaseModel, CommonModel, Base):
                              default=datetime.utcnow)
     api_key = Column(String(256))
     partner_id = Column(Integer) #, ForeignKey(Partner.id))
+    company_id = Column(Integer) #, ForeignKey(Partner.id))
     #partners = relationship(Partner, backref=backref('users'))
 
     def _get_password(self):

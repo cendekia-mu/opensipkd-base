@@ -26,6 +26,7 @@ class Departemen(Base, NamaModel):
     level_id = Column(SmallInteger)
     children = relationship(
         "Departemen", backref=backref('parent', remote_side=[id]))
+    company_id = Column(Integer)
 
     def get_parents(self, start=False):
         allparents = []

@@ -113,8 +113,9 @@ class BaseView(object):
         self.table = ""
 
     def route_list(self, msg=None, error=""):
+        if msg:
+            self.ses.flash(msg, error)
         return HTTPFound(location=self.req.route_url(self.list_route))
-
 
     def form_validator(self, form, value):
         pass
@@ -221,6 +222,7 @@ class BaseView(object):
         request = self.req
         q = self.query_id()
         row = q.first()
+
         if not row:
             return self.id_not_found()
         if request.POST:
@@ -235,8 +237,11 @@ class BaseView(object):
         return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
     def query_id(self):
-        return DBSession.query(self.table).filter_by(
+        q = DBSession.query(self.table).filter_by(
             id=self.req.matchdict['id'])
+        if self.req.user.company_id:
+            q = q.filter_by(company_id=self.req.user.company_id)
+        return q
 
 
 @colander.deferred

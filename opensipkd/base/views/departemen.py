@@ -7,7 +7,6 @@ from datetime import datetime
 import colander
 from deform import (Form, widget, ValidationFailure, )
 from deform.widget import AutocompleteInputWidget
-# from opensipkd.base.models import DepartemenUser
 from pyramid.httpexceptions import (HTTPFound, )
 from pyramid.view import (view_config, )
 from sqlalchemy import func
@@ -15,9 +14,10 @@ from sqlalchemy.orm import aliased
 from opensipkd.tools import (get_ext, get_random_string, get_settings)
 from opensipkd.tools.buttons import btn_cancel, btn_save, btn_delete, btn_close
 
+from .company import company_widget
 from .upload import AddSchema as UploadSchema
 from .. import renderer
-from ..models import DBSession, Departemen, Partner, PartnerDepartemen
+from ..models import DBSession, Departemen, Partner, PartnerDepartemen, ResCompany
 from ..views import ColumnDT, DataTables, BaseView
 
 SESS_ADD_FAILED = 'Tambah departemen gagal'
@@ -63,6 +63,10 @@ class AddSchema(colander.Schema):
 
     alamat = colander.SchemaNode(colander.String(), missing=colander.drop,
                                  oid="alamat")
+    company_id = colander.SchemaNode(colander.Integer(),
+                                     widget=company_widget,
+                                     missing=colander.drop,
+                                     oid="company_id")
 
     status = colander.SchemaNode(colander.Boolean(), oid="status")
 
@@ -74,6 +78,9 @@ class AddSchema(colander.Schema):
                                                                                values=f"{request._host}/departemen/hon/act"),
                                                 oid="parent_nm",
                                                 title="Induk", )
+        if request.user.company_id:
+            self["company_id"].widget = widget.HiddenWidget()
+            self["company_id"].default = request.user.company_id
 
 
 class EditSchema(AddSchema):
@@ -124,6 +131,7 @@ class ViewDepartemen(BaseView):
         self.form_params = dict(scripts="")
         self.list_url = 'departemen'
         self.list_route = 'departemen'
+        self.table = Departemen
 
     ########
     # List #
@@ -142,21 +150,22 @@ class ViewDepartemen(BaseView):
         if 'id' in form.request.matchdict:
             uid = form.request.matchdict['id']
             q = DBSession.query(Departemen).filter_by(id=uid)
-            urusan = q.first()
+            current = q.first()
         else:
-            urusan = None
+            current = None
 
-        q = Departemen.query_kode(value['kode'])
-        found = q.first()
-        if urusan:
-            if found and found.id != urusan.id:
+        found = Departemen.query_kode(value['kode']). \
+            filter_by(company_id=value["company_id"]).first()
+        if current:
+            if found and found.id != current.id:
                 err_kode()
         elif found:
             err_kode()
 
-        found = Departemen.query_nama(value['nama']).first()
-        if urusan:
-            if found and found.id != urusan.id:
+        found = Departemen.query_nama(value['nama']). \
+            filter_by(company_id=value["company_id"]).first()
+        if current:
+            if found and found.id != current.id:
                 err_nama()
         elif found:
             err_nama()
@@ -200,16 +209,18 @@ class ViewDepartemen(BaseView):
         request = self.req
         if 'id' in request.matchdict:
             values['id'] = request.matchdict['id']
+        values["company_id"] = request.user.company_id
         row = self.save(values, request.user, row)
         request.session.flash(
             "Departemen {nama} sudah disimpan.".format(nama=row.nama))
 
-    def route_list(self, ):
-        return HTTPFound(location=self.req.route_url(self.list_route))
+    # def route_list(self, ):
+    #     return HTTPFound(location=self.req.route_url(self.list_route))
 
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel)):
         schema = class_form(validator=self.form_validator)
-        schema = schema.bind(request=self.req)
+        schema = schema.bind(request=self.req,
+                             company_list=ResCompany.get_list())
         schema.request = self.req
         if row:
             schema.deserialize(row)
@@ -220,14 +231,14 @@ class ViewDepartemen(BaseView):
         del self.req.session[session_name]
         return r
 
-    def query_id(self):
-        return DBSession.query(Departemen).filter_by(
-            id=self.req.matchdict['id'])
+    # def query_id(self):
+    #     return DBSession.query(Departemen).filter_by(
+    #         id=self.req.matchdict['id'])
 
-    def id_not_found(self):
-        msg = 'Departemen ID %s Tidak Ditemukan.' % self.req.matchdict['id']
-        self.req.session.flash(msg, 'error')
-        return self.route_list()
+    # def id_not_found(self):
+    #     msg = 'Departemen ID %s Tidak Ditemukan.' % self.req.matchdict['id']
+    #     self.req.session.flash(msg, 'error')
+    #     return self.route_list()
 
     @view_config(route_name='departemen-view',
                  renderer='templates/form_input.pt', permission='departemen')
@@ -270,6 +281,8 @@ class ViewDepartemen(BaseView):
                        ColumnDT(Departemen.level_id, mData='level_id'), ]
             query = DBSession.query().select_from(Departemen).outerjoin(
                 dep_alias, Departemen.parent_id == dep_alias.id)
+            if self.req.user.company_id:
+                query = query.filter(Departemen.company_id == self.req.user.company_id)
             row_table = DataTables(request.GET, query, columns)
             return row_table.output_result()
 
@@ -280,6 +293,8 @@ class ViewDepartemen(BaseView):
                        Departemen.nama.ilike('%%%s%%' % term)) \
                 .order_by(
                 Departemen.nama)
+            if self.req.user.company_id:
+                q = q.filter(Departemen.company_id == self.req.user.company_id)
             rows = q.all()
             r = []
             for k in rows:
@@ -296,6 +311,8 @@ class ViewDepartemen(BaseView):
                                     Departemen.kode) \
                         .ilike('%%%s%%' % term)) \
                 .order_by(Departemen.nama)
+            if self.req.user.company_id:
+                q = q.filter(Departemen.company_id == self.req.user.company_id)
             rows = q.all()
             r = []
             for k in rows:
@@ -314,6 +331,8 @@ class ViewDepartemen(BaseView):
                                                        '%%%s%%' %
                                                        term)).order_by(
                 Departemen.nama)
+            if self.req.user.company_id:
+                q = q.filter(Departemen.company_id == self.req.user.company_id)
             if int(level_id) > 0:
                 q = q.filter(Departemen.level_id == int(level_id))
             if request.user.id > 1 and not request.has_permission(
@@ -349,6 +368,8 @@ class ViewDepartemen(BaseView):
                                                        '%%%s%%' %
                                                        term)).order_by(
                 Departemen.nama)
+            if self.req.user.company_id:
+                q = q.filter(Departemen.company_id == self.req.user.company_id)
             if int(level_id) > 0:
                 q = q.filter(Departemen.level_id == int(level_id))
 

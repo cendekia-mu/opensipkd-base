@@ -2,16 +2,13 @@ import json
 
 import colander
 from deform import (widget, Form, ValidationFailure, )
-from opensipkd.base.models import ResProvinsi, ResDati2, ResDesa
 from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save
 from pyramid.view import (view_config, )
 
-from .kecamatan import kecamatan_widget
+from opensipkd.base.models import ResProvinsi, ResDati2, ResDesa
 from .partner_base import PartnerSchema
 from ..models import DBSession, ResCompany, ResKecamatan, Partner
 from ..views import ColumnDT, DataTables, BaseView
-
-# from opensipkd.base.views import partner
 
 SESS_ADD_FAILED = 'Tambah pemda gagal'
 SESS_EDIT_FAILED = 'Edit pemda gagal'
@@ -141,12 +138,16 @@ class ViewCompany(BaseView):
                        ColumnDT(ResCompany.kode, mData='kode'),
                        ColumnDT(ResCompany.nama, mData='nama'), ]
             query = DBSession.query().select_from(ResCompany)
+            if request.user.company_id:
+                query = query.filter_by(id=request.user.company_id)
             row_table = DataTables(request.GET, query, columns)
             return row_table.output_result()
 
     @view_config(route_name='company-add',
                  renderer='templates/form_input.pt', permission='company')
     def view_add(self):
+        if self.req.user.company_id:
+            return self.route_list("Hak Akses Terbatas", "error")
         return super(ViewCompany, self).view_add()
 
     ########
@@ -199,3 +200,10 @@ class ViewCompany(BaseView):
 
         row = self.save(values, self.req.user, row)
         return row
+
+    def query_id(self):
+        q = DBSession.query(self.table).filter_by(
+            id=self.req.matchdict['id'])
+        if self.req.user.company_id:
+            q = q.filter_by(id=self.req.user.company_id)
+        return q
