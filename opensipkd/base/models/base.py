@@ -170,5 +170,9 @@ class NamaModel(KodeModel):
         return cls.query_nama(nama, db_session).first()
 
     @classmethod
+    def query_list(cls):
+        return DBSession.query(cls.id, cls.nama).order_by(cls.nama)
+
+    @classmethod
     def get_list(cls):
-        return DBSession.query(cls.id, cls.nama).order_by(cls.nama).all()
+        return cls.query_list().all()

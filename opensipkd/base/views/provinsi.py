@@ -8,6 +8,7 @@ from pyramid.httpexceptions import (HTTPFound, )
 from pyramid.view import (view_config, )
 from sqlalchemy.orm import aliased
 
+from . import widget_os
 from ..models import DBSession, ResProvinsi, kategori_provinsi, flush
 from ..views import ColumnDT, DataTables, BaseView
 
@@ -17,8 +18,21 @@ SESS_EDIT_FAILED = 'Edit provinsi gagal'
 
 @colander.deferred
 def provinsi_widget(node, kw):
+    default_url = "/dati2/select/act?provinsi_id="
+    default_slave = "dati2_id"
     values = kw.get('provinsi_list', [])
-    return widget.Select2Widget(values=values)
+    url = kw.get('provinsi_url', [])
+    slave = kw.get('provinsi_slave', [])
+    if not url:
+        url = default_url
+    if not slave:
+        slave = default_slave
+    values.insert(0, ("", "Pilih Propinsi..."))
+
+    return widget_os.Select2MsWidget(values=values,
+                                     url=url,
+                                     slave=slave,
+                                     placeholder="Pilih Provinsi")
 
 
 class AddSchema(colander.Schema):

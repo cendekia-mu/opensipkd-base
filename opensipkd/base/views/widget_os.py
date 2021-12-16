@@ -1,5 +1,5 @@
 from colander import SchemaNode, null, Mapping, Invalid, text_
-from deform.widget import Widget, _StrippedString
+from deform.widget import Widget, _StrippedString, Select2Widget
 
 
 class DokumenWidget(Widget):
@@ -163,3 +163,21 @@ class BlokKavNoWidget(Widget):
                 raise Invalid(field.schema, "Blok Kav No RT/RW tidak lengkap", result)
 
             return result
+
+
+class Select2MsWidget(Select2Widget):
+    """
+    Renders ``<select>`` field based on a predefined set of values using
+    `select2 <https://select2.org/>`_ library.
+
+    **Attributes/Arguments**
+
+    Same as :func:`~deform.widget.SelectWidget`, with some extra options
+    listed here.
+
+    tags: *bool*
+        Allow dynamic option creation ( default: ``False`` ).
+        See `select2 docs on tagging <https://select2.org/tagging>`_ for
+        more details.
+    """
+    template = "select2_ms.pt"

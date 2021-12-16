@@ -3,10 +3,11 @@ from sqlalchemy import (
     Integer,
     String,
     SmallInteger,
-    DateTime
+    DateTime, ForeignKey
 )
 
 from opensipkd.base.models.common import NamaModel
+from .wilayah import ResProvinsi, ResDesa, ResKecamatan, ResDati2
 from ..models import (Base)
 
 
@@ -58,6 +59,10 @@ class Partner(Base, PartnerModel):
     perkawinan = Column(String(2))
     pekerjaan = Column(String(32))
     kewarganegaraan = Column(String(10))
+    provinsi_id = Column(Integer, ForeignKey(ResProvinsi.id))
+    dati2_id = Column(Integer, ForeignKey(ResDati2.id))
+    kecamatan_id = Column(Integer, ForeignKey(ResKecamatan.id))
+    desa_id = Column(Integer, ForeignKey(ResDesa.id))
     # npwp        = Column(String(16))
     # npwpd       = Column(String(16))
     #

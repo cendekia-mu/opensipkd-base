@@ -5,6 +5,7 @@ from deform import (widget, Form, )
 from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save
 from pyramid.view import (view_config, )
 
+from . import widget_os
 from .provinsi import provinsi_widget
 from ..models import DBSession, ResDati2, kategori_dati2, ResProvinsi
 from ..views import ColumnDT, DataTables, BaseView
@@ -15,8 +16,21 @@ SESS_EDIT_FAILED = 'Edit dati2 gagal'
 
 @colander.deferred
 def dati2_widget(node, kw):
+    default_url = "/kecamatan/select/act?dati2_id="
+    default_slave = "kecamatan_id"
     values = kw.get('dati2_list', [])
-    return widget.Select2Widget(values=values)
+    url = kw.get('dati2_url', [])
+    slave = kw.get('dati2_slave', [])
+    if not url:
+        url = default_url
+    if not slave:
+        slave = default_slave
+    values.insert(0, ("", "Pilih Kab/Kota..."))
+
+    return widget_os.Select2MsWidget(values=values,
+                                     url=url,
+                                     slave=slave)
+
 
 
 class AddSchema(colander.Schema):
@@ -136,11 +150,17 @@ class ViewDati2(BaseView):
                        ColumnDT(ResDati2.kode, mData='kode'),
                        ColumnDT(ResDati2.nama, mData='nama'),
                        ColumnDT(ResDati2.status, mData='status'),
-                       ColumnDT(ResProvinsi.nama, mData='provinsi'),]
+                       ColumnDT(ResProvinsi.nama, mData='provinsi'), ]
             query = DBSession.query().select_from(ResDati2) \
                 .join(ResProvinsi, ResProvinsi.id == ResDati2.provinsi_id)
             row_table = DataTables(request.GET, query, columns)
             return row_table.output_result()
+        elif url_dict['act'] == 'select':
+            provinsi_id = request.params["provinsi_id"]
+            data = ResDati2.get_list(provinsi_id)
+            result = {f"{k[0]}": k[1] for k in data}
+            return result
+
 
     @view_config(route_name='dati2-add',
                  renderer='templates/form_input.pt', permission='dati2')

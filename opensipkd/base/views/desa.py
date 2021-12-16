@@ -141,6 +141,12 @@ class ViewDesa(BaseView):
                 .join(ResKecamatan, ResKecamatan.id == ResDesa.kecamatan_id)
             row_table = DataTables(request.GET, query, columns)
             return row_table.output_result()
+        elif url_dict['act'] == 'select':
+            kecamatan_id = request.params["kecamatan_id"]
+            data = ResKecamatan.get_list(kecamatan_id)
+            result = {f"{k[0]}": k[1] for k in data}
+            return result
+
 
     @view_config(route_name='desa-add',
                  renderer='templates/form_input.pt', permission='desa')

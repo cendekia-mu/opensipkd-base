@@ -5,6 +5,7 @@ from deform import (widget, Form, )
 from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save
 from pyramid.view import (view_config, )
 
+from . import widget_os
 from .dati2 import dati2_widget
 from ..models import DBSession, ResKecamatan, ResDati2
 from ..views import ColumnDT, DataTables, BaseView
@@ -15,8 +16,21 @@ SESS_EDIT_FAILED = 'Edit kecamatan gagal'
 
 @colander.deferred
 def kecamatan_widget(node, kw):
+    default_url = "/desa/select/act?kecamatan_id="
+    default_slave = "desa_id"
     values = kw.get('kecamatan_list', [])
-    return widget.Select2Widget(values=values)
+    url = kw.get('kecamatan_url', [])
+    slave = kw.get('kecamatan_slave', [])
+    if not url:
+        url = default_url
+    if not slave:
+        slave = default_slave
+    values.insert(0, ("", "Pilih Kecamatan..."))
+
+    return widget_os.Select2MsWidget(values=values,
+                                     url=url,
+                                     slave=slave,
+                                     placeholder="Pilih Kecamatan")
 
 
 class AddSchema(colander.Schema):
@@ -137,6 +151,12 @@ class ViewDati2(BaseView):
                 .join(ResDati2, ResDati2.id == ResKecamatan.dati2_id)
             row_table = DataTables(request.GET, query, columns)
             return row_table.output_result()
+        elif url_dict['act'] == 'select':
+            dati2_id = request.params["dati2_id"]
+            data = ResKecamatan.get_list(dati2_id)
+            result = {f"{k[0]}": k[1] for k in data}
+            return result
+
 
     @view_config(route_name='kecamatan-add',
                  renderer='templates/form_input.pt', permission='kecamatan')

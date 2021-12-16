@@ -7,7 +7,7 @@ from deform import (
     widget,
     ValidationFailure,
 )
-from opensipkd.base.models import User
+from opensipkd.base.models import User, ResProvinsi, ResDati2, ResKecamatan, ResDesa
 from pyramid.httpexceptions import (
     HTTPFound,
 )
@@ -16,6 +16,10 @@ from pyramid.view import (
 )
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_delete
 
+from .dati2 import dati2_widget
+from .desa import desa_widget
+from .kecamatan import kecamatan_widget
+from .provinsi import provinsi_widget
 from ..models import DBSession
 from ..models import Partner
 # from ..models.partner import PartnerUserModel
@@ -45,26 +49,49 @@ class AddSchema(colander.Schema):
         missing=colander.drop,
         validator=colander.Length(max=128),
         oid="alamat_2")
-    kelurahan = colander.SchemaNode(
-        colander.String(),
+    # kelurahan = colander.SchemaNode(
+    #     colander.String(),
+    #     missing=colander.drop,
+    #     validator=colander.Length(max=64),
+    #     oid="kelurahan")
+    # kecamatan = colander.SchemaNode(
+    #     colander.String(),
+    #     missing=colander.drop,
+    #     validator=colander.Length(max=64),
+    #     oid="kecamatan")
+    # kota = colander.SchemaNode(
+    #     colander.String(),
+    #     validator=colander.Length(max=64),
+    #     missing=colander.drop,
+    #     oid="kota")
+    # provinsi = colander.SchemaNode(
+    #     colander.String(),
+    #     validator=colander.Length(max=64),
+    #     missing=colander.drop,
+    #     oid="provinsi")
+    provinsi_id = colander.SchemaNode(
+        colander.Integer(),
+        widget=provinsi_widget,
         missing=colander.drop,
-        validator=colander.Length(max=64),
-        oid="kelurahan")
-    kecamatan = colander.SchemaNode(
-        colander.String(),
+        oid="provinsi_id",
+        url="",
+        slave="dati2_id",
+    )
+    dati2_id = colander.SchemaNode(
+        colander.Integer(),
+        widget=dati2_widget,
         missing=colander.drop,
-        validator=colander.Length(max=64),
-        oid="kecamatan")
-    kota = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Length(max=64),
+        oid="dati2_id")
+    kecamatan_id = colander.SchemaNode(
+        colander.Integer(),
         missing=colander.drop,
-        oid="kota")
-    provinsi = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Length(max=64),
+        widget=kecamatan_widget,
+        oid="kecamatan_id")
+    desa_id = colander.SchemaNode(
+        colander.Integer(),
+        widget=desa_widget,
         missing=colander.drop,
-        oid="provinsi")
+        oid="desa_id")
     email = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=128),
@@ -135,8 +162,8 @@ class ViewPartner(BaseView):
                 ColumnDT(Partner.status, mData='status'),
             ]
             query = DBSession.query().select_from(Partner)
-            rowTable = DataTables(request.GET, query, columns)
-            return rowTable.output_result()
+            row_table = DataTables(request.GET, query, columns)
+            return row_table.output_result()
 
         elif url_dict['act'] == 'hok':
             term = 'term' in params and params['term'] or ''
@@ -166,9 +193,6 @@ class ViewPartner(BaseView):
 
             keys = row.keys()
             r = [dict(zip(keys, k)) for k in q.all()]
-            # for k in q.all():
-            #     d = )
-            #     r.append(d)
             return r
 
         elif url_dict['act'] == 'vendor':  # vendor only
@@ -227,7 +251,7 @@ class ViewPartner(BaseView):
         if not row:
             return id_not_found(request)
 
-        form = get_form(request, EditSchema)
+        form = get_form(request, EditSchema, row=row)
         if request.POST:
             if 'save' in request.POST:
                 controls = request.POST.items()
@@ -306,7 +330,6 @@ def form_validator(form, value):
         row = q.first()
     else:
         row = None
-
     q = Partner.query_kode(value['kode'])
     found = q.first()
     if row:
@@ -318,10 +341,18 @@ def form_validator(form, value):
 
 def get_form(request, class_form, row=None, buttons=(btn_save, btn_cancel)):
     schema = class_form(validator=form_validator)
-    schema = schema.bind()
+    provinsi_list = ResProvinsi.get_list()
+    dati2_list = row and row.provinsi_id and ResDati2.get_list(row.provinsi_id) or []
+    kecamatan_list = row and row.dati2_id and ResKecamatan.get_list(row.dati2_id) or []
+    desa_list = row and row.kecamatan_id and ResDesa.get_list(row.kecamatan_id) or []
+    schema = schema.bind(provinsi_list=provinsi_list,
+                         dati2_list=dati2_list,
+                         kecamatan_list=kecamatan_list,
+                         desa_list=desa_list
+                         )
     schema.request = request
-    if row:
-        schema.deserialize(row)
+    # if row:
+    #     schema.deserialize(row)
     return Form(schema, buttons=buttons)
 
 
@@ -369,6 +400,7 @@ def id_not_found(request):
     msg = 'Partner ID %s Tidak Ditemukan.' % request.matchdict['id']
     request.session.flash(msg, 'error')
     return route_list(request)
+
 
 def get_partner_list():
     r = []
