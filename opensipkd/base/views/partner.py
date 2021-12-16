@@ -7,6 +7,8 @@ from deform import (
     widget,
     ValidationFailure,
 )
+from opensipkd.base.models.common import ResCompany
+
 from opensipkd.base.models import User, ResProvinsi, ResDati2, ResKecamatan, ResDesa
 from pyramid.httpexceptions import (
     HTTPFound,
@@ -19,103 +21,18 @@ from opensipkd.tools.buttons import btn_save, btn_cancel, btn_delete
 from .dati2 import dati2_widget
 from .desa import desa_widget
 from .kecamatan import kecamatan_widget
+from .partner_base import PartnerSchema
 from .provinsi import provinsi_widget
 from ..models import DBSession
 from ..models import Partner
-# from ..models.partner import PartnerUserModel
 from ..views import ColumnDT, DataTables, BaseView
+from .company import company_widget
 
 SESS_ADD_FAILED = 'Tambah partner gagal'
 SESS_EDIT_FAILED = 'Edit partner gagal'
 
 
-class AddSchema(colander.Schema):
-    kode = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Length(max=32),
-        oid="kode",
-        title="Kode")
-    nama = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Length(max=64),
-        oid="nama")
-    alamat_1 = colander.SchemaNode(
-        colander.String(),
-        missing=colander.drop,
-        validator=colander.Length(max=128),
-        oid="alamat_1")
-    alamat_2 = colander.SchemaNode(
-        colander.String(),
-        missing=colander.drop,
-        validator=colander.Length(max=128),
-        oid="alamat_2")
-    # kelurahan = colander.SchemaNode(
-    #     colander.String(),
-    #     missing=colander.drop,
-    #     validator=colander.Length(max=64),
-    #     oid="kelurahan")
-    # kecamatan = colander.SchemaNode(
-    #     colander.String(),
-    #     missing=colander.drop,
-    #     validator=colander.Length(max=64),
-    #     oid="kecamatan")
-    # kota = colander.SchemaNode(
-    #     colander.String(),
-    #     validator=colander.Length(max=64),
-    #     missing=colander.drop,
-    #     oid="kota")
-    # provinsi = colander.SchemaNode(
-    #     colander.String(),
-    #     validator=colander.Length(max=64),
-    #     missing=colander.drop,
-    #     oid="provinsi")
-    provinsi_id = colander.SchemaNode(
-        colander.Integer(),
-        widget=provinsi_widget,
-        missing=colander.drop,
-        oid="provinsi_id",
-        url="",
-        slave="dati2_id",
-    )
-    dati2_id = colander.SchemaNode(
-        colander.Integer(),
-        widget=dati2_widget,
-        missing=colander.drop,
-        oid="dati2_id")
-    kecamatan_id = colander.SchemaNode(
-        colander.Integer(),
-        missing=colander.drop,
-        widget=kecamatan_widget,
-        oid="kecamatan_id")
-    desa_id = colander.SchemaNode(
-        colander.Integer(),
-        widget=desa_widget,
-        missing=colander.drop,
-        oid="desa_id")
-    email = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Length(max=128),
-        oid="email")
-    phone = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Length(max=16),
-        missing=colander.drop,
-        oid="phone")
-    fax = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Length(max=16),
-        missing=colander.drop,
-        oid="fax")
-    mobile = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Length(max=16),
-        missing=colander.drop,
-        oid="mobile")
-    website = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Length(max=128),
-        missing=colander.drop,
-        oid="website")
+class AddSchema(PartnerSchema):
     is_vendor = colander.SchemaNode(
         colander.Boolean(),
         oid="is_vendor",
@@ -124,9 +41,11 @@ class AddSchema(colander.Schema):
         colander.Boolean(),
         oid="is_customer",
         title="Customer")
-    status = colander.SchemaNode(
-        colander.Boolean(),
-        oid="status")
+    company_id = colander.SchemaNode(
+        colander.Integer(),
+        widget=company_widget,
+        oid="company_id",
+        title="Company")
 
 
 class EditSchema(AddSchema):
@@ -340,19 +259,20 @@ def form_validator(form, value):
 
 
 def get_form(request, class_form, row=None, buttons=(btn_save, btn_cancel)):
-    schema = class_form(validator=form_validator)
     provinsi_list = ResProvinsi.get_list()
     dati2_list = row and row.provinsi_id and ResDati2.get_list(row.provinsi_id) or []
     kecamatan_list = row and row.dati2_id and ResKecamatan.get_list(row.dati2_id) or []
     desa_list = row and row.kecamatan_id and ResDesa.get_list(row.kecamatan_id) or []
-    schema = schema.bind(provinsi_list=provinsi_list,
-                         dati2_list=dati2_list,
-                         kecamatan_list=kecamatan_list,
-                         desa_list=desa_list
-                         )
+    schema = class_form(validator=form_validator)
+    schema = schema.bind(
+        request=request,
+        provinsi_list=provinsi_list,
+        dati2_list=dati2_list,
+        kecamatan_list=kecamatan_list,
+        desa_list=desa_list,
+        company_list=ResCompany.get_list()
+    )
     schema.request = request
-    # if row:
-    #     schema.deserialize(row)
     return Form(schema, buttons=buttons)
 
 

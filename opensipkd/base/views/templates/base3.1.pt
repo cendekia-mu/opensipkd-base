@@ -7,6 +7,7 @@
     param_path  ['parameter', 'parameter-add', 'parameter-edit', 'parameter-view', 'parameter-delete'];
     dep_path ['departemen', 'departemen-add', 'departemen-edit', 'departemen-view', 'departemen-delete'];
     partner_path ['partner', 'partner-add', 'partner-edt', 'partner-view', 'partner-del'];
+    company_path ['company', 'company-add', 'company-edt', 'company-view', 'company-del'];
     part_dep_path ['partner-departemen', 'partner-departemen-add', 'partner-departemen-edit', 'partner-departemen-view',
     'partner-departemen-delete'];
     jabatan_path ['jabatan', 'jabatan-add', 'jabatan-edit', 'jabatan-view', 'jabatan-delete'];
@@ -202,6 +203,9 @@
                     <li tal:condition="has_permission(request, 'parameter')"
                         tal:attributes="class request.matched_route.name in param_path and 'active'">
                         <a href="${home}/parameter">Parameter</a></li>
+                    <li tal:condition="has_permission(request, 'company')"
+                        tal:attributes="class request.matched_route.name in company_path  and 'active'">
+                        <a href="${home}/company">Pemerintah</a></li>
                     <li tal:condition="has_permission(request, 'eselon')"
                         tal:attributes="class request.matched_route.name in eselon_path and 'active'">
                         <a href="${home}/eselon">Eselon</a></li>

@@ -18,17 +18,10 @@ SESS_EDIT_FAILED = 'Edit provinsi gagal'
 
 @colander.deferred
 def provinsi_widget(node, kw):
-    default_url = "/dati2/select/act?provinsi_id="
-    default_slave = "dati2_id"
     values = kw.get('provinsi_list', [])
-    url = kw.get('provinsi_url', [])
-    slave = kw.get('provinsi_slave', [])
-    if not url:
-        url = default_url
-    if not slave:
-        slave = default_slave
+    url = node and hasattr(node, 'slave_url') and node.slave_url or ""
+    slave = node and hasattr(node, 'slave') and node.slave or ""
     values.insert(0, ("", "Pilih Propinsi..."))
-
     return widget_os.Select2MsWidget(values=values,
                                      url=url,
                                      slave=slave,

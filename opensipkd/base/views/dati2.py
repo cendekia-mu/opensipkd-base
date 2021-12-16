@@ -16,21 +16,15 @@ SESS_EDIT_FAILED = 'Edit dati2 gagal'
 
 @colander.deferred
 def dati2_widget(node, kw):
-    default_url = "/kecamatan/select/act?dati2_id="
-    default_slave = "kecamatan_id"
     values = kw.get('dati2_list', [])
-    url = kw.get('dati2_url', [])
-    slave = kw.get('dati2_slave', [])
-    if not url:
-        url = default_url
-    if not slave:
-        slave = default_slave
+    url = node and hasattr(node, 'slave_url') and node.slave_url or ""
+    slave = node and hasattr(node, 'slave') and node.slave or ""
     values.insert(0, ("", "Pilih Kab/Kota..."))
-
     return widget_os.Select2MsWidget(values=values,
                                      url=url,
-                                     slave=slave)
-
+                                     slave=slave,
+                                     placeholder="Pilih Kota/Kabupaten"
+                                     )
 
 
 class AddSchema(colander.Schema):
@@ -160,7 +154,6 @@ class ViewDati2(BaseView):
             data = ResDati2.get_list(provinsi_id)
             result = {f"{k[0]}": k[1] for k in data}
             return result
-
 
     @view_config(route_name='dati2-add',
                  renderer='templates/form_input.pt', permission='dati2')

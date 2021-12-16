@@ -160,3 +160,10 @@ desa-view,/desa/{id}/view,Desa/Kelurahan View,1,0
 desa-delete,/desa/{id}/delete,Desa/Kelurahan Hapus,1,0
 desa-act,/desa/{act}/act,Desa/Kelurahan Act,1,0
 desa-rpt,/desa/{rpt}/rpt,Desa/Kelurahan Report,1,0
+company,/company,Pemda,1,0
+company-add,/company/add,Pemda Add,1,0
+company-edit,/company/{id}/edit,Pemda Edit,1,0
+company-view,/company/{id}/view,Pemda View,1,0
+company-delete,/company/{id}/delete,Pemda Hapus,1,0
+company-act,/company/{act}/act,Pemda Act,1,0
+company-rpt,/company/{rpt}/rpt,Pemda Report,1,0

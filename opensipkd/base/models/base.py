@@ -73,8 +73,18 @@ class DefaultModel(CommonModel):
         return db_session.query(func.count('id')).scalar()
 
     @classmethod
-    def query(cls, db_session=DBSession):
-        return db_session.query(cls)
+    def query(cls, db_session=DBSession, filters=None):
+        query = db_session.query(cls)
+        if filters:
+            filter_expressions = []
+            for d in filters:
+                field = getattr(cls, d[0])
+                operator = d[1]
+                value = d[2]
+                filter_expressions.append(field.op(operator)(value))
+            query = query.filter(
+                *[e for i, e in enumerate(filter_expressions) if e is not None])
+        return query
 
     @classmethod
     def query_id(cls, row_id, db_session=DBSession):

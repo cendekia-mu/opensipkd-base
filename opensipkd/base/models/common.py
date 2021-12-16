@@ -1,8 +1,9 @@
 from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, ForeignKey
 from ziggurat_foundations.tests import User
 
-from .base import NamaModel, DefaultModel, DBSession, KodeModel
 from .meta import Base
+from .base import NamaModel, DefaultModel, DBSession, KodeModel
+from .partner import Partner
 
 
 class Route(Base, NamaModel):
@@ -37,3 +38,8 @@ class UserDeviceModel(Base, KodeModel):
     token = Column(String(256))
     logged_in = Column(Integer)
     las_login_date = Column(DateTime)
+
+
+class ResCompany(Base, NamaModel):
+    __tablename__ = 'company'
+    partner_id = Column(Integer, ForeignKey(Partner.id))

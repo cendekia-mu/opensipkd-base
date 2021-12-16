@@ -1,3 +1,4 @@
+from opensipkd.base.models import TABLE_ARGS
 from sqlalchemy import (
     Column,
     ForeignKey,
@@ -5,9 +6,8 @@ from sqlalchemy import (
     SmallInteger,
 )
 
-from ..models import Base
-from ..models import (NamaModel,
-                      TABLE_ARGS)
+from .meta import Base
+from .common import (NamaModel)
 
 kategori_provinsi = (
     ("provinsi", "Provinsi"),

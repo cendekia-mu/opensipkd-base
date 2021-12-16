@@ -16,15 +16,9 @@ SESS_EDIT_FAILED = 'Edit kecamatan gagal'
 
 @colander.deferred
 def kecamatan_widget(node, kw):
-    default_url = "/desa/select/act?kecamatan_id="
-    default_slave = "desa_id"
     values = kw.get('kecamatan_list', [])
-    url = kw.get('kecamatan_url', [])
-    slave = kw.get('kecamatan_slave', [])
-    if not url:
-        url = default_url
-    if not slave:
-        slave = default_slave
+    url = node and hasattr(node, 'slave_url') and node.slave_url or ""
+    slave = node and hasattr(node, 'slave') and node.slave or ""
     values.insert(0, ("", "Pilih Kecamatan..."))
 
     return widget_os.Select2MsWidget(values=values,

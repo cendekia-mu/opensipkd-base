@@ -71,6 +71,8 @@
     function(oid) {
       $('#' + oid).change(function () {
         $("#${slave}").val("");
+        $("#${slave}").empty();
+        $("#${slave}").append('<option value="" selected disabled>Pilih Data...</option>');
         var value = $(this).val();
         if (value) {
           $.ajax({
@@ -78,8 +80,6 @@
             url: "${url}" + value,
             success: function (res) {
               if (res) {
-                $("#${slave}").empty();
-                $("#${slave}").append('<option value="">Pilih Data...</option>');
                 $.each(res, function (key, value) {
                   $("#${slave}").append('<option value="' + key + '">' + value + '</option>');
                 });
@@ -88,9 +88,8 @@
               }
             }
           });
-        } else {
-          $("#${slave}").empty();
         }
+        $("#${slave}").change();
       });
     });
   </script>

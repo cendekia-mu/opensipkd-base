@@ -8,7 +8,7 @@ from sqlalchemy import (
 
 from opensipkd.base.models.common import NamaModel
 from .wilayah import ResProvinsi, ResDesa, ResKecamatan, ResDati2
-from ..models import (Base)
+from .meta import (Base)
 
 
 class PartnerModel(NamaModel):
@@ -20,6 +20,7 @@ class PartnerModel(NamaModel):
     fax = Column(String(16))
     mobile = Column(String(16))
     website = Column(String(64))
+
     # pic = Column(String(16))
     # pic_mobile = Column(String(16))
     # pic_email = Column(String(16))
@@ -63,6 +64,8 @@ class Partner(Base, PartnerModel):
     dati2_id = Column(Integer, ForeignKey(ResDati2.id))
     kecamatan_id = Column(Integer, ForeignKey(ResKecamatan.id))
     desa_id = Column(Integer, ForeignKey(ResDesa.id))
+    company_id = Column(Integer)
+
     # npwp        = Column(String(16))
     # npwpd       = Column(String(16))
     #

@@ -16,7 +16,8 @@ SESS_EDIT_FAILED = 'Edit desa gagal'
 @colander.deferred
 def desa_widget(node, kw):
     values = kw.get('desa_list', [])
-    return widget.Select2Widget(values=values)
+    return widget.Select2Widget(values=values,
+                                placeholder="Pilih Desa/Kelurahan")
 
 
 class AddSchema(colander.Schema):
