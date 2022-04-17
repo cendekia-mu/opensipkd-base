@@ -1,3 +1,6 @@
+3.0.1 25-04-2022
+Penambahan Feature ```detable```
+
 3.0.0 26-08-2021
 1. Penghapusan folder src
 2. Perubahan ke base ciamis
