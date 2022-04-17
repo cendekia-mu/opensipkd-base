@@ -111,6 +111,7 @@ class BaseView(object):
         self.edit_schema = ""
         self.add_schema = ""
         self.table = ""
+        self.home = self.req.route_url('home')[:-1]
 
     def route_list(self, msg=None, error=""):
         if msg:

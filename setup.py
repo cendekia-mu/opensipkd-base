@@ -61,15 +61,16 @@ setup(
     extras_require={
         'dev': dev_requires,
     },
-    package_data={'opensipkd': ['base/views/templates/*.pt',
-                                'base/static/*.*',
-                                'base/reports/*.*',
-                                'base/alembic/*.*',
-                                'base/alembic/versions/*.*',
-                                'base/views/*.tpl',
-                                ],},
-    data_files=[('etc',['etc/live_opensipkd.tpl',
-                        'etc/test_opensipkd.tpl',])],
+    package_data={'opensipkd': [
+        'base/views/templates/*.pt',
+        'base/static/*.*',
+        'base/reports/*.*',
+        'base/alembic/*.*',
+        'base/alembic/versions/*.*',
+        'base/views/*.tpl',
+    ], },
+    data_files=[('etc', ['etc/live_opensipkd.tpl',
+                         'etc/test_opensipkd.tpl', ])],
     include_package_data=True,
     entry_points="""\
         [paste.app_factory]

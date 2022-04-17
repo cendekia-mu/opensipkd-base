@@ -71,7 +71,7 @@ if __name__ == "__main__":
     from opensipkd.base.models import query_table
 
     res = query_table('routes', ['id', 'nama', 'kode'],
-                      [('|', ('nama', 'ilike', "a%"),
-                        ('kode', 'ilike', 'g%'))])
+                      [ ('nama', 'ilike', "a%"),
+                        ('kode', 'ilike', 'g%')])
     for row in res.all():
         print(row.id, row.nama, row.kode)

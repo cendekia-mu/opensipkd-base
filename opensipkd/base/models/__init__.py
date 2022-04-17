@@ -1,14 +1,25 @@
+from sqlalchemy import event
+
 from .base import *
 from .common import *
 from .users import *
 from .wilayah import *
 from .partner import *
 from .departemen import *
-# from .meta import *
 from .pegawai import *
 
+# from .meta import *
 # from .targets import *
 # from .wilayah import *
+def has_permission(action):
+    pass
+
+@event.listens_for(User, 'before_delete', has_permission('delete'))
+def receive_before_delete(mapper, connection, target):
+    "listen for the 'before_delete' event"
+    # ... (event handling logic) ...
+    pass
+
 ALL_TABLES = {}
 for sub_class in Base.__subclasses__():
     if hasattr(sub_class, "__tablename__"):
@@ -21,8 +32,8 @@ def query_table(table_name, fields=None, domain=None):
     cls = ALL_TABLES[table_name]
     if fields:
         query = DBSession.query().select_from(cls)
-        for field in fields:
-            query = query.add_columns(*[getattr(cls, c) for c in fields])
+        # for field in fields:
+        query = query.add_columns(*[getattr(cls, c) for c in fields])
     else:
         query = DBSession.query(cls)
 

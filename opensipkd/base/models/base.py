@@ -3,13 +3,22 @@ from datetime import datetime
 from opensipkd.tools import as_timezone
 from sqlalchemy.ext.hybrid import hybrid_property
 import ziggurat_foundations.models
-from sqlalchemy.orm import (scoped_session, sessionmaker)
+from sqlalchemy.orm import (scoped_session, sessionmaker, Session)
 from zope.sqlalchemy import register
 from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, func
 from sqlalchemy import inspect as sa_inspect
 
-session_factory = sessionmaker()
+
+class MySession(Session):
+    def execute(self, clause, params=None, mapper=None, **kw):
+        # Your magic with clause here
+        # print("Session:", clause, params, mapper, kw)
+        return Session.execute(self, clause, params, mapper)
+
+
+session_factory = sessionmaker(class_=MySession)
 DBSession = scoped_session(session_factory)
+
 register(DBSession)
 ziggurat_foundations.models.DBSession = DBSession
 TABLE_ARGS = dict(extend_existing=True, schema="public")

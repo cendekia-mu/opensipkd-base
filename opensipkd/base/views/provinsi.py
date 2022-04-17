@@ -3,7 +3,7 @@ from datetime import datetime
 
 import colander
 from deform import (Form, widget, )
-from opensipkd.tools.buttons import btn_cancel, btn_save, btn_close
+from opensipkd.tools.buttons import btn_cancel, btn_save, btn_close, btn_add, btn_edit, btn_delete, btn_view
 from pyramid.httpexceptions import (HTTPFound, )
 from pyramid.view import (view_config, )
 from sqlalchemy.orm import aliased
@@ -11,6 +11,7 @@ from sqlalchemy.orm import aliased
 from . import widget_os
 from ..models import DBSession, ResProvinsi, kategori_provinsi, flush
 from ..views import ColumnDT, DataTables, BaseView
+from ...detable import DeTable
 
 SESS_ADD_FAILED = 'Tambah provinsi gagal'
 SESS_EDIT_FAILED = 'Edit provinsi gagal'
@@ -43,21 +44,17 @@ class EditSchema(AddSchema):
                              widget=widget.HiddenWidget(readonly=True))
 
 
+class ListSchema(colander.Schema):
+    id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
+    kode = colander.SchemaNode(colander.String(), width='100pt')
+    nama = colander.SchemaNode(colander.String())
+
+
 class ViewProvinsi(BaseView):
     def __init__(self, request):
         super(ViewProvinsi, self).__init__(request)
         self.form_scripts = ""
-        self.list_col_defs = json.dumps(
-            [{"searchable": False, "visible": False, "targets": [0], }, {
-                "searchable": True, "orderable": True, "targets": [1, 2],
-            }])
-        self.list_cols = [{'title': "ID", 'data': "id"},
-                          {'title': "Kode", 'data': "kode", 'width': '100pt'},
-                          {'title': "Nama", 'data': "nama"}, ]
-        self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
-                            'btn_close'
         self.form_params = dict(scripts="")
-        self.list_url = 'provinsi'
         self.list_route = 'provinsi'
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
@@ -115,10 +112,12 @@ class ViewProvinsi(BaseView):
         return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
     @view_config(route_name='provinsi',
-                 renderer='templates/list.pt',
+                 renderer='templates/list_table.pt',
                  permission='provinsi')
     def view_list(self):
-        return super().view_list()
+        table = DeTable(ListSchema(), action=f"{self.home}/provinsi",
+                        buttons=(btn_view, btn_add, btn_edit, btn_delete, btn_close))
+        return dict(table=table.render(), scripts="")
 
     ##########
     # Action #

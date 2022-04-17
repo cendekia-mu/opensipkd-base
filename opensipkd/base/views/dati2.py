@@ -2,10 +2,11 @@ import json
 
 import colander
 from deform import (widget, Form, )
-from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save
+from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save, btn_add, btn_edit, btn_delete
 from pyramid.view import (view_config, )
 
 from . import widget_os
+from opensipkd.detable import DeTable
 from .provinsi import provinsi_widget
 from ..models import DBSession, ResDati2, kategori_dati2, ResProvinsi
 from ..views import ColumnDT, DataTables, BaseView
@@ -45,20 +46,18 @@ class EditSchema(AddSchema):
                              widget=widget.HiddenWidget(readonly=True))
 
 
+class ListSchema(colander.Schema):
+    id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
+    kode = colander.SchemaNode(colander.String(), width='100pt', title="Kode")
+    nama = colander.SchemaNode(colander.String(), title="Nama")
+    provinsi = colander.SchemaNode(colander.String())
+    status = colander.SchemaNode(colander.Integer(),width="30pt")
+
+
 class ViewDati2(BaseView):
     def __init__(self, request):
         super(ViewDati2, self).__init__(request)
         self.form_scripts = ""
-        self.list_col_defs = json.dumps(
-            [{"searchable": False, "visible": False, "targets": [0], }, {
-                "searchable": True, "orderable": True, "targets": [1, 2],
-            }])
-        self.list_cols = [{'title': "ID", 'data': "id"},
-                          {'title': "Provinsi", 'data': "provinsi", 'width': '200pt'},
-                          {'title': "Kode", 'data': "kode", 'width': '100pt'},
-                          {'title': "Nama", 'data': "nama"}, ]
-        self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
-                            'btn_close'
         self.form_params = dict(scripts="")
         self.list_url = 'dati2'
         self.list_route = 'dati2'
@@ -113,6 +112,14 @@ class ViewDati2(BaseView):
             schema.deserialize(row)
         return Form(schema, buttons=buttons)
 
+    @view_config(route_name='dati2',
+                 renderer='templates/form_input.pt',
+                 permission='dati2')
+    def view_list(self):
+        table = DeTable(ListSchema(title="Kabupaten/Kota"), action=f"{self.home}/dati2",
+                        buttons=(btn_close, btn_add, btn_edit, btn_delete))
+        return dict(form=table.render(), scripts=self.form_scripts)
+
     @view_config(route_name='dati2-view',
                  renderer='templates/form_input.pt', permission='dati2')
     def view_view(self):  # row = query_id(request).first()
@@ -128,11 +135,11 @@ class ViewDati2(BaseView):
         form.set_appstruct(self.get_values(row))
         return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
-    @view_config(route_name='dati2',
-                 renderer='templates/list.pt',
-                 permission='dati2')
-    def view_list(self):
-        return super().view_list()
+    # @view_config(route_name='dati2',
+    #              renderer='templates/list.pt',
+    #              permission='dati2')
+    # def view_list(self):
+    #     return super().viewlist()
 
     @view_config(route_name='dati2-act', renderer='json',
                  permission='view')

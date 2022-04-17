@@ -1,0 +1,108 @@
+<div tal:define="style style|field.widget.style;
+        css_class css_class|string:${field.widget.css_class or field.css_class or 'jarviswidget jarviswidget-color-blueLight'};
+        item_template item_template|field.widget.item_template;
+        title title|field.title;
+        errormsg errormsg|field.errormsg;
+        description description|field.description;
+        buttons buttons|field.buttons;
+        tableid tableid|field.tableid;
+        columns columns|field.columns;
+        btnscripts scripts|field.scripts;
+        url url|field.url"
+         tal:attributes="style style;
+                class css_class;
+        attributes|field.widget.attributes|{};"
+
+         i18n:domain="detable">
+    <header role="heading" class="txt-color-grayDark">
+        <h2 tal:condition="title">
+            <i class="fa fa-fw fa-table"></i>${title}
+        </h2>
+        <div role="content">
+            <div class="widget-body">
+                <table id="${tableid}"
+                       class="table table-bordered table-hover table-condensed dataTable no-footer">
+                    <thead>
+                    <tr>
+                        <th tal:repeat="child field">${child.title}
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+            </div> <!-- widget-body -->
+        </div>
+    </header>
+    <script type="text/javascript">
+        deform.addCallback(
+                '${tableid}',
+                function (oid) {
+                    var m${tableid}ID;
+                    var o${tableid};
+                    var o${tableid}Uri = "${url}"
+                    var o${tableid}Url = o${tableid}Uri + "/grid/act";
+                    var tb_array = [
+                        '<div class="btn-group pull-left">',
+                        '${structure:buttons}',
+                        '	&nbsp;',
+                        '</div>',
+                    ]
+
+
+                    var language = {
+                        "search": "Cari: ",
+                        "paginate": {
+                            "first": '<span class="glyphicon glyphicon-step-backward"></span> ',
+                            "last": '<span class="glyphicon glyphicon glyphicon-step-forward"></span> ',
+                            "previous": '<span class="glyphicon glyphicon-backward"></span>  ',
+                            "next": '<span class="glyphicon glyphicon-forward"></span>  ',
+                        },
+                        "lengthMenu": " _MENU_ baris "
+                    };
+
+                    o${tableid} = $('#${tableid}').DataTable({
+                        dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
+                        processing: true,
+                        serverSide: true,
+                        ajax: o${tableid}Url,
+                        stateSave: true,
+                        scrollCollapse: true,
+                        sort: true,
+                        info: false,
+                        filter: true,
+                        autoWidth: false,
+                        paginate: true,
+                        paginationType: "full_numbers",
+
+                        lengthMenu: [
+                            [10, 25, 50, 100],
+                            [10, 25, 50, 100]
+                        ],
+                        //columnDefs: columnDefs,
+                        columns: ${columns},
+                        "language": language,
+
+                    });
+
+                    var tb = tb_array.join(' ');
+                    $("div.toolbar").html(tb);
+                    $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
+                    $('#${tableid} tbody').on('click', 'tr', function () {
+                        if ($(this).hasClass('selected')) {
+                            $(this).removeClass('selected');
+                        } else {
+                            var aData = o${tableid}.row(this).data();
+                            o${tableid}.$('tr.selected').removeClass('selected');
+                            $(this).addClass('selected');
+                            m${tableid}ID = aData.id;
+                            // console.log(mID);
+                            o${tableid}.$('tr.row_selected').removeClass('row_selected');
+                            $(this).addClass('row_selected');
+                        }
+                    });
+                        ${structure:btnscripts}
+                });
+    </script>
+</div>
