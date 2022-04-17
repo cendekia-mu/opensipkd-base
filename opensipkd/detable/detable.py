@@ -95,6 +95,7 @@ class DeTable(field.Field):
             self,
             schema,
             action,
+            action_suffix='/grid/act',
             buttons=(),
             tableid="detable",
             # use_ajax=False,
@@ -131,10 +132,10 @@ class DeTable(field.Field):
                         {button.title} </button>
                     """)
             _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
-                            eval('btn_' + button.name + '_js')+');')
+                            eval('btn_' + button.name + '_js') + ');')
             # <span tal:condition="button.icon" class="glyphicon glyphicon-${button.icon}"></span>
 
-        self.buttons = "','".join(_buttons).replace('\n', "").replace(';',';\n')
+        self.buttons = "','".join(_buttons).replace('\n', "").replace(';', ';\n')
         self.tableid = tableid
         self.scripts = ''.join(_scripts).replace(';', ";\n")
         table_widget = getattr(schema, "widget", None)
@@ -158,6 +159,7 @@ class DeTable(field.Field):
             columns.append(d)
         self.columns = json.dumps(columns)
         self.url = action
+        self.url_suffix = action_suffix
 
 
 class Button(object):

@@ -116,6 +116,7 @@ class ViewProvinsi(BaseView):
                  permission='provinsi')
     def view_list(self):
         table = DeTable(ListSchema(), action=f"{self.home}/provinsi",
+                        action_suffix="/grid/act",
                         buttons=(btn_view, btn_add, btn_edit, btn_delete, btn_close))
         return dict(table=table.render(), scripts="")
 

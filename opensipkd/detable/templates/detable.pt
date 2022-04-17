@@ -8,7 +8,8 @@
         tableid tableid|field.tableid;
         columns columns|field.columns;
         btnscripts scripts|field.scripts;
-        url url|field.url"
+        url url|field.url;
+        url_suffix url_suffix|field.url_suffix;"
          tal:attributes="style style;
                 class css_class;
         attributes|field.widget.attributes|{};"
@@ -42,7 +43,7 @@
                     var m${tableid}ID;
                     var o${tableid};
                     var o${tableid}Uri = "${url}"
-                    var o${tableid}Url = o${tableid}Uri + "/grid/act";
+                    var o${tableid}Url = o${tableid}Uri + "${url_suffix}";
                     var tb_array = [
                         '<div class="btn-group pull-left">',
                         '${structure:buttons}',
