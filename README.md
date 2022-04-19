@@ -1,4 +1,4 @@
-Basis Aplikasi openSIPKD
+# Basis Aplikasi openSIPKD
 ========================
 
 Ini adalah basis dari seluruh aplikasi openSIPKD.
@@ -90,14 +90,12 @@ Jalankan::
 
     $ ~/env/bin/pserve --reload test.ini
 
-Penggunaan Proxy
-================
+# Penggunaan Proxy
 
-Apache::
--------
+## Apache::
 
 Tambahkan line berikut ini didalam ``<VirtualHost>``::
-
+```
         ProxyRequests Off
         ProxyPreserveHost On
         ProxyPass / http://server:port/
@@ -105,9 +103,9 @@ Tambahkan line berikut ini didalam ``<VirtualHost>``::
         <Proxy *>
             allow from all
         </Proxy>
-
+```
 Contoh::
-
+```
     <VirtualHost ip:80>
         SuexecUserGroup "#uid" "#gid"
         ServerName antrian.opensipkd.com
@@ -121,14 +119,39 @@ Contoh::
             allow from all
         </Proxy>
     </VirtualHost>
+```
 
-Nginx::
------
+# Virtual Directory
 
-    location /demo{
-        return 302 /demo/;
+## Setting Ini File
+### Ubah `[app:ain]` jadi `[app:opensipkd]`
+```
+    ;[app:main]
+    [app:opensipkd_base]
+    trusted_proxy_headers = "forwarded x-forwarded-for x-forwarded-host x-forwarded-proto x-forwarded-port"
+    url_prefix='/virtualdir'  ; nama cirtual direktory 
+```
+
+Tambahkan blok berikut ini dibawah ini file
+
+```
+[filter:proxy-prefix]
+use = egg:PasteDeploy#prefix
+prefix = /virtualdir ; nama virtual directory
+
+[pipeline:main]
+pipeline =
+    proxy-prefix
+    opensipkd_base
+```
+
+
+## Nginx::
+```
+    location /virtualdir{
+        return 302 /virtualdir/;
     }
-    location /demo/ {
+    location /virtualdir/ {
         # First attempt to serve request as file, then
         # as directory, then fall back to displaying a 404.
         proxy_set_header Host $host;
@@ -139,6 +162,7 @@ Nginx::
         proxy_set_header X-Forwarded-Port $server_port;
         
         proxy_pass http://127.0.0.1:6543/;
-        #try_files $uri $uri/ =404;
     }
+
+```
 

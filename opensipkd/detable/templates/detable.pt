@@ -42,7 +42,7 @@
                 function (oid) {
                     var m${tableid}ID;
                     var o${tableid};
-                    var o${tableid}Uri = "${url}"
+                    var o${tableid}Uri = "${url}";
                     var o${tableid}Url = o${tableid}Uri + "${url_suffix}";
                     var tb_array = [
                         '<div class="btn-group pull-left">',

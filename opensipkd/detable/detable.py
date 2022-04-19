@@ -2,13 +2,15 @@
 # Standard Library
 import json
 import re
+import logging
 
+import colander
 from chameleon.utils import Markup
 from deform import compat
 from deform import field
 from . import widget
 
-
+log = logging.getLogger(__name__)
 class DeTable(field.Field):
     """
     Field representing an entire form.
@@ -90,7 +92,6 @@ class DeTable(field.Field):
     """
 
     css_class = "deform"  # bw compat only; pass a widget to override
-
     def __init__(
             self,
             schema,
@@ -141,23 +142,51 @@ class DeTable(field.Field):
         table_widget = getattr(schema, "widget", None)
         if table_widget is None:
             table_widget = widget.TableWidget()
+
         self.widget = table_widget
         columns = []
+        cols2=[]
         for f in schema:
             d = {'data': f.name}
+            data = []
+
             if hasattr(f, 'width'):
                 d["width"] = f.width
-            if hasattr(f, 'text_align'):
-                d["text-align"] = f.align
+                data.append(f'width: "{f.width}"')
+
+            if hasattr(f, 'aligned'):
+                d["className"] = f.aligned
+                data.append(f'className: "{f.aligned}"')
             if hasattr(f, 'searchable'):
                 d["searchable"] = f.searchable
+                data.append(f'searchable: {f.searchable}')
+
             if hasattr(f, 'visible'):
                 d["visible"] = f.visible
+                data.append(f'visible: "{f.visible}"')
+
             if hasattr(f, 'orderable'):
                 d["orderable"] = f.orderable
+                data.append(f'orderable: {f.orderable}')
+
+
+            thousand = hasattr(f, 'thousand') and f.thousand or None
+            separator = thousand and "separator" in thousand and thousand["separator"] or ','
+            decimal = thousand and "decimal" in thousand and thousand["decimal"] or '.'
+            point = thousand and "point" in thousand and thousand["point"] or 2
+            currency = thousand and "currency" in thousand and thousand["currency"] or ""
+            if thousand or type(f.typ)==colander.Float():
+                d["renderer"]=f"$.fn.dataTable.render.number( '{separator}', '{decimal}', {point}, '{currency}' )"
+                if 'className' not in d:
+                    d["className"] = "text-right"
+                data.append(f'renderer: $.fn.dataTable.render.number( "{separator}", "{decimal}", {point}, "{currency}" )')
+
 
             columns.append(d)
+            cols2.append(data)
         self.columns = json.dumps(columns)
+        # self.columns = columns
+        self.columns = json.dumps(cols2)
         self.url = action
         self.url_suffix = action_suffix
 

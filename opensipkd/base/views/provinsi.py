@@ -30,8 +30,9 @@ def provinsi_widget(node, kw):
 
 
 class AddSchema(colander.Schema):
-    kode = colander.SchemaNode(colander.String(),
-                               validator=colander.Length(max=32), oid="kode")
+    kode = colander.SchemaNode(colander.Float(),
+                               oid="kode",
+                               validator=colander.Length(max=32), )
     kategori = colander.SchemaNode(colander.String(),
                                    widget=widget.SelectWidget(values=kategori_provinsi),
                                    validator=colander.Length(max=32), oid="kode")
@@ -46,7 +47,10 @@ class EditSchema(AddSchema):
 
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
-    kode = colander.SchemaNode(colander.String(), width='100pt')
+    kode = colander.SchemaNode(colander.String(), width='100pt',
+                               thousand={"separator": ',', "decimal": '.',
+                                         "point": 0}
+                               )
     nama = colander.SchemaNode(colander.String())
 
 
