@@ -109,15 +109,23 @@ class RegSchema(colander.Schema):
 
 
 class RegEditSchema(colander.Schema):
+    user_name = colander.SchemaNode(
+        colander.String(),
+        widget=widget.TextInputWidget(readonly=True),
+        missing=colander.drop,
+        oid="user_name")
+
     kode = colander.SchemaNode(
         colander.String(),
         widget=widget.TextInputWidget(readonly=True),
         title="No.Identitas/NIK",
+        missing=colander.drop,
         oid="kode")
     detail = NamaSchema()
     password = colander.SchemaNode(
         colander.String(),
         widget=widget.PasswordWidget(size=20),
+        # validator = user_name_validator,
         title="Password",
         oid="password")
     id = colander.SchemaNode(
@@ -125,9 +133,9 @@ class RegEditSchema(colander.Schema):
         missing=colander.drop,
         widget=widget.HiddenWidget(readonly=True),
     )
-    doc_id_card = colander.SchemaNode(
-        FileData(),
-        widget=widget.String())
+    # doc_id_card = colander.SchemaNode(
+    #     FileData(),
+    #     widget=widget.String())
 
     def after_bin(self, schema, kwargs):
         request = kwargs["request"]
@@ -180,7 +188,6 @@ def show_error(request, msg):
 def form_validator(form, value):
     value.update(value['detail'])
     form_exc = colander.Invalid(form, '')
-
     def err_captcha():
         msg = 'Captcha harus diisi'
         raise colander.Invalid(form['captcha'], msg)
@@ -204,20 +211,19 @@ def form_validator(form, value):
 
     request = form.request
     # Check user_name
-    user_name = value["user_name"]
-
     detail = value['detail']
     email = detail['email']
-
-    # Check Data User
     is_logged = form.request.user
-    user = user_found(user_name)
-    if user and not is_logged:
-        err_user()
-
-    if user and is_logged:
-        if user.id != is_logged.id:
+    if 'user_name' in value:
+        user_name = value["user_name"]
+        # Check Data User
+        user = user_found(user_name)
+        if user and not is_logged:
             err_user()
+
+        if user and is_logged:
+            if user.id != is_logged.id:
+                err_user()
 
     user = user_found(email)
     if user and not is_logged:
@@ -242,12 +248,13 @@ def form_validator(form, value):
         err_email()
 
     # CEK NIK apakah Sudah Ada di tabel Partner?
-    found_nik = nik_found(value['kode'])
-    if partner:
-        if found_nik and found_nik.id != partner.id:
+    if 'kode' in value:
+        found_nik = nik_found(value['kode'])
+        if partner:
+            if found_nik and found_nik.id != partner.id:
+                err_nik()
+        elif found_nik:
             err_nik()
-    elif found_nik:
-        err_nik()
 
     # Check Captcha jika registrasi
     if not request.user:
@@ -262,6 +269,7 @@ def form_validator(form, value):
                 err_captcha()
 
     # Cek Old Password
+
     if 'password' in value:
         user = form.request.user
         if not user or not UserService.check_password(user, value['password']):
