@@ -1,0 +1,114 @@
+<html metal:use-macro="load: form_inout.pt">
+<div metal:fill-slot="content">
+    <style>
+        button {
+            margin: 0px 3px;
+        }
+    </style>
+    <!-- Tampilan untuk general error -->
+    <div tal:define="field form" class="alert alert-danger" tal:condition="field.error">
+        <div class="errorMsgLbl" i18n:translate="">
+            Terdapat kesalahan pengisian
+        </div>
+        <p class="errorMsg">${field.errormsg}</p>
+    </div>
+    <!-- END Tampilan untuk general error -->
+
+    <div class="panel-body">
+
+        <!-- Proses Template Form -->
+        <form method="post" accept-charset="utf-8" id="deform" class="form-horizontal"
+              enctype="multipart/form-data"
+              style="background-color:white;">
+            <input type="hidden" name="_charset_">
+            <input type="hidden" value="deform" name="__formid__">
+            <div class="col-md-6 col-md-offset-3 col-xs-12 well">
+                <div class="col-md-12">
+                    <!-- Looping Semua Field-->
+                    <div tal:repeat="f form">
+                        <!-- Proses Saat Field hidden-->
+                        <div tal:condition="f.widget.hidden">
+                                ${structure:f.serialize()}
+                        </div>
+
+                        <!-- Proses Saat Field Normal dan bukan Children-->
+                        <div tal:condition="not f.widget.hidden and not f.children"
+                                class="form-group">
+                            <!-- Field Reqired menggunakan class required -->
+                            <label for="${f.oid}"
+                                   class="control-label col-md-4 ${f.required and 'required' or ''}"
+                                   id="req-${f.oid}">
+                                    ${f.title}</label>
+                            <div class="col-md-8">
+                            ${structure:f.serialize()}
+                                <p id="error-${f.oid}" class="help-block" tal:condition="f.error"
+                                         tal:repeat="error f.error.messages()">
+                                        ${error}</p>
+                            </div>
+                        </div>
+
+                        <!-- Proses saat Form Adalah Children -->
+                        <div tal:condition="f.children">
+                            <!--div class="panel panel-default" title="">
+              <div class="panel-heading">${f.title}</div>
+              <div class="panel-body" -->
+
+                            <input type="hidden"
+                                   name="__start__"
+                                   value="${f.name}:mapping"
+                                   readonly="readonly">
+                            <div class="form-group"  tal:repeat="f2 f.children">
+                                <div id="item-${f2.oid}">
+                                    <label for="${f2.oid}" id="req-${f2.oid}"
+                                           class="control-label col-md-4 ${f2.required and 'required' or ''}">
+                                            ${f2.title}</label>
+                                    <div class="col-md-8">
+                                    ${structure:f2.serialize()}
+                                        <p id="error-${f2.oid}" class="help-block" tal:condition="f2.error"
+                                                 tal:repeat="error f2.error.messages()">
+                                                ${error}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="__end__" value="${f.name}:mapping" readonly="readonly">
+                            <!--/div>
+                          </div>
+                        </div-->
+                        </div>
+                    </div>
+
+                    <div class="input-group-btn">
+                        <button tal:repeat="fb form.buttons"
+                                type="${fb.type}" class="btn ${fb.css_class}  pull-right"
+                                name="${fb.name}">${fb.title}</button>
+                    </div>
+
+                    <label class="control-label text-danger">** Data di Isi sesuai dengan yang tertera pada KTP</label>
+
+                </div>
+            </div>
+        </form>
+        <!-- End Template Form -->
+        <!-- </div> -->
+
+    </div>
+</div>
+<div metal:fill-slot="scripts">
+    <script tal:condition="${captcha}">
+        $(document).ready(function () {
+            $("#captcha").parent().prepend(
+                    '<img style="height:30px; width:auto; margin-bottom:5px;" ' +
+                    'src="${home}/captcha/${captcha}.png">')
+
+            $('#captcha').on('input', function (evt) {
+                $(this).val(function (_, val) {
+                    return val.toUpperCase();
+                });
+            });
+        });
+
+    </script>
+
+</div>
+</html>
+

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us"
-      tal:define="
-    home request.route_url('home')[:-1];
+      tal:define="home request.route_url('home')[:-1];
     user_path  ['user', 'user-add', 'user-edit', 'user-view', 'user-delete'];
     group_path  ['group', 'group-add', 'group-edit', 'group-view', 'group-delete'];
     param_path  ['parameter', 'parameter-add', 'parameter-edit', 'parameter-view', 'parameter-delete'];

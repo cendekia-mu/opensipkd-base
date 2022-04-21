@@ -1,18 +1,22 @@
-from datetime import (datetime)
-from pyramid.httpexceptions import HTTPFound
-from pyramid.view import view_config
-from ..views import BaseView
-import colander
-from deform import (Form, widget, ValidationFailure, Button)
+import os
 from email.utils import parseaddr
-from ..models import User, DBSession, Partner, Group, UserGroup
-from opensipkd.base.views.user_login import send_email_security_code
-from opensipkd.base.views.user import insert as save_user, add_member_count
-from pyramid.i18n import TranslationStringFactory
-from opensipkd.tools import get_settings
+
+import colander
+from deform import (Form, widget, ValidationFailure, Button, FileData)
+from opensipkd.base import get_params
+
+from opensipkd.tools import get_settings, get_ext, Upload
 from opensipkd.tools.captcha import get_captcha
+from pyramid.httpexceptions import HTTPFound
+from pyramid.i18n import TranslationStringFactory
+from pyramid.view import view_config
 from ziggurat_foundations.models.services.user import UserService
+
+from opensipkd.base.views.user import insert as save_user
+from opensipkd.base.views.user_login import send_email_security_code
 from .user_group import save as save_groups
+from ..models import User, DBSession, Partner, Group, UserGroup
+from ..views import BaseView
 
 _ = TranslationStringFactory('user')
 
@@ -46,6 +50,15 @@ class NamaSchema(colander.Schema):
         oid="email")
 
 
+class Store(dict):
+    def preview_url(self, name):
+        return ""
+
+
+store = Store()
+reg_exts = ['.png', '.jpg', '.pdf', '.jpeg']
+
+
 class RegSchema(colander.Schema):
     kode = colander.SchemaNode(
         colander.String(),
@@ -54,16 +67,28 @@ class RegSchema(colander.Schema):
         title="No.Identitas/NIK",
         oid="kode")
     detail = NamaSchema()
-    captcha = colander.SchemaNode(
-        colander.String(),
-        oid="captcha")
+
+    doc_id_card = colander.SchemaNode(
+        FileData(),
+        widget=widget.FileUploadWidget(store))
+
+    # captcha = colander.SchemaNode(
+    #     colander.String(),
+    #     oid="captcha")
+
+    def after_bin(self, schema, kwargs):
+        request = kwargs["request"]
+        if get_params('reg_idcard') != '1':
+            del self["doc_id_card"]
+        if get_params('reg_captcha') != '1':
+            del self["captcha"]
 
 
 class RegEditSchema(colander.Schema):
     kode = colander.SchemaNode(
         colander.String(),
         widget=widget.TextInputWidget(readonly=True),
-        title="NIK",
+        title="No.Identitas/NIK",
         oid="kode")
     detail = NamaSchema()
     password = colander.SchemaNode(
@@ -76,15 +101,22 @@ class RegEditSchema(colander.Schema):
         missing=colander.drop,
         widget=widget.HiddenWidget(readonly=True),
     )
+    doc_id_card = colander.SchemaNode(
+        FileData(),
+        widget=widget.String())
 
     def after_bin(self, schema, kwargs):
         request = kwargs["request"]
+        self.kode["widget"] = widget.TextInputWidget(readonly=True)
         if "kode" not in request.params:
             self.kode["widget"] = widget.TextInputWidget()
+
         if "email" in request.params:
-            print(self.detail)
             self.detail.email["widget"] = widget.TextInputWidget(readonly=True)
             self.detail.email["missing"] = colander.drop
+
+        if request.get_params('reg_id_card') != '0':
+            del self["doc_id_card"]
 
 
 def email_found_user(email):
@@ -111,11 +143,10 @@ def show_error(request, msg):
     _show_error(request, msg)
     return HTTPFound(location=request.route_url('home'))
 
-
-# Validasi saat Register
-# 1. Cek email pada Users jika ada dan Users.id beda reject
-# 2. Cek email pada Partner jika ada dan Partner.id beda reject
-# 3. Cek NIK (kode) pada Partner jika ada dan Partner.id beda reject
+    # Validasi saat Register
+    # 1. Cek email pada Users jika ada dan Users.id beda reject
+    # 2. Cek email pada Partner jika ada dan Partner.id beda reject
+    # 3. Cek NIK (kode) pada Partner jika ada dan Partner.id beda reject
 
 
 def form_validator(form, value):
@@ -123,19 +154,22 @@ def form_validator(form, value):
 
     def err_captcha():
         msg = 'Captcha harus diisi'
-        raise colander.Invalid(form, msg)
+        raise colander.Invalid(form['captcha'], msg)
 
     def err_email():
         raise colander.Invalid(
-            form, 'e-mail %s sudah ada yang menggunakan' % value['email'])
+            form['detail']['email'], 'e-mail %s sudah ada yang menggunakan' % value['email'])
 
     def err_nik():
         raise colander.Invalid(
-            form, 'NIK %s sudah ada yang menggunakan' % value['kode'])
+            form['kode'], 'NIK %s sudah ada yang menggunakan' % value['kode'])
 
     def err_login():
         raise colander.Invalid(
             form, 'User atau Password tidak sesuai')
+
+    def err_file():
+        raise colander.Invalid(form, f'Extension harus salahsatu dari {reg_exts}')
 
     request = form.request
     # Cek Login
@@ -145,14 +179,15 @@ def form_validator(form, value):
             err_login()
 
     if not request.user:
-        if 'captcha' not in value or not value['captcha'] \
-                or 'captcha' not in request.session or not request.session['captcha']:
-            err_captcha()
+        if get_params("reg_captcha") == '1':
+            if 'captcha' not in value or not value['captcha'] \
+                    or 'captcha' not in request.session or not request.session['captcha']:
+                err_captcha()
 
-        captcha = 'captcha' in value and value['captcha'].upper() or None
+            captcha = 'captcha' in value and value['captcha'].upper() or None
 
-        if not captcha or captcha != request.session['captcha']:
-            err_captcha()
+            if not captcha or captcha != request.session['captcha']:
+                err_captcha()
 
     if 'id' in request.matchdict:
         uid = request.matchdict['id']
@@ -160,6 +195,7 @@ def form_validator(form, value):
         partner = q.first()
     else:
         partner = None
+
     detail = value['detail']
     email = detail['email']
 
@@ -188,12 +224,17 @@ def form_validator(form, value):
     if user and form.request.user:
         if user.id != form.request.user.id:
             err_email()
+    if 'doc_id_card' in value:
+        ext = get_ext(value["doc_id_card"]["filename"])
+        if ext not in reg_exts:
+            err_file()
 
 
 def get_form(request, class_form, buttons=('batal', 'simpan'),
              validator=form_validator):
     schema = class_form(validator=validator)
-    schema = schema.bind(request = request)
+    schema = schema.bind(request=request)
+    schema.request = request
     return Form(schema, buttons=buttons)
 
 
@@ -280,7 +321,7 @@ def reg_buttons():
 
 
 class RegistrasiAdd(BaseView):
-    @view_config(route_name='register', renderer='templates/form_input.pt')
+    @view_config(route_name='register', renderer='templates/register.pt')
     def view_add(self):
         request = self.req
         if request.user:
@@ -289,23 +330,36 @@ class RegistrasiAdd(BaseView):
             return HTTPFound(location=request.route_url("profile"))
 
         form = get_form(request, RegSchema, reg_buttons())
-
+        captcha = get_params("reg_captcha") and get_captcha(request) or None
         if request.POST:
             if 'register' in request.POST:
+                # input_file = request.POST['upload'].file
+                # filename = request.POST['upload'].filename.lower()
+                # ext = get_ext(filename).lower()
+                # raise ext
                 controls = request.POST.items()
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
                     form.set_appstruct(e.cstruct)
-                    return dict(form=form, captcha=get_captcha(request))
+                    return dict(form=form.render(), captcha=captcha, scripts="")
 
-                save_request(dict(controls), request)
+                values = dict(controls)
+                path = get_params('reg_folder', '/tmp/registrasi')
+                if not os.path.exists(path):
+                    os.makedirs(path)
+
+                upload = Upload(path)
+                values["doc_id_card"] = upload.save(request, 'upload')
+
+                save_request(values, request)
                 request.session.flash('Registrasi Sukses.')
 
                 if 'captcha' in request.session:
                     del (request.session['captcha'])
 
             return route_list(request)
+
         values = {}
         if request.user:
             values['email'] = request.user.email
@@ -314,7 +368,7 @@ class RegistrasiAdd(BaseView):
         return dict(form=form.render(), captcha=get_captcha(request),
                     scripts="")
 
-    @view_config(route_name='profile', renderer='templates/form_input.pt',
+    @view_config(route_name='profile', renderer='templates/register.pt',
                  permission='view')
     def es_reg_edt(self):
         request = self.req

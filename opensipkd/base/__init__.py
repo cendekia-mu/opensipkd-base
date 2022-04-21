@@ -417,11 +417,14 @@ def main(global_config, **settings):
     config.add_static_view('static', 'opensipkd.base:static', cache_max_age=3600)
     config.add_static_view('deform_static', 'deform:static')
     # config.add_static_view('files', get_params('static_files'))
-    # config.add_static_view('captcha', get_params('captcha_files'))
+    # Captcha
+    captcha_files = get_params('captcha_files', '/tmp/captcha')
+    if not os.path.exists(captcha_files):
+        os.makedirs(captcha_files)
+    config.add_static_view('captcha',captcha_files )
     # config.add_static_view('tts', path=get_params('tts_files'))
 
     config.add_renderer('csv', 'opensipkd.tools.CSVRenderer')
-
     config.add_renderer('json', json_renderer())
     # dipindahkan ke config pyramid.include
     # config.include('pyramid_rpc.jsonrpc')

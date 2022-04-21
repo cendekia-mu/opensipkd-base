@@ -2,8 +2,11 @@ import os
 import re
 
 import colander
+import transaction
 from datatables import (ColumnDT, DataTables, )
 from deform import (Form, widget, ValidationFailure, Button, )
+from sqlalchemy.exc import IntegrityError
+
 from opensipkd.tools import create_now
 from opensipkd.tools.buttons import btn_cancel, btn_save, btn_close
 from opensipkd.tools.report import open_rml_row, csv_response, open_rml_pdf, pdf_response
@@ -220,7 +223,7 @@ def insert(request, values):
     user.email = values['email'].lower()
     user.user_name = re.sub(' ', '', values['user_name'])  # .lower()
     user.security_code_date = create_now()
-    company_id = request.user.company_id or values["company_id"]
+    company_id = request.user and request.user.company_id or "company_id" in values and values["company_id"] or None
     user.company_id = company_id
     remain = regenerate_security_code(user)
     if 'is_api_key' in values:
@@ -228,7 +231,14 @@ def insert(request, values):
     if 'password' in values:
         UserService.set_password(user, values['password'])
     DBSession.add(user)
-    DBSession.flush()
+    try:
+        DBSession.flush()
+    except IntegrityError as e:
+        transaction.abort()
+        user.user_name = user.email
+        DBSession.add(user)
+        DBSession.flush()
+
     if 'groups' in values and values['groups']:
         for gid in values['groups']:
             ug = UserGroup()
