@@ -310,7 +310,7 @@ def update(request, user, values):
         user.api_key = generate_api_key()
     if 'password' in values:
         UserService.set_password(user, values['password'])
-    company_id = request.user.company_id or values["company_id"]
+    company_id = request.user.company_id or 'company_id' in values and values["company_id"] or None
     user.company_id = company_id
     DBSession.add(user)
     existing = user_group_set(user)

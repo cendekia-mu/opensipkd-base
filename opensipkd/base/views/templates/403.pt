@@ -1,5 +1,5 @@
 
-<html>
+<html tal:define="home request.route_url('home')[:-1];">
 <body>
   <div class="well">
     <h3>Forbidden</h3>
@@ -12,9 +12,12 @@
     </div>
     <!-- Error session flash -->
 
-    <p><img src="${request._host}/static/img/logo.png" class="img-float img-thumbnail"/></p>
-    Anda tidak berhak mengakses halaman ${url}<br>
-    <a href="${request.referer}">Kembali ke Halaman Sebelumnya</a>
+    <p><img src="${home}/static/img/logo.png" class="img-float img-thumbnail"/></p>
+      Anda tidak berhak mengakses halaman <span style="color:red;">${url}</span><br>
+      <b>Silahkan Hubungi Administrator</b><br>
+    <a href="${request.referer}" tal:condition=request.referer >Kembali ke Halaman Sebelumnya</a>
+    <a href="${home}/" tal:condition="not request.referer" >Kembali ke Halaman Utama</a>
+
     
   </div>
 </body>

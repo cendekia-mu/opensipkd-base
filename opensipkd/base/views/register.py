@@ -1,4 +1,5 @@
 import os
+import re
 from email.utils import parseaddr
 
 import colander
@@ -58,19 +59,42 @@ class Store(dict):
 store = Store()
 reg_exts = ['.png', '.jpg', '.pdf', '.jpeg']
 
+username_re = re.compile('^[a-z0-9_]{6,16}$', re.IGNORECASE)
+
+
+def user_name_validator(node, value):
+    if not username_re.match(value):
+        raise colander.Invalid(node,
+                               'Value must be between 6 and 16 characters and can only contain uppercase and lowercase alphanumeric characters or an underscore')
+
+
+def id_card_validator(node, value):
+    ext = get_ext(value["filename"])
+    if ext not in reg_exts:
+        raise colander.Invalid(node, f'Extension harus salahsatu dari {reg_exts}')
+
 
 class RegSchema(colander.Schema):
+    user_name = colander.SchemaNode(
+        colander.String(),
+        validator=user_name_validator,
+        # colander.Length(max=16, max_err='Maximum ${max} Digit',
+        #                           min=6, min_err='Minimimum ${min} Digit'),
+        oid="user_name")
+
     kode = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=18, max_err='Maximum ${max} Digit',
                                   min=15, min_err='Minimimum ${min} Digit'),
         title="No.Identitas/NIK",
         oid="kode")
+
     detail = NamaSchema()
 
     doc_id_card = colander.SchemaNode(
         FileData(),
-        widget=widget.FileUploadWidget(store))
+        widget=widget.FileUploadWidget(store),
+        validator=id_card_validator)
 
     # captcha = colander.SchemaNode(
     #     colander.String(),
@@ -119,8 +143,12 @@ class RegEditSchema(colander.Schema):
             del self["doc_id_card"]
 
 
-def email_found_user(email):
-    return User.get_by_identity(email)
+# def user_name(user_name):
+#     return User.get_by_identity(email)
+
+
+def user_found(identity):
+    return User.get_by_identity(identity)
 
 
 def mobile_found_partner(mobile):
@@ -151,14 +179,20 @@ def show_error(request, msg):
 
 def form_validator(form, value):
     value.update(value['detail'])
+    form_exc = colander.Invalid(form, '')
 
     def err_captcha():
         msg = 'Captcha harus diisi'
         raise colander.Invalid(form['captcha'], msg)
 
     def err_email():
-        raise colander.Invalid(
+        exc = colander.Invalid(
             form['detail']['email'], 'e-mail %s sudah ada yang menggunakan' % value['email'])
+        raise exc
+
+    def err_user():
+        raise colander.Invalid(
+            form['user_name'], 'User name %s sudah ada yang menggunakan' % value['user_name'])
 
     def err_nik():
         raise colander.Invalid(
@@ -168,16 +202,54 @@ def form_validator(form, value):
         raise colander.Invalid(
             form, 'User atau Password tidak sesuai')
 
-    def err_file():
-        raise colander.Invalid(form, f'Extension harus salahsatu dari {reg_exts}')
-
     request = form.request
-    # Cek Login
-    if 'password' in value:
-        user = form.request.user
-        if not user or not UserService.check_password(user, value['password']):
-            err_login()
+    # Check user_name
+    user_name = value["user_name"]
 
+    detail = value['detail']
+    email = detail['email']
+
+    # Check Data User
+    is_logged = form.request.user
+    user = user_found(user_name)
+    if user and not is_logged:
+        err_user()
+
+    if user and is_logged:
+        if user.id != is_logged.id:
+            err_user()
+
+    user = user_found(email)
+    if user and not is_logged:
+        err_email()
+    if user and is_logged:
+        if user.id != is_logged.id:
+            err_email()
+
+    # Check Data Partner
+    if 'id' in request.matchdict:
+        uid = request.matchdict['id']
+        q = DBSession.query(Partner).filter_by(id=uid)
+        partner = q.first()
+    else:
+        partner = None
+
+    found = email_found_partner(email)
+    if partner:
+        if found and found.id != partner.id:
+            err_email()
+    elif found:
+        err_email()
+
+    # CEK NIK apakah Sudah Ada di tabel Partner?
+    found_nik = nik_found(value['kode'])
+    if partner:
+        if found_nik and found_nik.id != partner.id:
+            err_nik()
+    elif found_nik:
+        err_nik()
+
+    # Check Captcha jika registrasi
     if not request.user:
         if get_params("reg_captcha") == '1':
             if 'captcha' not in value or not value['captcha'] \
@@ -189,45 +261,11 @@ def form_validator(form, value):
             if not captcha or captcha != request.session['captcha']:
                 err_captcha()
 
-    if 'id' in request.matchdict:
-        uid = request.matchdict['id']
-        q = DBSession.query(Partner).filter_by(id=uid)
-        partner = q.first()
-    else:
-        partner = None
-
-    detail = value['detail']
-    email = detail['email']
-
-    found = email_found_partner(email)
-    if partner:
-        if found and found.id != partner.id:
-            err_email()
-    elif found:
-        err_email()
-
-    # CEK NIK apakah Sudah Ada di tabel Partner?
-    if not partner:
-        found_nik = nik_found(value['kode'])
-        if partner:
-            if found_nik and found_nik.id != partner.id:
-                err_nik()
-        elif found_nik:
-            err_nik()
-
-    user = email_found_user(email)
-    # jika ada user dan statusnya register di buat error
-    if user and not form.request.user:
-        err_email()
-
-    # jika update periksa apakah email digunakan oleh user lain
-    if user and form.request.user:
-        if user.id != form.request.user.id:
-            err_email()
-    if 'doc_id_card' in value:
-        ext = get_ext(value["doc_id_card"]["filename"])
-        if ext not in reg_exts:
-            err_file()
+    # Cek Old Password
+    if 'password' in value:
+        user = form.request.user
+        if not user or not UserService.check_password(user, value['password']):
+            err_login()
 
 
 def get_form(request, class_form, buttons=('batal', 'simpan'),
@@ -270,7 +308,7 @@ def save_request(values, request, row=None):
 
     else:
         # Jika Tidak Tambahkan User dan Kirim Email
-        user_ = dict(user_name=values['nama'],
+        user_ = dict(user_name=values['user_name'],
                      email=values['email'])
         user, remain = save_user(request, user_)
         # if not external identity send security code
@@ -296,16 +334,16 @@ def save_request(values, request, row=None):
     values['user_id'] = user.id
     row = save_partner(values, row)
     ##Untuk SIMKEL##
-    settings = get_settings()
-    if 'default_group' in settings:
-        groups = settings['default_group'].split(',')
-        for group in groups:
-            group_data = Group.query_group_name(group).first()
-            if not group_data:
-                raise custom_error(-1, "Group Not Found.")
-            data = dict(group_id=group_data.id,
-                        user_id=user.id)
-            save_groups(data, None)
+    # settings = get_settings()
+    # if 'default_group' in settings:
+    #     groups = settings['default_group'].split(',')
+    #     for group in groups:
+    #         group_data = Group.query_group_name(group).first()
+            # if not group_data:
+            #     raise custom_error(-1, "Group Not Found.")
+            # data = dict(group_id=group_data.id,
+            #             user_id=user.id)
+            # save_groups(data, None)
     return row
 
 
