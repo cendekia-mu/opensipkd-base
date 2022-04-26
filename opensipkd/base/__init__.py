@@ -323,6 +323,8 @@ def get_host(request):
         host = f"{proto}://{request.host}"
     return host
 
+def get_home(request):
+    return request.route_url('home')
 
 def set_routes(config, app_id=None):
     q = DBSession.query(Route)
@@ -405,6 +407,7 @@ def main(global_config, **settings):
     config.add_request_method(thousand, 'thousand', reify=True)
     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(get_host, '_host', reify=True)
+    config.add_request_method(get_home, 'home', reify=True)
     # config.add_request_method(api_has_permission_, 'api_has_permission', reify=True)
 
     config.add_request_method(google_signin_client_id, 'google_signin_client_id', reify=True)

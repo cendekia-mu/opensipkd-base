@@ -1,6 +1,4 @@
-<html metal:use-macro="load: ./base_list.pt"
-      tal:define="
-        home request.route_url('home');">
+<html metal:use-macro="load: ./base_list.pt">
 <div metal:fill-slot="content">
     <div class="jarviswidget jarviswidget-color-blueLight"> <!-- jarviswidget -->
         <header role="heading" class="txt-color-grayDark">
@@ -25,12 +23,13 @@
             </div> <!-- widget-body -->
         </div>
     </div>
-</div> <!-- metal:content -->
+</div>
+<!-- metal:content -->
 <script metal:fill-slot="scripts">
     var mID;
     var oTable;
-    var oTableUri = "${home}/${url}"
-    var oTableUrl = oTableUri + "/grid/act";
+    //var oTableUri = "${home}/${url}"
+    //var oTableUrl = oTableUri + "/grid/act";
 
     var columnDefs =${structure:col_defs};
 

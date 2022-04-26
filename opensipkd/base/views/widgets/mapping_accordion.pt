@@ -20,7 +20,8 @@
       </a>
     </div>
 
-    <div id="collapse-${field.oid}" class="panel-collapse deform-collapse-body collapse ${collapse_body_class}" role="tabpanel" aria-labelledby="heading-${field.oid}">
+    <div id="collapse-${field.oid}" class="panel-collapse deform-collapse-body collapse ${collapse_body_class}"
+         role="tabpanel" aria-labelledby="heading-${field.oid}">
 
       <div class="panel-body">
 

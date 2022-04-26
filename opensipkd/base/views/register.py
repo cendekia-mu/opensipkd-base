@@ -1,3 +1,31 @@
+"""
+Module registasi digunakan untuk registrasi pengguna secara online
+URL: http://server/register
+Rule registrasi
+1. User melengkapi data registrasi termasuk photo kartu identitas
+2. System memberikan response kepada user registrasi sudah ditermia dan dalam tahap verifikasi
+    status = 0 (tidak aktif)
+3. Petugas melakukan verifikasi user
+    a. Approve Apabila NIK(kode) sama dengan photo Kartu Identitas (Status=1)
+    b. Tolak apabila NIK(kode) berbeda dengan photo Kartu Identitas (Status=-1)
+4. System mengirim email hasil verifikasi
+    a. Approve berisi email persetujuan yang berisi link sekali click
+    b. Reject berisi email penolakan dyang didalamnya berisi juga link untuk edit data
+        apabila user akan melakukan edit data.
+        Link ini hanya bisa membuka data user yang status=-1
+
+Parameter (Config)
+1. base_register_approve: approve_file_template.tpl
+2. base_register_reject: approve_file_template.tpl
+File template tersebut dapat diunggah
+
+Link dalam module registrasi:
+1. Form registrasi http://server/register
+2. List User yang melakukan registrasi yangu statusn=0 http://server/register/list
+3. Form Verifikasi http://server/register/{uid}/verifikasi
+4. Form edit registrasi http://server/register/{uid}/edit
+5. Form Upload template 
+"""
 import os
 import re
 from email.utils import parseaddr

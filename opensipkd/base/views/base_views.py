@@ -112,6 +112,7 @@ class BaseView(object):
         self.add_schema = ""
         self.table = ""
         self.home = self.req.route_url('home')[:-1]
+        self.form_validator = None
 
     def route_list(self, msg=None, error=""):
         if msg:
@@ -197,6 +198,10 @@ class BaseView(object):
         d = row.to_dict()
         if 'tanggal' in d and d['tanggal']:
             d["tanggal"] = dmy(row.tanggal)
+        for f in d:
+            if type(d[f]) is str:
+                d[f]=d[f].strip()
+
         return d
 
     def view_edit(self):
@@ -216,7 +221,8 @@ class BaseView(object):
 
                 self.save_request(dict(controls), row)
             return self.route_list()
-        form.set_appstruct(self.get_values(row))
+        values = self.get_values(row)
+        form.set_appstruct(values)
         return dict(form=form.render(), scripts=self.form_scripts)
 
     def view_delete(self):

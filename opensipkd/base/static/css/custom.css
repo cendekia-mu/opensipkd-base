@@ -196,7 +196,8 @@ button {
 }
 
 .panel-info {
-    border-color: #1956af
+    /*border-color: #1956af*/
+    border-color: #57889c
 }
 
 .panel-warning {
@@ -217,8 +218,10 @@ button {
 
 .panel-info>.panel-heading {
     color: #fff;
-    background-color: #1956af;
-    border-color: #1956af
+    /*background-color: #1956af;*/
+    background-color: #57889c;
+    border-color: #57889c
+    /*border-color: #1956af*/
 }
 
 .panel-warning>.panel-heading {

@@ -68,7 +68,7 @@
                         processing: true,
                         serverSide: true,
                         ajax: o${tableid}Url,
-                        stateSave: true,
+                        stateSave: false,
                         scrollCollapse: true,
                         sort: true,
                         info: false,
@@ -81,7 +81,7 @@
                             [10, 25, 50, 100],
                             [10, 25, 50, 100]
                         ],
-                        //columnDefs: columnDefs,
+                        // columnDefs: [{ "visible": false, "searchable": false, "orderable": false, "targets": [0] }],
                         columns: ${columns},
                         "language": language,
 
