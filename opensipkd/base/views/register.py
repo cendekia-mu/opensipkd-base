@@ -472,7 +472,7 @@ class RegistrasiAdd(BaseView):
             values = dict(detail=dict(email=request.user.email))
 
         form.set_appstruct(values)
-        return dict(form=form.render(), scripts="")
+        return dict(form=form.render(), captcha=get_captcha(request), scripts="")
 
 
 ########
