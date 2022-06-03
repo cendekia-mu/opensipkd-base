@@ -2,12 +2,13 @@ import json
 
 import colander
 from deform import (widget, Form, )
-from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save
+from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save, btn_add, btn_edit, btn_delete
 from pyramid.view import (view_config, )
 
 from .kecamatan import kecamatan_widget
 from ..models import DBSession, ResDesa, kategori_desa, ResKecamatan
 from ..views import ColumnDT, DataTables, BaseView
+from ...detable import DeTable
 
 SESS_ADD_FAILED = 'Tambah desa gagal'
 SESS_EDIT_FAILED = 'Edit desa gagal'
@@ -37,6 +38,12 @@ class EditSchema(AddSchema):
     id = colander.SchemaNode(colander.String(), missing=colander.drop,
                              widget=widget.HiddenWidget(readonly=True))
 
+class ListSchema(colander.Schema):
+    id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
+    kode = colander.SchemaNode(colander.String(), width='100pt', title="Kode")
+    nama = colander.SchemaNode(colander.String(), title="Nama")
+    kecamatan = colander.SchemaNode(colander.String())
+    status = colander.SchemaNode(colander.Integer(), width="30pt")
 
 class ViewDesa(BaseView):
     def __init__(self, request):
@@ -122,10 +129,12 @@ class ViewDesa(BaseView):
         return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
     @view_config(route_name='desa',
-                 renderer='templates/list.pt',
+                 renderer='templates/form_input.pt',
                  permission='desa')
     def view_list(self):
-        return super().view_list()
+        table = DeTable(ListSchema(title="Desa/Kelurahan"), action=f"{self.home}/desa",
+                        buttons=(btn_close, btn_add, btn_edit, btn_delete))
+        return dict(form=table.render(), scripts=self.form_scripts)
 
     @view_config(route_name='desa-act', renderer='json',
                  permission='view')
@@ -144,7 +153,7 @@ class ViewDesa(BaseView):
             return row_table.output_result()
         elif url_dict['act'] == 'select':
             kecamatan_id = request.params["kecamatan_id"]
-            data = ResKecamatan.get_list(kecamatan_id)
+            data = ResDesa.get_list(kecamatan_id)
             result = {f"{k[0]}": k[1] for k in data}
             return result
 

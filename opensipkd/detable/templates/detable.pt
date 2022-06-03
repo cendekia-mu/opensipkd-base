@@ -9,7 +9,11 @@
         columns columns|field.columns;
         btnscripts scripts|field.scripts;
         url url|field.url;
-        url_suffix url_suffix|field.url_suffix;"
+        url_suffix url_suffix|field.url_suffix;
+        sorts sorts|field.sorts;
+        filters filters|field.filters;
+        paginates paginates|field.paginates;
+        "
          tal:attributes="style style;
                 class css_class;
         attributes|field.widget.attributes|{};"
@@ -70,11 +74,11 @@
                         ajax: o${tableid}Url,
                         stateSave: false,
                         scrollCollapse: true,
-                        sort: true,
+                        sort: ${sorts},
                         info: false,
-                        filter: true,
+                        filter: ${filters},
                         autoWidth: false,
-                        paginate: true,
+                        paginate: ${paginates},
                         paginationType: "full_numbers",
 
                         lengthMenu: [

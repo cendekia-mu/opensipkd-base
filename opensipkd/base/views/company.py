@@ -17,7 +17,6 @@ SESS_EDIT_FAILED = 'Edit pemda gagal'
 @colander.deferred
 def company_widget(node, kw):
     values = kw.get('company_list', [])
-    print(values)
     values.insert(0, ("", "Select Pemda"))
     return widget.Select2Widget(values=values,
                                 placeholder="Pilih Organisasi")

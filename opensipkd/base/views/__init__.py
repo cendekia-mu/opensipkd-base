@@ -67,7 +67,8 @@ class Home(BaseView):
                 return HTTPFound(location=request.route_url(modules_default))
             elif not request.user:
                 return HTTPFound(location=request.route_url(modules_default))
-        return dict(modules=modules)
+        logo = get_params('logo', "static/img/logo.png")
+        return dict(modules=modules, logo=logo)
 
 
 @view_config(context=HTTPForbidden, renderer='templates/403.pt')

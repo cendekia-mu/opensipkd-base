@@ -40,12 +40,15 @@ class CommonModel(object):
                     values[item.__name__] = value
         return values
 
-    def to_dict(self, null=False):  # Elixir like
+    def to_dict(self, null=False, date_format="%d-%m-%Y"):  # Elixir like
         values = {}
         for column in self.__table__.columns:
             value = getattr(self, column.name)
             if value or null:
-                values[column.name] = value
+                if type(column.type)==DateTime:
+                    values[column.name] = value.strftime(date_format)
+                else:
+                    values[column.name] = value
 
         return values
 

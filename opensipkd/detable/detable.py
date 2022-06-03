@@ -99,21 +99,25 @@ class DeTable(field.Field):
             action_suffix='/grid/act',
             buttons=(),
             tableid="detable",
-            # use_ajax=False,
+            sorts='true',
+            filters='true',
+            paginates='true',
+            params="",
             # ajax_options="{}",
             # autocomplete=None,
             # focus="on",
             # cols = None,
             **kw
     ):
+        params = params and f"?{params}" or ""
         btn_close_js = "{window.location = '/'; return false;}"
-        btn_add_js = "{window.location = o%sUri+'/add';}" % tableid
-        btn_edit_js = "{window.location = o%sUri+'/'+m%sID+'/edit'}" % (tableid, tableid)
-        btn_view_js = "{window.location = o%sUri+'/'+m%sID+'/view';}" % (tableid, tableid)
-        btn_delete_js = "{window.location = o%sUri+'/'+m%sID+'/delete';}" % (tableid, tableid)
-        btn_csv_js = "{window.location = o%sUri+'/csv/act';}" % tableid
-        btn_pdf_js = "{window.location = o%sUri+'/pdf/act';}" % tableid
-
+        btn_add_js = "{window.location = o%sUri+'/add%s';}" % (tableid, params)
+        btn_edit_js = "{window.location = o%sUri+'/'+m%sID+'/edit%s'}" % (tableid, tableid, params)
+        btn_view_js = "{window.location = o%sUri+'/'+m%sID+'/view%s';}" % (tableid, tableid, params)
+        btn_delete_js = "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (tableid, tableid, params)
+        btn_csv_js = "{window.location = o%sUri+'/csv/act%s';}" % (tableid, params)
+        btn_pdf_js = "{window.location = o%sUri+'/pdf/act%s';}" % (tableid, params)
+        action_suffix=f"{action_suffix}{params}"
         field.Field.__init__(self, schema, **kw)
         _buttons = []
         for button in buttons:
@@ -130,7 +134,7 @@ class DeTable(field.Field):
                     name="{button.name}" 
                     type="{button.type}" 
                     class="btn {button.css_class}"> 
-                        {button.title} </button>
+                        {button.title} </button>\n
                     """)
             _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
                             eval('btn_' + button.name + '_js') + ');')
@@ -170,26 +174,29 @@ class DeTable(field.Field):
                 data.append(f"orderable: {f.orderable}")
 
 
-            # thousand = hasattr(f, 'thousand') and f.thousand or None
-            # separator = thousand and "separator" in thousand and thousand["separator"] or ','
-            # decimal = thousand and "decimal" in thousand and thousand["decimal"] or '.'
-            # point = thousand and "point" in thousand and thousand["point"] or 2
-            # currency = thousand and "currency" in thousand and thousand["currency"] or ""
-            # if thousand or type(f.typ)==colander.Float():
-            #     d["renderer"]=f"$.fn.dataTable.render.number( '{separator}', '{decimal}', {point}, '{currency}' )"
-            #     if 'className' not in d:
-            #         d["className"] = "text-right"
-            #     data.append(f'renderer: $.fn.dataTable.render.number( "{separator}", "{decimal}", {point}, "{currency}" )')
+            thousand = hasattr(f, 'thousand') and f.thousand or None
+            separator = thousand and "separator" in thousand and thousand["separator"] or ','
+            decimal = thousand and "decimal" in thousand and thousand["decimal"] or '.'
+            point = thousand and "point" in thousand and thousand["point"] or 2
+            currency = thousand and "currency" in thousand and thousand["currency"] or ""
+            if thousand or type(f.typ)==colander.Float() or type(f.typ)==colander.Integer():
+                d["render"]=f"<script>$.fn.dataTable.render.number( '{separator}', '{decimal}', {point}, '{currency}' )</script>"
+                if 'className' not in d:
+                    d["className"] = "text-right"
 
+                # data.append(f'renderer: $.fn.dataTable.render.number( "{separator}", "{decimal}", {point}, "{currency}" )')
 
             columns.append(d)
             cols2.append(data)
         self.columns = json.dumps(columns)
+        self.columns = self.columns.replace('"<script>',"").replace('</script>"',"")
         # self.columns = columns
         # self.columns = json.dumps(cols2)
         self.url = action
         self.url_suffix = action_suffix
-
+        self.sorts = sorts
+        self.paginates=paginates
+        self.filters=filters
 
 class Button(object):
     """

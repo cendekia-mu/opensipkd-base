@@ -30,7 +30,7 @@ def provinsi_widget(node, kw):
 
 
 class AddSchema(colander.Schema):
-    kode = colander.SchemaNode(colander.Float(),
+    kode = colander.SchemaNode(colander.String(),
                                oid="kode",
                                validator=colander.Length(max=32), )
     kategori = colander.SchemaNode(colander.String(),
@@ -38,6 +38,7 @@ class AddSchema(colander.Schema):
                                    validator=colander.Length(max=32), oid="kode")
 
     nama = colander.SchemaNode(colander.String(), oid="nama")
+    ibu_kota = colander.SchemaNode(colander.String(), oid="nama", missing=colander.drop)
 
 
 class EditSchema(AddSchema):
@@ -47,11 +48,9 @@ class EditSchema(AddSchema):
 
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
-    kode = colander.SchemaNode(colander.String(), width='100pt',
-                               thousand={"separator": ',', "decimal": '.',
-                                         "point": 0}
-                               )
+    kode = colander.SchemaNode(colander.String(), width=100)
     nama = colander.SchemaNode(colander.String())
+    ibu_kota=colander.SchemaNode(colander.String())
 
 
 class ViewProvinsi(BaseView):
@@ -136,6 +135,7 @@ class ViewProvinsi(BaseView):
             columns = [ColumnDT(ResProvinsi.id, mData='id'),
                        ColumnDT(ResProvinsi.kode, mData='kode'),
                        ColumnDT(ResProvinsi.nama, mData='nama'),
+                       ColumnDT(ResProvinsi.ibu_kota, mData='ibu_kota'),
                        ColumnDT(ResProvinsi.status, mData='status'), ]
             query = DBSession.query().select_from(ResProvinsi)
             row_table = DataTables(request.GET, query, columns)

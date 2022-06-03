@@ -125,9 +125,10 @@ class BaseView(object):
     def get_params(self, params):
         return get_params(params)
 
-    def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel)):
+    def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel), **bindings):
         schema = class_form(validator=self.form_validator)
-        schema = schema.bind(request=self.req)
+        schema = schema.bind(request=self.req,
+                             **bindings)
         schema.request = self.req
         if row:
             schema.deserialize(row)
@@ -148,16 +149,18 @@ class BaseView(object):
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
-
-        form = self.get_form(self.edit_schema, buttons=(btn_close,))
+        bindings = self.get_bindings()
+        form = self.get_form(self.edit_schema, buttons=(btn_close,), **bindings)
         if request.POST:
             return self.route_list()
 
         form.set_appstruct(self.get_values(row))
-        return dict(form=form.render(readonly=True), scripts=self.form_scripts)
+        table = self.get_item_table(row)
+        return dict(form=form.render(readonly=True), table=table and table.render() or None, scripts=self.form_scripts)
 
     def view_add(self):
-        form = self.get_form(self.add_schema)
+        bindings = self.get_bindings()
+        form = self.get_form(self.add_schema, **bindings)
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
@@ -168,7 +171,14 @@ class BaseView(object):
                     return dict(form=form.render(), scripts=self.form_scripts)
                 self.save_request(dict(controls))
             return self.route_list()
-        return dict(form=form.render(), scripts=self.form_scripts)
+        table = self.get_item_table()
+        return dict(form=form.render(), table=table and table.render() or None, scripts=self.form_scripts)
+
+    def before_save(self, row):
+        pass
+
+    def after_save(self, row):
+        pass
 
     def save(self, values, user, row=None):
         if not row:
@@ -181,11 +191,17 @@ class BaseView(object):
 
         row.from_dict(values)
         row.status = 'status' in values and values['status'] and 1 or 0
+        self.before_save(row)
         DBSession.add(row)
         DBSession.flush()
+        self.after_save(row)
         return row
 
     def save_request(self, values, row=None):
+        params = self.req.params
+        for p in params:
+            values[p] = params[p]
+
         return self.save(values, self.req.user, row)
 
     def id_not_found(self):
@@ -194,22 +210,29 @@ class BaseView(object):
         self.req.session.flash(msg, 'error')
         return self.route_list()
 
-    def get_values(self, row):
+    def get_values(self, row, istime=False):
         d = row.to_dict()
-        if 'tanggal' in d and d['tanggal']:
-            d["tanggal"] = dmy(row.tanggal)
+        # if 'tanggal' in d and d['tanggal']:
+        #     d["tanggal"] = dmy(row.tanggal)
         for f in d:
             if type(d[f]) is str:
-                d[f]=d[f].strip()
+                d[f] = d[f].strip()
 
         return d
+
+    def get_bindings(self):
+        return {}
+
+    def get_item_table(self, row=None):
+        return None
 
     def view_edit(self):
         request = self.req
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
-        form = self.get_form(self.edit_schema)
+        bindings = self.get_bindings()
+        form = self.get_form(self.edit_schema, **bindings)
         if request.POST:
             if 'save' in request.POST:
                 controls = request.POST.items()
@@ -223,7 +246,8 @@ class BaseView(object):
             return self.route_list()
         values = self.get_values(row)
         form.set_appstruct(values)
-        return dict(form=form.render(), scripts=self.form_scripts)
+        table = self.get_item_table(row)
+        return dict(form=form.render(), table=table and table.render() or None, scripts=self.form_scripts)
 
     def view_delete(self):
         request = self.req
@@ -239,14 +263,16 @@ class BaseView(object):
                 DBSession.flush()
                 request.session.flash(msg)
             return self.route_list()
-        form = self.get_form(self.edit_schema, buttons=(btn_delete, btn_cancel))
+        bindings = self.get_bindings()
+        form = self.get_form(self.edit_schema, buttons=(btn_delete, btn_cancel), **bindings)
         form.set_appstruct(self.get_values(row))
-        return dict(form=form.render(readonly=True), scripts=self.form_scripts)
+        table = self.get_item_table(row)
+        return dict(form=form.render(), table=table and table.render() or None, scripts=self.form_scripts)
 
     def query_id(self):
         q = DBSession.query(self.table).filter_by(
             id=self.req.matchdict['id'])
-        if self.req.user.company_id:
+        if hasattr(self.table, 'compnay_id') and self.req.user.company_id:
             q = q.filter_by(company_id=self.req.user.company_id)
         return q
 

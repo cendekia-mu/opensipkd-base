@@ -175,9 +175,56 @@ class Select2MsWidget(Select2Widget):
     Same as :func:`~deform.widget.SelectWidget`, with some extra options
     listed here.
 
+
     tags: *bool*
         Allow dynamic option creation ( default: ``False`` ).
         See `select2 docs on tagging <https://select2.org/tagging>`_ for
         more details.
     """
     template = "select2_ms.pt"
+
+
+class QtyWidget(Widget):
+    template = "opensipkd.base:/views/templates/qty.pt"
+    readonly_template = "opensipkd.base:/views/templates/readonly/qty.pt"
+
+    _pstruct_schema = SchemaNode(
+        Mapping(),
+        SchemaNode(_StrippedString(), name="qty"),
+        SchemaNode(_StrippedString(), name="measure"),
+    )
+
+    def serialize(self, field, cstruct, **kw):
+        if cstruct is null:
+            qty = 0
+            measure = 0
+        else:
+            qty, measure = cstruct.split("|", 3)
+
+        kw.setdefault("qty", qty)
+        kw.setdefault("measure", measure)
+        readonly = kw.get("readonly", self.readonly)
+        template = readonly and self.readonly_template or self.template
+        values = self.get_template_values(field, cstruct, kw)
+        return field.renderer(template, **values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct is null:
+            return null
+        else:
+            try:
+                validated = self._pstruct_schema.deserialize(pstruct)
+            except Invalid as exc:
+                raise Invalid(field.schema, text_("Invalid pstruct: %s" % exc))
+            qty = validated["qty"]
+            measure = validated["measure"]
+
+            if not qty and not measure:
+                return null
+
+            result = "|".join([str(qty), str(measure)])
+
+            if not qty or not measure:
+                raise Invalid(field.schema, "Data tidak lengkap", result)
+
+            return result

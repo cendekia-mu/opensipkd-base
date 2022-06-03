@@ -294,3 +294,10 @@ def main(argv=sys.argv):
         append_csv(Route, 'routes.csv', ['kode'])
         append_csv(Eselon, 'eselon.csv', ['kode'])
         append_csv(Jabatan, 'jabatan.csv', ['kode'])
+        restore_csv(ResProvinsi, 'provinsi.csv')
+        restore_csv(ResDati2, 'dati2.csv')
+        restore_csv(ResKecamatan, 'kecamatan.csv')
+        DBSession.flush()
+        restore_csv(ResDesa, 'desa.csv')
+        DBSession.flush()
+

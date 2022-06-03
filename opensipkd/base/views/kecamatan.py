@@ -2,13 +2,14 @@ import json
 
 import colander
 from deform import (widget, Form, )
-from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save
+from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save, btn_add, btn_edit, btn_delete
 from pyramid.view import (view_config, )
 
 from . import widget_os
 from .dati2 import dati2_widget
 from ..models import DBSession, ResKecamatan, ResDati2
 from ..views import ColumnDT, DataTables, BaseView
+from ...detable import DeTable
 
 SESS_ADD_FAILED = 'Tambah kecamatan gagal'
 SESS_EDIT_FAILED = 'Edit kecamatan gagal'
@@ -29,8 +30,8 @@ def kecamatan_widget(node, kw):
 
 class AddSchema(colander.Schema):
     dati2_id = colander.SchemaNode(colander.String(),
-                                      widget=dati2_widget,
-                                      validator=colander.Length(max=32), oid="kode")
+                                   widget=dati2_widget,
+                                   validator=colander.Length(max=32), oid="kode")
     kode = colander.SchemaNode(colander.String(),
                                validator=colander.Length(max=32), oid="kode")
     nama = colander.SchemaNode(colander.String(), oid="nama")
@@ -41,20 +42,28 @@ class EditSchema(AddSchema):
                              widget=widget.HiddenWidget(readonly=True))
 
 
+class ListSchema(colander.Schema):
+    id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
+    kode = colander.SchemaNode(colander.String(), width='100pt', title="Kode")
+    nama = colander.SchemaNode(colander.String(), title="Nama")
+    kabupaten = colander.SchemaNode(colander.String())
+    status = colander.SchemaNode(colander.Integer(), width="30pt")
+
+
 class ViewDati2(BaseView):
     def __init__(self, request):
         super(ViewDati2, self).__init__(request)
         self.form_scripts = ""
-        self.list_col_defs = json.dumps(
-            [{"searchable": False, "visible": False, "targets": [0], }, {
-                "searchable": True, "orderable": True, "targets": [1, 2],
-            }])
-        self.list_cols = [{'title': "ID", 'data': "id"},
-                          {'title': "Kab/Kota", 'data': "dati2", 'width': '200pt'},
-                          {'title': "Kode", 'data': "kode", 'width': '100pt'},
-                          {'title': "Nama", 'data': "nama"}, ]
-        self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
-                            'btn_close'
+        # self.list_col_defs = json.dumps(
+        #     [{"searchable": False, "visible": False, "targets": [0], }, {
+        #         "searchable": True, "orderable": True, "targets": [1, 2],
+        #     }])
+        # self.list_cols = [{'title': "ID", 'data': "id"},
+        #                   {'title': "Kab/Kota", 'data': "dati2", 'width': '200pt'},
+        #                   {'title': "Kode", 'data': "kode", 'width': '100pt'},
+        #                   {'title': "Nama", 'data': "nama"}, ]
+        # self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
+        #                     'btn_close'
         self.form_params = dict(scripts="")
         self.list_url = 'kecamatan'
         self.list_route = 'kecamatan'
@@ -125,10 +134,12 @@ class ViewDati2(BaseView):
         return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
     @view_config(route_name='kecamatan',
-                 renderer='templates/list.pt',
+                 renderer='templates/form_input.pt',
                  permission='kecamatan')
     def view_list(self):
-        return super().view_list()
+        table = DeTable(ListSchema(title="Kecamatan"), action=f"{self.home}/kecamatan",
+                        buttons=(btn_close, btn_add, btn_edit, btn_delete))
+        return dict(form=table.render(), scripts=self.form_scripts)
 
     @view_config(route_name='kecamatan-act', renderer='json',
                  permission='view')
@@ -140,7 +151,7 @@ class ViewDati2(BaseView):
                        ColumnDT(ResKecamatan.kode, mData='kode'),
                        ColumnDT(ResKecamatan.nama, mData='nama'),
                        ColumnDT(ResKecamatan.status, mData='status'),
-                       ColumnDT(ResDati2.nama, mData='dati2'),]
+                       ColumnDT(ResDati2.nama, mData='kabupaten'), ]
             query = DBSession.query().select_from(ResKecamatan) \
                 .join(ResDati2, ResDati2.id == ResKecamatan.dati2_id)
             row_table = DataTables(request.GET, query, columns)
@@ -150,7 +161,6 @@ class ViewDati2(BaseView):
             data = ResKecamatan.get_list(dati2_id)
             result = {f"{k[0]}": k[1] for k in data}
             return result
-
 
     @view_config(route_name='kecamatan-add',
                  renderer='templates/form_input.pt', permission='kecamatan')
