@@ -18,7 +18,7 @@ Buat Python Virtual Environment, biasanya pada home directory::
 Install Production
 ------------------
 
-    $ ~/env/bin/pip install git+https://git.opensipkd.com/aa.gusti/opensipkd-base.git
+    $ ~/env/bin/pip install git+https://github.com/aagusti/tandur.git
     $ cp ~/env/etc/live_opensipkd.tpl  ~/env/etc/live_opensipkd.ini 
 
 Install Development::
@@ -43,6 +43,10 @@ pada baris berikut ini::
     [alembic_base]
     sqlalchemy.url = postgresql://user:password@localhost:5432/db
     script_location = opensipkd.base:alembic
+
+    [alembic_tandur]
+    sqlalchemy.url = postgresql://user:password@localhost:5432/db
+    script_location = tandur:alembic
 
 Handling Log File:
 ==================

@@ -174,10 +174,10 @@ class BaseView(object):
         table = self.get_item_table()
         return dict(form=form.render(), table=table and table.render() or None, scripts=self.form_scripts)
 
-    def before_save(self, row):
-        pass
+    def before_save(self, row, values):
+        return row
 
-    def after_save(self, row):
+    def after_save(self, row, values):
         pass
 
     def save(self, values, user, row=None):
@@ -191,10 +191,10 @@ class BaseView(object):
 
         row.from_dict(values)
         row.status = 'status' in values and values['status'] and 1 or 0
-        self.before_save(row)
+        row = self.before_save(row, values)
         DBSession.add(row)
         DBSession.flush()
-        self.after_save(row)
+        self.after_save(row, values)
         return row
 
     def save_request(self, values, row=None):
