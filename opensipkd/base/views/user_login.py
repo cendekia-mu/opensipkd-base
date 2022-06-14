@@ -64,7 +64,7 @@ def view_login(request):
     next_url = request.params.get('next', request.referrer)
     login_tpl = get_params('login_tpl', 'templates/login.pt')
     if not next_url:
-        next_url = request.route_url('home') # get_params('_host')+
+        next_url = request.route_url('home')  # get_params('_host')+
 
     if request.authenticated_userid:  # (request):
         request.session.flash('Anda sudah login', 'error')
@@ -108,13 +108,14 @@ def view_login(request):
                 msg = "Login Gagal"
                 set_user_log(msg, request, log, identity)
                 request.session.flash(msg, "error")
-                next_url=f"{request.route_url('login')}?next={next_url}"
+                next_url = f"{request.route_url('login')}?next={next_url}"
                 return HTTPFound(location=next_url)
 
         return redirect_login(request, user)
 
     elif 'register' in request.POST:
-        return HTTPFound(location=request.route_url("register"))
+        register_form = get_params("register_form", 'register-external')
+        return HTTPFound(location=request.route_url(register_form))
 
     elif 'login failed' in request.session:
         r = dict(form=request.session['login failed'])
@@ -125,6 +126,7 @@ def view_login(request):
         provider_name = request.params["provider_name"]
         if provider_name == "google":
             from .base_google import googlesignin
+
             # user = googlesignin(request)
             id_info = googlesignin(request)
             request.session["id_info"] = id_info
@@ -138,21 +140,22 @@ def view_login(request):
 
         user = id_info and ExternalIdentityService. \
             user_by_external_id_and_provider(id_info['sub'], id_info['iss'])
-
         if id_info and not user:
             request.session.flash('Silahkan Melakukan Registrasi')
-            return HTTPFound(location=request.route_url('register-external'))
+            register_form = get_params("register_form", 'register-external')
+            headers = [("id_info", str(id_info))]
+            return HTTPFound(location=request.route_url(register_form, _query=id_info), detail=id_info)
 
         if user:
             return redirect_login(request, user)
-    message=""
-    login=""
+    message = ""
+    login = ""
     return render_to_response(login_tpl,
                               dict(form=form.render(),
-                                  message=message,
-                                  url=request.route_url('login'),
-                                  next_url=next_url,
-                                  login=login,),
+                                   message=message,
+                                   url=request.route_url('login'),
+                                   next_url=next_url,
+                                   login=login, ),
                               request=request)
 
     # return dict(
@@ -167,7 +170,7 @@ def redirect_login(request, user):
     if not next_url and request.matched_route.name == 'login':
         url = get_params('modules_default', 'home')
         return HTTPFound(location=request.route_url(url),
-                             headers=headers)
+                         headers=headers)
     return HTTPFound(location=next_url, headers=headers)
 
 

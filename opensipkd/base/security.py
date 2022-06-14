@@ -3,13 +3,19 @@ from .models import (
     User,
     UserGroup,
     DBSession,
-    )
+)
 
 log = logging.getLogger(__name__)
+
+
 # It is used by RootFactory
 def group_finder(user_id, request):
-    q = DBSession.query(User).filter_by(id=user_id)
-    user = q.first()
+    if user_id != 'None':
+        q = DBSession.query(User).filter_by(id=user_id)
+        user = q.first()
+    else:
+        user = None
+
     if not user or not user.status:
         log.info("User tidak ditemukan")
         return []

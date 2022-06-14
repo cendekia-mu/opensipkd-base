@@ -114,10 +114,18 @@ class BaseView(object):
         self.home = self.req.route_url('home')[:-1]
         self.form_validator = None
 
+        self.buttons = None
+
+        self.headers = None
+
     def route_list(self, msg=None, error=""):
         if msg:
             self.ses.flash(msg, error)
-        return HTTPFound(location=self.req.route_url(self.list_route))
+        if self.headers:
+            return HTTPFound(location=self.req.route_url(self.list_route), headers=self.headers)
+        else:
+            return HTTPFound(location=self.req.route_url(self.list_route))
+
 
     def form_validator(self, form, value):
         pass
@@ -126,12 +134,15 @@ class BaseView(object):
         return get_params(params)
 
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel), **bindings):
+        if self.buttons:
+            buttons = self.buttons
         schema = class_form(validator=self.form_validator)
         schema = schema.bind(request=self.req,
+                             row=row,
                              **bindings)
         schema.request = self.req
-        if row:
-            schema.deserialize(row)
+        # if row:
+        #     schema.deserialize(row)
         return Form(schema, buttons=buttons)
 
     def session_failed(self, session_name):
@@ -158,6 +169,9 @@ class BaseView(object):
         table = self.get_item_table(row)
         return dict(form=form.render(readonly=True), table=table and table.render() or None, scripts=self.form_scripts)
 
+    def before_add(self, form):
+        return form
+
     def view_add(self):
         bindings = self.get_bindings()
         form = self.get_form(self.add_schema, **bindings)
@@ -171,6 +185,7 @@ class BaseView(object):
                     return dict(form=form.render(), scripts=self.form_scripts)
                 self.save_request(dict(controls))
             return self.route_list()
+        form = self.before_add(form)
         table = self.get_item_table()
         return dict(form=form.render(), table=table and table.render() or None, scripts=self.form_scripts)
 
@@ -184,10 +199,10 @@ class BaseView(object):
         if not row:
             row = self.table()
             row.created = datetime.now()
-            row.create_uid = user.id
+            row.create_uid = user and user.id or None
         else:
             row.updated = datetime.now()
-            row.update_uid = user.id
+            row.update_uid = user and user.id or None
 
         row.from_dict(values)
         row.status = 'status' in values and values['status'] and 1 or 0
@@ -225,6 +240,8 @@ class BaseView(object):
 
     def get_item_table(self, row=None):
         return None
+    def before_edit(self, form):
+        return form
 
     def view_edit(self):
         request = self.req
@@ -246,6 +263,7 @@ class BaseView(object):
             return self.route_list()
         values = self.get_values(row)
         form.set_appstruct(values)
+        form = self.before_edit(form)
         table = self.get_item_table(row)
         return dict(form=form.render(), table=table and table.render() or None, scripts=self.form_scripts)
 
