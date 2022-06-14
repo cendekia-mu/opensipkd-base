@@ -83,39 +83,38 @@
                                    href="${home}/reset-password">Lupa Password?</a>
                             </div>
                         </section>
+                    </fieldset>
+                    <footer>
+                        <section>
+                            <div class="row" style="float:right">
+                                <button type="submit" id="login-btn" name="login"
+                                        class="btn btn-primary" style="float:left"
+                                        value="Login">
+                                    Login
+                                </button>
+                                <button tal:condition="allow_register(request)"
+                                        id="register" name="register" class="btn btn-info"
+                                        value="Register" style="float:left">
+                                    Register
+                                </button>
+                                <!--?                            <div class="clearfix"></div>-->
+                            </div>
+                        </section>
+                    </footer>
+                    <footer>
+                        <section>
+                            <div class="row" tal:condition="request.google_signin_client_id and allow_register(request)">
+                                <div id="g_id_onload"
+                                     data-client_id="${request.google_signin_client_id}"
+                                     data-callback="onSignIn">
+                                </div>
+                                <div class="g_id_signin" data-type="standard"></div>
+                            </div>
+                        </section>
                         <section>
                             <input id="provider_name" type="hidden" name="provider_name" class="form-control">
                             <input id="id_token" type="hidden" name="id_token" class="form-control">
                         </section>
-
-                    </fieldset>
-                    <footer>
-                        <div style="float:right">
-                            <button type="submit" id="login-btn" name="login"
-                                    class="btn btn-primary" style="float:left"
-                                    value="Login">
-                                Login
-                            </button>
-                            <button tal:condition="allow_register(request)"
-                                    id="register" name="register" class="btn btn-info"
-                                    value="Register" style="float:left">
-                                Register
-                            </button>
-                            <div class="clearfix"></div>
-                        </div>
-                        <!--?                        <div-->
-                        <!--?                                style="margin-top:10px;" tal:condition="request.google_signin_client_id and allow_register(request)"-->
-                        <!--?                                class="g-signin2 text-center"-->
-                        <!--?                                data-onsuccess="onSignIn">handleCredentialResponse-->
-                        <!--?                        </div>-->
-                        <div tal:condition="request.google_signin_client_id and allow_register(request)">
-                            <div id="g_id_onload"
-                                 data-client_id="${request.google_signin_client_id}"
-                                 data-callback="onSignIn">
-                            </div>
-                            <div class="g_id_signin" data-type="standard"></div>
-                        </div>
-
                     </footer>
 
 
