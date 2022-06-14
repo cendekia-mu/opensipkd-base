@@ -1,6 +1,8 @@
 import os
 import sys
 import csv
+from collections import defaultdict
+
 import transaction
 import subprocess
 from getpass import getpass
@@ -264,7 +266,7 @@ def base_alembic_run(ini_file, name=None):
 
 
 def main(argv=sys.argv):
-    if len(argv) != 2:
+    if len(argv) < 2:
         usage(argv)
 
     config_uri = argv[1]

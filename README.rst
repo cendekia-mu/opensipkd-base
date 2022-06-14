@@ -14,11 +14,12 @@ Buat Python Virtual Environment, biasanya pada home directory::
 
     $ python3 -m venv ~/env
     $ ~/env/bin/pip install --upgrade pip setuptools
+    $ ~/env/bin/pip install wheel
 
 Install Production
 ------------------
 
-    $ ~/env/bin/pip install git+https://github.com/aagusti/tandur.git
+    $ ~/env/bin/pip install git+https://git.opensipkd.com/aa.gusti/base.git@latest
     $ cp ~/env/etc/live_opensipkd.tpl  ~/env/etc/live_opensipkd.ini 
 
 Install Development::
@@ -44,9 +45,6 @@ pada baris berikut ini::
     sqlalchemy.url = postgresql://user:password@localhost:5432/db
     script_location = opensipkd.base:alembic
 
-    [alembic_tandur]
-    sqlalchemy.url = postgresql://user:password@localhost:5432/db
-    script_location = tandur:alembic
 
 Handling Log File:
 ==================
@@ -128,7 +126,7 @@ Contoh::
 # Virtual Directory
 
 ## Setting Ini File
-### Ubah `[app:ain]` jadi `[app:opensipkd]`
+### Ubah `[app:main]` jadi `[app:opensipkd]`
 ```
     ;[app:main]
     [app:opensipkd_base]
@@ -139,14 +137,14 @@ Contoh::
 Tambahkan blok berikut ini dibawah ini file
 
 ```
-[filter:proxy-prefix]
-use = egg:PasteDeploy#prefix
-prefix = /virtualdir ; nama virtual directory
+    [filter:proxy-prefix]
+    use = egg:PasteDeploy#prefix
+    prefix = /virtualdir ; nama virtual directory
 
-[pipeline:main]
-pipeline =
-    proxy-prefix
-    opensipkd_base
+    [pipeline:main]
+    pipeline =
+        proxy-prefix
+        opensipkd_base
 ```
 
 
@@ -168,5 +166,22 @@ pipeline =
         proxy_pass http://127.0.0.1:6543/;
     }
 
+```
+
+## Google Integrated
+Aplikasi sudah bisa terintegrsi dengan google oauth2
+
+# Setting Configurasi
+```
+    allow_register = True
+    google-signin-client-id = id oauth2 client dari google
+```
+
+# RML Reporting
+
+Untuk aktivasi harus terdapat konfigurasi berikut ini
+# Setting Configurasi
+```
+    report_img = "fisik path opensipkd_base:static/img"
 ```
 

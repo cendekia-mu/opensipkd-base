@@ -77,7 +77,8 @@ departemen_chg_id = 3
 [server:main]
 use = egg:waitress#main
 host = 0.0.0.0
-port = %(http_port)s
+port = 6543
+;port = %(http_port)s digunakan jika port akan menggunakan parameter
 
 # Begin logging configuration
 
@@ -109,7 +110,8 @@ qualname = sqlalchemy.engine
 
 [handler_filelog]
 class = FileHandler
-args = ('%(logfile)s','a')
+args = ('app.log','a')
+;args = ('%(logfile)s','a') digunakan jika nama log file akan menggunakan parameter
 level = INFO
 formatter = generic
 

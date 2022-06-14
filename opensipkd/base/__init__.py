@@ -51,13 +51,14 @@ from pkg_resources import resource_filename
 import os
 
 from .models.handlers import LogDBSession
+
 log = logging.getLogger(__name__)
 
 # version 2.0.0 digunakan untuk change default template
 deform_templates = resource_filename('deform', 'templates')
 path = os.path.dirname(__file__)
 path = os.path.join(path, 'views', 'widgets')
-search_path = (path, deform_templates) #,
+search_path = (path, deform_templates)  # ,
 renderer = ZPTRendererFactory(search_path)
 Form.set_zpt_renderer(search_path)
 main_title = 'openSIPKD'
@@ -134,7 +135,8 @@ def get_params(params, alternate=None):
 
 
 def allow_register(request):
-    return get_params('allow_register', 'false') == 'true'
+    allow = get_params('allow_register', 'false')
+    return allow == 'true' or allow == "True" or allow == True
 
 
 def disable_responsive(request):
@@ -188,7 +190,7 @@ def is_devel(request):
 
 
 def google_signin_client_ids(request):
-    ids = get_params('google-signin-client_id', '')
+    ids = get_params('google-signin-client-id', '')
     if ids:
         return ids.split(',')
     else:
@@ -323,8 +325,10 @@ def get_host(request):
         host = f"{proto}://{request.host}"
     return host
 
+
 def get_home(request):
     return request.route_url('home')
+
 
 def set_routes(config, app_id=None):
     q = DBSession.query(Route)
@@ -424,7 +428,7 @@ def main(global_config, **settings):
     captcha_files = get_params('captcha_files', '/tmp/captcha')
     if not os.path.exists(captcha_files):
         os.makedirs(captcha_files)
-    config.add_static_view('captcha',captcha_files )
+    config.add_static_view('captcha', captcha_files)
     # config.add_static_view('tts', path=get_params('tts_files'))
 
     config.add_renderer('csv', 'opensipkd.tools.CSVRenderer')
