@@ -6,6 +6,7 @@ import transaction
 from datatables import (ColumnDT, DataTables, )
 from deform import (Form, widget, ValidationFailure, Button, )
 # from sqlalchemy.exc import IntegrityErrortpl
+from sqlalchemy.exc import IntegrityError
 
 from opensipkd.tools import create_now
 from opensipkd.tools.buttons import btn_cancel, btn_save, btn_close

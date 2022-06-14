@@ -122,23 +122,23 @@ def view_login(request):
         return r
 
     elif "provider_name" in request.params and request.params["provider_name"]:
-        # checking jika mengggunakan openid seperti google atau facebook
         provider_name = request.params["provider_name"]
         if provider_name == "google":
             from .base_google import googlesignin
             # user = googlesignin(request)
+            id_info = googlesignin(request)
+            request.session["id_info"] = id_info
             try:
-                id_info = googlesignin(request)
-                request.session["id_info"] = id_info
+                pass
             except ValueError as e:
                 request.session.flash(e, 'error')
                 raise HTTPNotFound
-
         else:
             id_info = None
 
         user = id_info and ExternalIdentityService. \
             user_by_external_id_and_provider(id_info['sub'], id_info['iss'])
+
         if id_info and not user:
             request.session.flash('Silahkan Melakukan Registrasi')
             return HTTPFound(location=request.route_url('register-external'))

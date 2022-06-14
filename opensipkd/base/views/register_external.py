@@ -180,7 +180,7 @@ def get_form(request, class_form, buttons=None, validator=form_validator):
     return Form(schema, buttons=('batal', 'simpan'))
 
 
-def save(values, user=None, row=None):
+def save(values, user=None, row=None, request=None):
     """
     Digunakan untuk menyimpan User External
     :param values: dictionary of
@@ -198,7 +198,7 @@ def save(values, user=None, row=None):
     if not user:
         user_ = dict(user_name=values['external_user_name'],
                      email=values['external_email'])
-        user, remail = save_user(user_)
+        user, remail = save_user(request, user_)
 
     if not row:
         row = ExternalIdentity()
@@ -222,9 +222,9 @@ def save_request(values, request, row=None):
     user = ExternalIdentityService.user_by_external_id_and_provider(
         id_info['sub'], id_info['iss'])
     if not user:
-        user = save(values, user, row)
+        user = save(values, user, row, request)
 
-    partner = Partner.query_user_id(user.id).first()
+    partner = Partner.query_email(id_info['email']).first()
     # if not partner:
     values['email'] = id_info['email']
     if 'kode' not in values and not values['kode']:
@@ -280,7 +280,7 @@ class RegistrasiExternal(BaseView):
                     values['primari']['email'] = id_info['email']
                     # values['detail']['captcha']
                     form.set_appstruct(values)
-                    return dict(form=form, captcha=get_captcha(request))
+                    return dict(form=form, captcha=get_captcha(request), scripts="")
 
                 dicts = dict(controls)
                 values = dicts['primari']
@@ -317,7 +317,9 @@ class RegistrasiExternal(BaseView):
                 values['secondari'].update(partner.to_dict())
 
         form.set_appstruct(values)
-        return dict(form=form, captcha=get_captcha(request))
+        # return dict()
+        # return dict(captcha=get_captcha(request))
+        return dict(form=form.render(), captcha=get_captcha(request), scripts="")
 
     @view_config(route_name='profile-external', renderer='templates/register.pt',
                  permission='view')

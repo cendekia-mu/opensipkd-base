@@ -1,4 +1,6 @@
-<html metal:use-macro="load: form_input.pt">
+<html metal:use-macro="load: form_input.pt"
+tal:define="home request.route_url('home')[:-1];">
+
 <div metal:fill-slot="scripts">
     <script>
         $(document).ready(function () {
@@ -11,7 +13,6 @@
                 });
             });
         });
-
     </script>
 
 </div>

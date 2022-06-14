@@ -22,9 +22,8 @@
                 ${structure:scripts}
         });
     </script>
-    <div metal:define-slot="scripts">
-    </div>
-
+    <div metal:define-slot="scripts"></div>
 </div>
+
 </html>
 

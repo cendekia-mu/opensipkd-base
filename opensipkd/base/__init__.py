@@ -116,16 +116,19 @@ def add_global(event):
     event['get_params'] = get_params
 
 
-def get_params(params, alternate=None):
+def get_params(params, alternate=None, settings=None):
     """
     Digunakan untuk mengambil nilai dari konfigurasi sesuai params yang disebut
     :param params: variable
     :param alternate: default apabila tidak ditemukan data/params
+    :param settings: default settings
     :return: value
     contoh penggunaan:
         get_params('devel', False)
     """
-    settings = get_settings()
+
+    if not settings:
+        settings = get_settings()
     result = settings and params in settings and settings[params].strip() or None
     if not result:
         row = Parameter.query_kode(params).first()
@@ -425,7 +428,8 @@ def main(global_config, **settings):
     config.add_static_view('deform_static', 'deform:static')
     # config.add_static_view('files', get_params('static_files'))
     # Captcha
-    captcha_files = get_params('captcha_files', '/tmp/captcha')
+
+    captcha_files = get_params('captcha_files', settings=settings,alternate="/tmp/captcha")
     if not os.path.exists(captcha_files):
         os.makedirs(captcha_files)
     config.add_static_view('captcha', captcha_files)

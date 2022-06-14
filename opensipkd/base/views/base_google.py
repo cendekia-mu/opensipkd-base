@@ -1,9 +1,11 @@
 from google.auth.transport import requests
 from google.oauth2 import id_token
+from opensipkd.base import get_params
 from pyramid.view import (view_config, )
 
 from ..models import User
 from opensipkd.tools import get_settings
+import json
 
 
 def validate_user(request, idinfo):
@@ -51,16 +53,21 @@ def googlesignin(request):
     # (Receive token by HTTPS POST)
     # ...
     CLIENT_IDS = request.google_signin_client_ids
-
+    # CLIENT_IDS =     get_params('google-signin-client-id')
+    KEY = get_params('google-signin-client-secret')
     # Specify the CLIENT_ID of the app that accesses the backend:
     # idinfo = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
 
     # Or, if multiple clients access the backend server:
-    gtoken = request.params['id_token']
-    idinfo = id_token.verify_oauth2_token(gtoken, requests.Request())
+    gtoken = json.loads(request.params['id_token'])
+    import jwt
+    idinfo = jwt.decode(gtoken["credential"], options={"verify_signature": False})  # KEY, algorithms=["RS256"]) #
+
+    # idinfo = id_token.verify_oauth2_token(gtoken, requests.Request())
     if idinfo['aud'] not in CLIENT_IDS:
         raise ValueError('Could not verify audience.')
 
     if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
         raise ValueError('Wrong issuer.')
+
     return idinfo
