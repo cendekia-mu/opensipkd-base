@@ -143,7 +143,6 @@ def view_login(request):
         if id_info and not user:
             request.session.flash('Silahkan Melakukan Registrasi')
             register_form = get_params("register_form", 'register-external')
-            headers = [("id_info", str(id_info))]
             return HTTPFound(location=request.route_url(register_form, _query=id_info), detail=id_info)
 
         if user:

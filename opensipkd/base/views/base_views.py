@@ -112,11 +112,9 @@ class BaseView(object):
         self.add_schema = ""
         self.table = ""
         self.home = self.req.route_url('home')[:-1]
-        self.form_validator = None
-
         self.buttons = None
-
         self.headers = None
+        self.bindings = None
 
     def route_list(self, msg=None, error=""):
         if msg:
@@ -126,7 +124,6 @@ class BaseView(object):
         else:
             return HTTPFound(location=self.req.route_url(self.list_route))
 
-
     def form_validator(self, form, value):
         pass
 
@@ -134,15 +131,13 @@ class BaseView(object):
         return get_params(params)
 
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel), **bindings):
-        if self.buttons:
-            buttons = self.buttons
+        buttons = self.buttons and self.buttons or buttons
+        bindings = self.bindings and self.bindings or bindings
         schema = class_form(validator=self.form_validator)
-        schema = schema.bind(request=self.req,
-                             row=row,
-                             **bindings)
+        schema = schema.bind(request=self.req, **bindings)
         schema.request = self.req
-        # if row:
-        #     schema.deserialize(row)
+        if row:
+            schema.deserialize(row)
         return Form(schema, buttons=buttons)
 
     def session_failed(self, session_name):
@@ -150,7 +145,8 @@ class BaseView(object):
         del self.req.session[session_name]
         return r
 
-    def view_list(self, arg=dict()):
+    def view_list(self, arg=None):
+        arg = not arg and {} or arg
         arg.update(url=self.list_url, col_defs=self.list_col_defs,
                    cols=self.list_cols, buttons=self.list_buttons)
         return arg
@@ -160,28 +156,32 @@ class BaseView(object):
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
-        bindings = self.get_bindings()
-        form = self.get_form(self.edit_schema, buttons=(btn_close,), **bindings)
+        bindings = hasattr(self, "get_bindings") and self.get_bindings() or None
+        form = self.get_form(self.edit_schema, buttons=(btn_close,), bindings=bindings)
         if request.POST:
             return self.route_list()
 
         form.set_appstruct(self.get_values(row))
         table = self.get_item_table(row)
-        return dict(form=form.render(readonly=True), table=table and table.render() or None, scripts=self.form_scripts)
+        return dict(form=form.render(readonly=True), table=table and table.render() or None,
+                    scripts=self.form_scripts)
 
     def before_add(self, form):
         return form
 
+    def validation_failure(self, value):
+        return value
+
     def view_add(self):
-        bindings = self.get_bindings()
-        form = self.get_form(self.add_schema, **bindings)
+        form = self.get_form(self.add_schema)
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
-                    form.render(appstruct=e.cstruct)
+                    value = self.validation_failure(e.cstruct)
+                    form.render(appstruct=value)
                     return dict(form=form.render(), scripts=self.form_scripts)
                 self.save_request(dict(controls))
             return self.route_list()
@@ -235,11 +235,9 @@ class BaseView(object):
 
         return d
 
-    def get_bindings(self):
-        return {}
-
     def get_item_table(self, row=None):
-        return None
+        return
+
     def before_edit(self, form):
         return form
 
@@ -248,8 +246,8 @@ class BaseView(object):
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
-        bindings = self.get_bindings()
-        form = self.get_form(self.edit_schema, **bindings)
+
+        form = self.get_form(self.edit_schema)
         if request.POST:
             if 'save' in request.POST:
                 controls = request.POST.items()
@@ -271,7 +269,6 @@ class BaseView(object):
         request = self.req
         q = self.query_id()
         row = q.first()
-
         if not row:
             return self.id_not_found()
         if request.POST:
@@ -281,8 +278,7 @@ class BaseView(object):
                 DBSession.flush()
                 request.session.flash(msg)
             return self.route_list()
-        bindings = self.get_bindings()
-        form = self.get_form(self.edit_schema, buttons=(btn_delete, btn_cancel), **bindings)
+        form = self.get_form(self.edit_schema, buttons=(btn_delete, btn_cancel))
         form.set_appstruct(self.get_values(row))
         table = self.get_item_table(row)
         return dict(form=form.render(), table=table and table.render() or None, scripts=self.form_scripts)

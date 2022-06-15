@@ -152,7 +152,7 @@ class User(UserMixin, BaseModel, CommonModel, Base):
 
 
 class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
-    pass
+    user = relationship(User, backref=backref("external"))
 
 
 # class GroupRoutePermission(Base, CommonModel):

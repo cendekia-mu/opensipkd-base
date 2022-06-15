@@ -446,6 +446,10 @@ class RegistrasiAdd(BaseView):
                  permission='view')
     def es_reg_edt(self):
         request = self.req
+        register_form = get_params("register_form")
+        if register_form:
+            return HTTPFound(location=request.route_url(register_form))
+
         ses = request.session
         query = query_id(request)
         row = query.first()

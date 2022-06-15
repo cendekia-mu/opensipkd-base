@@ -1,0 +1,27 @@
+<span tal:define="name name|field.name;
+        css_class css_class|field.widget.css_class;
+        oid oid|field.oid;
+        captcha captcha|field.widget.captcha;
+        style style|field.widget.style;
+        "
+         tal:omit-tag="">
+    <input type="text" name="${name}" value="${cstruct}"
+             tal:attributes="class string: form-control ${css_class or ''};
+            style style;
+            attributes|field.widget.attributes|{};"
+           id="${oid}"/>
+    <script type="text/javascript">
+      deform.addCallback(
+              '${oid}',
+              function (oid) {
+                  $("#" + oid).parent().prepend('<img style="height:30px; width:auto; margin-bottom:5px;' +
+                          '" src="${home}/captcha/${captcha}.png">')
+
+                  $('#'+oid).on('input', function (evt) {
+                      $(this).val(function (_, val) {
+                          return val.toUpperCase();
+                      });
+                  });
+              });
+    </script>
+</span>
