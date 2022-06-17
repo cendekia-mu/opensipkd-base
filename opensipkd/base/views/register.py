@@ -399,8 +399,6 @@ class RegistrasiAdd(BaseView):
     def view_add(self):
         request = self.req
         if request.user:
-            # partner = Partner.query_user_id(request.user.id).first()
-            # if partner:
             return HTTPFound(location=request.route_url("profile"))
 
         form = get_form(request, RegSchema, reg_buttons())
@@ -419,6 +417,7 @@ class RegistrasiAdd(BaseView):
                     return dict(form=form.render(), captcha=captcha, scripts="")
 
                 values = dict(controls)
+
                 path = get_params('reg_folder', '/tmp/registrasi')
                 if not os.path.exists(path):
                     os.makedirs(path)

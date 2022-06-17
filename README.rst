@@ -168,20 +168,25 @@ Tambahkan blok berikut ini dibawah ini file
 
 ```
 
-## Google Integrated
+## Google Integrated dan Custom Register Form
 Aplikasi sudah bisa terintegrsi dengan google oauth2
 
 # Setting Configurasi
 ```
     allow_register = True
     google-signin-client-id = id oauth2 client dari google
+    register_form = # nama form buat registrasi default /register
 ```
 
 # RML Reporting
 
 Untuk aktivasi harus terdapat konfigurasi berikut ini
+
 # Setting Configurasi
 ```
-    report_img = "fisik path opensipkd_base:static/img"
+    report_img = # fisik path default "opensipkd_base:static/img"
 ```
-
+Install :
+    ```
+        $pip install z3c.rml
+    ```
