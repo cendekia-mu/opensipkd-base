@@ -2,7 +2,7 @@
 tal:define="home request.route_url('home')[:-1];">
 
 <div metal:fill-slot="scripts">
-    <script>
+    <script tal:condition="${captcha}">
         $(document).ready(function () {
             $("#captcha").parent().prepend('<img style="height:30px; width:auto; margin-bottom:5px;'+
                     '" src="${home}/captcha/${captcha}.png">')
@@ -14,7 +14,6 @@ tal:define="home request.route_url('home')[:-1];">
             });
         });
     </script>
-
 </div>
 </html>
 

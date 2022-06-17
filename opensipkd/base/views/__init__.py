@@ -9,6 +9,7 @@ from pyramid.httpexceptions import (
     HTTPSeeOther)
 from pyramid.i18n import TranslationStringFactory
 from pyramid.interfaces import IRoutesMapper
+from pyramid.response import Response
 from pyramid.view import view_config
 
 from opensipkd.base import get_params
@@ -42,7 +43,7 @@ def not_found(request):
 @view_config(context=HTTPInternalServerError, renderer='templates/500.pt')
 def internal_server_error(request):
     return {}
-    # response = Response('Internal error')
+    # response = Response('Terjadi kesahala')
     # response.status_int = 500
     # return response
 

@@ -114,7 +114,7 @@ def view_login(request):
         return redirect_login(request, user)
 
     elif 'register' in request.POST:
-        register_form = get_params("register_form", 'register-external')
+        register_form = get_params("register_form", 'register')
         return HTTPFound(location=request.route_url(register_form))
 
     elif 'login failed' in request.session:

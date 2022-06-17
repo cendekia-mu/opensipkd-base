@@ -1,14 +1,19 @@
+import os
+import re
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from opensipkd.tools.captcha import get_captcha
 from pyramid.httpexceptions import HTTPFound
 
 from .. import DBSession, get_params
-from opensipkd.tools import dmy, dmy_to_date, get_settings
+from opensipkd.tools import dmy, dmy_to_date, get_settings, get_ext
 import colander
 from deform import (widget, Form, ValidationFailure, )
 from email.utils import parseaddr
 
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete
+
+from ..models import User
 
 
 class BaseView(object):
@@ -94,7 +99,7 @@ class BaseView(object):
         self.jenis = 'jenis' in self.params and self.params[
             'jenis'] or self.jenis
         self.ses['jenis'] = self.jenis
-        self.list_route = ''
+        self.list_route = 'home'
         self.list_col_defs = ""
         self.list_cols = ""
         self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
@@ -114,7 +119,9 @@ class BaseView(object):
         self.home = self.req.route_url('home')[:-1]
         self.buttons = None
         self.headers = None
-        self.bindings = None
+        self.bindings = {}
+        self.autocomplete = 'on'
+        # self.captcha = ""
 
     def route_list(self, msg=None, error=""):
         if msg:
@@ -133,12 +140,12 @@ class BaseView(object):
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel), **bindings):
         buttons = self.buttons and self.buttons or buttons
         bindings = self.bindings and self.bindings or bindings
-        schema = class_form(validator=self.form_validator)
+        schema = class_form(validator=self.form_validator)  #
         schema = schema.bind(request=self.req, **bindings)
         schema.request = self.req
         if row:
             schema.deserialize(row)
-        return Form(schema, buttons=buttons)
+        return Form(schema, buttons=buttons, autocomplete=self.autocomplete)
 
     def session_failed(self, session_name):
         r = dict(form=self.req.session[session_name])
@@ -187,7 +194,8 @@ class BaseView(object):
             return self.route_list()
         form = self.before_add(form)
         table = self.get_item_table()
-        return dict(form=form.render(), table=table and table.render() or None, scripts=self.form_scripts)
+        return dict(form=form.render(), table=table and table.render() or None,
+                    scripts=self.form_scripts)
 
     def before_save(self, row, values):
         return row
@@ -196,6 +204,7 @@ class BaseView(object):
         pass
 
     def save(self, values, user, row=None):
+        self.ses["old_email"] = user and user.email or None
         if not row:
             row = self.table()
             row.created = datetime.now()
@@ -246,7 +255,6 @@ class BaseView(object):
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
-
         form = self.get_form(self.edit_schema)
         if request.POST:
             if 'save' in request.POST:
@@ -301,3 +309,36 @@ def email_validator(node, value):
     name, email = parseaddr(value)
     if not email or email.find('@') < 0:
         raise colander.Invalid(node, 'Invalid email format')
+
+
+class Store(dict):
+    def preview_url(self, name):
+        return ""
+
+
+store = Store()
+reg_exts = ['.png', '.jpg', '.pdf', '.jpeg']
+
+
+def image_validator(node, value):
+    ext = get_ext(value["filename"])
+    if ext not in reg_exts:
+        raise colander.Invalid(node, f'Extension harus salahsatu dari {reg_exts}')
+
+
+username_re = re.compile('^[a-z0-9_]{6,16}$', re.IGNORECASE)
+
+
+def user_name_validator(node, value):
+    if not username_re.match(value):
+        raise colander.Invalid(node,
+                               'Value must be between 6 and 16 characters and can only contain uppercase and lowercase alphanumeric characters or an underscore')
+
+
+def need_captcha():
+    is_captcha = get_params("reg_captcha")
+    return is_captcha == '1' or is_captcha == "True" or is_captcha=="true" or is_captcha == True
+
+def get_url_captcha(request):
+    captcha = get_captcha(request)
+    return os.path.join(request.route_url('home'),'captcha',captcha)

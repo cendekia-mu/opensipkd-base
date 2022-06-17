@@ -105,6 +105,7 @@
             <a href="#" class="dropdown-toggle txt-color-white" data-toggle="dropdown">My Account <b class="caret"></b></a>
             <ul class="dropdown-menu">
               <li><a style="text-transform:capitalize" href="${home}logout">${request.user.nice_username()} Logout</a></li>
+              <li><a style="text-transform:capitalize" href="${home}profile">Profile</a></li>
               <li><a style="text-transform:capitalize" href="${home}password">Ubah password</a></li>
               <li tal:condition="request.user.api_key">
                   <a style="text-transform:capitalize" href="${home}recreate-api-key">

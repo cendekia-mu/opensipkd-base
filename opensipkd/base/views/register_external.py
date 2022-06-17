@@ -12,7 +12,7 @@ from pyramid.view import view_config
 from ziggurat_foundations.models.services.user import UserService
 
 # from . import get_login_headers
-from .register import mobile_found_partner, save_partner, nik_found
+# from .register import mobile_found_partner, save_partner, nik_found
 from .user_group import save as save_groups
 from ..models import DBSession, Partner, Group, ExternalIdentity, User, ExternalIdentityService
 from opensipkd.tools import get_settings
