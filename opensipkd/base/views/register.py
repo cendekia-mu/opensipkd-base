@@ -21,29 +21,26 @@ File template tersebut dapat diunggah
 
 Link dalam module registrasi:
 1. Form registrasi http://server/register
-2. List User yang melakukan registrasi yangu statusn=0 http://server/register/list
+2. List User yang melakukan registrasi yang statusn=0 http://server/register/list
 3. Form Verifikasi http://server/register/{uid}/verifikasi
 4. Form edit registrasi http://server/register/{uid}/edit
 5. Form Upload template
 """
 import os
-from email.utils import parseaddr
 
 import colander
-from deform import (widget, ValidationFailure, Button, FileData)
+from deform import (widget, Button, FileData)
 from opensipkd.tools import Upload
-from opensipkd.tools.captcha import get_captcha
 from pyramid.httpexceptions import HTTPFound
 from pyramid.i18n import TranslationStringFactory
 from pyramid.view import view_config
 from ziggurat_foundations.models.services.user import UserService
 
 from opensipkd.base import get_params
-from opensipkd.base.views.user import insert as save_user, email_validator
-from opensipkd.base.views.user_login import send_email_security_code
+from opensipkd.base.views.user import email_validator
 from . import widget_os
 from .base_views import store, image_validator, need_captcha, get_url_captcha
-from ..models import User, DBSession, Partner, UserGroup
+from ..models import User, DBSession, Partner
 from ..views import BaseView
 
 _ = TranslationStringFactory('user')
@@ -52,10 +49,12 @@ _ = TranslationStringFactory('user')
 class AddSchema(colander.Schema):
     nama = colander.SchemaNode(
         colander.String(),
-        oid="nama")
+        oid="nama",
+        title=_("Name"),
+    )
     alamat_1 = colander.SchemaNode(
         colander.String(),
-        title="Alamat",
+        title=_("Address"),
         oid="alamat_1")
     alamat_2 = colander.SchemaNode(
         colander.String(),
@@ -64,10 +63,12 @@ class AddSchema(colander.Schema):
         oid="alamat_2")
     mobile = colander.SchemaNode(
         colander.String(),
-        oid="no_hp")
+        oid="no_hp",
+        title=_("Mobile")
+    )
     email = colander.SchemaNode(
         colander.String(),
-        title="E-mail",
+        title=_("E-mail"),
         validator=email_validator,
         oid="email")
 
@@ -78,26 +79,26 @@ class AddSchema(colander.Schema):
             self["kode"] = colander.SchemaNode(
                 colander.String(),
                 widget=widget.TextInputWidget(),
-                title="No.Identitas/NIK",
+                title=_("ID Number"),
                 # missing=colander.drop,
                 oid="kode")
             self["doc_id_card"] = colander.SchemaNode(
                 FileData(),
                 widget=widget.FileUploadWidget(store),
-                title="Photo Identitas",
+                title=_("ID Card"),
                 validator=image_validator)
-
         if not request.user and need_captcha():
             self["captcha"] = colander.SchemaNode(
                 colander.String(),
-                widget=widget_os.CaptchaWidget(url=get_url_captcha(request)),
-                oid="captcha", title="Captcha")
 
+                widget=widget_os.CaptchaWidget(),
+                oid="captcha", title=_("Captcha"))
         if request.user and request.user.id:
             self["password"] = colander.SchemaNode(
                 colander.String(),
-                widget=widget.PasswordWidget()
-                , oid="password", title="Password")
+                widget=widget.PasswordWidget(),
+                oid="password", title=_("Password")
+            )
 
 
 class EditSchema(AddSchema):
@@ -128,11 +129,6 @@ def show_error(request, msg):
     _show_error(request, msg)
     return HTTPFound(location=request.route_url('home'))
 
-    # Validasi saat Register
-    # 1. Cek email pada Users jika ada dan Users.id beda reject
-    # 2. Cek email pada Partner jika ada dan Partner.id beda reject
-    # 3. Cek NIK (kode) pada Partner jika ada dan Partner.id beda reject
-
 
 def reg_buttons():
     btn_register = Button(name='save', css_class='btn-success', type="submit", title="Register")
@@ -142,6 +138,7 @@ def reg_buttons():
 
 class Registrasi(BaseView):
     def __init__(self, request):
+        print("********* init start", request.session)
         super(Registrasi, self).__init__(request)
         self.autocomplete = "off"
         self.buttons = reg_buttons()
@@ -149,13 +146,26 @@ class Registrasi(BaseView):
         self.edit_schema = EditSchema
         self.table = User
         self.list_route = "home"
+        print("********* init finish", self.ses)
 
     def form_validator(self, form, value):
+        """
+        Default "value"
+            user_name = mobile
+            kode = mobile
+        Validasi saat Register
+        1. Cek email pada Users jika ada dan Users.id beda reject
+        2. Cek email pada Partner jika ada dan Partner.id beda reject
+        3. Cek kode pada Partner jika ada dan Partner.id beda reject
+        4. Cek mobile pada Partner jika ada dan Users.id beda reject
+        """
         form_exc = colander.Invalid(form, '')
-
+        request = form.request
         def err_captcha():
-            msg = 'Captcha harus diisi'
-            raise colander.Invalid(form['captcha'], msg)
+            msg = 'Captcha berbeda'
+            # form_exc.add(colander.Invalid(form['captcha'], msg))
+            form_exc['captcha']=msg
+            raise form_exc
 
         def err_email():
             exc = colander.Invalid(
@@ -178,14 +188,20 @@ class Registrasi(BaseView):
             raise colander.Invalid(
                 form["password"], 'User atau Password tidak sesuai')
 
-        request = form.request
+        if not request.user and need_captcha():
+            # Check Captcha jika registrasi
+            print("*************** validate", request.session)
+            captcha = 'captcha' in value and value['captcha'].upper() or None
+            ses_captcha = request.session.pop('captcha')
+            if captcha != ses_captcha:
+                err_captcha()
+
         is_logged = form.request.user
         email = value["email"]
         if "user_name" not in value or not value["user_name"]:
             value["user_name"] = value["mobile"]
 
         if 'user_name' in value:
-            # Check Data User
             user_name = value["user_name"]
             user = user_found(user_name)
             if user and not is_logged:
@@ -228,21 +244,17 @@ class Registrasi(BaseView):
             elif found_nik:
                 err_nik()
 
-        # Check Captcha jika registrasi
-        if not request.user and need_captcha():
-            if 'captcha' not in value or not value['captcha'] \
-                    or 'captcha' not in request.session or not request.session['captcha']:
-                err_captcha()
-
-            captcha = 'captcha' in value and value['captcha'].upper() or None
-            if not captcha or captcha != request.session['captcha']:
-                del request.session["captcha"]
-                err_captcha()
-
         if 'password' in value:
             user = form.request.user
             if not user or not UserService.check_password(user, value['password']):
                 err_login()
+
+    def before_add(self):
+        if need_captcha():
+            result = dict(captcha=get_url_captcha(self.req))
+            print("*************** before_add", self.ses)
+            return result
+        return
 
     def before_save(self, row, values):
         if "doc_id_card" not in values or not values["doc_id_card"]:
@@ -256,17 +268,6 @@ class Registrasi(BaseView):
         values["doc_id_card"] = upload.save(self.req, 'upload')
         row.doc_id_card = values["doc_id_card"]
         return row
-
-    def before_edit(self, form):
-        partner = DBSession.query(Partner). \
-            join(User, Partner.email == User.email). \
-            filter(User.id == self.req.user.id).first()
-        if partner:
-            values = {}
-            for f in ["nama", "alamat_1", "alamat_2", "mobile", "email"]:
-                values[f] = hasattr(partner, f) and getattr(partner, f) or ""
-            form.set_appstruct(values)
-        return form
 
     def after_save(self, row, values):
         if "old_email" in self.ses and self.ses["old_email"]:
@@ -288,24 +289,16 @@ class Registrasi(BaseView):
         return row
 
     @view_config(route_name='register', renderer='templates/form_input.pt')
-    def view_add(self):
+    def view_register(self):
+        print("*************** init", self.ses)
         request = self.req
+        reg_form = get_params("reg_form")
+        if reg_form:
+            return HTTPFound(location=self.req.route_url(reg_form))
         self.bindings = dict(user=None)
         if request.user:
             return HTTPFound(location=request.route_url("profile"))
-
-        # self.captcha = need_captcha() and get_captcha(request) or ""
         return super(Registrasi, self).view_add()
-
-    @view_config(route_name='profile', renderer='templates/form_input.pt',
-                 permission='view')
-    def es_reg_edt(self):
-        request = self.req
-        register_form = get_params("register_form")
-        self.bindings = dict(user=self.req.user)
-        if register_form:
-            return HTTPFound(location=request.route_url(register_form))
-        return super(Registrasi, self).view_edit()
 
     def query_id(self):
         return DBSession.query(User). \
@@ -313,3 +306,23 @@ class Registrasi(BaseView):
 
     def id_not_found(self):
         return
+
+    def before_edit(self, form):
+        partner = DBSession.query(Partner). \
+            join(User, Partner.email == User.email). \
+            filter(User.id == self.req.user.id).first()
+        if partner:
+            values = {}
+            for f in ["nama", "alamat_1", "alamat_2", "mobile", "email"]:
+                values[f] = hasattr(partner, f) and getattr(partner, f) or ""
+            form.set_appstruct(values)
+        return form
+
+    @view_config(route_name='profile', renderer='templates/form_input.pt',
+                 permission='view')
+    def view_profile(self):
+        reg_form = get_params("reg_form")
+        if reg_form:
+            return HTTPFound(location=self.req.route_url(reg_form))
+        self.bindings = dict(user=self.req.user)
+        return super(Registrasi, self).view_edit()

@@ -18,6 +18,12 @@ from ..models import User
 
 class BaseView(object):
     def __init__(self, request):
+        if not "test" in request.session:
+            request.session["test"]='TEST'
+            print("********8 Session test not found")
+        else:
+            print("********9 Session", request.session["test"])
+
         self.req = request
         self.ses = self.req.session
         self.params = self.req.params
@@ -173,26 +179,32 @@ class BaseView(object):
         return dict(form=form.render(readonly=True), table=table and table.render() or None,
                     scripts=self.form_scripts)
 
-    def before_add(self, form):
-        return form
+    def before_add(self):
+        return
 
     def validation_failure(self, value):
         return value
 
     def view_add(self):
+        print("*************** view_add", self.ses)
         form = self.get_form(self.add_schema)
         if self.req.POST:
+            print("*************** view_add_pos", self.ses)
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
                     value = self.validation_failure(e.cstruct)
+                    value.update(self.before_add())
+                    print("*************** on error", self.ses)
                     form.render(appstruct=value)
                     return dict(form=form.render(), scripts=self.form_scripts)
                 self.save_request(dict(controls))
             return self.route_list()
-        form = self.before_add(form)
+        values = self.before_add()
+        print("*************** on view", self.ses)
+        form.set_appstruct(values)
         table = self.get_item_table()
         return dict(form=form.render(), table=table and table.render() or None,
                     scripts=self.form_scripts)
@@ -337,8 +349,9 @@ def user_name_validator(node, value):
 
 def need_captcha():
     is_captcha = get_params("reg_captcha")
-    return is_captcha == '1' or is_captcha == "True" or is_captcha=="true" or is_captcha == True
+    return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" or is_captcha == True
+
 
 def get_url_captcha(request):
     captcha = get_captcha(request)
-    return os.path.join(request.route_url('home'),'captcha',captcha)
+    return os.path.join(request.route_url('home'), 'captcha', captcha)
