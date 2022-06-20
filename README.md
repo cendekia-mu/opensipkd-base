@@ -1,41 +1,44 @@
 # Basis Aplikasi openSIPKD
-========================
 
 Ini adalah basis dari seluruh aplikasi openSIPKD.
 
-Pemasangan
-----------
+# Pemasangan
 
-Pasang paket Debian yang dibutuhkan::
+## Pasang paket Debian yang dibutuhkan::
 
-    $ sudo apt-get install libxml2-dev libxslt1-dev libtiff5-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev
+    $ sudo apt install libxml2-dev libxslt1-dev libtiff5-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev
 
-Buat Python Virtual Environment, biasanya pada home directory::
+## Buat Python Virtual Environment:
+Biasanya pada home directory::
 
     $ python3 -m venv ~/env
     $ ~/env/bin/pip install --upgrade pip setuptools
     $ ~/env/bin/pip install wheel
 
-Install Production
-------------------
+##Instalasi
+
+###Production:
 
     $ ~/env/bin/pip install git+https://git.opensipkd.com/aa.gusti/base.git@latest
     $ cp ~/env/etc/live_opensipkd.tpl  ~/env/etc/live_opensipkd.ini 
 
-Install Development::
--------------------
+###Install Development::
     $ source ~/env/bin/activate 
     $ mkdir apps
     $ cd apps
-    $ git clone https://git.opensipkd.com/bekasi/base.git@ciamis
+    $ git clone https://git.opensipkd.com/aa.gusti/base.git@latest
     $ env/bin/pip install -e base[dev]
     $ cp ~/env/etc/test_opensipkd.tpl  ~/env/etc/test_opensipkd.ini 
 
-Sesuaikan konfigurasi ``test_opensipkd.ini`` atau ``live_opensipkd.ini``
-pada baris berikut ini::
+##Sesuaikan konfigurasi 
+Konfigurasi tergantung pada jenis instalasi ``test_opensipkd.ini`` atau 
+``live_opensipkd.ini``pada baris berikut ini::
 
+###Database Koneksi:
+    [app:main]
     sqlalchemy.url = postgresql://user:password@localhost:5432/db
     session.url = postgresql://user:password@localhost:5432/db
+
 
     [alembic_ziggurat]
     sqlalchemy.url = postgresql://user:password@localhost:5432/db
@@ -45,9 +48,24 @@ pada baris berikut ini::
     sqlalchemy.url = postgresql://user:password@localhost:5432/db
     script_location = opensipkd.base:alembic
 
+###Login/Register:
+    [app:main]
+    captcha_files=
+    # static folder untuk image captcha
+    reg_captcha = 1
+    # saat registrasi diwajibkan menggunakan captcha
+    reg_idcard = 1
+    # saat registrasi diwajibkan mengisi kode/nik pengguna
+    # akan menampilkan pula upload file id card
+    reg_verify = 1
+    # Registrasi memrlukan verifikasi terlebih dahulu sebelum dapat login
+    reg_form =
+    # diisi route registrasi default "register" jika dikosongkan
+    login_tpl =
+    # diisi nama template login apabila akan menggunakan template yang berbeda
 
-Handling Log File:
-==================
+
+###Handling Log File:
 
 Logging dapat dilakukan console, file atau tabel
 
@@ -81,14 +99,30 @@ Logging dapat dilakukan console, file atau tabel
 	[alembic]
 	sqlalchemy.url = postgresql://user:password@localhost:5432/db
 	script_location = alembic
-
     ```
+###Google Integrated dan Custom Register Form
+Aplikasi sudah bisa terintegrsi dengan google oauth2
 
-Buat tabelnya::
+Konfigurasi merupakan bagian dari "main"
+
+```
+    [app:main]
+    allow_register = True
+    google-signin-client-id = id oauth2 client dari google
+```
+
+
+##Buat tabelnya::
+    
+Perintah untuk membuat tabel
+
+    $ ~/env/bin/initialize_opensipkd_db [file_config]
+
+Contoh:
 
     $ ~/env/bin/initialize_opensipkd_db ~/env/etc/test_opensipkd.ini
 
-Jalankan::
+##Jalankan::
 
     $ ~/env/bin/pserve --reload test.ini
 
@@ -168,25 +202,3 @@ Tambahkan blok berikut ini dibawah ini file
 
 ```
 
-## Google Integrated dan Custom Register Form
-Aplikasi sudah bisa terintegrsi dengan google oauth2
-
-# Setting Configurasi
-```
-    allow_register = True
-    google-signin-client-id = id oauth2 client dari google
-    register_form = # nama form buat registrasi default /register
-```
-
-# RML Reporting
-
-Untuk aktivasi harus terdapat konfigurasi berikut ini
-
-# Setting Configurasi
-```
-    report_img = # fisik path default "opensipkd_base:static/img"
-```
-Install :
-    ```
-        $pip install z3c.rml
-    ```

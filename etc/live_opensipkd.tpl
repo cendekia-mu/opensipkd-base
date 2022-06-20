@@ -18,9 +18,11 @@ sqlalchemy.url = postgresql://user:password@server:port/db
 pyramid.includes =
     pyramid_tm
     pyramid_beaker
+    pyramid_mailer
     pyramid_chameleon
     pyramid_rpc.jsonrpc
 
+;Session Configuration
 session.type = ext:database
 session.secret = s0s3cr3t
 session.cookie_expires = true
@@ -30,37 +32,73 @@ session.timeout = 3000
 session.lock_dir = %(here)s/tmp
 
 timezone = Asia/Jakarta
-# localization = id_ID.UTF-8
-#localization = Indonesian_indonesia.1252
-localization = English_Australia.1252
+localization = id_ID.UTF-8
 
 static_files = %(here)s/../files
-captcha_files = %(here)s/tmp/captcha
-company = Opensipkd
-ibukota   = Bekasi
-departement = IT
-address_1 = Jalan....
-address_2 = Bekasi ...
+# Static external file uploaded to the system
 
-center.phone = 021123456789
-center.mobile = 081311045668
-center.email = aa.gustiana@gmail.com
-center.email_password = 
-center.smtp_server = 
+# Your Organisation Identity
+company = Your Company
+ibukota   = Your City
+departement = Your Departemen
+address_1 = Your Address
+address_2 = Your Address
 
-_host = 
+;center.phone = 021123456789
+;center.mobile = 081311045668
 
-unoconv_py = C:\Program Files\LibreOffice 5\program\python.exe
-unoconv_bin = C:\project\toko\env\Scripts\unoconv
+# Mail Configuration
+mail.sender_name =
+mail.username =
+mail.host =
+mail.port = 25
+mail.password	None	SMTP password
+mail.tls = False
+mail.ssl=False
+mail.keyfile =
+#SSL key file
+mail.certfile =
+# SSL certificate file
+mail.queue_path	=
+# Location of maildir
+mail.default_sender =
+# Default from address
+mail.debug = 0
+# SMTP debug level
+# mail.sendmail_app = /usr/sbin/sendmail
+# Sendmail executable
+# mail.sendmail_template =
+# {sendmail_app} -t -i -f {sender}	Template for sendmail execution
+mail.debug_include_bcc = False
+# 	Include Bcc headers when Debugging
 
-modules = 
-menus = /log:App-Log
+# ODT to pdf configuration
+unoconv_py =
+# openoffice/libreoffice python executable
+unoconv_bin =
+# Python unoconv script path "/home/[apps]/env/bin/unoconv"
 
-app_name = Base Opensipkd.com
-allow_register = False
+#Modules depreceated
+modules =
+
+# Menus to be appear in home page
+menus = login:Login
+        log:App-Log
+
+app_name = Your Aplocation Name
 
 change_unit = False
 departemen_chg_id = 3
+
+# Register config parameter
+allow_register = False
+google-signin-client-id =
+captcha_files=/home/aagusti/tmp
+reg_captcha = 1
+;reg_idcard = 1
+reg_verify = 1
+reg_form =
+login_tpl =
 
 ;Digunakan Apabila Applikasi sebagai subdomain
 ;[app:main] diubah menjadi [app:opensipkd_base]
