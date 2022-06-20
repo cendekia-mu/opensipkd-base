@@ -61,6 +61,9 @@ def get_login_headers(request, user):
 
 @view_config(route_name='login', renderer='templates/login.pt')
 def view_login(request):
+    if "g_state" in request.session:
+        z
+        del request.session["g_state"]
     next_url = request.params.get('next', request.referrer)
     login_tpl = get_params('login_tpl', 'templates/login.pt')
     if not next_url:
@@ -72,6 +75,7 @@ def view_login(request):
 
     schema = Login(validator=login_validator)
     form = Form(schema, buttons=('login',))
+    message=""
     if 'login' in request.POST:
         identity = request.POST.get('username')
         user = schema.user = User.get_by_identity(identity)
@@ -127,14 +131,8 @@ def view_login(request):
         if provider_name == "google":
             from .base_google import googlesignin
 
-            # user = googlesignin(request)
             id_info = googlesignin(request)
             request.session["id_info"] = id_info
-            try:
-                pass
-            except ValueError as e:
-                request.session.flash(e, 'error')
-                raise HTTPNotFound
         else:
             id_info = None
 
@@ -142,12 +140,14 @@ def view_login(request):
             user_by_external_id_and_provider(id_info['sub'], id_info['iss'])
         if id_info and not user:
             request.session.flash('Silahkan Melakukan Registrasi')
-            register_form = get_params("register_form", 'register-external')
-            return HTTPFound(location=request.route_url(register_form, _query=id_info), detail=id_info)
+            register_form = get_params("register_form", 'register')
+            return HTTPFound(location=request.route_url(register_form))
 
-        if user:
+        if user and user.status==1:
             return redirect_login(request, user)
-    message = ""
+        else:
+            message = "User anda masih menunggu verifikasi atau lagi di blokir"
+            request.session.flash(message, "error")
     login = ""
     return render_to_response(login_tpl,
                               dict(form=form.render(),
@@ -299,9 +299,6 @@ def send_email_security_code(
             or 'mail.username' not in settings:
         return
 
-    # if 'base_url' not in settings:
-    #     return
-
     url = '{}password/{}'.format(
         request.route_url('home'), user.security_code)
     minutes = int(time_remain.seconds / 60)
@@ -311,6 +308,19 @@ def send_email_security_code(
     with open(body_file) as f:
         body_tpl = f.read()
     body = _(body_msg_id, default=body_tpl, mapping=data)
+    # body = request.localizer.translate(body)
+    # sender = '{} <{}>'.format(
+    #     settings['mail.sender_name'], settings['mail.username'])
+    # subject = request.localizer.translate(_(subject))
+    # message = Message(
+    #     subject=subject, sender=sender, recipients=[user.email], body=body)
+    # mailer = request.registry['mailer']
+    # mailer.send(message)
+    sending_mail(request, user, subject, body)
+
+
+def sending_mail(request, user, subject, body):
+    settings = get_settings()
     body = request.localizer.translate(body)
     sender = '{} <{}>'.format(
         settings['mail.sender_name'], settings['mail.username'])
@@ -319,6 +329,21 @@ def send_email_security_code(
         subject=subject, sender=sender, recipients=[user.email], body=body)
     mailer = request.registry['mailer']
     mailer.send(message)
+
+
+def send_email_pending(
+        request, user, subject, body_msg_id, body_default_file):
+    settings = get_settings()
+    if 'mail.sender_name' not in settings \
+            or 'mail.username' not in settings:
+        return
+
+    here = os.path.abspath(os.path.dirname(__file__))
+    body_file = os.path.join(here, body_default_file)
+    with open(body_file) as f:
+        body_tpl = f.read()
+    body = _(body_msg_id, default=body_tpl)
+    sending_mail(request, user, subject, body)
 
 
 def regenerate_security_code(user):

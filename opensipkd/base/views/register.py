@@ -37,10 +37,11 @@ from pyramid.view import view_config
 from ziggurat_foundations.models.services.user import UserService
 
 from opensipkd.base import get_params
-from opensipkd.base.views.user import email_validator
+from opensipkd.base.views.user import email_validator, add_member_count
 from . import widget_os
-from .base_views import store, image_validator, need_captcha, get_url_captcha
-from ..models import User, DBSession, Partner
+from .base_views import store, image_validator, need_captcha, need_verify, get_url_captcha
+from .user_login import regenerate_security_code, get_login_headers, send_email_security_code, send_email_pending
+from ..models import User, DBSession, Partner, Group, UserGroup, ExternalIdentity
 from ..views import BaseView
 
 _ = TranslationStringFactory('user')
@@ -75,6 +76,10 @@ class AddSchema(colander.Schema):
     def after_bind(self, schema, kw):
         request = kw.get("request")
         is_id_card = get_params('reg_idcard')
+        if "id_info" in request.session:
+            self["email"].widget = widget.TextInputWidget(readonly=True)
+            self["email"].missing = colander.drop
+
         if is_id_card == '1' or is_id_card == "True" or is_id_card == "true":
             self["kode"] = colander.SchemaNode(
                 colander.String(),
@@ -138,7 +143,6 @@ def reg_buttons():
 
 class Registrasi(BaseView):
     def __init__(self, request):
-        print("********* init start", request.session)
         super(Registrasi, self).__init__(request)
         self.autocomplete = "off"
         self.buttons = reg_buttons()
@@ -146,7 +150,6 @@ class Registrasi(BaseView):
         self.edit_schema = EditSchema
         self.table = User
         self.list_route = "home"
-        print("********* init finish", self.ses)
 
     def form_validator(self, form, value):
         """
@@ -161,10 +164,11 @@ class Registrasi(BaseView):
         """
         form_exc = colander.Invalid(form, '')
         request = form.request
+        session = request.session
+
         def err_captcha():
             msg = 'Captcha berbeda'
-            # form_exc.add(colander.Invalid(form['captcha'], msg))
-            form_exc['captcha']=msg
+            form_exc['captcha'] = msg
             raise form_exc
 
         def err_email():
@@ -189,17 +193,14 @@ class Registrasi(BaseView):
                 form["password"], 'User atau Password tidak sesuai')
 
         if not request.user and need_captcha():
-            # Check Captcha jika registrasi
-            print("*************** validate", request.session)
             captcha = 'captcha' in value and value['captcha'].upper() or None
             ses_captcha = request.session.pop('captcha')
             if captcha != ses_captcha:
                 err_captcha()
 
         is_logged = form.request.user
-        email = value["email"]
-        if "user_name" not in value or not value["user_name"]:
-            value["user_name"] = value["mobile"]
+        if not "email" in value and "id_info" in session:
+            value["email"] = session["id_info"]["email"]
 
         if 'user_name' in value:
             user_name = value["user_name"]
@@ -210,7 +211,10 @@ class Registrasi(BaseView):
             if user and is_logged:
                 if user.id != is_logged.id:
                     err_user()
+        if "user_name" not in value or not value["user_name"]:
+            value["user_name"] = value["mobile"]
 
+        email = value["email"]
         user = user_found(email)
         if user and not is_logged:
             err_email()
@@ -250,11 +254,13 @@ class Registrasi(BaseView):
                 err_login()
 
     def before_add(self):
+        result = {}
+        if "id_info" in self.ses and self.ses['id_info']:
+            result = self.ses["id_info"]
+            result.update(dict(nama=" ".join([result["given_name"], result["family_name"]])))
         if need_captcha():
-            result = dict(captcha=get_url_captcha(self.req))
-            print("*************** before_add", self.ses)
-            return result
-        return
+            result.update(dict(captcha=get_url_captcha(self.req)))
+        return result
 
     def before_save(self, row, values):
         if "doc_id_card" not in values or not values["doc_id_card"]:
@@ -270,6 +276,63 @@ class Registrasi(BaseView):
         return row
 
     def after_save(self, row, values):
+        if not self.req.user:  # User Baru
+            if 'groups' in values and values['groups']:
+                gr = Group.query_group_name(values['groups']).first()
+                ug = UserGroup()
+                ug.user_id = row.id
+                ug.group_id = gr.id
+                DBSession.add(ug)
+                add_member_count(gr.id)
+                DBSession.flush()
+
+            data = dict(email=row.email)
+            if 'id_info' in self.ses and self.ses['id_info']:
+                id_info = self.ses["id_info"]
+                values['email'] = id_info['email']
+                values['external_id'] = id_info['sub']
+                values['external_user_name'] = id_info["name"]
+                values['external_email'] = id_info["email"]
+                values['provider_name'] = id_info["iss"]
+                # todo: what is this????
+                # values['access_token']
+                # values['alt_token']
+                # values['token_secret']
+                values["local_user_id"] = row.id
+                external = ExternalIdentity()
+                external.from_dict(values)
+                DBSession.add(external)
+                DBSession.flush()
+                if need_verify():
+                    send_email_pending(self.req, row, 'Welcome new user', 'email-new-user',
+                                       'email-pending.tpl')
+                    ts = _(
+                        'user-added',
+                        default='${email} berhasil ditambahkan tunggu hasil verifikasi data ',
+                        mapping=data)
+
+                else:
+                    row.status = 1
+                    DBSession.add(row)
+                    self.ses.flash('Registrasi Sukses.')
+                    DBSession.flush()
+                    self.headers = get_login_headers(self.req, row)
+                    ts = _(
+                        'user-added',
+                        default='${email} berhasil ditambahkan ',
+                        mapping=data)
+            else:  # Kirim email validasi
+                remain = regenerate_security_code(row)
+                send_email_security_code(
+                    self.req, row, remain, 'Welcome new user', 'email-new-user',
+                    'email-new-user.tpl')
+                ts = _(
+                    'user-added',
+                    default='${email} berhasil ditambahkan dan email untuk ubah ' \
+                            'kata kunci sudah dikirim.',
+                    mapping=data)
+            self.ses.flash(ts)
+
         if "old_email" in self.ses and self.ses["old_email"]:
             email = self.ses["old_email"]
             del self.ses["old_email"]
@@ -290,7 +353,6 @@ class Registrasi(BaseView):
 
     @view_config(route_name='register', renderer='templates/form_input.pt')
     def view_register(self):
-        print("*************** init", self.ses)
         request = self.req
         reg_form = get_params("reg_form")
         if reg_form:

@@ -351,6 +351,10 @@ def need_captcha():
     is_captcha = get_params("reg_captcha")
     return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" or is_captcha == True
 
+def need_verify():
+    result = get_params("reg_verify")
+    return result == '1' or result == "True" or result == "true" or result == True
+
 
 def get_url_captcha(request):
     captcha = get_captcha(request)
