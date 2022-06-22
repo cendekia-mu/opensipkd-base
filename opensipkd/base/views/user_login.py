@@ -23,6 +23,7 @@ import os
 from importlib import import_module
 
 import colander
+import requests
 from deform import widget, Form, ValidationFailure, Button
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.renderers import render_to_response
@@ -61,9 +62,7 @@ def get_login_headers(request, user):
 
 @view_config(route_name='login', renderer='templates/login.pt')
 def view_login(request):
-    if "g_state" in request.session:
-        z
-        del request.session["g_state"]
+    request.session["login"]=True
     next_url = request.params.get('next', request.referrer)
     login_tpl = get_params('login_tpl', 'templates/login.pt')
     if not next_url:
@@ -75,7 +74,7 @@ def view_login(request):
 
     schema = Login(validator=login_validator)
     form = Form(schema, buttons=('login',))
-    message=""
+    message = ""
     if 'login' in request.POST:
         identity = request.POST.get('username')
         user = schema.user = User.get_by_identity(identity)
@@ -130,25 +129,42 @@ def view_login(request):
         provider_name = request.params["provider_name"]
         if provider_name == "google":
             from .base_google import googlesignin
+            try:
+                id_info = googlesignin(request)
+            except Exception as e:
+                login = ""
+                request.session.flash(str(e), "error")
+                return render_to_response(login_tpl,
+                                          dict(form=form.render(),
+                                               message=message,
+                                               url=request.route_url('login'),
+                                               next_url=next_url,
+                                               login=login, ),
+                                          request=request)
 
-            id_info = googlesignin(request)
             request.session["id_info"] = id_info
         else:
             id_info = None
 
         user = id_info and ExternalIdentityService. \
             user_by_external_id_and_provider(id_info['sub'], id_info['iss'])
+
         if id_info and not user:
             request.session.flash('Silahkan Melakukan Registrasi')
             register_form = get_params("register_form", 'register')
             return HTTPFound(location=request.route_url(register_form))
 
-        if user and user.status==1:
+        if user and user.status == 1:
             return redirect_login(request, user)
         else:
             message = "User anda masih menunggu verifikasi atau lagi di blokir"
             request.session.flash(message, "error")
-    login = ""
+    # if "g_state" in request.cookies:
+        # requests.post("https://accounts.google.com/o/oauth2/revoke?token=" + ACCESS_TOKEN);
+    # headers = forget(request)
+    # request.session.delete()
+    # request.session["start"]="login"
+    login=""
     return render_to_response(login_tpl,
                               dict(form=form.render(),
                                    message=message,
@@ -182,9 +198,10 @@ def view_logout(request):
         set_user_log("Logout", request, log)
         headers = forget(request)
         request.session.delete()
+        if "g_state" in request.cookies:
+            del request.cookies["g_state"]
         return HTTPFound(location=f"{request.route_url('home')}",
                          headers=headers)
-
     return dict()
 
 

@@ -136,6 +136,15 @@
         src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script tal:condition="request.google_signin_client_id">
+    window.onload = function (e) {
+        const value = document.cookie;
+        const parts = value.split(`g_state=`);
+        console.log(parts.length)
+        if (parts.length === 2) {
+            document.cookie = document.cookie + ";max-age=0";
+        }
+    }
+
     function onSignIn(googleUser) {
         // var profile = googleUser.getBasicProfile();
         // console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
@@ -143,7 +152,7 @@
         // console.log('Image URL: ' + profile.getImageUrl());
         // console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
         //getId(), getName(), getGivenName(), getFamilyName(), getImageUrl(), getEmail() methods, and
-        console.log(googleUser);
+        // console.log(googleUser);
         // console.log(googleUser.getId());
         // console.log(googleUser.getName());
         // var id_token = googleUser.getAuthResponse().id_token;

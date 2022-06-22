@@ -33,6 +33,7 @@ from deform import (widget, Button, FileData)
 from opensipkd.tools import Upload
 from pyramid.httpexceptions import HTTPFound
 from pyramid.i18n import TranslationStringFactory
+from pyramid.security import forget
 from pyramid.view import view_config
 from ziggurat_foundations.models.services.user import UserService
 
@@ -350,16 +351,25 @@ class Registrasi(BaseView):
         DBSession.add(partner)
         DBSession.flush()
         return row
+    def cancel_act(self):
+        forget(self.req)
+        self.ses.delete()
 
     @view_config(route_name='register', renderer='templates/form_input.pt')
     def view_register(self):
+        if "g_state" in self.req.cookies:
+            if "id_info" not in self.ses or not self.ses["id_info"]:
+                return HTTPFound(location=self.req.route_url("login"))
+
         request = self.req
         reg_form = get_params("reg_form")
         if reg_form:
             return HTTPFound(location=self.req.route_url(reg_form))
+
         self.bindings = dict(user=None)
         if request.user:
             return HTTPFound(location=request.route_url("profile"))
+
         return super(Registrasi, self).view_add()
 
     def query_id(self):

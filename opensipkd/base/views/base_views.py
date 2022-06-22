@@ -18,12 +18,6 @@ from ..models import User
 
 class BaseView(object):
     def __init__(self, request):
-        if not "test" in request.session:
-            request.session["test"]='TEST'
-            print("********8 Session test not found")
-        else:
-            print("********9 Session", request.session["test"])
-
         self.req = request
         self.ses = self.req.session
         self.params = self.req.params
@@ -184,12 +178,12 @@ class BaseView(object):
 
     def validation_failure(self, value):
         return value
+    def cancel_act(self):
+        pass
 
     def view_add(self):
-        print("*************** view_add", self.ses)
         form = self.get_form(self.add_schema)
         if self.req.POST:
-            print("*************** view_add_pos", self.ses)
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
                 try:
@@ -197,13 +191,14 @@ class BaseView(object):
                 except ValidationFailure as e:
                     value = self.validation_failure(e.cstruct)
                     value.update(self.before_add())
-                    print("*************** on error", self.ses)
                     form.render(appstruct=value)
                     return dict(form=form.render(), scripts=self.form_scripts)
                 self.save_request(dict(controls))
+            if "cancel" in self.req.POST or 'batal' in self.req.POST:
+                self.cancel_act()
+
             return self.route_list()
         values = self.before_add()
-        print("*************** on view", self.ses)
         form.set_appstruct(values)
         table = self.get_item_table()
         return dict(form=form.render(), table=table and table.render() or None,

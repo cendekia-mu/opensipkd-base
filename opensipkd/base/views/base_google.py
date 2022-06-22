@@ -60,11 +60,11 @@ def googlesignin(request):
 
     # Or, if multiple clients access the backend server:
     gtoken = json.loads(request.params['id_token'])
+    # idinfo = id_token.verify_oauth2_token(gtoken, requests.Request())
+    # test
     import jwt
     idinfo = jwt.decode(gtoken["credential"], options={"verify_signature": False})  # KEY, algorithms=["RS256"]) #
-
-    # idinfo = id_token.verify_oauth2_token(gtoken, requests.Request())
-    if idinfo['aud'] not in CLIENT_IDS:
+    if idinfo['aud'] not in CLIENT_IDS or idinfo['azp'] not in CLIENT_IDS:
         raise ValueError('Could not verify audience.')
 
     if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
