@@ -29,8 +29,8 @@
                        class="table table-bordered table-hover table-condensed dataTable no-footer">
                     <thead>
                     <tr>
-                        <th tal:repeat="child field">${child.title}
-                        </th>
+                        <th tal:repeat="child field">${child.title}</th>
+<!--?                        <th>Action</th>-->
                     </tr>
                     </thead>
                     <tbody>
@@ -85,8 +85,7 @@
                             [10, 25, 50, 100],
                             [10, 25, 50, 100]
                         ],
-                        // columnDefs: [{ "visible": false, "searchable": false, "orderable": false, "targets": [0] }],
-                        columns: ${columns},
+                        columns: ${structure:columns},
                         "language": language,
 
                     });

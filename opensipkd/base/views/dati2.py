@@ -5,7 +5,7 @@ from pyramid.view import (view_config, )
 from . import widget_os
 from .provinsi import provinsi_widget
 from ..models import DBSession, ResDati2, kategori_dati2, ResProvinsi
-from ..views import ColumnDT, DataTables, BaseView
+from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah dati2 gagal'
 SESS_EDIT_FAILED = 'Edit dati2 gagal'
@@ -46,7 +46,7 @@ class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
     kode = colander.SchemaNode(colander.String(), width='100pt', title="Kode")
     nama = colander.SchemaNode(colander.String(), title="Nama")
-    provinsi = colander.SchemaNode(colander.String())
+    provinsi = colander.SchemaNode(colander.String(), field=ResProvinsi.nama)
     status = colander.SchemaNode(colander.Integer(), width="30pt")
 
 
@@ -61,10 +61,6 @@ class ViewDati2(BaseView):
         self.edit_schema = EditSchema
         self.table = ResDati2
         self.list_schema = ListSchema
-
-    ########
-    # List #
-    ########
 
     def form_validator(self, form, value):
         def err_kode():
@@ -101,8 +97,7 @@ class ViewDati2(BaseView):
             err_nama()
 
     def get_bindings(self, row=None):
-        return dict(request=self.req,
-                    provinsi_list=ResProvinsi.get_list())
+        return dict(provinsi_list=ResProvinsi.get_list())
 
     @view_config(route_name='dati2',
                  renderer='templates/table.pt',
@@ -115,41 +110,33 @@ class ViewDati2(BaseView):
     def view_view(self):  # row = query_id(request).first()
         return super(ViewDati2, self).view_view()
 
+    def list_join(self, query):
+        return query.join(ResProvinsi, ResProvinsi.id == ResDati2.provinsi_id)
+
     @view_config(route_name='dati2-act', renderer='json',
                  permission='view')
     def view_act(self):
-        request = self.req
-        url_dict = request.matchdict
-        if url_dict['act'] == 'grid':
-            columns = [ColumnDT(ResDati2.id, mData='id'),
-                       ColumnDT(ResDati2.kode, mData='kode'),
-                       ColumnDT(ResDati2.nama, mData='nama'),
-                       ColumnDT(ResDati2.status, mData='status'),
-                       ColumnDT(ResProvinsi.nama, mData='provinsi'), ]
-            query = DBSession.query().select_from(ResDati2) \
-                .join(ResProvinsi, ResProvinsi.id == ResDati2.provinsi_id)
-            row_table = DataTables(request.GET, query, columns)
-            return row_table.output_result()
-        elif url_dict['act'] == 'select':
-            provinsi_id = request.params["provinsi_id"]
+        return super().view_act()
+
+    def next_act(self):
+        url_dict = self.req.matchdict
+        if url_dict['act'] == 'select':
+            provinsi_id = self.req.params["provinsi_id"]
             data = ResDati2.get_list(provinsi_id)
             result = {f"{k[0]}": k[1] for k in data}
             return result
 
     @view_config(route_name='dati2-add',
-                 renderer='templates/form_input.pt', permission='dati2')
+                 renderer='templates/form.pt', permission='dati2')
     def view_add(self):
         return super(ViewDati2, self).view_add()
 
-    ########
-    # Edit #
-    ########
     @view_config(route_name='dati2-edit',
-                 renderer='templates/form_input.pt', permission='dati2')
+                 renderer='templates/form.pt', permission='dati2')
     def view_edt(self):
         return super(ViewDati2, self).view_edit()
 
     @view_config(route_name='dati2-delete',
-                 renderer='templates/form_input.pt', permission='dati2')
+                 renderer='templates/form.pt', permission='dati2')
     def view_delete(self):
         return super(ViewDati2, self).view_delete()

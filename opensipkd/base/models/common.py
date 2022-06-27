@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, ForeignKey
+from sqlalchemy.orm import relationship, backref
 from ziggurat_foundations.tests import User
 
 from .meta import Base
@@ -43,3 +44,4 @@ class UserDeviceModel(Base, KodeModel):
 class ResCompany(Base, NamaModel):
     __tablename__ = 'company'
     partner_id = Column(Integer, ForeignKey(Partner.id))
+    partner = relationship(Partner, backref=backref("company"))

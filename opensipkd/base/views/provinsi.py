@@ -1,16 +1,10 @@
-import json
-from datetime import datetime
-
 import colander
-from deform import (Form, widget, )
-from opensipkd.tools.buttons import btn_cancel, btn_save, btn_close, btn_add, btn_edit, btn_delete, btn_view
-from pyramid.httpexceptions import (HTTPFound, )
+from deform import (widget, )
 from pyramid.view import (view_config, )
-from sqlalchemy.orm import aliased
 
 from . import widget_os
-from ..models import DBSession, ResProvinsi, kategori_provinsi, flush
-from ..views import ColumnDT, DataTables, BaseView
+from ..models import DBSession, ResProvinsi, kategori_provinsi
+from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah provinsi gagal'
 SESS_EDIT_FAILED = 'Edit provinsi gagal'
@@ -42,7 +36,8 @@ class AddSchema(colander.Schema):
 
 class EditSchema(AddSchema):
     id = colander.SchemaNode(colander.String(), missing=colander.drop,
-                             widget=widget.HiddenWidget(readonly=True))
+                             widget=widget.HiddenWidget(readonly=True),
+                             visible=False)
 
 
 class ListSchema(colander.Schema):
@@ -116,16 +111,16 @@ class ViewProvinsi(BaseView):
         return super(ViewProvinsi, self).view_act()
 
     @view_config(route_name='provinsi-add',
-                 renderer='templates/form_input.pt', permission='provinsi')
+                 renderer='templates/form.pt', permission='provinsi')
     def view_add(self):
         return super(ViewProvinsi, self).view_add()
 
     @view_config(route_name='provinsi-edit',
-                 renderer='templates/form_input.pt', permission='provinsi')
+                 renderer='templates/form.pt', permission='provinsi')
     def view_edt(self):
         return super(ViewProvinsi, self).view_edit()
 
     @view_config(route_name='provinsi-delete',
-                 renderer='templates/form_input.pt', permission='provinsi')
+                 renderer='templates/form.pt', permission='provinsi')
     def view_delete(self):
         return super(ViewProvinsi, self).view_delete()

@@ -181,8 +181,8 @@ class Select2MsWidget(Select2Widget):
         See `select2 docs on tagging <https://select2.org/tagging>`_ for
         more details.
     """
-    template = "select2_ms.pt"
 
+    template = "select2_ms.pt"
 
 class QtyWidget(Widget):
     template = "opensipkd.base:/views/templates/qty.pt"

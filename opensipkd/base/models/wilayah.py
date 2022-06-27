@@ -1,3 +1,5 @@
+from sqlalchemy.orm import relationship, backref
+
 from opensipkd.base.models import TABLE_ARGS
 from sqlalchemy import (
     Column,
@@ -36,6 +38,7 @@ class ResDati2(Base, NamaModel):
     kategori = Column(String(32))
     ibu_kota = Column(String(64))
     provinsi_id = Column(SmallInteger, ForeignKey(ResProvinsi.id))
+    provinsi = relationship(ResProvinsi, backref=backref("dati2"))
 
     @classmethod
     def get_list(cls, provinsi_id):
@@ -49,8 +52,9 @@ class ResKecamatan(Base, NamaModel):
     __table_args__ = (TABLE_ARGS,)
     ibu_kota = Column(String(64))
     dati2_id = Column(SmallInteger, ForeignKey(ResDati2.id))
+    dati2 = relationship(ResDati2, backref=backref("kecamatan"))
     @classmethod
-    def get_list(cls, dati2_id):
+    def get_list(cls, dati2_id=None):
         qry = cls.query_list()
         if dati2_id:
             qry = qry.filter(cls.dati2_id == dati2_id)
@@ -68,7 +72,7 @@ class ResDesa(Base, NamaModel):
     __table_args__ = (TABLE_ARGS,)
     kategori = Column(String(32))
     kecamatan_id = Column(SmallInteger, ForeignKey(ResKecamatan.id))
-
+    kecamatan = relationship(ResKecamatan, backref=backref("desa"))
     @classmethod
     def get_list(cls, kecamatan_id):
         qry = cls.query_list()

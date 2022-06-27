@@ -6,16 +6,19 @@ from opensipkd.base.views.kecamatan import kecamatan_widget
 from opensipkd.base.views.provinsi import provinsi_widget
 
 
-class PartnerSchema(colander.Schema):
+class NamaSchema(colander.Schema):
     kode = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=32),
         oid="kode",
-        title="Kode")
+        title="Kode",
+    width="100pt")
     nama = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=64),
         oid="nama")
+
+class PartnerSchema(NamaSchema):
     alamat_1 = colander.SchemaNode(
         colander.String(),
         missing=colander.drop,

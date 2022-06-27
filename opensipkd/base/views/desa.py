@@ -1,14 +1,12 @@
-import json
-
 import colander
-from deform import (widget, Form, )
-from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save, btn_add, btn_edit, btn_delete
+from deform import (widget, )
 from pyramid.view import (view_config, )
 
+from .dati2 import dati2_widget
 from .kecamatan import kecamatan_widget
-from ..models import DBSession, ResDesa, kategori_desa, ResKecamatan
-from ..views import ColumnDT, DataTables, BaseView
-from ...detable import DeTable
+from .provinsi import provinsi_widget
+from ..models import DBSession, ResDesa, kategori_desa, ResKecamatan, ResProvinsi, ResDati2
+from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah desa gagal'
 SESS_EDIT_FAILED = 'Edit desa gagal'
@@ -22,6 +20,12 @@ def desa_widget(node, kw):
 
 
 class AddSchema(colander.Schema):
+    provinsi_id = colander.SchemaNode(colander.String(),
+                                      widget=provinsi_widget,
+                                      validator=colander.Length(max=32), oid="kode")
+    dati2_id = colander.SchemaNode(colander.String(),
+                                   widget=dati2_widget,
+                                   validator=colander.Length(max=32), oid="kode")
     kecamatan_id = colander.SchemaNode(colander.String(),
                                        widget=kecamatan_widget,
                                        validator=colander.Length(max=32), oid="kode")
@@ -43,7 +47,7 @@ class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
     kode = colander.SchemaNode(colander.String(), width='100pt', title="Kode")
     nama = colander.SchemaNode(colander.String(), title="Nama")
-    kecamatan = colander.SchemaNode(colander.String())
+    kecamatan = colander.SchemaNode(colander.String(), field=ResKecamatan.nama)
     status = colander.SchemaNode(colander.Integer(), width="30pt")
 
 
@@ -94,24 +98,29 @@ class ViewDesa(BaseView):
             err_nama()
 
     def get_bindings(self, row=None):
-        return dict(request=self.req,
-                    kecamatan_list=ResKecamatan.get_list())
+        provinsi_list = ResProvinsi.get_list()
+        kecamatan = row and row.kecamatan or None
+        kecamatan_list = kecamatan and ResKecamatan.get_list(kecamatan.dati2_id) or []
+        dati2 = kecamatan and kecamatan.dati2 or None
+        dati2_list = dati2 and ResDati2.get_list(dati2.provinsi_id) or []
+        return dict(
+            provinsi_list=provinsi_list,
+            dati2_list=dati2_list,
+            kecamatan_list=kecamatan_list,
+        )
 
+    def get_values(self, row, istime=False):
+        d = super().get_values(row, istime)
+        kecamatan = row and row.kecamatan or None
+        d["dati2_id"] = kecamatan and kecamatan.dati2_id or None
+        dati2 = kecamatan and kecamatan.dati2 or None
+        d["provinsi_id"] = dati2 and dati2.provinsi_id or None
+        return d
 
     @view_config(route_name='desa-view',
                  renderer='templates/form.pt', permission='desa')
-    def view_view(self):  # row = query_id(request).first()
-        request = self.req
-        row = self.query_id().first()
-        if not row:
-            return self.id_not_found()
-
-        form = self.get_form(EditSchema, buttons=(btn_close,))
-        if request.POST:
-            return self.route_list()
-
-        form.set_appstruct(self.get_values(row))
-        return dict(form=form.render(readonly=True), scripts=self.form_scripts)
+    def view_view(self):
+        return super().view_view()
 
     @view_config(route_name='desa',
                  renderer='templates/table.pt',
@@ -119,22 +128,18 @@ class ViewDesa(BaseView):
     def view_list(self):
         return super(ViewDesa, self).view_list()
 
+    def list_join(self, query):
+        return query.outerjoin(ResKecamatan)
+
     @view_config(route_name='desa-act', renderer='json',
                  permission='view')
     def view_act(self):
+        return super().view_act()
+
+    def next_act(self):
         request = self.req
         url_dict = request.matchdict
-        if url_dict['act'] == 'grid':
-            columns = [ColumnDT(ResDesa.id, mData='id'),
-                       ColumnDT(ResDesa.kode, mData='kode'),
-                       ColumnDT(ResDesa.nama, mData='nama'),
-                       ColumnDT(ResDesa.status, mData='status'),
-                       ColumnDT(ResKecamatan.nama, mData='kecamatan'), ]
-            query = DBSession.query().select_from(ResDesa) \
-                .join(ResKecamatan, ResKecamatan.id == ResDesa.kecamatan_id)
-            row_table = DataTables(request.GET, query, columns)
-            return row_table.output_result()
-        elif url_dict['act'] == 'select':
+        if url_dict['act'] == 'select':
             kecamatan_id = request.params["kecamatan_id"]
             data = ResDesa.get_list(kecamatan_id)
             result = {f"{k[0]}": k[1] for k in data}

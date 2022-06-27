@@ -1,10 +1,5 @@
 import colander
-from datatables import (
-    ColumnDT,
-    DataTables,
-)
 from deform import widget
-from pyramid.httpexceptions import HTTPFound
 from pyramid.i18n import TranslationStringFactory
 from pyramid.view import view_config
 
@@ -73,18 +68,13 @@ class Views(BaseView):
     @view_config(
         route_name='group-act', renderer='json', permission='user-view')
     def view_act(self):
-        params = self.params
+        return super(Views, self).view_act()
+
+    def next_act(self):
         request = self.req
         url_dict = request.matchdict
-        if url_dict['act'] == 'grid':
-            columns = [ColumnDT(Group.id, mData="id"),
-                       ColumnDT(Group.group_name, mData="group_name"),
-                       ColumnDT(Group.description, mData="description"),
-                       ColumnDT(Group.member_count, mData="member_count")]
-            q = DBSession.query().select_from(Group).order_by(Group.group_name)
-            row_table = DataTables(request.GET, q, columns)
-            return row_table.output_result()
-        elif url_dict['act'] == 'hon':
+        params = self.params
+        if url_dict['act'] == 'hon':
             term = 'term' in params and params['term'] or ''
             q = DBSession.query(Group.id, Group.description).filter(
                 Group.description.ilike('%{}%'.format(term))). \
@@ -156,9 +146,6 @@ class Views(BaseView):
         permission='user-edit')
     def view_delete(self):
         return super(Views, self).view_delete()
-        q.delete()
-        request.session.flash(ts)
-        return HTTPFound(location=request.route_url('group'))
 
 
 def clean_name(s):

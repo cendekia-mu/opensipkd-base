@@ -180,40 +180,6 @@ class Views(BaseView):
         permission='user-edit')
     def view_edit(self):
         return super(Views, self).view_edit()
-        # q = DBSession.query(User).filter_by(id=request.matchdict['id'])
-        # if request.user.company_id:
-        #     q = q.filter_by(company_id=request.user.company_id)
-        # user = q.first()
-        # if not user:
-        #     return HTTPNotFound()
-        # if user.id == request.user.id:
-        #     form = get_form(request, AddSchema, user)
-        # else:
-        # if 'opensipkd.webr.models' in get_modules():
-        #     form = get_form(request, EditSchema2, user)
-        # else:
-        # form = get_form(request, EditSchema, user)
-
-        # resp = dict(title=_('Edit user'))
-        # if not request.POST:
-        #     d = user.to_dict()
-        #     d['groups'] = user_group_set(user)
-        #     resp['form'] = form.render(appstruct=d)
-        #     return resp
-        # if 'save' not in request.POST:
-        #     return HTTPFound(location=request.route_url('user'))
-        # items = request.POST.items()
-        # try:
-        #     c = form.validate(items)
-        # except ValidationFailure:
-        #     resp['form'] = form.render()
-        #     return resp
-        # update(request, user, dict(c.items()))
-        # data = dict(username=user.user_name)
-        # ts = _('user-updated', default='${username} profile updated', mapping=data)
-        # request.session.flash(ts)
-        # return HTTPFound(location=request.route_url('user'))
-
 
     @view_config(
         route_name='user-view', renderer='templates/form.pt',

@@ -11,6 +11,8 @@ from deform import field
 from . import widget
 
 log = logging.getLogger(__name__)
+
+
 class DeTable(field.Field):
     """
     Field representing an entire form.
@@ -92,6 +94,7 @@ class DeTable(field.Field):
     """
 
     css_class = "deform"  # bw compat only; pass a widget to override
+
     def __init__(
             self,
             schema,
@@ -117,7 +120,7 @@ class DeTable(field.Field):
         btn_delete_js = "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (tableid, tableid, params)
         btn_csv_js = "{window.location = o%sUri+'/csv/act%s';}" % (tableid, params)
         btn_pdf_js = "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params)
-        action_suffix=f"{action_suffix}{params}"
+        action_suffix = f"{action_suffix}{params}"
         field.Field.__init__(self, schema, **kw)
         _buttons = []
         for button in buttons:
@@ -146,10 +149,9 @@ class DeTable(field.Field):
         table_widget = getattr(schema, "widget", None)
         if table_widget is None:
             table_widget = widget.TableWidget()
-
         self.widget = table_widget
         columns = []
-        cols2=[]
+        cols2 = []
         for f in schema:
             d = {'data': f.name}
             data = []
@@ -160,7 +162,7 @@ class DeTable(field.Field):
 
             if hasattr(f, 'aligned'):
                 d["className"] = f.aligned
-                data.append(f"className: {f.aligned}")
+                data.append(f"className: '{f.aligned}'")
             if hasattr(f, 'searchable'):
                 d["searchable"] = f.searchable
                 data.append(f"searchable: {f.searchable}")
@@ -173,30 +175,40 @@ class DeTable(field.Field):
                 d["orderable"] = f.orderable
                 data.append(f"orderable: {f.orderable}")
 
-
             thousand = hasattr(f, 'thousand') and f.thousand or None
             separator = thousand and "separator" in thousand and thousand["separator"] or ','
             decimal = thousand and "decimal" in thousand and thousand["decimal"] or '.'
             point = thousand and "point" in thousand and thousand["point"] or 2
             currency = thousand and "currency" in thousand and thousand["currency"] or ""
-            if thousand or type(f.typ)==colander.Float() or type(f.typ)==colander.Integer():
-                d["render"]=f"<script>$.fn.dataTable.render.number( '{separator}', '{decimal}', {point}, '{currency}' )</script>"
+            if thousand or type(f.typ) == colander.Float() or type(f.typ) == colander.Integer():
+                d[
+                    "render"] = f"<script>$.fn.dataTable.render.number( '{separator}', '{decimal}', {point}, '{currency}' )</script>"
                 if 'className' not in d:
                     d["className"] = "text-right"
-
-                # data.append(f'renderer: $.fn.dataTable.render.number( "{separator}", "{decimal}", {point}, "{currency}" )')
+            # if hasattr(f, "edit_link"):
+            #     s = """function ( data, type, row, meta ) {
+            #                     return '<a href="'+data+'">Download</a>';
+            #                     }"""
+            #     d["render"] = s
 
             columns.append(d)
             cols2.append(data)
+        # columns.append(dict(title="Action",
+        #                     data='id',
+        #                     width="40pt",
+        #                     orderable=False,
+        #                     align="text-center",
+        #                     searchable=False))
         self.columns = json.dumps(columns)
-        self.columns = self.columns.replace('"<script>',"").replace('</script>"',"")
+        self.columns = self.columns.replace('"<script>', "").replace('</script>"', "").replace("\n", "")
         # self.columns = columns
         # self.columns = json.dumps(cols2)
         self.url = action
         self.url_suffix = action_suffix
         self.sorts = sorts
-        self.paginates=paginates
-        self.filters=filters
+        self.paginates = paginates
+        self.filters = filters
+
 
 class Button(object):
     """

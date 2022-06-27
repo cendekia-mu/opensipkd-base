@@ -7,7 +7,7 @@ from pyramid.view import (view_config, )
 
 from . import widget_os
 from .dati2 import dati2_widget
-from ..models import DBSession, ResKecamatan, ResDati2
+from ..models import DBSession, ResKecamatan, ResDati2, ResProvinsi
 from ..views import ColumnDT, DataTables, BaseView
 from ...detable import DeTable
 
@@ -46,7 +46,7 @@ class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
     kode = colander.SchemaNode(colander.String(), width='100pt', title="Kode")
     nama = colander.SchemaNode(colander.String(), title="Nama")
-    kabupaten = colander.SchemaNode(colander.String())
+    kabupaten = colander.SchemaNode(colander.String(), field=ResDati2.nama)
     status = colander.SchemaNode(colander.Integer(), width="30pt")
 
 
@@ -95,30 +95,10 @@ class Views(BaseView):
         elif found:
             err_nama()
 
-    def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel)):
-        schema = class_form(validator=self.form_validator)
-        schema = schema.bind(request=self.req,
-                             dati2_list=ResDati2.get_list())
-        schema.request = self.req
-        if row:
-            schema.deserialize(row)
-        return Form(schema, buttons=buttons)
-
     @view_config(route_name='kecamatan-view',
                  renderer='templates/form.pt', permission='kecamatan')
     def view_view(self):  # row = query_id(request).first()
-
-        request = self.req
-        row = self.query_id().first()
-        if not row:
-            return self.id_not_found()
-
-        form = self.get_form(EditSchema, buttons=(btn_close,))
-        if request.POST:
-            return self.route_list()
-
-        form.set_appstruct(self.get_values(row))
-        return dict(form=form.render(readonly=True), scripts=self.form_scripts)
+        return super().view_view()
 
     @view_config(route_name='kecamatan',
                  renderer='templates/table.pt',
@@ -129,19 +109,15 @@ class Views(BaseView):
     @view_config(route_name='kecamatan-act', renderer='json',
                  permission='view')
     def view_act(self):
+        return super().view_act()
+
+    def list_join(self, query):
+        return query.join(ResDati2, ResDati2.id == ResKecamatan.dati2_id)
+
+    def next_act(self):
         request = self.req
         url_dict = request.matchdict
-        if url_dict['act'] == 'grid':
-            columns = [ColumnDT(ResKecamatan.id, mData='id'),
-                       ColumnDT(ResKecamatan.kode, mData='kode'),
-                       ColumnDT(ResKecamatan.nama, mData='nama'),
-                       ColumnDT(ResKecamatan.status, mData='status'),
-                       ColumnDT(ResDati2.nama, mData='kabupaten'), ]
-            query = DBSession.query().select_from(ResKecamatan) \
-                .join(ResDati2, ResDati2.id == ResKecamatan.dati2_id)
-            row_table = DataTables(request.GET, query, columns)
-            return row_table.output_result()
-        elif url_dict['act'] == 'select':
+        if url_dict['act'] == 'select':
             dati2_id = request.params["dati2_id"]
             data = ResKecamatan.get_list(dati2_id)
             result = {f"{k[0]}": k[1] for k in data}
@@ -152,14 +128,28 @@ class Views(BaseView):
     def view_add(self):
         return super(Views, self).view_add()
 
+    def get_bindings(self, row=None):
+        provinsi_list = ResProvinsi.get_list()
+        kecamatan = row
+        dati2 = kecamatan and kecamatan.dati2 or None
+        dati2_list = dati2 and ResDati2.get_list(dati2.provinsi_id) or []
+        return dict(
+            provinsi_list=provinsi_list,
+            dati2_list=dati2_list,
+        )
+
+    def get_values(self, row, istime=False):
+        d = super().get_values(row, istime)
+        kecamatan = row
+        dati2 = kecamatan and kecamatan.dati2 or None
+        d["provinsi_id"] = dati2 and dati2.provinsi_id or None
+        return d
+
     @view_config(route_name='kecamatan-edit',
                  renderer='templates/form.pt', permission='kecamatan')
     def view_edt(self):
         return super(Views, self).view_edit()
 
-    ##########
-    # Delete
-    ##########
     @view_config(route_name='kecamatan-delete',
                  renderer='templates/form.pt', permission='kecamatan')
     def view_delete(self):

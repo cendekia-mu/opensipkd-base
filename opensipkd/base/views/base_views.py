@@ -149,7 +149,7 @@ class BaseView(object):
 
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel), **bindings):
         buttons = self.buttons and self.buttons or buttons
-        bindings = self.bindings and self.bindings or self.get_bindings()
+        bindings = self.bindings and self.bindings or bindings
         schema = class_form(validator=self.form_validator)
         schema = schema.bind(request=self.req, **bindings)
         schema.request = self.req
@@ -168,6 +168,7 @@ class BaseView(object):
                             action_suffix="/grid/act",
                             buttons=self.list_buttons)
             resources = table.get_widget_resources()
+            # resources=dict(css="", js="")
             return dict(form=table.render(), scripts="", css=resources["css"], js=resources["js"])
 
         arg = arg and arg or {}

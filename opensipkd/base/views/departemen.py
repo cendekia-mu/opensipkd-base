@@ -5,7 +5,6 @@ from datetime import datetime
 
 import colander
 from deform import (widget, )
-from deform.widget import AutocompleteInputWidget
 from opensipkd.tools import (get_ext, get_random_string, get_settings)
 from pyramid.view import (view_config, )
 from sqlalchemy import func
@@ -119,22 +118,6 @@ class ViewDepartemen(BaseView):
         self.list_route = 'departemen'
         self.form_scripts = ""
 
-        # """
-
-        # self.list_col_defs = json.dumps(
-        #     [{"searchable": False, "visible": False, "targets": [0], }, {
-        #         "searchable": True, "orderable": True, "targets": [1, 2],
-        #     }])
-        # self.list_cols = [{'title': "ID", 'data': "id"},
-        #                   {'title': "Kode", 'data': "kode", 'width': '100pt'},
-        #                   {'title': "Nama", 'data': "nama"}, ]
-        # self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
-        #                     'btn_close'
-        # self.form_params = dict(scripts="")
-
-    ########
-    # List #
-    ########
     def form_validator(self, form, value):
         def err_kode():
             raise colander.Invalid(form, 'Kode %s sudah digunakan oleh %s' % (
@@ -182,89 +165,18 @@ class ViewDepartemen(BaseView):
             if child.children:
                 self.update_children(child.children)
 
-    def before_save(self, row, values):
+    def save_request(self, values, row=None): #save(self, row, values):
         for k, v in values.items():
             if not v:
                 setattr(row, k, None)
+        row = super().save_request(values, row)
         return row
 
-    # def save(self, values, user, row=None)
-    #     if not row:
-    #         row = Departemen()
-    #         row.created = datetime.now()
-    #         row.create_uid = user.id
-    #     if 'parent_id' in values and not values['parent_id']:
-    #         del values['parent_id']
-    #
-    #     row.from_dict(values)
-    #     row.updated = datetime.now()
-    #     row.update_uid = user.id
-    #     row.status = 'status' in values and values['status'] and 1 or 0
-    #     row.level_id = 1
-    #     DBSession.add(row)
-    #     DBSession.flush()
-    #     if row.parent_id:
-    #         row.level_id = (row.parent.level_id or 0) + 1
-    #
-    #     DBSession.add(row)
-    #     if row.children:
-    #         for child in row.children:
-    #             child.level_id = child.parent.level_id + 1
-    #             DBSession.add(child)
-    #     DBSession.flush()
-    #
-    #     return row
-    #
-    # def save_request(self, values, row=None):
-    #     request = self.req
-    #     if 'id' in request.matchdict:
-    #         values['id'] = request.matchdict['id']
-    #     values["company_id"] = request.user.company_id
-    #     row = self.save(values, request.user, row)
-    #     request.session.flash(
-    #         "Departemen {nama} sudah disimpan.".format(nama=row.nama))
-
-    # def route_list(self, ):
-    #     return HTTPFound(location=self.req.route_url(self.list_route))
-
-    # def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel)):
-    #     schema = class_form(validator=self.form_validator)
-    #     schema = schema.bind(request=self.req,
-    #                          company_list=ResCompany.get_list())
-    #     schema.request = self.req
-    #     if row:
-    #         schema.deserialize(row)
-    #     return Form(schema, buttons=buttons)
-    #
-    # def session_failed(self, session_name):
-    #     r = dict(form=self.req.session[session_name])
-    #     del self.req.session[session_name]
-    #     return r
-
-    # def query_id(self):
-    #     return DBSession.query(Departemen).filter_by(
-    #         id=self.req.matchdict['id'])
-
-    # def id_not_found(self):
-    #     msg = 'Departemen ID %s Tidak Ditemukan.' % self.req.matchdict['id']
-    #     self.req.session.flash(msg, 'error')
-    #     return self.route_list()
 
     @view_config(route_name='departemen-view',
-                 renderer='templates/form_input.pt', permission='departemen')
-    def view_view(self):  # row = query_id(request).first()
+                 renderer='templates/form.pt', permission='departemen')
+    def view_view(self):
         return super(ViewDepartemen, self).view_view()
-        # request = self.req
-        # row = self.query_id().first()
-        # if not row:
-        #     return self.id_not_found()
-        #
-        # form = self.get_form(EditSchema, buttons=(btn_close,))
-        # if request.POST:
-        #     return self.route_list()
-        #
-        # form.set_appstruct(self.get_values(row))
-        # return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
     @view_config(route_name='departemen',
                  renderer='templates/table.pt',
@@ -272,9 +184,6 @@ class ViewDepartemen(BaseView):
     def view_list(self):
         return super().view_list()
 
-    ##########
-    # Action #
-    ##########
     @view_config(route_name='departemen-act', renderer='json',
                  permission='view')
     def view_act(self):
@@ -390,63 +299,21 @@ class ViewDepartemen(BaseView):
                 r.append(d)
             return r
 
-    @view_config(route_name='departemen-add', renderer='templates/form_input.pt',
+    @view_config(route_name='departemen-add', renderer='templates/form.pt',
                  permission='departemen')
     def view_add(self):
         return super(ViewDepartemen, self).view_add()
 
     @view_config(route_name='departemen-edit',
-                 renderer='templates/form_input.pt', permission='departemen')
+                 renderer='templates/form.pt', permission='departemen')
     def view_edit(self):
         return super(ViewDepartemen, self).view_edit()
-        # request = self.req
-        # row = self.query_id().first()
-        # if not row:
-        #     return self.id_not_found()
-        #
-        # form = self.get_form(EditSchema)
-        # if request.POST:
-        #     if 'save' in request.POST:
-        #         controls = request.POST.items()
-        #         try:
-        #             controls = form.validate(controls)
-        #         except ValidationFailure as e:
-        #             form.set_appstruct(e.cstruct)
-        #             return dict(form=form.render(), scripts=self.form_scripts)
-        #
-        #         self.save_request(dict(controls), row)
-        #     return self.route_list()
-        # form.set_appstruct(self.get_values(row))
-        # return dict(form=form.render(), scripts=self.form_scripts)
 
-    ##########
-    # Delete #
-    ##########
     @view_config(route_name='departemen-delete',
-                 renderer='templates/form_input.pt', permission='departemen')
+                 renderer='templates/form.pt', permission='departemen')
     def view_delete(self):
         return super(ViewDepartemen, self).view_delete()
 
-        # request = self.req
-        # q = self.query_id()
-        # row = q.first()
-        # if not row:
-        #     return self.id_not_found()
-        # if request.POST:
-        #     if 'delete' in request.POST:
-        #         msg = 'Departemen ID %d %s sudah dihapus.' % (row.id, row.nama)
-        #         q.delete()
-        #         DBSession.flush()
-        #         request.session.flash(msg)
-        #     return self.route_list()
-        # form = self.get_form(EditSchema,
-        #                      buttons=(btn_delete, btn_cancel))
-        # form.set_appstruct(self.get_values(row))
-        # return dict(form=form.render(readonly=True), scripts=self.form_scripts)
-
-    ##########
-    # Upload #
-    ##########
     @view_config(route_name='departemen-upload',
                  renderer='templates/departemen/upload.pt',
                  permission='departemen')
@@ -455,7 +322,6 @@ class ViewDepartemen(BaseView):
         form = self.get_form(UploadSchema)
         if request.POST:
             if 'save' in request.POST:
-                # settings = get_settings()
                 input_file = request.POST['upload'].file
                 filename = request.POST['upload'].filename
                 ext = get_ext(filename)
@@ -485,9 +351,9 @@ class ViewDepartemen(BaseView):
 
                                     if code:
                                         code = code[:-1]
-                                        save_upload(request, code, csv_row)
+                                        self.save_upload(code, csv_row)
 
-                            save_upload(request, kode, csv_row)
+                            self.save_upload(kode, csv_row)
 
                     DBSession.flush()
                 os.remove(temp_file_path)
