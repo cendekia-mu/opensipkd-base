@@ -1,4 +1,4 @@
-<html metal:use-macro="load: ../main.pt">
+<html metal:use-macro="load: ../_table.pt">
 
     <div metal:fill-slot="content">
         <div class="jarviswidget" style="border-top:1px solid #ccc!important">

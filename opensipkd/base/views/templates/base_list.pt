@@ -1,4 +1,4 @@
-<html metal:use-macro="load: ./base3.1.pt">
+<html metal:use-macro="load: ./_table.pt">
 <span metal:fill-slot="scripts">
   <script>
      var btn_view='<button id="btn_view" class="btn btn btn-general" type="button">'+

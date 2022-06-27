@@ -23,8 +23,8 @@ def desa_widget(node, kw):
 
 class AddSchema(colander.Schema):
     kecamatan_id = colander.SchemaNode(colander.String(),
-                                      widget=kecamatan_widget,
-                                      validator=colander.Length(max=32), oid="kode")
+                                       widget=kecamatan_widget,
+                                       validator=colander.Length(max=32), oid="kode")
     kode = colander.SchemaNode(colander.String(),
                                validator=colander.Length(max=32), oid="kode")
     kategori = colander.SchemaNode(colander.String(),
@@ -38,6 +38,7 @@ class EditSchema(AddSchema):
     id = colander.SchemaNode(colander.String(), missing=colander.drop,
                              widget=widget.HiddenWidget(readonly=True))
 
+
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
     kode = colander.SchemaNode(colander.String(), width='100pt', title="Kode")
@@ -45,30 +46,18 @@ class ListSchema(colander.Schema):
     kecamatan = colander.SchemaNode(colander.String())
     status = colander.SchemaNode(colander.Integer(), width="30pt")
 
+
 class ViewDesa(BaseView):
     def __init__(self, request):
         super(ViewDesa, self).__init__(request)
         self.form_scripts = ""
-        self.list_col_defs = json.dumps(
-            [{"searchable": False, "visible": False, "targets": [0], }, {
-                "searchable": True, "orderable": True, "targets": [1, 2],
-            }])
-        self.list_cols = [{'title': "ID", 'data': "id"},
-                          {'title': "Kecamatan", 'data': "kecamatan", 'width': '200pt'},
-                          {'title': "Kode", 'data': "kode", 'width': '100pt'},
-                          {'title': "Nama", 'data': "nama"}, ]
-        self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
-                            'btn_close'
         self.form_params = dict(scripts="")
         self.list_url = 'desa'
         self.list_route = 'desa'
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
         self.table = ResDesa
-
-    ########
-    # List #
-    ########
+        self.list_schema = ListSchema
 
     def form_validator(self, form, value):
         def err_kode():
@@ -104,17 +93,13 @@ class ViewDesa(BaseView):
         elif found:
             err_nama()
 
-    def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel)):
-        schema = class_form(validator=self.form_validator)
-        schema = schema.bind(request=self.req,
-                             kecamatan_list=ResKecamatan.get_list())
-        schema.request = self.req
-        if row:
-            schema.deserialize(row)
-        return Form(schema, buttons=buttons)
+    def get_bindings(self, row=None):
+        return dict(request=self.req,
+                    kecamatan_list=ResKecamatan.get_list())
+
 
     @view_config(route_name='desa-view',
-                 renderer='templates/form_input.pt', permission='desa')
+                 renderer='templates/form.pt', permission='desa')
     def view_view(self):  # row = query_id(request).first()
         request = self.req
         row = self.query_id().first()
@@ -129,12 +114,10 @@ class ViewDesa(BaseView):
         return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
     @view_config(route_name='desa',
-                 renderer='templates/form_input.pt',
+                 renderer='templates/table.pt',
                  permission='desa')
     def view_list(self):
-        table = DeTable(ListSchema(title="Desa/Kelurahan"), action=f"{self.home}/desa",
-                        buttons=(btn_close, btn_add, btn_edit, btn_delete))
-        return dict(form=table.render(), scripts=self.form_scripts)
+        return super(ViewDesa, self).view_list()
 
     @view_config(route_name='desa-act', renderer='json',
                  permission='view')
@@ -146,7 +129,7 @@ class ViewDesa(BaseView):
                        ColumnDT(ResDesa.kode, mData='kode'),
                        ColumnDT(ResDesa.nama, mData='nama'),
                        ColumnDT(ResDesa.status, mData='status'),
-                       ColumnDT(ResKecamatan.nama, mData='kecamatan'),]
+                       ColumnDT(ResKecamatan.nama, mData='kecamatan'), ]
             query = DBSession.query().select_from(ResDesa) \
                 .join(ResKecamatan, ResKecamatan.id == ResDesa.kecamatan_id)
             row_table = DataTables(request.GET, query, columns)
@@ -157,24 +140,17 @@ class ViewDesa(BaseView):
             result = {f"{k[0]}": k[1] for k in data}
             return result
 
-
     @view_config(route_name='desa-add',
-                 renderer='templates/form_input.pt', permission='desa')
+                 renderer='templates/form.pt', permission='desa')
     def view_add(self):
         return super(ViewDesa, self).view_add()
 
-    ########
-    # Edit #
-    ########
     @view_config(route_name='desa-edit',
-                 renderer='templates/form_input.pt', permission='desa')
+                 renderer='templates/form.pt', permission='desa')
     def view_edt(self):
         return super(ViewDesa, self).view_edit()
 
-    ##########
-    # Delete
-    ##########
     @view_config(route_name='desa-delete',
-                 renderer='templates/form_input.pt', permission='desa')
+                 renderer='templates/form.pt', permission='desa')
     def view_delete(self):
         return super(ViewDesa, self).view_delete()

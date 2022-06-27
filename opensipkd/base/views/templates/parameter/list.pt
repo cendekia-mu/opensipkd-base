@@ -1,4 +1,4 @@
-<html metal:use-macro="load: ../main.pt">
+<html metal:use-macro="load: ../_table.pt">
 
     <!-- content -->
     <div metal:fill-slot="content">

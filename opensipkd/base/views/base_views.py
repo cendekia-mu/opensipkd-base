@@ -1,19 +1,24 @@
 import os
 import re
 from datetime import datetime
+
+from datatables import ColumnDT
 from dateutil.relativedelta import relativedelta
 from opensipkd.tools.captcha import get_captcha
 from pyramid.httpexceptions import HTTPFound
 
+from .common import DataTables
 from .. import DBSession, get_params
 from opensipkd.tools import dmy, dmy_to_date, get_settings, get_ext
 import colander
 from deform import (widget, Form, ValidationFailure, )
 from email.utils import parseaddr
 
-from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete
+from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, btn_view, btn_add, btn_edit, btn_csv, \
+    btn_pdf
 
 from ..models import User
+from ...detable import DeTable
 
 
 class BaseView(object):
@@ -102,11 +107,14 @@ class BaseView(object):
         self.list_route = 'home'
         self.list_col_defs = ""
         self.list_cols = ""
-        self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
-                            'btn_close'
+        # self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
+        #                     'btn_close'
+        self.list_report = (btn_csv, btn_pdf)
+        self.list_buttons = (btn_view, btn_add, btn_edit, btn_delete, btn_close)
         self.form_params = dict(scripts="")
         self.list_url = ''
         self.list_route = ''
+        self.list_schema = ""
         self.form_scripts = """
          $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
               $('#parent_id').val(datum.id);
@@ -121,7 +129,9 @@ class BaseView(object):
         self.headers = None
         self.bindings = {}
         self.autocomplete = 'on'
-        # self.captcha = ""
+
+    def delete_msg(self, row):
+        return f'Data ID {row.id} sudah dihapus.'
 
     def route_list(self, msg=None, error=""):
         if msg:
@@ -139,8 +149,8 @@ class BaseView(object):
 
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel), **bindings):
         buttons = self.buttons and self.buttons or buttons
-        bindings = self.bindings and self.bindings or bindings
-        schema = class_form(validator=self.form_validator)  #
+        bindings = self.bindings and self.bindings or self.get_bindings()
+        schema = class_form(validator=self.form_validator)
         schema = schema.bind(request=self.req, **bindings)
         schema.request = self.req
         if row:
@@ -153,18 +163,28 @@ class BaseView(object):
         return r
 
     def view_list(self, arg=None):
-        arg = not arg and {} or arg
+        if self.list_schema:
+            table = DeTable(self.list_schema(), action=self.req.route_url(self.list_route),
+                            action_suffix="/grid/act",
+                            buttons=self.list_buttons)
+            resources = table.get_widget_resources()
+            return dict(form=table.render(), scripts="", css=resources["css"], js=resources["js"])
+
+        arg = arg and arg or {}
         arg.update(url=self.list_url, col_defs=self.list_col_defs,
                    cols=self.list_cols, buttons=self.list_buttons)
         return arg
+
+    def get_bindings(self, row=None):
+        return {}
 
     def view_view(self):  # row = query_id(request).first()
         request = self.req
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
-        bindings = hasattr(self, "get_bindings") and self.get_bindings() or None
-        form = self.get_form(self.edit_schema, buttons=(btn_close,), bindings=bindings)
+        bindings = self.get_bindings(row)
+        form = self.get_form(self.edit_schema, buttons=(btn_close,), **bindings)
         if request.POST:
             return self.route_list()
 
@@ -174,15 +194,52 @@ class BaseView(object):
                     scripts=self.form_scripts)
 
     def before_add(self):
-        return
+        return {}
 
     def validation_failure(self, value):
         return value
+
     def cancel_act(self):
         pass
 
+    def after_add(self, row, values):
+        return
+
+    def next_act(self):
+        return
+
+    def list_join(self, query):
+        return query
+
+    def view_act(self):
+        url_dict = self.req.matchdict
+        if url_dict['act'] == 'grid':
+            columns = []
+            for d in self.list_schema():
+                global_search = hasattr(d, "searchable") and hasattr(d, "searchable") == False and False or True
+                if hasattr(d, "field"):
+                    if type(d.field) == str:
+                        columns.append(
+                            ColumnDT(getattr(self.table, d.field), mData=d.name, global_search=global_search))
+                    else:
+                        columns.append(ColumnDT(d.field, mData=d.name))
+                else:
+                    columns.append(ColumnDT(getattr(self.table, d.name), mData=d.name))
+
+            query = DBSession.query().select_from(self.table)
+            query = self.list_join(query)
+            if self.req.user.company_id and hasattr(self.table, "company_id"):
+                query = query.filter(self.table.company_id == self.req.user.company_id)
+            row_table = DataTables(self.req.GET, query, columns)
+            return row_table.output_result()
+        else:
+            self.next_act()
+
     def view_add(self):
-        form = self.get_form(self.add_schema)
+        bindings = self.get_bindings()
+        form = self.get_form(self.add_schema, **bindings)
+        table = self.get_item_table()
+        resources = form.get_widget_resources()
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
@@ -192,17 +249,19 @@ class BaseView(object):
                     value = self.validation_failure(e.cstruct)
                     value.update(self.before_add())
                     form.render(appstruct=value)
-                    return dict(form=form.render(), scripts=self.form_scripts)
-                self.save_request(dict(controls))
+                    return dict(form=form.render(), table=table and table.render() or None,
+                                scripts=self.form_scripts, css=resources["css"], js=resources["js"])
+                values = dict(controls)
+                row = self.save_request(values)
+                self.after_add(row, values)
             if "cancel" in self.req.POST or 'batal' in self.req.POST:
                 self.cancel_act()
 
             return self.route_list()
         values = self.before_add()
         form.set_appstruct(values)
-        table = self.get_item_table()
         return dict(form=form.render(), table=table and table.render() or None,
-                    scripts=self.form_scripts)
+                    scripts=self.form_scripts, css=resources["css"], js=resources["js"])
 
     def before_save(self, row, values):
         return row
@@ -230,9 +289,9 @@ class BaseView(object):
 
     def save_request(self, values, row=None):
         params = self.req.params
-        for p in params:
-            values[p] = params[p]
-
+        for k, v in params.items():
+            if v:
+                values[k] = v
         return self.save(values, self.req.user, row)
 
     def id_not_found(self):
@@ -262,7 +321,11 @@ class BaseView(object):
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
+        if not self.bindings:
+            self.bindings = self.get_bindings(row)
         form = self.get_form(self.edit_schema)
+        table = self.get_item_table(row)
+        resources = form.get_widget_resources()
         if request.POST:
             if 'save' in request.POST:
                 controls = request.POST.items()
@@ -270,15 +333,19 @@ class BaseView(object):
                     controls = form.validate(controls)
                 except ValidationFailure as e:
                     form.set_appstruct(e.cstruct)
-                    return dict(form=form.render(), scripts=self.form_scripts)
+                    return dict(form=form.render(), table=table and table.render() or None,
+                                scripts=self.form_scripts, css=resources["css"], js=resources["js"])
 
                 self.save_request(dict(controls), row)
             return self.route_list()
         values = self.get_values(row)
         form.set_appstruct(values)
         form = self.before_edit(form)
-        table = self.get_item_table(row)
-        return dict(form=form.render(), table=table and table.render() or None, scripts=self.form_scripts)
+        return dict(form=form.render(), table=table and table.render() or None,
+                    scripts=self.form_scripts, css=resources["css"], js=resources["js"])
+
+    def before_delete(self, row):
+        pass
 
     def view_delete(self):
         request = self.req
@@ -288,15 +355,18 @@ class BaseView(object):
             return self.id_not_found()
         if request.POST:
             if 'delete' in request.POST:
-                msg = f'Data ID {row.id} sudah dihapus.'
+                msg = self.delete_msg(row)
+                self.before_delete(row)
                 q.delete()
                 DBSession.flush()
                 request.session.flash(msg)
             return self.route_list()
         form = self.get_form(self.edit_schema, buttons=(btn_delete, btn_cancel))
-        form.set_appstruct(self.get_values(row))
         table = self.get_item_table(row)
-        return dict(form=form.render(), table=table and table.render() or None, scripts=self.form_scripts)
+        resources = form.get_widget_resources()
+        form.set_appstruct(self.get_values(row))
+        return dict(form=form.render(readonly=True), table=table and table.render() or None,
+                    scripts=self.form_scripts, css=resources["css"], js=resources["js"])
 
     def query_id(self):
         q = DBSession.query(self.table).filter_by(
@@ -304,6 +374,11 @@ class BaseView(object):
         if hasattr(self.table, 'compnay_id') and self.req.user.company_id:
             q = q.filter_by(company_id=self.req.user.company_id)
         return q
+
+    def filter_company(self, query):
+        if self.req.user.company_id:
+            return query.filter(self.table.company_id == self.req.user.company_id)
+        return query
 
 
 @colander.deferred
@@ -345,6 +420,7 @@ def user_name_validator(node, value):
 def need_captcha():
     is_captcha = get_params("reg_captcha")
     return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" or is_captcha == True
+
 
 def need_verify():
     result = get_params("reg_verify")

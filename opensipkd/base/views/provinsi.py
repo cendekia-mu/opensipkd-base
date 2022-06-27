@@ -11,7 +11,6 @@ from sqlalchemy.orm import aliased
 from . import widget_os
 from ..models import DBSession, ResProvinsi, kategori_provinsi, flush
 from ..views import ColumnDT, DataTables, BaseView
-from ...detable import DeTable
 
 SESS_ADD_FAILED = 'Tambah provinsi gagal'
 SESS_EDIT_FAILED = 'Edit provinsi gagal'
@@ -59,6 +58,7 @@ class ViewProvinsi(BaseView):
         self.form_scripts = ""
         self.form_params = dict(scripts="")
         self.list_route = 'provinsi'
+        self.list_schema = ListSchema
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
         self.table = ResProvinsi
@@ -100,63 +100,31 @@ class ViewProvinsi(BaseView):
             err_nama()
 
     @view_config(route_name='provinsi-view',
-                 renderer='templates/form_input.pt', permission='provinsi')
+                 renderer='templates/form.pt', permission='provinsi')
     def view_view(self):  # row = query_id(request).first()
-        request = self.req
-        row = self.query_id().first()
-        if not row:
-            return self.id_not_found()
-
-        form = self.get_form(EditSchema, buttons=(btn_close,))
-        if request.POST:
-            return self.route_list()
-
-        form.set_appstruct(self.get_values(row))
-        return dict(form=form.render(readonly=True), scripts=self.form_scripts)
+        return super(ViewProvinsi, self).view_view()
 
     @view_config(route_name='provinsi',
-                 renderer='templates/list_table.pt',
+                 renderer='templates/table.pt',
                  permission='provinsi')
     def view_list(self):
-        table = DeTable(ListSchema(), action=f"{self.home}/provinsi",
-                        action_suffix="/grid/act",
-                        buttons=(btn_view, btn_add, btn_edit, btn_delete, btn_close))
-        return dict(table=table.render(), scripts="")
+        return super(ViewProvinsi, self).view_list()
 
-    ##########
-    # Action #
-    ##########
     @view_config(route_name='provinsi-act', renderer='json',
                  permission='view')
     def view_act(self):
-        request = self.req
-        url_dict = request.matchdict
-        if url_dict['act'] == 'grid':
-            columns = [ColumnDT(ResProvinsi.id, mData='id'),
-                       ColumnDT(ResProvinsi.kode, mData='kode'),
-                       ColumnDT(ResProvinsi.nama, mData='nama'),
-                       ColumnDT(ResProvinsi.ibu_kota, mData='ibu_kota'),
-                       ColumnDT(ResProvinsi.status, mData='status'), ]
-            query = DBSession.query().select_from(ResProvinsi)
-            row_table = DataTables(request.GET, query, columns)
-            return row_table.output_result()
+        return super(ViewProvinsi, self).view_act()
 
     @view_config(route_name='provinsi-add',
                  renderer='templates/form_input.pt', permission='provinsi')
     def view_add(self):
         return super(ViewProvinsi, self).view_add()
 
-    ########
-    # Edit #
-    ########
     @view_config(route_name='provinsi-edit',
                  renderer='templates/form_input.pt', permission='provinsi')
     def view_edt(self):
         return super(ViewProvinsi, self).view_edit()
 
-    ##########
-    # Delete
-    ##########
     @view_config(route_name='provinsi-delete',
                  renderer='templates/form_input.pt', permission='provinsi')
     def view_delete(self):

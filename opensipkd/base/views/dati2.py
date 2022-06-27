@@ -1,12 +1,8 @@
-import json
-
 import colander
-from deform import (widget, Form, )
-from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save, btn_add, btn_edit, btn_delete
+from deform import (widget, )
 from pyramid.view import (view_config, )
 
 from . import widget_os
-from opensipkd.detable import DeTable
 from .provinsi import provinsi_widget
 from ..models import DBSession, ResDati2, kategori_dati2, ResProvinsi
 from ..views import ColumnDT, DataTables, BaseView
@@ -51,7 +47,7 @@ class ListSchema(colander.Schema):
     kode = colander.SchemaNode(colander.String(), width='100pt', title="Kode")
     nama = colander.SchemaNode(colander.String(), title="Nama")
     provinsi = colander.SchemaNode(colander.String())
-    status = colander.SchemaNode(colander.Integer(),width="30pt")
+    status = colander.SchemaNode(colander.Integer(), width="30pt")
 
 
 class ViewDati2(BaseView):
@@ -64,6 +60,7 @@ class ViewDati2(BaseView):
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
         self.table = ResDati2
+        self.list_schema = ListSchema
 
     ########
     # List #
@@ -103,43 +100,20 @@ class ViewDati2(BaseView):
         elif found:
             err_nama()
 
-    def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel)):
-        schema = class_form(validator=self.form_validator)
-        schema = schema.bind(request=self.req,
-                             provinsi_list=ResProvinsi.get_list())
-        schema.request = self.req
-        if row:
-            schema.deserialize(row)
-        return Form(schema, buttons=buttons)
+    def get_bindings(self, row=None):
+        return dict(request=self.req,
+                    provinsi_list=ResProvinsi.get_list())
 
     @view_config(route_name='dati2',
-                 renderer='templates/form_input.pt',
+                 renderer='templates/table.pt',
                  permission='dati2')
     def view_list(self):
-        table = DeTable(ListSchema(title="Kabupaten/Kota"), action=f"{self.home}/dati2",
-                        buttons=(btn_close, btn_add, btn_edit, btn_delete))
-        return dict(form=table.render(), scripts=self.form_scripts)
+        return super(ViewDati2, self).view_list()
 
     @view_config(route_name='dati2-view',
-                 renderer='templates/form_input.pt', permission='dati2')
+                 renderer='templates/form.pt', permission='dati2')
     def view_view(self):  # row = query_id(request).first()
-        request = self.req
-        row = self.query_id().first()
-        if not row:
-            return self.id_not_found()
-
-        form = self.get_form(EditSchema, buttons=(btn_close,))
-        if request.POST:
-            return self.route_list()
-
-        form.set_appstruct(self.get_values(row))
-        return dict(form=form.render(readonly=True), scripts=self.form_scripts)
-
-    # @view_config(route_name='dati2',
-    #              renderer='templates/list.pt',
-    #              permission='dati2')
-    # def view_list(self):
-    #     return super().viewlist()
+        return super(ViewDati2, self).view_view()
 
     @view_config(route_name='dati2-act', renderer='json',
                  permission='view')
@@ -175,9 +149,6 @@ class ViewDati2(BaseView):
     def view_edt(self):
         return super(ViewDati2, self).view_edit()
 
-    ##########
-    # Delete
-    ##########
     @view_config(route_name='dati2-delete',
                  renderer='templates/form_input.pt', permission='dati2')
     def view_delete(self):

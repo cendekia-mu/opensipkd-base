@@ -50,7 +50,7 @@ class ViewCompany(BaseView):
         self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
                             'btn_close'
         self.form_params = dict(scripts="")
-        self.list_url = 'company'
+        # self.list_url = 'company'
         self.list_route = 'company'
         self.add_schema = AddSchema
         self.edit_schema = EditSchema

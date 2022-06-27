@@ -50,30 +50,16 @@ class ListSchema(colander.Schema):
     status = colander.SchemaNode(colander.Integer(), width="30pt")
 
 
-class ViewDati2(BaseView):
+class Views(BaseView):
     def __init__(self, request):
-        super(ViewDati2, self).__init__(request)
-        self.form_scripts = ""
-        # self.list_col_defs = json.dumps(
-        #     [{"searchable": False, "visible": False, "targets": [0], }, {
-        #         "searchable": True, "orderable": True, "targets": [1, 2],
-        #     }])
-        # self.list_cols = [{'title': "ID", 'data': "id"},
-        #                   {'title': "Kab/Kota", 'data': "dati2", 'width': '200pt'},
-        #                   {'title': "Kode", 'data': "kode", 'width': '100pt'},
-        #                   {'title': "Nama", 'data': "nama"}, ]
-        # self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
-        #                     'btn_close'
+        super(Views, self).__init__(request)
         self.form_params = dict(scripts="")
         self.list_url = 'kecamatan'
         self.list_route = 'kecamatan'
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
         self.table = ResKecamatan
-
-    ########
-    # List #
-    ########
+        self.list_schema = ListSchema
 
     def form_validator(self, form, value):
         def err_kode():
@@ -119,8 +105,9 @@ class ViewDati2(BaseView):
         return Form(schema, buttons=buttons)
 
     @view_config(route_name='kecamatan-view',
-                 renderer='templates/form_input.pt', permission='kecamatan')
+                 renderer='templates/form.pt', permission='kecamatan')
     def view_view(self):  # row = query_id(request).first()
+
         request = self.req
         row = self.query_id().first()
         if not row:
@@ -134,12 +121,10 @@ class ViewDati2(BaseView):
         return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
     @view_config(route_name='kecamatan',
-                 renderer='templates/form_input.pt',
+                 renderer='templates/table.pt',
                  permission='kecamatan')
     def view_list(self):
-        table = DeTable(ListSchema(title="Kecamatan"), action=f"{self.home}/kecamatan",
-                        buttons=(btn_close, btn_add, btn_edit, btn_delete))
-        return dict(form=table.render(), scripts=self.form_scripts)
+        return super(Views, self).view_list(self)
 
     @view_config(route_name='kecamatan-act', renderer='json',
                  permission='view')
@@ -163,22 +148,19 @@ class ViewDati2(BaseView):
             return result
 
     @view_config(route_name='kecamatan-add',
-                 renderer='templates/form_input.pt', permission='kecamatan')
+                 renderer='templates/form.pt', permission='kecamatan')
     def view_add(self):
-        return super(ViewDati2, self).view_add()
+        return super(Views, self).view_add()
 
-    ########
-    # Edit #
-    ########
     @view_config(route_name='kecamatan-edit',
-                 renderer='templates/form_input.pt', permission='kecamatan')
+                 renderer='templates/form.pt', permission='kecamatan')
     def view_edt(self):
-        return super(ViewDati2, self).view_edit()
+        return super(Views, self).view_edit()
 
     ##########
     # Delete
     ##########
     @view_config(route_name='kecamatan-delete',
-                 renderer='templates/form_input.pt', permission='kecamatan')
+                 renderer='templates/form.pt', permission='kecamatan')
     def view_delete(self):
-        return super(ViewDati2, self).view_delete()
+        return super(Views, self).view_delete()

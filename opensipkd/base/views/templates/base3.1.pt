@@ -3,6 +3,7 @@
          tal:define="
         home request.route_url('home')[:-1];
         user_path  ['user', 'user-add', 'user-edit', 'user-view', 'user-delete'];
+        user_ext_path  ['user-ext', 'user-ext-view', 'user-ext-delete'];
         group_path  ['group', 'group-add', 'group-edit', 'group-view', 'group-delete'];
         param_path  ['parameter', 'parameter-add', 'parameter-edit', 'parameter-view', 'parameter-delete'];
         dep_path ['departemen', 'departemen-add', 'departemen-edit', 'departemen-view', 'departemen-delete'];
@@ -15,6 +16,8 @@
         dati2_path ['dati2', 'dati2-add', 'dati2-edit', 'dati2-view', 'dati2-delete'];
         kecamatan_path ['kecamatan', 'kecamatan-add', 'kecamatan-edit', 'kecamatan-view', 'kecamatan-delete'];
         desa_path ['desa', 'desa-add', 'desa-edit', 'desa-view', 'desa-delete'];
+        css css|[];
+        js js|[];
         ">
 <head>
 
@@ -25,6 +28,10 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- FAVICONS -->
+    <link rel="shortcut icon" href="${home}/static/v3/img/favicon.png" type="image/x-icon">
+    <link rel="icon" href="${home}/static/v3/img/favicon.png" type="image/x-icon">
 
     <!-- GOOGLE FONT -->
     <link rel="stylesheet" href="${home}/static/v3/css/gf_open_sans-400italic_700italic_300_400_700.css">
@@ -43,45 +50,18 @@
 
     <!-- We recommend you use "your_style.css" to override SmartAdmin
          specific styles this will also ensure you retrain your customization with each SmartAdmin update. -->
-    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/osipkd.css">
-
-    <!-- FAVICONS -->
-    <link rel="shortcut icon" href="${home}/static/v3/img/favicon.png" type="image/x-icon">
-    <link rel="icon" href="${home}/static/v3/img/favicon.png" type="image/x-icon">
 
     <!-- OTHER CSS -->
-    <link href="${home}/static/v3/js/plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css"
-          rel="stylesheet">
+    <tal:loop tal:repeat="css_resource css">
+        <link rel="stylesheet" href="${home}${request.static_path(css_resource)}"
+              type="text/css">
+    </tal:loop>
+    <!--?    <link href="${home}/static/v3/js/plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css"-->
+    <!--?          rel="stylesheet">-->
     <link href="${home}/deform_static/css/form.css" rel="stylesheet">
-    <link href="${home}/deform_static/css/typeahead.css" rel="stylesheet">
-    <link href="${home}/static/v3/css/select2.min.css" rel="stylesheet" type="text/css">
-    <link href="${home}/static/css/custom.css" rel="stylesheet" type="text/css">
-
+    <!--?    <link href="${home}/static/v3/css/select2.min.css" rel="stylesheet" type="text/css">-->
     <metal:css define-slot="css_files"></metal:css>
-    <style metal:define-slot="style">
-        .twitter-typeahead {
-            font-size: 12px !important;
-            margin-bottom: 0;
-            width: 100%;
-            height: 26px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: auto;
-        }
-
-        .twitter-typeahead .tt-query, .twitter-typeahead .tt-hint {
-            font-size: 12px !important;
-            margin-bottom: 0;
-            width: 100%;
-            height: 26px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: auto;
-        }
-    </style>
-
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/osipkd.css">
 </head>
 
 <body class="fixed-header">
@@ -92,14 +72,11 @@
 <!-- #HEADER -->
 <header id="header">
     <div id="logo-group">
-
         <!-- PLACE YOUR LOGO HERE -->
         <h3 id="logo">
-
-            <a href="${home}/"><img src="${home}/static/img/logo.png" alt=""></a>
+            <a href="${home}/"><img src="${home}/static/img/logo.png" alt="LOGO"></a>
         </h3>
         <!-- END LOGO PLACEHOLDER -->
-
     </div>
 
     <!-- #PROJECTS: projects dropdown -->
@@ -113,7 +90,6 @@
     <div class="pull-right">
         <div tal:condition="request.user" class="project-context hidden-xs">
             <span class="label"><i class="fa fa-sm fa-fw fa-institution"></i> ${request.company}</span>
-
             <span tal:condition="request.user" class="project-selector dropdown-toggle" data-toggle="dropdown">Pilih Module <i
                     class="fa fa-angle-down"></i></span>
             <ul tal:condition="request.user" class="dropdown-menu">
@@ -121,7 +97,6 @@
                     <a href="${home}/${menu}">${request.menus[menu]}</a>
                 </li>
             </ul>
-
         </div>
         <!-- collapse menu button -->
         <div id="hide-menu" class="btn-header pull-right">
@@ -132,8 +107,8 @@
 
         <!-- fullscreen button -->
         <div id="fullscreen" class="btn-header transparent pull-right">
-      <span> <a href="javascript:void(0);" data-action="launchFullscreen" title="Full Screen"><i
-              class="fa fa-arrows-alt"></i></a> </span>
+            <span> <a href="javascript:void(0);" data-action="launchFullscreen" title="Full Screen">
+                <i class="fa fa-arrows-alt"></i></a> </span>
         </div>
         <!-- end fullscreen button -->
 
@@ -142,8 +117,7 @@
             <li>
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-lg fa-fw fa-user"></i> <span
                         style="text-transform:capitalize"> ${request.user and request.user.nice_username() or ""} </span>
-                    <i
-                            class="fa fa-angle-down"></i> </a>
+                    <i class="fa fa-angle-down"></i> </a>
                 <ul class="dropdown-menu pull-right">
                     <li><a style="text-transform:capitalize" href="${request.route_url('profile')}">Profile</a></li>
                     <li tal:condition="not request.user.external">
@@ -161,10 +135,8 @@
             </li>
         </ul>
         <!-- end user info -->
-
     </div>
     <!-- end pulled right: nav area -->
-
 </header>
 <!-- END HEADER -->
 
@@ -172,32 +144,27 @@
 <!-- Left panel : Navigation area -->
 <!-- Note: This width of the aside area can be adjusted through LESS variables -->
 <aside id="left-panel" style="padding-bottom:67px">
-
     <!-- NAVIGATION : This navigation is also responsive-->
     <nav style="">
-
         <!-- Modul Menu -->
         <ul metal:define-slot="navs"></ul>
-
         <!-- Admin Menu -->
-        <ul
-                 tal:condition="has_permission(request, user_path)"
-                style="margin-top: 0; padding-top: 0;">
+        <ul tal:condition="has_permission(request, user_path)" style="margin-top: 0; padding-top: 0;">
             <li>
-                <a href="#"><i class="fa fa-lg fa-fw fa-shield"></i>
-                    <span class="menu-item-parent">Admin</span></a>
+                <a href="#"><i class="fa fa-lg fa-fw fa-shield"></i><span class="menu-item-parent">Admin</span></a>
                 <ul>
                     <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
                              tal:attributes="class  request.matched_route.name in user_path and 'active'">
                         <a href="${home}/user">User</a>
                     </li>
                     <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
+                             tal:attributes="class  request.matched_route.name in user_ext_path and 'active'">
+                        <a href="${home}/user/ext">External User</a>
+                    </li>
+                    <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
                              tal:attributes="class request.matched_route.name in group_path and 'active'">
                         <a href="${home}/group">Group</a>
                     </li>
-                    <!--                    <li tal:condition="has_permission(request, 'user-group')"-->
-                    <!--                        tal:attributes="class request.matched_route.name in ['user-group'] and 'active'">-->
-                    <!--                        <a href="${home}/user/group">User Group</a></li>-->
                     <li tal:condition="has_permission(request, 'upload-logo')"
                              tal:attributes="class request.matched_route.name in ['upload-logo'] and 'active'">
                         <a href="${home}/upload/logo">Upload Logo</a></li>
@@ -217,10 +184,6 @@
                     <li tal:condition="has_permission(request, 'departemen')"
                              tal:attributes="class request.matched_route.name in dep_path  and 'active'">
                         <a href="${home}/departemen">Departemen</a></li>
-                    <!--                    <li tal:condition="has_permission(request, 'departemen-user')"-->
-                    <!--                        tal:attributes="class request.matched_route.name in ['departemen-user'] and 'active'">-->
-                    <!--                        <a href="${home}/departemen/user">User Departemen</a></li>-->
-
                     <li tal:condition="has_permission(request, 'partner')"
                              tal:attributes="class request.matched_route.name in partner_path  and 'active'">
                         <a href="${home}/partner">Partner</a></li>
@@ -233,7 +196,6 @@
                     <li tal:condition="has_permission(request, 'dati2')"
                              tal:attributes="class  request.matched_route.name in dati2_path and 'active'">
                         <a href="${home}/dati2">Kabupaten/Kota</a></li>
-
                     <li tal:condition="has_permission(request, 'kecamatan')"
                              tal:attributes="class  request.matched_route.name in kecamatan_path and 'active'">
                         <a href="${home}/kecamatan">Kecamatan</a></li>
@@ -246,7 +208,6 @@
                 </ul>
             </li>
         </ul>
-
     </nav>
     <span class="minifyme" data-action="minifyMenu">
       <i class="fa fa-arrow-circle-left hit"></i>
@@ -265,14 +226,11 @@
         document.write('<script src="${home}/static/v3/js/libs/jquery-2.1.1.min.js"><\/script>');
     }
 </script>
-
-<script src="${home}/static/v3/js/jquery-ui-1.10.3.min.js"></script>
+<!--?<script src="${home}/static/v3/js/jquery-ui-1.10.3.min.js"></script>-->
 <script>
-    if (!window.jQuery.ui) {
-        document.write('<script src="${home}/static/v3/js/libs/jquery-ui-1.10.3.min.js"><\/script>');
-    }
-
-
+    // if (!window.jQuery.ui) {
+    <!--?    document.write('<script src="${home}/static/v3/js/libs/jquery-ui-1.10.3.min.js"><\/script>');-->
+    // }
 </script>
 
 <!-- IMPORTANT: APP CONFIG -->
@@ -294,83 +252,27 @@
 <script src="${home}/static/v3/js/app.min.js"></script>
 
 <!-- PAGE RELATED PLUGIN(S) -->
-<script src="${home}/static/v3/js/plugin/datatables/jquery.dataTables.min.js"></script>
-<script src="${home}/static/v3/js/plugin/datatables/dataTables.colVis.min.js"></script>
-<script src="${home}/static/v3/js/plugin/datatables/dataTables.tableTools.min.js"></script>
-<script src="${home}/static/v3/js/plugin/datatables/dataTables.bootstrap.min.js"></script>
-<script src="${home}/static/v3/js/plugin/datatable-responsive/datatables.responsive.min.js"></script>
+<!--?<script src="${home}/static/v3/js/plugin/datatables/jquery.dataTables.min.js"></script>-->
+<!--?<script src="${home}/static/v3/js/plugin/datatables/dataTables.colVis.min.js"></script>-->
+<!--?<script src="${home}/static/v3/js/plugin/datatables/dataTables.tableTools.min.js"></script>-->
+<!--?<script src="${home}/static/v3/js/plugin/datatables/dataTables.bootstrap.min.js"></script>-->
+<!--?<script src="${home}/static/v3/js/plugin/datatable-responsive/datatables.responsive.min.js"></script>-->
 
-<script src="${home}/static/v3/js/plugin/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
-<script src="${home}/static/v3/js/plugin/bootstrap-timepicker/bootstrap-timepicker.min.js"></script>
-<script src="${home}/deform_static/scripts/deform.js"></script>
-<script src="${home}/deform_static/scripts/typeahead.min.js"></script>
-<script src="${home}/deform_static/scripts/jquery.maskMoney-3.1.1.min.js"></script>
-<script src="${home}/deform_static/tinymce/tinymce.min.js"></script>
-<script src="${home}/static/v3/js/tools.js"></script>
-<script src="${home}/static/v3/js/notification/SmartNotification.min.js"></script>
-<script src="${home}/static/v3/js/plugin/masked-input/jquery.maskedinput.min.js"></script>
-<script src="${home}/static/v3/js/select2.full.min.js"></script>
-<script src="${home}/deform_static/scripts/file_upload.js"></script>
-
-<script>
-    function showError(msg) {
-        $("#success").css('display', 'none', 'important');
-        $("#errors").css('display', 'box', 'important');
-        $("#errors").html("<span class='glyphicon glyphicon-remove'></span> " + msg);
-        console.log(msg);
-    };
-
-    function showSuccess(msg) {
-        $("#errors").css('display', 'none', 'important');
-        $("#success").css('display', 'box', 'important');
-        $("#success").html("<span class='glyphicon glyphicon-ok'></span> " + msg);
-    };
-    $(function () {
-        var current = location.pathname;
-        $('nav li a').each(function () {
-            var $this = $(this);
-            if ($this.attr('href') != '' && $this.attr('href') != '#') {
-                if ($this.attr('href') == current) {
-                    $this.parent().addClass('active');
-                    var ul_parent = $this.parents('ul');
-                    ul_parent.show();
-                    ul_parent.parents('li').addClass('open');
-                }
-            }
-        })
-    });
-    $(document).ready(function () {
-        // DO NOT REMOVE : GLOBAL FUNCTIONS!
-        pageSetUp();
-        /*
-         * PAGE RELATED SCRIPTS
-         */
-    });
-
-    function number_format(number, decimals, dec_point, thousands_sep) {
-        // Strip all characters but numerical ones.
-        number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
-        var n = !isFinite(+number) ? 0 : +number,
-                prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
-                sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
-                dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
-                s = '',
-                toFixedFix = function (n, prec) {
-                    var k = Math.pow(10, prec);
-                    return '' + Math.round(n * k) / k;
-                };
-        // Fix for IE parseFloat(0.55).toFixed(0) = 0;
-        s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
-        if (s[0].length > 3) {
-            s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
-        }
-        if ((s[1] || '').length < prec) {
-            s[1] = s[1] || '';
-            s[1] += new Array(prec - s[1].length + 1).join('0');
-        }
-        return s.join(dec);
-    }
-</script>
+<!--?<script src="${home}/static/v3/js/plugin/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>-->
+<!--?<script src="${home}/static/v3/js/plugin/bootstrap-timepicker/bootstrap-timepicker.min.js"></script>-->
+<!--?<script src="${home}/deform_static/scripts/deform.js"></script>-->
+<!--?<script src="${home}/deform_static/scripts/typeahead.min.js"></script>-->
+<!--?<script src="${home}/deform_static/scripts/jquery.maskMoney-3.1.1.min.js"></script>-->
+<!--?<script src="${home}/deform_static/tinymce/tinymce.min.js"></script>-->
+<!--?<script src="${home}/static/v3/js/tools.js"></script>-->
+<!--?<script src="${home}/static/v3/js/notification/SmartNotification.min.js"></script>-->
+<!--?<script src="${home}/static/v3/js/plugin/masked-input/jquery.maskedinput.min.js"></script>-->
+<!--?<script src="${home}/static/v3/js/select2.full.min.js"></script>-->
+<!--?<script src="${home}/deform_static/scripts/file_upload.js"></script>-->
+<script src="${home}/static/v3/js/osipkd.js"></script>
+<tal:loop tal:repeat="js_resource js">
+    <script src="${home}${request.static_path(js_resource)}"></script>
+</tal:loop>
 
 <metal:js define-slot="js_files"></metal:js>
 

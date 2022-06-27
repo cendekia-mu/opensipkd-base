@@ -116,7 +116,7 @@ class DeTable(field.Field):
         btn_view_js = "{window.location = o%sUri+'/'+m%sID+'/view%s';}" % (tableid, tableid, params)
         btn_delete_js = "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (tableid, tableid, params)
         btn_csv_js = "{window.location = o%sUri+'/csv/act%s';}" % (tableid, params)
-        btn_pdf_js = "{window.location = o%sUri+'/pdf/act%s';}" % (tableid, params)
+        btn_pdf_js = "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params)
         action_suffix=f"{action_suffix}{params}"
         field.Field.__init__(self, schema, **kw)
         _buttons = []

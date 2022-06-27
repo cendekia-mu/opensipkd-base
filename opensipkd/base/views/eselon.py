@@ -1,25 +1,23 @@
-import os
-import uuid
-# from ..tools import row2dict, xls_reader
 from datetime import datetime
-from sqlalchemy import not_, func
-from pyramid.view import (
-    view_config,
-)
-from pyramid.httpexceptions import (
-    HTTPFound,
-)
+
 import colander
 from deform import (
     Form,
     widget,
     ValidationFailure,
 )
-from ..views import ColumnDT, DataTables, BaseView
+from pyramid.httpexceptions import (
+    HTTPFound,
+)
+from pyramid.view import (
+    view_config,
+)
+
 from ..models import (
     DBSession,
     Eselon
 )
+from ..views import ColumnDT, DataTables, BaseView
 
 SESS_ADD_FAILED = 'Tambah eselon gagal'
 SESS_EDIT_FAILED = 'Edit eselon gagal'
@@ -33,13 +31,6 @@ class AddSchema(colander.Schema):
     nama = colander.SchemaNode(
         colander.String(),
         oid="nama")
-    # eselon      = colander.SchemaNode(
-    #                 colander.String(),
-    #                 oid = "eselon")
-    # ruang      = colander.SchemaNode(
-    #                 colander.String(),
-    #                 oid = "ruang")
-    # edit
     status = colander.SchemaNode(
         colander.Boolean(),
         oid="status")
@@ -51,10 +42,7 @@ class EditSchema(AddSchema):
                              widget=widget.HiddenWidget())
 
 
-class view_eselon(BaseView):
-    ########                    
-    # List #
-    ########    
+class Views(BaseView):
     @view_config(route_name='eselon', renderer='templates/eselon/list.pt',
                  permission='eselon')
     def view_list(self):

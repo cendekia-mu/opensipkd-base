@@ -1,4 +1,4 @@
-<html metal:use-macro="load: ../base3.1.pt">
+<html metal:use-macro="load: ../_table.pt">
 <link metal:fill-slot="css_files" rel="stylesheet" type="text/css" media="screen"
                                   href="/static/v3/css/custom-datatable.css">
 <div metal:fill-slot="content">

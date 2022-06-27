@@ -1,23 +1,19 @@
 import csv
-import json
 import os
 import shutil
 from datetime import datetime
 
 import colander
-from deform import (Form, widget, ValidationFailure, )
+from deform import (widget, )
 from deform.widget import AutocompleteInputWidget
-from pyramid.httpexceptions import (HTTPFound, )
+from opensipkd.tools import (get_ext, get_random_string, get_settings)
 from pyramid.view import (view_config, )
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
-from opensipkd.tools import (get_ext, get_random_string, get_settings)
-from opensipkd.tools.buttons import btn_cancel, btn_save, btn_delete, btn_close
 
 from .company import company_widget
 from .upload import AddSchema as UploadSchema
-from .. import renderer
-from ..models import DBSession, Departemen, Partner, PartnerDepartemen, ResCompany
+from ..models import DBSession, Departemen, Partner, PartnerDepartemen
 from ..views import ColumnDT, DataTables, BaseView
 
 SESS_ADD_FAILED = 'Tambah departemen gagal'
@@ -40,12 +36,20 @@ def departemen_widget(node, kw):
 
 
 class AddSchema(colander.Schema):
-    parent_id = colander.SchemaNode(colander.Integer(),
-                                    widget=widget.HiddenWidget(), oid="parent_id", missing=colander.drop, )
+    parent_id = colander.SchemaNode(
+        colander.Integer(),
+        widget=widget.HiddenWidget(), oid="parent_id", missing=colander.drop,
+    )
 
-    parent_nm = colander.SchemaNode(colander.String(), missing=colander.drop,
-                                    widget=AutocompleteInputWidget(size=60, min_length=3, ),
-                                    oid="parent_nm", title="Induk")
+    parent_nm = colander.SchemaNode(
+        colander.String(), missing=colander.drop,
+        widget=widget.AutocompleteInputWidget(
+            size=60, min_length=3,
+            requirements=(("typeahead", None), ("deform", None),
+                          {"js": "opensipkd.base:static/js/form/departemen.js"})
+        ),
+
+        oid="parent_nm", title="Induk")
     parent_kd = colander.SchemaNode(colander.String(),
                                     widget=widget.TextInputWidget(css_class="readonly"),
                                     missing=colander.drop, oid="parent_kd", title="Kode Induk")
@@ -72,15 +76,22 @@ class AddSchema(colander.Schema):
 
     def after_bind(self, schema, kwargs):
         request = kwargs["request"]
-        self["parent_nm"] = colander.SchemaNode(colander.String(),
-                                                missing=colander.drop,
-                                                widget=AutocompleteInputWidget(size=60, min_length=3,
-                                                                               values=f"{request._host}/departemen/hon/act"),
-                                                oid="parent_nm",
-                                                title="Induk", )
+        # self["parent_nm"] = colander.SchemaNode(
+        #     colander.String(),
+        #     missing=colander.drop,
+        #     widget=AutocompleteInputWidget(
+        #         size=60, min_length=3,
+        #         values=f"{request.route_url('departemen')}/hon/act"),
+        #     oid="parent_nm",
+        #     title="Induk", )
+        self["parent_nm"].widget = widget.AutocompleteInputWidget(
+            size=60, min_length=3,
+            requirements=(("typeahead", None), ("deform", None),
+                          {"js": "opensipkd.base:static/js/form/departemen.js"}),
+            values=f"{request.route_url('departemen')}/hon/act")
         if request.user.company_id:
             self["company_id"].widget = widget.HiddenWidget()
-            self["company_id"].default = request.user.company_id
+        self["company_id"].default = request.user.company_id
 
 
 class EditSchema(AddSchema):
@@ -88,56 +99,43 @@ class EditSchema(AddSchema):
                              widget=widget.HiddenWidget(readonly=True))
 
 
+class ListSchema(colander.Schema):
+    id = colander.SchemaNode(colander.String(), title="ID", visible=False)
+    kode = colander.SchemaNode(colander.String(), title="Kode", width='100pt')
+    nama = colander.SchemaNode(colander.String(), title="Nama")
+    status = colander.SchemaNode(colander.Boolean(), title="Status", width='50pt')
+    level_id = colander.SchemaNode(colander.String(), title="Level", width='50pt')
+    parent = colander.SchemaNode(colander.String(), title="Induk", width='200pt')
+
+
 class ViewDepartemen(BaseView):
     def __init__(self, request):
         super(ViewDepartemen, self).__init__(request)
-        self.form_scripts = """
-        $(document).ready(function () {
-            $('#parent_nm').typeahead({
-                "hint"     : true,
-                "highlight": true,
-                "minLength": 1,
-                "remote"   : {
-                        url: "/departemen/hon/act?term=%QUERY",
-                        beforeSend: function () {
-                            $('#parent_nm').addClass("loading");
-                        },
-                        filter: function(parsedResponse){
-                            $('#parent_nm').removeClass('loading');
-                            return parsedResponse;
-                        }
-                },
-            },{
-                "name"      : 'parent_nm',
-                "displayKey": 'value',
-            });
-            $('#parent_nm').bind('typeahead:selected', function(obj, datum, name) {
-                  $('#parent_id').val(datum.id);
-                  $('#parent_kd').val(datum.kode);
-
-            });
-        });
-        """
-
-        self.list_col_defs = json.dumps(
-            [{"searchable": False, "visible": False, "targets": [0], }, {
-                "searchable": True, "orderable": True, "targets": [1, 2],
-            }])
-        self.list_cols = [{'title': "ID", 'data': "id"},
-                          {'title': "Kode", 'data': "kode", 'width': '100pt'},
-                          {'title': "Nama", 'data': "nama"}, ]
-        self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
-                            'btn_close'
-        self.form_params = dict(scripts="")
-        self.list_url = 'departemen'
-        self.list_route = 'departemen'
+        self.list_schema = ListSchema
+        self.add_schema = AddSchema
+        self.edit_schema = EditSchema
         self.table = Departemen
+        # self.list_url = 'departemen'
+        self.list_route = 'departemen'
+        self.form_scripts = ""
+
+        # """
+
+        # self.list_col_defs = json.dumps(
+        #     [{"searchable": False, "visible": False, "targets": [0], }, {
+        #         "searchable": True, "orderable": True, "targets": [1, 2],
+        #     }])
+        # self.list_cols = [{'title': "ID", 'data': "id"},
+        #                   {'title': "Kode", 'data': "kode", 'width': '100pt'},
+        #                   {'title': "Nama", 'data': "nama"}, ]
+        # self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
+        #                     'btn_close'
+        # self.form_params = dict(scripts="")
 
     ########
     # List #
     ########
-    @staticmethod
-    def form_validator(form, value):
+    def form_validator(self, form, value):
         def err_kode():
             raise colander.Invalid(form, 'Kode %s sudah digunakan oleh %s' % (
                 value['kode'], found.nama))
@@ -154,16 +152,22 @@ class ViewDepartemen(BaseView):
         else:
             current = None
 
-        found = Departemen.query_kode(value['kode']). \
-            filter_by(company_id=value["company_id"]).first()
+        found = Departemen.query_kode(value['kode'])
+        if "company_id" in value and value["company_id"]:
+            found = found.filter_by(company_id=value["company_id"]).first()
+        else:
+            found = self.filter_company(found).first()
         if current:
             if found and found.id != current.id:
                 err_kode()
         elif found:
             err_kode()
 
-        found = Departemen.query_nama(value['nama']). \
-            filter_by(company_id=value["company_id"]).first()
+        found = Departemen.query_nama(value['nama'])
+        if "company_id" in value and value["company_id"]:
+            found = found.filter_by(company_id=value["company_id"]).first()
+        else:
+            found = self.filter_company(found).first()
         if current:
             if found and found.id != current.id:
                 err_nama()
@@ -178,58 +182,64 @@ class ViewDepartemen(BaseView):
             if child.children:
                 self.update_children(child.children)
 
-    def save(self, values, user, row=None):
-        if not row:
-            row = Departemen()
-            row.created = datetime.now()
-            row.create_uid = user.id
-        if 'parent_id' in values and not values['parent_id']:
-            del values['parent_id']
-
-        row.from_dict(values)
-        row.updated = datetime.now()
-        row.update_uid = user.id
-        row.status = 'status' in values and values['status'] and 1 or 0
-        row.level_id = 1
-        DBSession.add(row)
-        DBSession.flush()
-        if row.parent_id:
-            row.level_id = (row.parent.level_id or 0) + 1
-
-        DBSession.add(row)
-        if row.children:
-            for child in row.children:
-                child.level_id = child.parent.level_id + 1
-                DBSession.add(child)
-        DBSession.flush()
-
+    def before_save(self, row, values):
+        for k, v in values.items():
+            if not v:
+                setattr(row, k, None)
         return row
 
-    def save_request(self, values, row=None):
-        request = self.req
-        if 'id' in request.matchdict:
-            values['id'] = request.matchdict['id']
-        values["company_id"] = request.user.company_id
-        row = self.save(values, request.user, row)
-        request.session.flash(
-            "Departemen {nama} sudah disimpan.".format(nama=row.nama))
+    # def save(self, values, user, row=None)
+    #     if not row:
+    #         row = Departemen()
+    #         row.created = datetime.now()
+    #         row.create_uid = user.id
+    #     if 'parent_id' in values and not values['parent_id']:
+    #         del values['parent_id']
+    #
+    #     row.from_dict(values)
+    #     row.updated = datetime.now()
+    #     row.update_uid = user.id
+    #     row.status = 'status' in values and values['status'] and 1 or 0
+    #     row.level_id = 1
+    #     DBSession.add(row)
+    #     DBSession.flush()
+    #     if row.parent_id:
+    #         row.level_id = (row.parent.level_id or 0) + 1
+    #
+    #     DBSession.add(row)
+    #     if row.children:
+    #         for child in row.children:
+    #             child.level_id = child.parent.level_id + 1
+    #             DBSession.add(child)
+    #     DBSession.flush()
+    #
+    #     return row
+    #
+    # def save_request(self, values, row=None):
+    #     request = self.req
+    #     if 'id' in request.matchdict:
+    #         values['id'] = request.matchdict['id']
+    #     values["company_id"] = request.user.company_id
+    #     row = self.save(values, request.user, row)
+    #     request.session.flash(
+    #         "Departemen {nama} sudah disimpan.".format(nama=row.nama))
 
     # def route_list(self, ):
     #     return HTTPFound(location=self.req.route_url(self.list_route))
 
-    def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel)):
-        schema = class_form(validator=self.form_validator)
-        schema = schema.bind(request=self.req,
-                             company_list=ResCompany.get_list())
-        schema.request = self.req
-        if row:
-            schema.deserialize(row)
-        return Form(schema, buttons=buttons)
-
-    def session_failed(self, session_name):
-        r = dict(form=self.req.session[session_name])
-        del self.req.session[session_name]
-        return r
+    # def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel)):
+    #     schema = class_form(validator=self.form_validator)
+    #     schema = schema.bind(request=self.req,
+    #                          company_list=ResCompany.get_list())
+    #     schema.request = self.req
+    #     if row:
+    #         schema.deserialize(row)
+    #     return Form(schema, buttons=buttons)
+    #
+    # def session_failed(self, session_name):
+    #     r = dict(form=self.req.session[session_name])
+    #     del self.req.session[session_name]
+    #     return r
 
     # def query_id(self):
     #     return DBSession.query(Departemen).filter_by(
@@ -243,20 +253,21 @@ class ViewDepartemen(BaseView):
     @view_config(route_name='departemen-view',
                  renderer='templates/form_input.pt', permission='departemen')
     def view_view(self):  # row = query_id(request).first()
-        request = self.req
-        row = self.query_id().first()
-        if not row:
-            return self.id_not_found()
-
-        form = self.get_form(EditSchema, buttons=(btn_close,))
-        if request.POST:
-            return self.route_list()
-
-        form.set_appstruct(self.get_values(row))
-        return dict(form=form.render(readonly=True), scripts=self.form_scripts)
+        return super(ViewDepartemen, self).view_view()
+        # request = self.req
+        # row = self.query_id().first()
+        # if not row:
+        #     return self.id_not_found()
+        #
+        # form = self.get_form(EditSchema, buttons=(btn_close,))
+        # if request.POST:
+        #     return self.route_list()
+        #
+        # form.set_appstruct(self.get_values(row))
+        # return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
     @view_config(route_name='departemen',
-                 renderer='templates/list.pt',
+                 renderer='templates/table.pt',
                  permission='departemen')
     def view_list(self):
         return super().view_list()
@@ -281,8 +292,7 @@ class ViewDepartemen(BaseView):
                        ColumnDT(Departemen.level_id, mData='level_id'), ]
             query = DBSession.query().select_from(Departemen).outerjoin(
                 dep_alias, Departemen.parent_id == dep_alias.id)
-            if self.req.user.company_id:
-                query = query.filter(Departemen.company_id == self.req.user.company_id)
+            query = self.filter_company(query)
             row_table = DataTables(request.GET, query, columns)
             return row_table.output_result()
 
@@ -311,8 +321,7 @@ class ViewDepartemen(BaseView):
                                     Departemen.kode) \
                         .ilike('%%%s%%' % term)) \
                 .order_by(Departemen.nama)
-            if self.req.user.company_id:
-                q = q.filter(Departemen.company_id == self.req.user.company_id)
+            q = self.filter_company(q)
             rows = q.all()
             r = []
             for k in rows:
@@ -381,48 +390,34 @@ class ViewDepartemen(BaseView):
                 r.append(d)
             return r
 
-    @view_config(route_name='departemen-add',
-                 renderer='templates/form_input.pt', permission='departemen')
+    @view_config(route_name='departemen-add', renderer='templates/form_input.pt',
+                 permission='departemen')
     def view_add(self):
-        request = self.req
-        form = self.get_form(AddSchema)
-        if request.POST:
-            if 'save' in request.POST:
-                controls = request.POST.items()
-                try:
-                    controls = form.validate(controls)
-                except ValidationFailure as e:
-                    form.render(appstruct=e.cstruct)
-                    return dict(form=form.render(), scripts=self.form_scripts)
-                self.save_request(dict(controls))
-            return self.route_list()
-        return dict(form=form.render(), scripts=self.form_scripts)
+        return super(ViewDepartemen, self).view_add()
 
-    ########
-    # Edit #
-    ########
     @view_config(route_name='departemen-edit',
                  renderer='templates/form_input.pt', permission='departemen')
-    def view_edt(self):
-        request = self.req
-        row = self.query_id().first()
-        if not row:
-            return self.id_not_found()
-
-        form = self.get_form(EditSchema)
-        if request.POST:
-            if 'save' in request.POST:
-                controls = request.POST.items()
-                try:
-                    controls = form.validate(controls)
-                except ValidationFailure as e:
-                    form.set_appstruct(e.cstruct)
-                    return dict(form=form.render(), scripts=self.form_scripts)
-
-                self.save_request(dict(controls), row)
-            return self.route_list()
-        form.set_appstruct(self.get_values(row))
-        return dict(form=form.render(), scripts=self.form_scripts)
+    def view_edit(self):
+        return super(ViewDepartemen, self).view_edit()
+        # request = self.req
+        # row = self.query_id().first()
+        # if not row:
+        #     return self.id_not_found()
+        #
+        # form = self.get_form(EditSchema)
+        # if request.POST:
+        #     if 'save' in request.POST:
+        #         controls = request.POST.items()
+        #         try:
+        #             controls = form.validate(controls)
+        #         except ValidationFailure as e:
+        #             form.set_appstruct(e.cstruct)
+        #             return dict(form=form.render(), scripts=self.form_scripts)
+        #
+        #         self.save_request(dict(controls), row)
+        #     return self.route_list()
+        # form.set_appstruct(self.get_values(row))
+        # return dict(form=form.render(), scripts=self.form_scripts)
 
     ##########
     # Delete #
@@ -430,22 +425,24 @@ class ViewDepartemen(BaseView):
     @view_config(route_name='departemen-delete',
                  renderer='templates/form_input.pt', permission='departemen')
     def view_delete(self):
-        request = self.req
-        q = self.query_id()
-        row = q.first()
-        if not row:
-            return self.id_not_found()
-        if request.POST:
-            if 'delete' in request.POST:
-                msg = 'Departemen ID %d %s sudah dihapus.' % (row.id, row.nama)
-                q.delete()
-                DBSession.flush()
-                request.session.flash(msg)
-            return self.route_list()
-        form = self.get_form(EditSchema,
-                             buttons=(btn_delete, btn_cancel))
-        form.set_appstruct(self.get_values(row))
-        return dict(form=form.render(readonly=True), scripts=self.form_scripts)
+        return super(ViewDepartemen, self).view_delete()
+
+        # request = self.req
+        # q = self.query_id()
+        # row = q.first()
+        # if not row:
+        #     return self.id_not_found()
+        # if request.POST:
+        #     if 'delete' in request.POST:
+        #         msg = 'Departemen ID %d %s sudah dihapus.' % (row.id, row.nama)
+        #         q.delete()
+        #         DBSession.flush()
+        #         request.session.flash(msg)
+        #     return self.route_list()
+        # form = self.get_form(EditSchema,
+        #                      buttons=(btn_delete, btn_cancel))
+        # form.set_appstruct(self.get_values(row))
+        # return dict(form=form.render(readonly=True), scripts=self.form_scripts)
 
     ##########
     # Upload #
@@ -507,19 +504,18 @@ class ViewDepartemen(BaseView):
             values["parent_kd"] = parent.kode
         return values
 
-
-def save_upload(request, kode, csv_row):
-    row = Departemen.query_kode(kode).first()
-    if not row:
-        row = Departemen()
-        row.created = datetime.now()
-        row.create_uid = request.user.id
-        row.level_id = kode.count('.') + 1
-        row.status = 1
-    else:
-        row.updated = datetime.now()
-        row.update_uid = request.user.id
-    row.kode = kode
-    row.nama = csv_row['nama']
-    DBSession.add(row)
-    return row
+    def save_upload(self, kode, csv_row):
+        row = Departemen.query_kode(kode).first()
+        if not row:
+            row = Departemen()
+            row.created = datetime.now()
+            row.create_uid = self.req.user.id
+            row.level_id = kode.count('.') + 1
+            row.status = 1
+        else:
+            row.updated = datetime.now()
+            row.update_uid = self.req.user.id
+        row.kode = kode
+        row.nama = csv_row['nama']
+        DBSession.add(row)
+        return row
