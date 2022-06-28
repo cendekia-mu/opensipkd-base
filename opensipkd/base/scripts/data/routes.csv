@@ -14,6 +14,13 @@ user-edit,/user/{id}/edit,Edit User
 user-view,/user/{id}/view,View User
 user-delete,/user/{id}/delete,Hapus User
 user-act,/user/{act}/act,Act User
+user-ext,/user/ext,Daftar User Ext
+user-ext-add,/user/ext/add,Tambah User Ext
+user-ext-edit,/user/ext/{id}/edit,Edit User Ext
+user-ext-view,/user/ext/{id}/view,View User Ext
+user-ext-delete,/user/ext/{id}/delete,Hapus User Ext
+user-ext-act,/user/ext/{act}/act,Act User Ext
+
 register,/register,Register
 register-external,/register/external,Register External
 profile,/profile,Profile
