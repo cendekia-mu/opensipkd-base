@@ -94,7 +94,6 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
                                               autoload=True, schema=schema)
                         foreign_field = getattr(foreign_table.c, foreign_field)
                         foreigns[fieldname] = (foreign_table, foreign_field)
-
                     fmap[fieldname] = fname_orig
 
             row = table()
@@ -112,12 +111,15 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
 
                 if not val:
                     continue
-                # tambahan untuk import user password
+
                 if fieldname == 'user_password':
                     UserService.set_password(row, val)
-                # print(dir(row), fieldname, val, row.keys)
-                # sys.exit()
-                setattr(row, fieldname, val)
+
+                try:
+                    setattr(row, fieldname, val)
+                except:
+                    pass
+
             db_session.add(row)
             db_session.flush()
     return True
@@ -297,9 +299,9 @@ def main(argv=sys.argv):
         append_csv(Eselon, 'eselon.csv', ['kode'])
         append_csv(Jabatan, 'jabatan.csv', ['kode'])
         restore_csv(ResProvinsi, 'provinsi.csv')
+        transaction.commit()
         restore_csv(ResDati2, 'dati2.csv')
+        transaction.commit()
         restore_csv(ResKecamatan, 'kecamatan.csv')
-        DBSession.flush()
+        transaction.commit()
         restore_csv(ResDesa, 'desa.csv')
-        DBSession.flush()
-
