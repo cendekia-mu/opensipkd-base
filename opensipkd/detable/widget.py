@@ -36,3 +36,5 @@ class TableWidget(MappingWidget):
 
     template = "detable"
     readonly_template = "readonly/detable"
+    requirements = (("deform", None),
+                    {"js": "opensipkd.base:static/v3/js/plugin/datatables/jquery.dataTables.min.js"})

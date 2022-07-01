@@ -5,6 +5,7 @@ import re
 import logging
 
 import colander
+import deform
 from chameleon.utils import Markup
 from deform import compat
 from deform import field
@@ -167,9 +168,12 @@ class DeTable(field.Field):
                 d["searchable"] = f.searchable
                 data.append(f"searchable: {f.searchable}")
 
-            if hasattr(f, 'visible'):
+            if hasattr(f, 'visible') :
                 d["visible"] = f.visible
                 data.append(f"visible: {f.visible}")
+
+            if isinstance(f.widget,deform.widget.HiddenWidget):
+                 d["visible"] = False
 
             if hasattr(f, 'orderable'):
                 d["orderable"] = f.orderable
@@ -178,11 +182,10 @@ class DeTable(field.Field):
             thousand = hasattr(f, 'thousand') and f.thousand or None
             separator = thousand and "separator" in thousand and thousand["separator"] or ','
             decimal = thousand and "decimal" in thousand and thousand["decimal"] or '.'
-            point = thousand and "point" in thousand and thousand["point"] or 2
+            point = thousand and "point" in thousand and  thousand["point"] or 0
             currency = thousand and "currency" in thousand and thousand["currency"] or ""
             if thousand or type(f.typ) == colander.Float() or type(f.typ) == colander.Integer():
-                d[
-                    "render"] = f"<script>$.fn.dataTable.render.number( '{separator}', '{decimal}', {point}, '{currency}' )</script>"
+                d["render"] = f"<script>$.fn.dataTable.render.number( '{separator}', '{decimal}', {point}, '{currency}' )</script>"
                 if 'className' not in d:
                     d["className"] = "text-right"
             # if hasattr(f, "edit_link"):

@@ -74,12 +74,12 @@ group-rpt,/group/{rpt}/rpt,Group Report
 routes-rpt,/routes/{rpt}/rpt,Routes Report
 
 partner,/partner,Partner
+partner-add,/partner/add,Partner Add
 partner-act,/partner/{act}/act,Partner Action
 partner-rpt,/partner/{rpt}/rpt,Partner Report
-partner-edt,/partner/{id}/edt,Partner Edt
+partner-edit,/partner/{id}/edit,Partner Edt
 partner-view,/partner/{id}/view,Partner view
-partner-del,/partner/{id}/del,Partner Del
-partner-add,/partner/add,Partner Add
+partner-delete,/partner/{id}/delete,Partner Del
 
 departemen,/departemen,Organisasi
 departemen-act,/departemen/{act}/act,Organisasi Act

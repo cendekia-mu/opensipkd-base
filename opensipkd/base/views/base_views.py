@@ -129,6 +129,7 @@ class BaseView(object):
         self.headers = None
         self.bindings = {}
         self.autocomplete = 'on'
+        self.action_suffix = "/grid/act"
 
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
@@ -291,8 +292,9 @@ class BaseView(object):
     def save_request(self, values, row=None):
         params = self.req.params
         for k, v in params.items():
-            if v:
-                values[k] = v
+            if k not in values:
+                if v:
+                    values[k] = v
         return self.save(values, self.req.user, row)
 
     def id_not_found(self):
@@ -308,7 +310,6 @@ class BaseView(object):
         for f in d:
             if type(d[f]) is str:
                 d[f] = d[f].strip()
-
         return d
 
     def get_item_table(self, row=None):
@@ -336,8 +337,8 @@ class BaseView(object):
                     form.set_appstruct(e.cstruct)
                     return dict(form=form.render(), table=table and table.render() or None,
                                 scripts=self.form_scripts, css=resources["css"], js=resources["js"])
-
-                self.save_request(dict(controls), row)
+                c = dict(controls)
+                self.save_request(c, row)
             return self.route_list()
         values = self.get_values(row)
         form.set_appstruct(values)
@@ -354,6 +355,8 @@ class BaseView(object):
         row = q.first()
         if not row:
             return self.id_not_found()
+        if not self.bindings:
+            self.bindings = self.get_bindings(row)
         if request.POST:
             if 'delete' in request.POST:
                 msg = self.delete_msg(row)

@@ -24,7 +24,8 @@ from opensipkd.tools import create_now, get_settings
 from opensipkd.tools.api import custom_error
 from opensipkd.base.tools.api import (
     auth_from_rpc, check_token_rpc, update_token)
-from ..views.partner import save as save_partner
+#todo save_partner
+# from ..views.partner import save as save_partner
 
 
 def insert_user(request, values):

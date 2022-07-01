@@ -1,27 +1,19 @@
-from datetime import datetime
-
 import colander
 from deform import (
-    Form,
     widget,
-    ValidationFailure,
-)
-from opensipkd.tools.buttons import btn_save, btn_cancel, btn_delete
-from pyramid.httpexceptions import (
-    HTTPFound,
 )
 from pyramid.view import (
     view_config,
 )
 
 from opensipkd.base.models import (
-    User, ResProvinsi, ResDati2, ResKecamatan, ResDesa)
+    ResProvinsi, ResDati2, ResKecamatan, ResDesa)
 from opensipkd.base.models.common import ResCompany
 from .company import company_widget
-from .partner_base import PartnerSchema
+from .partner_base import PartnerSchema, NamaSchema
 from ..models import DBSession
 from ..models import Partner
-from ..views import ColumnDT, DataTables, BaseView
+from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah partner gagal'
 SESS_EDIT_FAILED = 'Edit partner gagal'
@@ -39,6 +31,7 @@ class AddSchema(PartnerSchema):
     company_id = colander.SchemaNode(
         colander.Integer(),
         widget=company_widget,
+        missing=colander.drop,
         oid="company_id",
         title="Company")
 
@@ -56,38 +49,45 @@ class EditSchema(AddSchema):
                              )
 
 
+class ListSchema(NamaSchema):
+    id = colander.SchemaNode(colander.String(),
+                             missing=colander.drop,
+                             widget=widget.HiddenWidget(),
+                             )
+    status = colander.SchemaNode(
+        colander.Boolean(),
+        oid="status")
+
+
 class ViewPartner(BaseView):
+    def __init__(self, request):
+        super().__init__(request)
+        self.form_params = dict(scripts="")
+        self.list_url = 'partner'
+        self.list_route = 'partner'
+        self.add_schema = AddSchema
+        self.edit_schema = EditSchema
+        self.table = Partner
+        self.list_schema = ListSchema
+
     ########
     # List #
     ########
-    @view_config(route_name='partner', renderer='templates/partner/list.pt',
+    @view_config(route_name='partner', renderer='templates/table.pt',
                  permission='user-view')
     def view_list(self):
-        return dict()
+        return super().view_list()
 
     @view_config(route_name='partner-act', renderer='json',
                  permission='user-view')
     def view_act(self):
+        return super().view_act()
+
+    def next_act(self):
         request = self.req
         params = request.params
         url_dict = request.matchdict
-
-        if url_dict['act'] == 'grid':
-            columns = [
-                ColumnDT(Partner.id, mData='id'),
-                ColumnDT(Partner.kode, mData='kode'),
-                ColumnDT(Partner.nama, mData='nama'),
-                ColumnDT(Partner.is_vendor, mData='is_vendor'),
-                ColumnDT(Partner.is_customer, mData='is_customer'),
-                ColumnDT(Partner.status, mData='status'),
-            ]
-            query = DBSession.query().select_from(Partner)
-            if self.req.user.company_id:
-                query = query.filter(Partner.company_id == self.req.user.company_id)
-            row_table = DataTables(request.GET, query, columns)
-            return row_table.output_result()
-
-        elif url_dict['act'] == 'hok':
+        if url_dict['act'] == 'hok':
             term = 'term' in params and params['term'] or ''
             prefix = 'prefix' in params and params['prefix'] or ''
             q = DBSession.query(Partner.id, Partner.kode.label('value'),
@@ -150,188 +150,58 @@ class ViewPartner(BaseView):
     @view_config(route_name='partner-add', renderer='templates/form_input.pt',
                  permission='user-edit')
     def view_add(self):
-        request = self.req
-        form = get_form(request, AddSchema)
-        if request.POST:
-            if 'save' in request.POST:
-                controls = request.POST.items()
-                try:
-                    controls = form.validate(controls)
-                except ValidationFailure as e:
-                    form.set_appstruct(e.cstruct)
-                    return dict(form=form.render(), scripts="")
-                save_request(request, dict(controls))
-            return route_list(request)
-        return dict(form=form.render(), scripts="")
+        return super().view_add()
 
-    @view_config(route_name='partner-edt', renderer='templates/form_input.pt',
+    @view_config(route_name='partner-edit', renderer='templates/form_input.pt',
                  permission='user-edit')
     def view_edt(self):
-        request = self.req
-        q = query_id(request)
-        row = q.first()
-        if not row:
-            return id_not_found(request)
-
-        form = get_form(request, EditSchema, row=row)
-        if request.POST:
-            if 'save' in request.POST:
-                controls = request.POST.items()
-                try:
-                    controls = form.validate(controls)
-                except ValidationFailure as e:
-                    form.render(appstruct=e.cstruct)
-                    return dict(form=form.render(), scripts="")
-
-                save_request(request, dict(controls), row)
-            return route_list(request)
-
-        values = row.to_dict()
-        form.render(appstruct=values)
-        return dict(form=form.render(), scripts="")
+        return super().view_edit()
 
     @view_config(route_name='partner-view', renderer='templates/form_input.pt',
                  permission='user-edit')
     def view_view(self):
-        request = self.req
-        q = query_id(request)
-        row = q.first()
-        if not row:
-            return id_not_found(request)
+        return super().view_view()
 
-        form = get_form(request, EditSchema, buttons=(btn_cancel,))
-        if request.POST:
-            return route_list(request)
-
-        values = row.to_dict()
-        form.render(appstruct=values)
-        return dict(form=form.render(readonly=True), scripts="")
-
-    @view_config(route_name='partner-del', renderer='templates/form_input.pt',
+    @view_config(route_name='partner-delete', renderer='templates/form_input.pt',
                  permission='user-edit')
-    def view_del(self):
-        request = self.req
-        q = query_id(request)
-        row = q.first()
-        if not row:
-            return id_not_found(request)
+    def view_delete(self):
+        return super().view_delete()
 
-        form = get_form(request, EditSchema, buttons=(btn_delete, btn_cancel,))
-        if request.POST:
-            if 'delete' in request.POST:
-                user = User.query(). \
-                    filter_by(partner_id=request.matchdict['id'])
-                if user.first():
-                    request.session.flash('Partner digunakan oleh User')
-                    return route_list(request)
-                msg = 'Partner ID %d %s sudah dihapus.' % (row.id, row.nama)
-                q.delete()
-                DBSession.flush()
-                request.session.flash(msg)
-            return route_list(request)
+    def form_validator(self, form, value):
+        def err_kode():
+            raise colander.Invalid(form,
+                                   'Kode %s sudah digunakan oleh %s' % (
+                                       value['kode'], found.nama))
 
-        values = row.to_dict()
-        form.render(appstruct=values)
-        return dict(form=form.render(readonly=True), scripts="")
-
-
-def form_validator(form, value):
-    def err_kode():
-        raise colander.Invalid(form,
-                               'Kode %s sudah digunakan oleh %s' % (
-                                   value['kode'], found.nama))
-
-    # def err_login():
-    # raise colander.Invalid(form,
-    # 'Login %s sudah digunakan oleh kode %s' % (
-    # value['user_nm'], found.row.nama))
-
-    if 'id' in form.request.matchdict:
-        uid = form.request.matchdict['id']
-        q = DBSession.query(Partner).filter_by(id=uid)
-        row = q.first()
-    else:
-        row = None
-    q = Partner.query_kode(value['kode'])
-    found = q.first()
-    if row:
-        if found and found.id != row.id:
+        if 'id' in form.request.matchdict:
+            uid = form.request.matchdict['id']
+            q = DBSession.query(Partner).filter_by(id=uid)
+            row = q.first()
+        else:
+            row = None
+        q = Partner.query_kode(value['kode'])
+        found = q.first()
+        if row:
+            if found and found.id != row.id:
+                err_kode()
+        elif found:
             err_kode()
-    elif found:
-        err_kode()
+        value['is_vendor'] = 'is_vendor' in value and value['is_vendor'] and 1 or 0
+        value['is_customer'] = 'is_customer' in value and value['is_customer'] and 1 or 0
+        value["status"] = 'status' in value and value['status'] and 1 or 0
 
-
-def get_form(request, class_form, row=None, buttons=(btn_save, btn_cancel)):
-    provinsi_list = ResProvinsi.get_list()
-    dati2_list = row and row.provinsi_id and ResDati2.get_list(row.provinsi_id) or []
-    kecamatan_list = row and row.dati2_id and ResKecamatan.get_list(row.dati2_id) or []
-    desa_list = row and row.kecamatan_id and ResDesa.get_list(row.kecamatan_id) or []
-    schema = class_form(validator=form_validator)
-    schema = schema.bind(
-        request=request,
-        provinsi_list=provinsi_list,
-        dati2_list=dati2_list,
-        kecamatan_list=kecamatan_list,
-        desa_list=desa_list,
-        company_list=ResCompany.get_list()
-    )
-    schema.request = request
-    return Form(schema, buttons=buttons)
-
-
-def save(values, user, row=None):
-    if not row:
-        row = Partner()
-        row.created = datetime.now()
-        row.create_uid = user.id
-    values['is_vendor'] = 'is_vendor' in values and values['is_vendor'] and 1 or 0
-    values['is_customer'] = 'is_customer' in values and values['is_customer'] and 1 or 0
-    row.from_dict(values)
-    row.updated = datetime.now()
-    row.update_uid = user.id
-    row.status = 'status' in values and values['status'] and 1 or row and row.status or 0
-    DBSession.add(row)
-    DBSession.flush()
-    return row
-
-
-def save_request(request, values, row=None):
-    if 'id' in request.matchdict:
-        values['id'] = request.matchdict['id']
-    row = save(values, request.user, row)
-    request.session.flash('Partner sudah disimpan.')
-
-
-def route_list(request):
-    return HTTPFound(location=request.route_url('partner'))
-
-
-def session_failed(request, session_name):
-    r = dict(form=request.session[session_name])
-    del request.session[session_name]
-    return r
-
-
-########
-# Edit #
-########
-def query_id(request):
-    return DBSession.query(Partner).filter_by(id=request.matchdict['id'])
-
-
-def id_not_found(request):
-    msg = 'Partner ID %s Tidak Ditemukan.' % request.matchdict['id']
-    request.session.flash(msg, 'error')
-    return route_list(request)
-
-
-def get_partner_list():
-    r = []
-    q = DBSession.query(Partner).order_by(Partner.nama)
-    for row in q:
-        g = (str(row.id), (f"{row.kode}/ {row.nama}"))
-        r.append(g)
-    return r
+    def get_bindings(self, row=None):
+        provinsi_list = ResProvinsi.get_list()
+        dati2_list = row and row.provinsi_id and ResDati2.get_list(row.provinsi_id) or []
+        kecamatan_list = row and row.dati2_id and ResKecamatan.get_list(row.dati2_id) or []
+        desa_list = row and row.kecamatan_id and ResDesa.get_list(row.kecamatan_id) or []
+        return dict(
+            provinsi_list=provinsi_list,
+            dati2_list=dati2_list,
+            kecamatan_list=kecamatan_list,
+            desa_list=desa_list,
+            company_list=ResCompany.get_list()
+        )
 
 
 @colander.deferred
