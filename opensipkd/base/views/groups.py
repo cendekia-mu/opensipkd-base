@@ -87,7 +87,7 @@ class Views(BaseView):
             return r
 
     @view_config(
-        route_name='group-add', renderer='templates/group/add.pt',
+        route_name='group-add', renderer='templates/form.pt',
         permission='user-edit')
     def view_add(self):
         return super(Views, self).view_add()
@@ -122,13 +122,13 @@ class Views(BaseView):
         return values
 
     @view_config(
-        route_name='group-view', renderer='templates/group/edit.pt',
+        route_name='group-view', renderer='templates/form.pt',
         permission='user-view')
     def view_view(self):
         return super(Views, self).view_view()
 
     @view_config(
-        route_name='group-edit', renderer='templates/group/edit.pt',
+        route_name='group-edit', renderer='templates/form.pt',
         permission='user-edit')
     def view_edit(self):
         return super(Views, self).view_edit()
@@ -142,7 +142,7 @@ class Views(BaseView):
         self.ses.flash(ts)
 
     @view_config(
-        route_name='group-delete', renderer='templates/group/delete.pt',
+        route_name='group-delete', renderer='templates/form.pt',
         permission='user-edit')
     def view_delete(self):
         return super(Views, self).view_delete()

@@ -3,8 +3,8 @@ import re
 
 import colander
 from deform import (widget, )
-from opensipkd.tools import create_now
-from opensipkd.tools.report import open_rml_row, csv_response, open_rml_pdf, pdf_response
+from opensipkd.tools import create_now, SaveFile
+from opensipkd.tools.report import open_rml_row, csv_response, open_rml_pdf, pdf_response, file_response
 from pyramid.i18n import TranslationStringFactory
 from pyramid.view import view_config
 from sqlalchemy import (func, )
@@ -95,13 +95,16 @@ class Views(BaseView):
                                          departement=self.req.departement,
                                          address=self.req.address,
                                          base_path=base_path)
-            return pdf_response(self.req, pdf, filename)
-
+            filename = os.path.basename(filename)
+            resp = pdf_response(self.req, pdf, filename)
+            # save_file = SaveFile('/tmp')
+            # r = save_file.save(pdf, filename=filename)
+            # resp = file_response(self.req, filename=r)
+            return resp
 
     def form_validator(self, form, value):
         if "company_id" in value and not value["company_id"]:
             value["company_id"] = None
-
 
     def save_request(self, values, row=None):
         request = self.req
@@ -156,10 +159,8 @@ class Views(BaseView):
             add_member_count(gid)
         return row
 
-
     def after_add(self, row, values):
         pass
-
 
     @view_config(
         route_name='user-add', renderer='templates/form.pt',
@@ -168,15 +169,13 @@ class Views(BaseView):
         return super(Views, self).view_add()
         # user, remain = insert(request, values)
 
-
     def get_values(self, row, istime=False):
         d = super(Views, self).get_values(row, istime)
         d["groups"] = user_group_set(row)
         return d
 
-
     @view_config(
-        route_name='user-edit', renderer='templates/user/edit.pt',
+        route_name='user-edit', renderer='templates/form.pt',
         permission='user-edit')
     def view_edit(self):
         return super(Views, self).view_edit()
@@ -187,13 +186,11 @@ class Views(BaseView):
     def view_view(self):
         return super(Views, self).view_view()
 
-
     @view_config(
         route_name='user-delete', renderer='templates/form.pt',
         permission='user-edit')
     def view_delete(self):
         return super(Views, self).view_delete()
-
 
     def delete_msg(self, row):
         data = dict(uid=row.id, email=row.email)
@@ -202,12 +199,10 @@ class Views(BaseView):
             default='User ${email} ID ${uid} has been deleted',
             mapping=data)
 
-
     def before_delete(self, row):
         gid_list = user_group_set(row)
         for gid in gid_list:
             reduce_member_count(gid)
-
 
     def query_id(self):
         q = DBSession.query(User).filter_by(id=self.req.matchdict['id'])

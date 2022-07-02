@@ -281,37 +281,6 @@ def login(request, data):
     return login_(request, data)
 
 
-# , permission='web-service'
-def get_profile_(user):
-    # is_list = type(data) is list
-    # dat = is_list and data[0] or data
-    # user = get_user(data)
-    # if not user or not UserService.check_password(user, data['password']):
-    #     raise JsonRpcInvalidLoginError
-
-    partner = Partner.query().filter_by(user_id=user.id).first()
-    if not partner:
-        raise JsonRpcInvalidDataError
-
-    result = dict(user_name=user.user_name,
-                  nik=partner.kode,
-                  email=partner.email,
-                  mobile=partner.mobile,
-                  nama=partner.nama, )
-
-    # result = is_list and [result] or result
-    return dict(data=result)
-
-
-@jsonrpc_method(method='get_profile', endpoint='rpc-user')
-def get_profile(request, data):
-    # Digunakan untuk memperoleh profile user
-    # parameter user_name, password
-    auth_from_rpc(request)
-    user = get_user(data)
-    if not user or not UserService.check_password(user, data['password']):
-        raise JsonRpcInvalidLoginError
-    return get_profile_(user)
 
 
 # , permission='web-service'

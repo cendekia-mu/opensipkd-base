@@ -116,7 +116,10 @@ class DeTable(field.Field):
         params = params and f"?{params}" or ""
         btn_close_js = "{window.location = '/'; return false;}"
         btn_add_js = "{window.location = o%sUri+'/add%s';}" % (tableid, params)
-        btn_edit_js = "{window.location = o%sUri+'/'+m%sID+'/edit%s'}" % (tableid, tableid, params)
+        btn_edit_js = """{
+                if (m%sID) window.location = o%sUri+'/'+m%sID+'/edit%s';
+                else alert('Pilih Baris');
+                }""" % (tableid, tableid, tableid, params)
         btn_view_js = "{window.location = o%sUri+'/'+m%sID+'/view%s';}" % (tableid, tableid, params)
         btn_delete_js = "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (tableid, tableid, params)
         btn_csv_js = "{window.location = o%sUri+'/csv/act%s';}" % (tableid, params)

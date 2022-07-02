@@ -31,6 +31,7 @@ def auth_from(request, field=None):
     # bypass cek authentication for development
     if http_userid == 'admin' and request.devel:
         return user
+
     time_stamp = validate_time(request)
     if field:
         header = json_rpc_header(http_userid, user.security_code, time_stamp)

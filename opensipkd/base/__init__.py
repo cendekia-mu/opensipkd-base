@@ -26,7 +26,7 @@ import datetime, decimal
 from sqlalchemy import engine_from_config, or_
 from .security import (
     group_finder,
-    get_user,
+    get_user, MySecurityPolicy,
 )
 from .models import (
     DBSession,
@@ -392,15 +392,14 @@ def main(global_config, **settings):
     # config.include('pyramid_beaker')
     # config.include('pyramid_chameleon')
 
-    authn_policy = AuthTktAuthenticationPolicy(
-        'sosecret', callback=group_finder, hashalg='sha512')
-
-    authz_policy = ACLAuthorizationPolicy()
-
-    config.set_authentication_policy(authn_policy)
+    # authn_policy = AuthTktAuthenticationPolicy(
+    #     'sosecret', callback=group_finder, hashalg='sha512')
+    #
+    # authz_policy = ACLAuthorizationPolicy()
+    config.set_security_policy(MySecurityPolicy(settings["session.secret"]))
+    # config.set_authentication_policy(authn_policy)
     # config.set_security_policy(authz_policy)
-    config.set_authorization_policy(authz_policy)
-
+    # config.set_authorization_policy(authz_policy)
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_title, 'title', reify=True)
     config.add_request_method(get_company, 'company', reify=True)
@@ -426,6 +425,7 @@ def main(global_config, **settings):
     # config.add_notfound_view(RemoveSlashNotFoundViewFactory())
     config.add_static_view('static', 'opensipkd.base:static', cache_max_age=3600)
     config.add_static_view('deform_static', 'deform:static')
+    # config.add_view('.views.api.echoGateway')
     # config.add_static_view('files', get_params('static_files'))
     # Captcha
 

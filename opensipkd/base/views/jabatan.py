@@ -1,11 +1,14 @@
 import colander
+import os
 from deform import (widget, )
+from opensipkd.tools.buttons import btn_view, btn_add, btn_edit, btn_delete, btn_close
+from opensipkd.tools.report import csv_response, open_rml_pdf, open_rml_row, pdf_response
 from pyramid.view import (view_config, )
 from .partner_base import NamaSchema
 from ..models import (
     DBSession,
     Jabatan,
-    Eselon
+    Eselon, Departemen
 )
 from ..views import BaseView, deferred_jenis
 
@@ -79,6 +82,12 @@ class ViewJabatan(BaseView):
         self.edit_schema = EditSchema
         self.table = Jabatan
         self.list_schema = ListSchema
+        # self.list_buttons = (btn_view, btn_add, btn_edit, btn_delete, btn_close)
+
+
+    def get_bindings(self, row=None):
+        return dict(daftar_jenis=JENIS,
+                    daftar_eselon=daftar_eselon())
 
     @view_config(route_name='jabatan', renderer='templates/table.pt',
                  permission='jabatan')
@@ -151,13 +160,42 @@ class ViewJabatan(BaseView):
                 else:
                     nama_jenis = 'Fungsional'
 
-                d = {}
-                d['id'] = k[0]
-                d['value'] = k[2] + ' (' + nama_jenis + ')'
-                d['kode'] = k[1]
-                d['nama'] = k[2]
+                d = {'id': k[0], 'value': k[2] + ' (' + nama_jenis + ')', 'kode': k[1], 'nama': k[2]}
                 r.append(d)
             return r
+        elif url_dict['act'] == 'csv':
+            query = query_reg(request)
+            row = query.first()
+            header = row.keys()
+            rows = []
+            for item in query.all():
+                rows.append(list(item))
+
+            filename = 'jabatan.csv'
+            value = {
+                'header': header,
+                'rows': rows,
+            }
+            return csv_response(request, value, filename)
+        elif url_dict['act'] == 'pdf':
+            query = query_reg(request)
+            _here = os.path.dirname(__file__)  # get current folder -> views
+            path = os.path.dirname(_here)  # mundur 1 level
+            path = os.path.join(path, 'reports')
+            rml_row = open_rml_row(path + '/jabatan.row.rml')
+
+            rows = []
+            for r in query.all():
+                s = rml_row.format(kode=r.kode, nama=r.nama, status=r.status and "Aktif" or "Pasif")
+                rows.append(s)
+
+            pdf, filename = open_rml_pdf(path + '/jabatan.rml', rows=rows,
+                                         company=request.company,
+                                         departement=request.session['departemen_nm'],
+                                         address=request.address,
+                                         alamat=Departemen.query_id(request.session['departemen_id']).first(),
+                                         periode='01-01-2017 s.d 31-12-2017')
+            return pdf_response(request, pdf, filename)
 
     @view_config(route_name='jabatan-add',
                  renderer='templates/form.pt',
@@ -213,3 +251,11 @@ class ViewJabatan(BaseView):
                 err_nama()
         elif found:
             err_nama()
+
+
+def query_reg(request):
+    return DBSession.query(Jabatan.kode,
+                           Jabatan.nama,
+                           Jabatan.status, ). \
+        filter(Jabatan.status == 1). \
+        order_by(Jabatan.id)

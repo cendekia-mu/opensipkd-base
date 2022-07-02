@@ -188,7 +188,6 @@ class RootFactory:
             acl_name = 'group:{}'.format(gp.group_id)
             self.__acl__.append((Allow, acl_name, gp.perm_name))
 
-
 def init_model():
     ziggurat_model_init(User, Group, UserGroup, GroupPermission, UserPermission,
                         UserResourcePermission, GroupResourcePermission, Resource,

@@ -1,34 +1,22 @@
 import os
-import uuid
-# from ..tools import row2dict, xls_reader
-from email.utils import parseaddr
 from datetime import datetime
-from sqlalchemy import not_, func, or_, desc
-from sqlalchemy.orm import aliased
-from pyramid.view import (
-    view_config,
-)
-from pyramid.httpexceptions import (HTTPFound, )
-import json
-import colander
-from deform import (
-    Form,
-    widget,
-    ValidationFailure,
-)
-from ..views import (ColumnDT, DataTables, BaseView, )
+
 from opensipkd.tools.report import (
     open_rml_row,
     open_rml_pdf,
     pdf_response,
     csv_response,
-    get_logo, )
-from opensipkd.tools import (dmy, date_from_str, thousand, STATUS)
+)
+from pyramid.view import (
+    view_config,
+)
+
 from ..models import DBSession
 from ..models import (
     Jabatan,
     Departemen,
 )
+from ..views import (BaseView, )
 
 
 class view_rpt(BaseView):
