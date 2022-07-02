@@ -66,9 +66,6 @@ class Views(BaseView):
     @view_config(
         route_name='user-act', renderer='json', permission='user-view')
     def view_act(self):
-        return super(Views, self).view_act()
-
-    def next_act(self):
         url_dict = self.req.matchdict
         if url_dict['act'] == 'csv':
             query = query_register()
@@ -97,10 +94,11 @@ class Views(BaseView):
                                          base_path=base_path)
             filename = os.path.basename(filename)
             resp = pdf_response(self.req, pdf, filename)
-            # save_file = SaveFile('/tmp')
-            # r = save_file.save(pdf, filename=filename)
-            # resp = file_response(self.req, filename=r)
+            if resp.content_length<10:
+                resp.content_length=len(resp.body)
             return resp
+
+        return super(Views, self).view_act()
 
     def form_validator(self, form, value):
         if "company_id" in value and not value["company_id"]:
@@ -158,9 +156,6 @@ class Views(BaseView):
             DBSession.add(ug)
             add_member_count(gid)
         return row
-
-    def after_add(self, row, values):
-        pass
 
     @view_config(
         route_name='user-add', renderer='templates/form.pt',
