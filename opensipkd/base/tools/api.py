@@ -1,15 +1,22 @@
 import json
+from datetime import timedelta, timezone, tzinfo
+
 import requests
 from opensipkd.tools import (
-    get_random_number, devel, get_random_string, get_settings)
+    get_random_number, devel, get_random_string, get_settings, DefaultTimeZone, get_params, get_timezone)
 from opensipkd.tools.api import *
-from .. import log
 from ..models import (DBSession, User, GroupPermission, UserDeviceModel)
+import logging
+
+log = logging.getLogger(__name__)
 
 lima_menit = 300
 
-
+#
 def auth_from_rpc(request):
+    return auth_from(request)
+
+def rpc_auth(request):
     return auth_from(request)
 
 
@@ -43,27 +50,44 @@ def auth_from(request, field=None):
 
     return user
 
+# def auth_from_token(request):
+#     return auth_from(request, "security_code")
+#
 
-def auth_from_token(request):
-    return auth_from(request, "security_code")
+# def renew_token(user_device, logout=False):
+#     now = datetime.now(tz=get_timezone())
+#     tte = timedelta(minutes=10)
+#     if not user_device.expired or not user_device.token or \
+#             now - user_device.expired > tte:
+#         user_device.expired = now
+#         user_device.token = get_random_string(128)
+#     if logout:
+#         user_device.token=""
+#     DBSession.add(user_device)
+#     DBSession.flush()
+#     return user_device
 
-def renew_token(user_device):
-    user_device.token = get_random_string(32)
-    DBSession.add(user_device)
-    DBSession.flush()
-    return user_device
+# def token_auth(request, logout=False):
+    # if not request.environ["HTTP_TOKEN"]:
+    #     raise JsonRpcInvalidLoginError
 
-def get_user_device(request, user):
+    # user_device = UserDeviceModel.query() \
+    #     .filter_by(kode=request.environ["HTTP_USER_AGENT"],
+    #                token=request.environ["HTTP_TOKEN"]).first()
+    # if not user_device:
+    #     raise JsonRpcInvalidLoginError
+    #
+    # return renew_token(user_device, logout=logout)
+
+def get_user_device(request, user_id):
     user_device = UserDeviceModel.query() \
-        .filter_by(user_id=user.id,
+        .filter_by(user_id=user_id,
                    kode=request.environ["HTTP_USER_AGENT"]).first()
     if not user_device:
         user_device = UserDeviceModel()
-        user_device.user_id = user.id
+        user_device.user_id = user_id
         user_device.kode = request.environ["HTTP_USER_AGENT"]
-        user_device.token = get_random_string(32)
-        DBSession.add(user_device)
-        DBSession.flush()
+    # user_device = renew_token(user_device)
     return user_device
 
 
@@ -81,6 +105,7 @@ def validate_time(request):
         raise JsonRpcInvalidTimeError
 
     return time_stamp
+
 
 def auth_device(request):
     env = request.environ

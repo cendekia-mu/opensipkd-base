@@ -66,29 +66,30 @@ titles = {}
 
 
 # http://stackoverflow.com/questions/9845669/pyramid-inverse-to-add-notfound-viewappend-slash-true
-class RemoveSlashNotFoundViewFactory(object):
-    def __init__(self, notfound_view=None):
-        if notfound_view is None:
-            notfound_view = default_exceptionresponse_view
-        self.notfound_view = notfound_view
-
-    def __call__(self, context, request):
-        if not isinstance(context, Exception):
-            # backwards compat for an append_notslash_view registered via
-            # config.set_notfound_view instead of as a proper exception view
-            context = getattr(request, 'exception', None) or context
-        path_req = request.path
-        registry = request.registry
-        mapper = registry.queryUtility(IRoutesMapper)
-        if mapper is not None and path_req.endswith('/'):
-            noslash_path = path_req.rstrip('/')
-            for route in mapper.get_routes():
-                if route.match(noslash_path) is not None:
-                    qs = request.query_string
-                    if qs:
-                        noslash_path += '?' + qs
-                    return HTTPFound(location=noslash_path)
-        return self.notfound_view(context, request)
+# class RemoveSlashNotFoundViewFactory(object):
+#     diganti menggunakan @view_config(context=HTTPNotFound, renderer='templates/404.pt') pada base.views
+#     def __init__(self, notfound_view=None):
+#         if notfound_view is None:
+#             notfound_view = default_exceptionresponse_view
+#         self.notfound_view = notfound_view
+#
+#     def __call__(self, context, request):
+#         if not isinstance(context, Exception):
+#             # backwards compat for an append_notslash_view registered via
+#             # config.set_notfound_view instead of as a proper exception view
+#             context = getattr(request, 'exception', None) or context
+#         path_req = request.path
+#         registry = request.registry
+#         mapper = registry.queryUtility(IRoutesMapper)
+#         if mapper is not None and path_req.endswith('/'):
+#             noslash_path = path_req.rstrip('/')
+#             for route in mapper.get_routes():
+#                 if route.match(noslash_path) is not None:
+#                     qs = request.query_string
+#                     if qs:
+#                         noslash_path += '?' + qs
+#                     return HTTPFound(location=noslash_path)
+#         return self.notfound_view(context, request)
 
 
 # https://groups.google.com/forum/#!topic/pylons-discuss/QIj4G82j04c
@@ -312,11 +313,11 @@ def json_rpc():
     return json_r
 
 
-class MyAuthenticationPolicy(AuthTktAuthenticationPolicy):
-    def authenticated_userid(self, request):
-        user = request.user
-        if user is not None:
-            return user.id
+# class MyAuthenticationPolicy(AuthTktAuthenticationPolicy):
+#     def authenticated_userid(self, request):
+#         user = request.user
+#         if user is not None:
+#             return user.id
 
 
 def get_host(request):
@@ -371,35 +372,21 @@ def main(global_config, **settings):
     config = Configurator(settings=settings,
                           root_factory='opensipkd.base.models.RootFactory',
                           session_factory=session_factory)
-
+    from .models import RootFactory
     modules = get_modules(settings)
-    # print(modules)
     from importlib import import_module
     for module in modules:
+        # compatibility
         if module == 'admin':
             continue
         module = module.replace('/', '.')
         mfile = module
-        print(">>Load Module:", mfile)
         m = import_module(mfile)
         cfg = m.main(config, **settings)
         if cfg:
             config = cfg
-        # todo apakah config bisa dikirim ke module?
-        #     contoh:
-        #        config = m.config(config)
-    # dipindahkan ke config pyramid.include
-    # config.include('pyramid_beaker')
-    # config.include('pyramid_chameleon')
 
-    # authn_policy = AuthTktAuthenticationPolicy(
-    #     'sosecret', callback=group_finder, hashalg='sha512')
-    #
-    # authz_policy = ACLAuthorizationPolicy()
     config.set_security_policy(MySecurityPolicy(settings["session.secret"]))
-    # config.set_authentication_policy(authn_policy)
-    # config.set_security_policy(authz_policy)
-    # config.set_authorization_policy(authz_policy)
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_title, 'title', reify=True)
     config.add_request_method(get_company, 'company', reify=True)
@@ -421,70 +408,19 @@ def main(global_config, **settings):
     config.add_request_method(allow_register, 'allow_register', reify=True)
     config.add_request_method(disable_responsive, 'disable_responsive', reify=True)
     config.add_request_method(get_params, 'get_params', reify=True)
-
-    # config.add_notfound_view(RemoveSlashNotFoundViewFactory())
     config.add_static_view('static', 'opensipkd.base:static', cache_max_age=3600)
     config.add_static_view('deform_static', 'deform:static')
-    # config.add_view('.views.api.echoGateway')
-    # config.add_static_view('files', get_params('static_files'))
-    # Captcha
 
-    captcha_files = get_params('captcha_files', settings=settings,alternate="/tmp/captcha")
+    captcha_files = get_params('captcha_files', settings=settings, alternate="/tmp/captcha")
     if not os.path.exists(captcha_files):
         os.makedirs(captcha_files)
-    config.add_static_view('captcha', captcha_files)
-    # config.add_static_view('tts', path=get_params('tts_files'))
 
+    config.add_static_view('captcha', captcha_files)
     config.add_renderer('csv', 'opensipkd.tools.CSVRenderer')
     config.add_renderer('json', json_renderer())
-    # dipindahkan ke config pyramid.include
-    # config.include('pyramid_rpc.jsonrpc')
     config.add_renderer('json_rpc', json_rpc())
-
-    # q = DBSession.query(Route)
-    # for route in q:
-    #     if route.type == 0:
-    #         config.add_route(route.kode, route.path)
-    #         if route.nama:
-    #             titles[route.kode] = route.nama
-    #     elif route.type == 1:
-    #         config.add_jsonrpc_endpoint(route.kode, route.path,
-    #                                     default_renderer="json_rpc")
     set_routes(config)
-    ###########################################
-    # MAP
-    # todo apabila config bosa di get dari module maka baris ini bisa hilang
-    # Sudah solve menggunakan includeme
-    ###########################################
-    # if 'opensipkd.map.base' in modules:
-    #     import papyrus
-    #     from papyrus.renderers import GeoJSON, XSD
-    #
-    #     config.add_request_method(get_gmap_key, 'gmap_key', reify=True)
-    #     config.add_request_method(get_bing_key, 'bing_key', reify=True)
-    #     config.add_request_method(get_extent, 'extent', reify=True)
-    #
-    #     config.include(papyrus.includeme)
-    #     config.add_renderer('geojson', GeoJSON())
-    #     config.add_renderer('xsd', XSD())
-    #     config.add_static_view('static_map', 'opensipkd.map.base:static', cache_max_age=3600)
-
-    # if 'opensipkd.map.aset' in modules:
-    #     config.add_static_view('static_map_aset', 'opensipkd.map.aset:static', cache_max_age=3600)
-    #
-    # # if 'opensipkd.map.pbb' in modules:
-    # #     config.add_static_view('static_map_pbb', 'opensipkd.map.pbb:static', cache_max_age=3600)
-    #
-    # if 'opensipkd.pasar.web' in modules:
-    #     config.add_static_view('static_pasar', 'opensipkd.pasar.web:static', cache_max_age=3600)
-    #
-    # if 'opensipkd.pbb.master' in modules:
-    #     config.add_static_view('static_pbb', 'opensipkd.pbb.master:static', cache_max_age=3600)
-    # if 'opensipkd.pos.pbb' in modules:
-    #     config.add_static_view('static_pospbb', 'opensipkd.pos.pbb:static', cache_max_age=3600)
-
     config.registry['mailer'] = mailer_factory_from_settings(settings)
-    # config.include()
     config.scan()
     for m in modules:
         config.scan(m)

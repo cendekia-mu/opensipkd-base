@@ -258,13 +258,15 @@ def alembic_run(ini_file, name=None):
         if subprocess.call(command) != 0:
             sys.exit()
 
-
-def base_alembic_run(ini_file, name=None):
+def alembic_run(ini_file, name='alembic_base'):
     bin_path = os.path.split(sys.executable)[0]
     alembic_bin = os.path.join(bin_path, 'alembic')
-    command = (alembic_bin, '-c', ini_file, '-n', 'alembic_base', 'upgrade', 'head')
+    command = (alembic_bin, '-c', ini_file, '-n', name, 'upgrade', 'head')
     if subprocess.call(command) != 0:
         sys.exit()
+
+def base_alembic_run(ini_file):
+    alembic_run(ini_file)
 
 
 def main(argv=sys.argv):

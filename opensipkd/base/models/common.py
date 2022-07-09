@@ -38,8 +38,9 @@ class UserDeviceModel(Base, KodeModel):
     kode = Column(String(256))
     token = Column(String(256))
     logged_in = Column(Integer)
-    las_login_date = Column(DateTime)
-
+    las_login_date = Column(DateTime(timezone=True))
+    expired = Column(DateTime(timezone=True))
+    user = relationship(User, backref=backref("devices"))
 
 class ResCompany(Base, NamaModel):
     __tablename__ = 'company'

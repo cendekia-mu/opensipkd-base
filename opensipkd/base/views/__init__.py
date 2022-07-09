@@ -4,15 +4,20 @@ from datetime import timedelta
 import colander
 from deform import (
     Form, ValidationFailure, widget, Button, )
+from opensipkd.tools.api import JsonRpcInvalidLoginError
 from pyramid.httpexceptions import (
     HTTPFound, HTTPForbidden, HTTPNotFound, HTTPInternalServerError,
     HTTPSeeOther)
 from pyramid.i18n import TranslationStringFactory
 from pyramid.interfaces import IRoutesMapper
+from pyramid.renderers import render_to_response
 from pyramid.response import Response
+from pyramid.security import remember
 from pyramid.view import view_config
 
 from opensipkd.base import get_params
+
+from opensipkd.base.tools.api import rpc_auth
 from .base_views import BaseView
 from ..models import (
     DBSession, UserService, )
@@ -74,18 +79,11 @@ class Home(BaseView):
 
 @view_config(context=HTTPForbidden, renderer='templates/403.pt')
 def http_forbidden(request):
-    # if request.authenticated_userid:  # (request):
-    #     request.session.flash('Hak Akses Terbatas', 'error')
-    #     return HTTPFound(location=request.route_url('home'))
-    # return HTTPFound(location=request.route_url('login'))
-
     if not request.is_authenticated:
         next_url = request.route_url('login', _query={'next': request.url})
-        # next_url = f'{get_params("_host").strip()}/{next_url}'
-        # log.info(next_url)
         return HTTPSeeOther(location=next_url)
-    request.response.status = 403
 
+    request.response.status = 403
     return {"url": request.url}
 
 

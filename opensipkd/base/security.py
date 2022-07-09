@@ -1,4 +1,9 @@
 import logging
+
+from opensipkd.base.tools.api import rpc_auth
+from opensipkd.tools.api import JsonRpcInvalidLoginError
+from pyramid.renderers import render_to_response
+
 from .models import (
     User,
     UserGroup,
@@ -35,6 +40,7 @@ def get_user(request):
         q = DBSession.query(User).filter_by(id=user_id)
         return q.first()
 
+
 # def get_user(request):
 #     user_id = request.unauthenticated_userid
 #     if user_id is not None:
@@ -45,21 +51,18 @@ def get_user(request):
 from pyramid.authentication import AuthTktCookieHelper
 from pyramid.authorization import ACLHelper, Authenticated, Everyone
 
+
 class MySecurityPolicy:
     def __init__(self, secret):
         self.helper = AuthTktCookieHelper(secret)
 
     def identity(self, request):
-        # define our simple identity as None or a dict with userid and principals keys
         identity = self.helper.identify(request)
         if identity is None:
             return None
-        userid = identity['userid']  # identical to the deprecated request.unauthenticated_userid
 
-        # verify the userid, just like we did before with groupfinder
+        userid = identity['userid']
         principals = group_finder(userid, request)
-
-        # assuming the userid is valid, return a map with userid and principals
         if principals is not None:
             return {
                 'userid': userid,
@@ -67,18 +70,14 @@ class MySecurityPolicy:
             }
 
     def authenticated_userid(self, request):
-        # defer to the identity logic to determine if the user id logged in
-        # and return None if they are not
-
         identity = request.identity
         if identity is not None:
             return identity['userid']
 
     def permits(self, request, context, permission):
-        # use the identity to build a list of principals, and pass them
-        # to the ACLHelper to determine allowed/denied
         identity = request.identity
         principals = set([Everyone])
+
         if identity is not None:
             principals.add(Authenticated)
             principals.add(identity['userid'])
@@ -90,4 +89,3 @@ class MySecurityPolicy:
 
     def forget(self, request, **kw):
         return self.helper.forget(request, **kw)
-

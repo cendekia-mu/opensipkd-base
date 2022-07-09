@@ -29,13 +29,14 @@ from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.renderers import render_to_response
 from pyramid.security import remember, forget
 from pyramid.view import view_config
-from ziggurat_foundations.models.services.external_identity import ExternalIdentityService
+from ziggurat_foundations.models.services.external_identity import \
+    ExternalIdentityService
 from ziggurat_foundations.models.services.user import UserService
 
 from opensipkd.base import DBSession, get_params
 from opensipkd.base.models import User, ExternalIdentity
 from opensipkd.tools import create_now, set_user_log, get_settings
-from opensipkd.base.views import _, one_hour, two_minutes
+from opensipkd.base.views import _, one_hour, two_minutes, BaseView
 from pyramid_mailer.message import Message
 
 log = __import__("logging").getLogger(__name__)
@@ -60,121 +61,120 @@ def get_login_headers(request, user):
     return headers
 
 
-@view_config(route_name='login', renderer='templates/login.pt')
-def view_login(request):
-    request.session["login"]=True
-    next_url = request.params.get('next', request.referrer)
-    login_tpl = get_params('login_tpl', 'templates/login.pt')
-    if not next_url:
-        next_url = request.route_url('home')  # get_params('_host')+
+class Views(BaseView):
+    @view_config(route_name='login', renderer='templates/login.pt')
+    def view_login(self):
+        request = self.req
+        request.session["login"] = True
+        next_url = request.params.get('next', request.referrer)
+        login_tpl = get_params('login_tpl', 'templates/login.pt')
+        if not next_url:
+            next_url = request.route_url('home')
 
-    if request.authenticated_userid:  # (request):
-        request.session.flash('Anda sudah login', 'error')
-        return HTTPFound(location=f"{request.route_url('home')}")
+        if request.authenticated_userid:  # (request):
+            request.session.flash('Anda sudah login', 'error')
+            return HTTPFound(location=f"{request.route_url('home')}")
 
-    schema = Login(validator=login_validator)
-    form = Form(schema, buttons=('login',))
-    message = ""
-    if 'login' in request.POST:
-        identity = request.POST.get('username')
-        user = schema.user = User.get_by_identity(identity)
-        controls = request.POST.items()
-        try:
-            c = form.validate(controls)
-        except ValidationFailure as e:
-            msg = 'Login gagal'
-            set_user_log(msg, request, log, identity)
-            request.session.flash(msg, 'error')
-            return HTTPFound(location=request.route_url('login'))
-
-        values = dict(c)
-        # start cek external module
-        pckgs = get_params('external-uim')
-        if user:
-            external_user = DBSession.query(ExternalIdentity) \
-                .filter_by(local_user_id=user.id,
-                           external_user_name=identity).first()
-            pckgs = external_user and pckgs or None
-
-        if pckgs:
-            # user_name = user and user.user_name or ""
-            m = import_module(pckgs)
+        schema = Login(validator=login_validator)
+        form = Form(schema, buttons=('login',))
+        message = ""
+        if 'login' in request.POST:
+            identity = request.POST.get('username')
+            user = schema.user = User.get_by_identity(identity)
+            controls = request.POST.items()
             try:
-                user = m.login(identity, values['password'], user)
-            except Exception as e:
-                log.warn(str(e))
-                request.session.flash(str(e), "error")
+                c = form.validate(controls)
+            except ValidationFailure as e:
+                msg = 'Login gagal'
+                set_user_log(msg, request, log, identity)
+                request.session.flash(msg, 'error')
                 return HTTPFound(location=request.route_url('login'))
 
-        else:
-            if not user or not UserService.check_password(user, values['password']):
-                msg = "Login Gagal"
-                set_user_log(msg, request, log, identity)
-                request.session.flash(msg, "error")
-                next_url = f"{request.route_url('login')}?next={next_url}"
-                return HTTPFound(location=next_url)
+            values = dict(c)
+            # start cek external module
+            pckgs = get_params('external-uim')
+            if user:
+                external_user = DBSession.query(ExternalIdentity) \
+                    .filter_by(local_user_id=user.id,
+                               external_user_name=identity).first()
+                pckgs = external_user and pckgs or None
 
-        return redirect_login(request, user)
+            if pckgs:
+                # user_name = user and user.user_name or ""
+                m = import_module(pckgs)
+                try:
+                    user = m.login(identity, values['password'], user)
+                except Exception as e:
+                    log.warn(str(e))
+                    request.session.flash(str(e), "error")
+                    return HTTPFound(location=request.route_url('login'))
 
-    elif 'register' in request.POST:
-        register_form = get_params("register_form", 'register')
-        return HTTPFound(location=request.route_url(register_form))
+            else:
+                if not user or not UserService.check_password(user, values[
+                    'password']):
+                    msg = "Login Gagal"
+                    set_user_log(msg, request, log, identity)
+                    request.session.flash(msg, "error")
+                    next_url = f"{request.route_url('login')}?next={next_url}"
+                    return HTTPFound(location=next_url)
 
-    elif 'login failed' in request.session:
-        r = dict(form=request.session['login failed'])
-        del request.session['login failed']
-        return r
+            return redirect_login(request, user)
 
-    elif "provider_name" in request.params and request.params["provider_name"]:
-        provider_name = request.params["provider_name"]
-        if provider_name == "google":
-            from .base_google import googlesignin
-            try:
-                id_info = googlesignin(request)
-            except Exception as e:
-                login = ""
-                request.session.flash(str(e), "error")
-                return render_to_response(login_tpl,
-                                          dict(form=form.render(),
-                                               message=message,
-                                               url=request.route_url('login'),
-                                               next_url=next_url,
-                                               login=login, ),
-                                          request=request)
-
-            request.session["id_info"] = id_info
-        else:
-            id_info = None
-
-        user = id_info and ExternalIdentityService. \
-            user_by_external_id_and_provider(id_info['sub'], id_info['iss'])
-
-        if id_info and not user:
-            request.session.flash('Silahkan Melakukan Registrasi')
+        elif 'register' in request.POST:
             register_form = get_params("register_form", 'register')
             return HTTPFound(location=request.route_url(register_form))
 
-        if user and user.status == 1:
-            return redirect_login(request, user)
-        else:
-            message = "User anda masih menunggu verifikasi atau lagi di blokir"
-            request.session.flash(message, "error")
-    # if "g_state" in request.cookies:
-        # requests.post("https://accounts.google.com/o/oauth2/revoke?token=" + ACCESS_TOKEN);
-    # headers = forget(request)
-    # request.session.delete()
-    # request.session["start"]="login"
-    login=""
-    return render_to_response(login_tpl,
-                              dict(form=form.render(),
-                                   message=message,
-                                   url=request.route_url('login'),
-                                   next_url=next_url,
-                                   login=login, ),
-                              request=request)
+        elif 'login failed' in request.session:
+            r = dict(form=request.session['login failed'])
+            del request.session['login failed']
+            return r
 
-    # return dict(
-    # )
+        elif "provider_name" in request.params and request.params[
+            "provider_name"]:
+            provider_name = request.params["provider_name"]
+            if provider_name == "google":
+                from .base_google import googlesignin
+                try:
+                    id_info = googlesignin(request)
+                except Exception as e:
+                    login = ""
+                    request.session.flash(str(e), "error")
+                    return render_to_response(login_tpl,
+                                              dict(form=form.render(),
+                                                   message=message,
+                                                   url=request.route_url(
+                                                       'login'),
+                                                   next_url=next_url,
+                                                   login=login, ),
+                                              request=request)
+
+                request.session["id_info"] = id_info
+            else:
+                id_info = None
+
+            user = id_info and ExternalIdentityService. \
+                user_by_external_id_and_provider(id_info['sub'], id_info['iss'])
+
+            if id_info and not user:
+                request.session.flash('Silahkan Melakukan Registrasi')
+                register_form = get_params("register_form", 'register')
+                return HTTPFound(location=request.route_url(register_form))
+
+            if user and user.status == 1:
+                return redirect_login(request, user)
+            else:
+                message = "User anda masih menunggu verifikasi atau lagi di blokir"
+                request.session.flash(message, "error")
+        login = ""
+        return render_to_response(
+            renderer_name=login_tpl,
+            request=request,
+            value=dict(form=form.render(),
+                       message=message,
+                       url=request.route_url('login'),
+                       next_url=next_url,
+                       login=login, ),
+        )
 
 
 def redirect_login(request, user):
@@ -200,7 +200,12 @@ def view_logout(request):
         request.session.delete()
         if "g_state" in request.cookies:
             del request.cookies["g_state"]
-        return HTTPFound(location=f"{request.route_url('home')}",
+            # if "g_state" in request.cookies:
+            # requests.post("https://accounts.google.com/o/oauth2/revoke?token=" + ACCESS_TOKEN);
+            # headers = forget(request)
+            # request.session.delete()
+            # request.session["start"]="login"
+        return HTTPFound(location=request.route_url('home'),
                          headers=headers)
     return dict()
 
@@ -210,14 +215,25 @@ class ChangePassword(colander.Schema):
         colander.String(), widget=widget.PasswordWidget())
     retype_password = colander.SchemaNode(
         colander.String(), widget=widget.PasswordWidget())
+    password = colander.SchemaNode(colander.String(),
+                                   title=_("Old Password"))
 
 
 def change_password_validator(form, value):
+    exc = colander.Invalid(form, '')
+    user = form.request.user
+    if not UserService.check_password(user, value["password"]):
+        exc["password"] = 'Login Failed'
+        raise exc
+
     if value['new_password'] != value['retype_password']:
-        raise colander.Invalid(form, 'Retype mismatch.')
+        exc["new_password"] = 'Retype mismatch.'
+        exc["retype_password"] = 'Retype mismatch.'
+        raise exc
 
 
-@view_config(route_name='change-password', renderer='templates/change-password.pt')
+@view_config(route_name='change-password',
+             renderer='templates/change-password.pt')
 def view_change_password(request):
     if request.authenticated_userid:
         request.session.flash('Anda sudah login', 'error')
@@ -265,7 +281,8 @@ def generate_api_key():
 
 
 @view_config(
-    route_name='recreate-api-key', renderer='templates/recreate-api-key.pt', permission='view')
+    route_name='recreate-api-key', renderer='templates/recreate-api-key.pt',
+    permission='view')
 def view_recreate_api_key(request):
     if not request.user.api_key:
         return HTTPNotFound()
@@ -374,7 +391,8 @@ def regenerate_security_code(user):
     return one_hour
 
 
-@view_config(route_name='reset-password', renderer='templates/reset-password.pt')
+@view_config(route_name='reset-password',
+             renderer='templates/reset-password.pt')
 def view_reset_password(request):
     if request.authenticated_userid:
         return HTTPFound(location=f"{request.route_url('home')}")
@@ -394,7 +412,8 @@ def view_reset_password(request):
             resp['form'] = form.render()
             return resp
         remain = regenerate_security_code(user)
-        set_user_log("Reset password to {}".format(user.email), request, log, user.user_name)
+        set_user_log("Reset password to {}".format(user.email), request, log,
+                     user.user_name)
         send_email_security_code(
             request, user, remain, 'Reset password', 'reset-password-body',
             'reset-password-body.tpl')
@@ -404,6 +423,7 @@ def view_reset_password(request):
 
 
 @view_config(
-    route_name='reset-password-sent', renderer='templates/reset-password-sent.pt')
+    route_name='reset-password-sent',
+    renderer='templates/reset-password-sent.pt')
 def view_reset_password_sent(request):
     return dict(title=_('Reset password'))

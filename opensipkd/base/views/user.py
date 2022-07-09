@@ -94,8 +94,8 @@ class Views(BaseView):
                                          base_path=base_path)
             filename = os.path.basename(filename)
             resp = pdf_response(self.req, pdf, filename)
-            if resp.content_length<10:
-                resp.content_length=len(resp.body)
+            if resp.content_length < 10:
+                resp.content_length = len(resp.body)
             return resp
 
         return super(Views, self).view_act()
@@ -238,21 +238,22 @@ class EmailValidator(colander.Email, Validator):
         Validator.__init__(self, user)
 
     def __call__(self, node, value):
+        def email_found():
+            data = dict(email=email, uid=found.id)
+            ts = _(
+                'email-already-used',
+                default='Email ${email} already used by user ID ${uid}',
+                mapping=data)
+            raise colander.Invalid(node, ts)
+
         if self.match_object.match(value) is None:
             raise colander.Invalid(node, _('Invalid email format'))
+
         email = value.lower()
-        if self.user and self.user.email == email:
-            return
         q = DBSession.query(User).filter_by(email=email)
         found = q.first()
-        if not found:
-            return
-        data = dict(email=email, uid=found.id)
-        ts = _(
-            'email-already-used',
-            default='Email ${email} already used by user ID ${uid}',
-            mapping=data)
-        raise colander.Invalid(node, ts)
+        if found and (not self.user or self.user.email!=found.email):
+            email_found()
 
 
 REGEX_ONLY_CONTAIN = re.compile('([A-Za-z0-9-]*)')

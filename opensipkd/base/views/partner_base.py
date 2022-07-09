@@ -12,11 +12,12 @@ class NamaSchema(colander.Schema):
         validator=colander.Length(max=32),
         oid="kode",
         title="Kode",
-    width="100pt")
+        width="100pt")
     nama = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=64),
         oid="nama")
+
 
 class PartnerSchema(NamaSchema):
     alamat_1 = colander.SchemaNode(
