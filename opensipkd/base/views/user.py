@@ -14,7 +14,7 @@ from . import BaseView
 from .company import company_widget
 from .user_login import (
     regenerate_security_code, send_email_security_code, generate_api_key, )
-from ..models import (DBSession, User, Group, UserGroup, ResCompany, )
+from opensipkd.models import (DBSession, User, Group, UserGroup, ResCompany, )
 
 _ = TranslationStringFactory('user')
 

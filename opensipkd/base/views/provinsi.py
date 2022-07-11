@@ -3,7 +3,7 @@ from deform import (widget, )
 from pyramid.view import (view_config, )
 
 from . import widget_os
-from ..models import DBSession, ResProvinsi, kategori_provinsi
+from opensipkd.models import DBSession, ResProvinsi, kategori_provinsi
 from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah provinsi gagal'

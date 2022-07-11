@@ -17,7 +17,7 @@ from email.utils import parseaddr
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, btn_view, btn_add, btn_edit, btn_csv, \
     btn_pdf
 
-from ..models import User
+from opensipkd.models import User
 from ...detable import DeTable
 
 
@@ -145,13 +145,21 @@ class BaseView(object):
     def form_validator(self, form, value):
         pass
 
-    def get_params(self, params):
-        return get_params(params)
+    def get_params(self, params, default=None):
+        return get_params(params, default)
 
-    def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel), **bindings):
+    def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel), **kwargs):
         buttons = self.buttons and self.buttons or buttons
-        bindings = self.bindings and self.bindings or bindings
-        schema = class_form(validator=self.form_validator)
+        if "bindings" in kwargs and kwargs["bindings"]:
+            bindings = kwargs["bindings"]
+        else:
+            bindings = self.bindings
+
+        if "validator" in kwargs and kwargs["validator"]:
+            schema = class_form(validator=kwargs["validator"])
+        else:
+            schema = class_form(validator=self.form_validator)
+
         schema = schema.bind(request=self.req, **bindings)
         schema.request = self.req
         if row:
@@ -186,7 +194,7 @@ class BaseView(object):
         if not row:
             return self.id_not_found()
         bindings = self.get_bindings(row)
-        form = self.get_form(self.edit_schema, buttons=(btn_close,), **bindings)
+        form = self.get_form(self.edit_schema, buttons=(btn_close,), bindings=bindings)
         if request.POST:
             return self.route_list()
 
@@ -208,7 +216,7 @@ class BaseView(object):
         return
 
     def next_act(self):
-        return
+        raise NotImplementedError
 
     def list_join(self, query):
         return query
@@ -230,16 +238,16 @@ class BaseView(object):
 
             query = DBSession.query().select_from(self.table)
             query = self.list_join(query)
-            if self.req.user.company_id and hasattr(self.table, "company_id"):
+            if self.req.user and self.req.user.company_id and hasattr(self.table, "company_id"):
                 query = query.filter(self.table.company_id == self.req.user.company_id)
             row_table = DataTables(self.req.GET, query, columns)
             return row_table.output_result()
         else:
-            self.next_act()
+            return self.next_act()
 
     def view_add(self):
         bindings = self.get_bindings()
-        form = self.get_form(self.add_schema, **bindings)
+        form = self.get_form(self.add_schema, bindings=bindings)
         table = self.get_item_table()
         resources = form.get_widget_resources()
         if self.req.POST:
@@ -248,22 +256,27 @@ class BaseView(object):
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
-                    value = self.validation_failure(e.cstruct)
-                    value.update(self.before_add())
-                    form.render(appstruct=value)
-                    return dict(form=form.render(), table=table and table.render() or None,
-                                scripts=self.form_scripts, css=resources["css"], js=resources["js"])
+                    # value = self.validation_failure(e.cstruct)
+                    # value.update(self.before_add())
+                    # form.render(appstruct=value)
+                    return dict(form=form.render(e.cstruct),
+                                table=table and table.render() or None,
+                                scripts=self.form_scripts, css=resources["css"],
+                                js=resources["js"])
                 values = dict(controls)
                 row = self.save_request(values)
                 self.after_add(row, values)
-            if "cancel" in self.req.POST or 'batal' in self.req.POST:
+            elif "cancel" in self.req.POST or 'batal' in self.req.POST:
                 self.cancel_act()
+            else:
+                return self.next_add(form)
 
             return self.route_list()
         values = self.before_add()
         form.set_appstruct(values)
         return dict(form=form.render(), table=table and table.render() or None,
-                    scripts=self.form_scripts, css=resources["css"], js=resources["js"])
+                    scripts=self.form_scripts, css=resources["css"],
+                    js=resources["js"])
 
     def before_save(self, row, values):
         return row
@@ -290,8 +303,7 @@ class BaseView(object):
         return row
 
     def save_request(self, values, row=None):
-        params = self.req.params
-        for k, v in params.items():
+        for k, v in self.req.GET.items():
             if k not in values:
                 if v:
                     values[k] = v
@@ -384,6 +396,14 @@ class BaseView(object):
             return query.filter(self.table.company_id == self.req.user.company_id)
         return query
 
+    def next_add(self, form):
+        """
+        Digunakan untuk memverifikasi button yang lainnya
+        :param form:  Object Form
+        :return:
+        """
+        return self.route_list()
+
 
 @colander.deferred
 def deferred_status(node, kw):
@@ -401,15 +421,6 @@ class Store(dict):
     def preview_url(self, name):
         return ""
 
-
-store = Store()
-reg_exts = ['.png', '.jpg', '.pdf', '.jpeg']
-
-
-def image_validator(node, value):
-    ext = get_ext(value["filename"])
-    if ext not in reg_exts:
-        raise colander.Invalid(node, f'Extension harus salahsatu dari {reg_exts}')
 
 
 username_re = re.compile('^[a-z0-9_]{6,16}$', re.IGNORECASE)

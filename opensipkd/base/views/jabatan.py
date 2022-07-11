@@ -5,7 +5,7 @@ from opensipkd.tools.buttons import btn_view, btn_add, btn_edit, btn_delete, btn
 from opensipkd.tools.report import csv_response, open_rml_pdf, open_rml_row, pdf_response
 from pyramid.view import (view_config, )
 from .partner_base import NamaSchema
-from ..models import (
+from opensipkd.models import (
     DBSession,
     Jabatan,
     Eselon, Departemen

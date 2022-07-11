@@ -1,15 +1,12 @@
-import json
-
 import colander
-from deform import (widget, Form, )
-from opensipkd.tools.buttons import btn_close, btn_cancel, btn_save, btn_add, btn_edit, btn_delete
+from deform import (widget, )
+from opensipkd.base.views.provinsi import provinsi_widget
+from opensipkd.models import DBSession, ResKecamatan, ResDati2, ResProvinsi
 from pyramid.view import (view_config, )
 
 from . import widget_os
 from .dati2 import dati2_widget
-from ..models import DBSession, ResKecamatan, ResDati2, ResProvinsi
-from ..views import ColumnDT, DataTables, BaseView
-from ...detable import DeTable
+from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah kecamatan gagal'
 SESS_EDIT_FAILED = 'Edit kecamatan gagal'
@@ -29,11 +26,23 @@ def kecamatan_widget(node, kw):
 
 
 class AddSchema(colander.Schema):
-    dati2_id = colander.SchemaNode(colander.String(),
-                                   widget=dati2_widget,
-                                   validator=colander.Length(max=32), oid="kode")
-    kode = colander.SchemaNode(colander.String(),
-                               validator=colander.Length(max=32), oid="kode")
+    provinsi_id = colander.SchemaNode(
+        colander.String(),
+        widget=provinsi_widget,
+        validator=colander.Length(max=32),
+        oid="provinsi_id",
+        slave="dati2_id",
+        slave_url="/dati2/select/act?provinsi_id=",
+        title="Provinsi",
+    )
+    dati2_id = colander.SchemaNode(
+        colander.String(),
+        widget=dati2_widget,
+        validator=colander.Length(max=32),
+        oid="dati2_id")
+    kode = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=32), oid="kode")
     nama = colander.SchemaNode(colander.String(), oid="nama")
 
 
@@ -43,7 +52,8 @@ class EditSchema(AddSchema):
 
 
 class ListSchema(colander.Schema):
-    id = colander.SchemaNode(colander.Integer(), searchable=False, orderable=False, visible=False)
+    id = colander.SchemaNode(colander.Integer(), searchable=False,
+                             orderable=False, visible=False)
     kode = colander.SchemaNode(colander.String(), width='100pt', title="Kode")
     nama = colander.SchemaNode(colander.String(), title="Nama")
     kabupaten = colander.SchemaNode(colander.String(), field=ResDati2.nama)

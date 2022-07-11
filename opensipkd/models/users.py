@@ -1,4 +1,6 @@
 from datetime import datetime
+
+import pytz
 from ziggurat_foundations import ziggurat_model_init
 
 import sqlalchemy as sa
@@ -18,7 +20,7 @@ from ziggurat_foundations.models.user_group import UserGroupMixin
 from ziggurat_foundations.models.user_permission import UserPermissionMixin
 from ziggurat_foundations.models.user_resource_permission import UserResourcePermissionMixin
 from ziggurat_foundations.models.services.external_identity import ExternalIdentityService
-from opensipkd.tools import as_timezone
+from opensipkd.tools import as_timezone, get_timezone
 
 from .base import CommonModel, DBSession, DefaultModel
 from .meta import Base
@@ -71,6 +73,10 @@ class User(UserMixin, BaseModel, CommonModel, Base):
     registered_date = Column(DateTime(timezone=True),
                              nullable=False,
                              default=datetime.utcnow)
+    security_code_date = Column(DateTime(timezone=True),
+                                default=datetime(2000, 1, 1, tzinfo=pytz.timezone('Asia/Jakarta')),
+                                server_default="2000-01-01 01:01+7",
+                                )
     api_key = Column(String(256))
     partner_id = Column(Integer) #, ForeignKey(Partner.id))
     company_id = Column(Integer) #, ForeignKey(Partner.id))

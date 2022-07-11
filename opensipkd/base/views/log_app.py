@@ -8,7 +8,7 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
 from opensipkd.base import DBSession
-from opensipkd.base.models.handlers import Log
+from opensipkd.models.handlers import Log
 from opensipkd.base.views import BaseView, DataTables
 
 

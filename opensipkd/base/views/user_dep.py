@@ -14,8 +14,8 @@
 # )
 # from sqlalchemy.orm import aliased
 #
-# from ..models import DBSession
-# from ..models import DepartemenUser, User, Departemen
+# from opensipkd.models import DBSession
+# from opensipkd.models import DepartemenUser, User, Departemen
 # from ..views import ColumnDT, DataTables, BaseView
 #
 # SESS_ADD_FAILED = 'Tambah departemen gagal'

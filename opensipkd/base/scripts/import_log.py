@@ -13,7 +13,7 @@ from sqlalchemy import (
     exc,
     )
 from sqlalchemy.orm import sessionmaker
-from ..models.handlers import (
+from opensipkd.models.handlers import (
     Log,
     LogDBSession,
     )

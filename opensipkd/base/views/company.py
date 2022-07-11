@@ -2,9 +2,9 @@ import colander
 from deform import (widget, )
 from pyramid.view import (view_config, )
 
-from opensipkd.base.models import ResProvinsi, ResDati2, ResDesa, User
+from opensipkd.models import ResProvinsi, ResDati2, ResDesa, User
 from .partner_base import PartnerSchema, NamaSchema
-from ..models import DBSession, ResCompany, ResKecamatan, Partner
+from opensipkd.models import DBSession, ResCompany, ResKecamatan, Partner
 from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah pemda gagal'
@@ -40,7 +40,7 @@ class ListSchema(NamaSchema):
 
 class ViewCompany(BaseView):
     def __init__(self, request):
-        super(ViewCompany, self).__init__(request)
+        super().__init__(request)
         self.list_route = 'company'
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
@@ -91,16 +91,20 @@ class ViewCompany(BaseView):
 
         partner_id = value.get('partner_id')
 
-        found = Partner.query_email(value.get('email')).first()
-        if found:
-            if found and found.id != partner_id:
+        if 'email' in value and value["email"]:
+            found = Partner.query_email(value.get('email')).first()
+            if found:
+                if found and found.id != partner_id:
+                    err_email()
+            elif found:
                 err_email()
-        elif found:
-            err_email()
 
-        found = User.get_by_identity(value.get('email'))
-        if found:
-            err_user()
+            found = User.get_by_identity(value.get('email'))
+            if found:
+                err_user()
+        value["status"]="status" in value and value["status"] and 1 or 0
+        value["is_vendor"]="is_vendor" in value and value["is_vendor"] and 1 or 0
+        value["is_customer"]="is_customer" in value and value["is_customer"] and 1 or 0
 
     def get_bindings(self, row=None):
         provinsi_list = ResProvinsi.get_list()
@@ -162,14 +166,21 @@ class ViewCompany(BaseView):
             part = None
             if "id" in values:
                 del values["id"]
-        from .partner import save as partner_save
-        part = partner_save(values, self.req.user, part)
-
+        if not part:
+            part = Partner()
+        part.from_dict(values)
+        DBSession.add(part)
+        DBSession.flush()
         if part:
             values["partner_id"] = part.id
+
         if "id" in self.req.matchdict:
             values["id"] = self.req.matchdict["id"]
 
         row = self.save(values, self.req.user, row)
+        if not part.company_id:
+            part.company_id = row.id
+            DBSession.add(part)
+            DBSession.flush()
         return row
 

@@ -1,3 +1,8 @@
-<p id="${oid|field.oid}" class="form-control-static deform-readonly-text"
-   tal:content="cstruct.get('filename') or ''">
+<p tal:define="preview_url cstruct.get('preview_url')">
+<a tal:condition="preview_url" href="${structure: preview_url}"
+                                     target="_blank">Show</a>
+<p tal:condition="not preview_url" id="${oid|field.oid}"
+                                   class="form-control-static deform-readonly-text"
+         tal:content="cstruct.get('filename') or ''"></p>
 </p>
+

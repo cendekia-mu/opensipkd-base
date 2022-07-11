@@ -12,8 +12,8 @@ from opensipkd.tools.report import (
     pdf_response,
     csv_response,
 )
-from ..models import DBSession
-from ..models import (
+from opensipkd.models import DBSession
+from opensipkd.models import (
     Departemen,
 )
 from ..views import (BaseView, )

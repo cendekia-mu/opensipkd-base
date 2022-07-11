@@ -6,7 +6,7 @@ from pyramid.paster import (
     get_appsettings,
     setup_logging,
 )
-from ..models import (
+from opensipkd.models import (
     DBSession,
     Route,
 )

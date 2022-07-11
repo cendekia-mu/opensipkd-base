@@ -14,7 +14,7 @@
 # # from . import get_login_headers
 # # from .register import mobile_found_partner, save_partner, nik_found
 # from .user_group import save as save_groups
-# from ..models import DBSession, Partner, Group, ExternalIdentity, User, ExternalIdentityService
+# from opensipkd.models import DBSession, Partner, Group, ExternalIdentity, User, ExternalIdentityService
 # from opensipkd.tools import get_settings
 # from opensipkd.tools.captcha import get_captcha
 # from ..views import BaseView

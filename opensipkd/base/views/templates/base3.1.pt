@@ -7,8 +7,8 @@
         group_path  ['group', 'group-add', 'group-edit', 'group-view', 'group-delete'];
         param_path  ['parameter', 'parameter-add', 'parameter-edit', 'parameter-view', 'parameter-delete'];
         dep_path ['departemen', 'departemen-add', 'departemen-edit', 'departemen-view', 'departemen-delete'];
-        partner_path ['partner', 'partner-add', 'partner-edt', 'partner-view', 'partner-del'];
-        company_path ['company', 'company-add', 'company-edt', 'company-view', 'company-del'];
+        partner_path ['partner', 'partner-add', 'partner-edit', 'partner-view', 'partner-delete'];
+        company_path ['company', 'company-add', 'company-edit', 'company-view', 'company-delete'];
         part_dep_path ['partner-departemen', 'partner-departemen-add', 'partner-departemen-edit', 'partner-departemen-view', 'partner-departemen-delete'];
         jabatan_path ['jabatan', 'jabatan-add', 'jabatan-edit', 'jabatan-view', 'jabatan-delete'];
         eselon_path ['eselon', 'eselon-add', 'eselon-edit', 'eselon-view', 'eselon-delete'];

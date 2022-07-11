@@ -6,12 +6,13 @@ from sqlalchemy import (
     DateTime, ForeignKey
 )
 
-from opensipkd.base.models.common import NamaModel
+from .common import NamaModel
 from .wilayah import ResProvinsi, ResDesa, ResKecamatan, ResDati2
 from .meta import (Base)
 
 
 class PartnerModel(NamaModel):
+    idcard = Column(String(256))
     status = Column(Integer, default=1)
     alamat_1 = Column(String(128))
     alamat_2 = Column(String(128))

@@ -2,7 +2,7 @@ import logging
 import traceback
 from datetime import datetime
 from hashlib import md5
-from opensipkd.base.models.handlers import (
+from opensipkd.models.handlers import (
     Log,
     LogDBSession,
     )

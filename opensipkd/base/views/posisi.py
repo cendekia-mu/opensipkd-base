@@ -6,9 +6,9 @@ from pyramid.view import (view_config, )
 from sqlalchemy import or_
 from sqlalchemy.orm import aliased
 
-from ..models import DBSession as PartnerDBSession, DBSession, ResCompany
-from ..models import Departemen, Jabatan
-from ..models import Partner, PartnerDepartemen
+from opensipkd.models import DBSession as PartnerDBSession, DBSession, ResCompany
+from opensipkd.models import Departemen, Jabatan
+from opensipkd.models import Partner, PartnerDepartemen
 from opensipkd.tools import dmy, date_from_str
 from opensipkd.tools.buttons import btn_cancel, btn_save, btn_delete, btn_close
 from ..views import ColumnDT, DataTables, BaseView

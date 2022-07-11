@@ -4,7 +4,7 @@ from pyramid.view import (view_config, )
 
 from . import widget_os
 from .provinsi import provinsi_widget
-from ..models import DBSession, ResDati2, kategori_dati2, ResProvinsi
+from opensipkd.models import DBSession, ResDati2, kategori_dati2, ResProvinsi
 from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah dati2 gagal'

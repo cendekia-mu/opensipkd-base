@@ -28,7 +28,7 @@ from .security import (
     group_finder,
     get_user, MySecurityPolicy,
 )
-from .models import (
+from opensipkd.models import (
     DBSession,
     Base,
     init_model,
@@ -50,7 +50,7 @@ from pkg_resources import resource_filename
 
 import os
 
-from .models.handlers import LogDBSession
+from opensipkd.models.handlers import LogDBSession
 
 log = logging.getLogger(__name__)
 
@@ -350,7 +350,7 @@ def set_routes(config, app_id=None):
             config.add_jsonrpc_endpoint(route.kode, route.path,
                                         default_renderer="json_rpc")
 
-
+partner_idcard_folder = 'partner/idcard'
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -370,9 +370,9 @@ def main(global_config, **settings):
         settings['timezone'] = DefaultTimeZone
 
     config = Configurator(settings=settings,
-                          root_factory='opensipkd.base.models.RootFactory',
+                          root_factory='opensipkd.models.RootFactory',
                           session_factory=session_factory)
-    from .models import RootFactory
+    from opensipkd.models import RootFactory
     modules = get_modules(settings)
     from importlib import import_module
     for module in modules:
@@ -409,6 +409,9 @@ def main(global_config, **settings):
     config.add_request_method(disable_responsive, 'disable_responsive', reify=True)
     config.add_request_method(get_params, 'get_params', reify=True)
     config.add_static_view('static', 'opensipkd.base:static', cache_max_age=3600)
+    config.add_static_view(partner_idcard_folder,
+                           get_params("partner_idcard_folder", '/tmp/idcard'),
+                           cache_max_age=3600)
     config.add_static_view('deform_static', 'deform:static')
 
     captcha_files = get_params('captcha_files', settings=settings, alternate="/tmp/captcha")

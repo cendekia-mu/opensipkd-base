@@ -6,7 +6,7 @@ from pyramid.i18n import TranslationStringFactory
 from pyramid.view import view_config
 
 from . import BaseView
-from ..models import (DBSession, User, ExternalIdentity)
+from opensipkd.models import (DBSession, User, ExternalIdentity)
 
 _ = TranslationStringFactory('user')
 

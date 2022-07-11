@@ -1,5 +1,5 @@
 from sqlalchemy import func
-from opensipkd.base.models import Parameter
+from opensipkd.models import Parameter
 
 
 def column_concat(cols=None):

@@ -5,7 +5,7 @@ from pyramid.view import (view_config, )
 from .dati2 import dati2_widget
 from .kecamatan import kecamatan_widget
 from .provinsi import provinsi_widget
-from ..models import DBSession, ResDesa, kategori_desa, ResKecamatan, ResProvinsi, ResDati2
+from opensipkd.models import DBSession, ResDesa, kategori_desa, ResKecamatan, ResProvinsi, ResDati2
 from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah desa gagal'
@@ -22,13 +22,25 @@ def desa_widget(node, kw):
 class AddSchema(colander.Schema):
     provinsi_id = colander.SchemaNode(colander.String(),
                                       widget=provinsi_widget,
-                                      validator=colander.Length(max=32), oid="kode")
+                                      validator=colander.Length(max=32),
+                                      oid="provinsi_id",
+                                      slave="dati2_id",
+                                      slave_url="/dati2/select/act?provinsi_id=",
+                                      title="Provinsi",
+                                      )
     dati2_id = colander.SchemaNode(colander.String(),
                                    widget=dati2_widget,
-                                   validator=colander.Length(max=32), oid="kode")
+                                   validator=colander.Length(max=32),
+                                   oid="dati2_id",
+                                   slave="kecamatan_id",
+                                   slave_url="/kecamatan/select/act?dati2_id=",
+                                   title="Kabupaten/Kota",
+                                   )
     kecamatan_id = colander.SchemaNode(colander.String(),
                                        widget=kecamatan_widget,
-                                       validator=colander.Length(max=32), oid="kode")
+                                       validator=colander.Length(max=32),
+                                       oid="kecamatan_id",
+                                       title="Kecamatan")
     kode = colander.SchemaNode(colander.String(),
                                validator=colander.Length(max=32), oid="kode")
     kategori = colander.SchemaNode(colander.String(),

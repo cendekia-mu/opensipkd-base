@@ -1,3 +1,5 @@
+import os
+
 import colander
 from deform import (
     widget,
@@ -6,13 +8,16 @@ from pyramid.view import (
     view_config,
 )
 
-from opensipkd.base.models import (
+from opensipkd.models import (
     ResProvinsi, ResDati2, ResKecamatan, ResDesa)
-from opensipkd.base.models.common import ResCompany
+from opensipkd.models.common import ResCompany
+
+from opensipkd.tools import Upload, img_exts
 from .company import company_widget
 from .partner_base import PartnerSchema, NamaSchema
-from ..models import DBSession
-from ..models import Partner
+from opensipkd.models import DBSession, Partner
+
+from .. import partner_idcard_folder
 from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah partner gagal'
@@ -54,6 +59,9 @@ class ListSchema(NamaSchema):
                              missing=colander.drop,
                              widget=widget.HiddenWidget(),
                              )
+    email = colander.SchemaNode(
+        colander.String(),
+        oid="email")
     status = colander.SchemaNode(
         colander.Boolean(),
         oid="status")
@@ -147,22 +155,22 @@ class ViewPartner(BaseView):
                 r.append(d)
             return r
 
-    @view_config(route_name='partner-add', renderer='templates/form_input.pt',
+    @view_config(route_name='partner-add', renderer='templates/form.pt',
                  permission='user-edit')
     def view_add(self):
         return super().view_add()
 
-    @view_config(route_name='partner-edit', renderer='templates/form_input.pt',
+    @view_config(route_name='partner-edit', renderer='templates/form.pt',
                  permission='user-edit')
     def view_edt(self):
         return super().view_edit()
 
-    @view_config(route_name='partner-view', renderer='templates/form_input.pt',
+    @view_config(route_name='partner-view', renderer='templates/form.pt',
                  permission='user-edit')
     def view_view(self):
         return super().view_view()
 
-    @view_config(route_name='partner-delete', renderer='templates/form_input.pt',
+    @view_config(route_name='partner-delete', renderer='templates/form.pt',
                  permission='user-edit')
     def view_delete(self):
         return super().view_delete()
@@ -179,6 +187,7 @@ class ViewPartner(BaseView):
             row = q.first()
         else:
             row = None
+
         q = Partner.query_kode(value['kode'])
         found = q.first()
         if row:
@@ -203,6 +212,26 @@ class ViewPartner(BaseView):
             company_list=ResCompany.get_list()
         )
 
+    def save_request(self, values, row=None):
+        if "idcard" in values and values["idcard"]:
+            folder = self.get_params("idcard_folder", '/tmp/idcard')
+            upload = Upload(folder)
+            file_name = upload.save(self.req, 'upload', img_exts)
+            values["idcard"] = file_name
+        row = super().save_request(values, row)
+        return row
+
+    def get_values(self, row, istime=False):
+        d = super().get_values(row, istime)
+        if "idcard" in d and d["idcard"]:
+            filename = d["idcard"]
+            preview_url = "/".join(
+                                [self.home, partner_idcard_folder, filename])
+            d["idcard"] = {"uid": filename.split(".")[0],
+                            "filename": filename,
+                            "preview_url": preview_url
+                            }
+        return d
 
 @colander.deferred
 def partner_widget(node, kw):

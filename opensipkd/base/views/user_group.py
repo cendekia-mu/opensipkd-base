@@ -12,7 +12,7 @@ from deform import (
     widget,
     ValidationFailure,
 )
-from ..models import (
+from opensipkd.models import (
     DBSession,
     User,
     Group,

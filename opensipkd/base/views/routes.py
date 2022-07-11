@@ -4,7 +4,7 @@ from opensipkd.tools.buttons import btn_view, btn_edit, btn_delete
 from pyramid.view import view_config
 
 from . import BaseView
-from ..models import (DBSession, Route, )
+from opensipkd.models import (DBSession, Route, )
 
 
 class EditSchema(colander.Schema):

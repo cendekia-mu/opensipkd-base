@@ -19,7 +19,7 @@ from opensipkd.base import get_params
 
 from opensipkd.base.tools.api import rpc_auth
 from .base_views import BaseView
-from ..models import (
+from opensipkd.models import (
     DBSession, UserService, )
 from .common import DataTables, ColumnDT
 

@@ -1,7 +1,7 @@
 from sqlalchemy import (Column, Integer, String, DateTime, func, )
 from sqlalchemy.orm import (scoped_session, sessionmaker, )
 from opensipkd.base import Base
-from opensipkd.base.models import CommonModel
+from opensipkd.models import CommonModel
 
 factory = sessionmaker(autoflush=True, autocommit=True)
 LogDBSession = scoped_session(factory)

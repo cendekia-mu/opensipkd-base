@@ -3,7 +3,7 @@ from pyramid_rpc.jsonrpc import jsonrpc_method
 from opensipkd.tools.api import JsonRpcInvalidDataError, JsonRpcInvalidLoginError
 from ziggurat_foundations.models.services.user import UserService
 
-from ..models import Partner, User
+from opensipkd.models import Partner, User
 
 
 

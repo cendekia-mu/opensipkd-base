@@ -5,7 +5,7 @@ import requests
 from opensipkd.tools import (
     get_random_number, devel, get_random_string, get_settings, DefaultTimeZone, get_params, get_timezone)
 from opensipkd.tools.api import *
-from ..models import (DBSession, User, GroupPermission, UserDeviceModel)
+from opensipkd.models import (DBSession, User, GroupPermission, UserDeviceModel)
 import logging
 
 log = logging.getLogger(__name__)
@@ -91,20 +91,6 @@ def get_user_device(request, user_id):
     return user_device
 
 
-def validate_time(request):
-    global lima_menit
-    env = request.environ
-    time_stamp = int(env['HTTP_KEY'])
-    now = get_seconds()
-    settings = get_settings()
-    if 'diff_server_time' in settings and settings["diff_server_time"]:
-        lima_menit = int(settings["diff_server_time"])
-
-    if not request.devel and abs(now - time_stamp) > lima_menit:
-        log.info(f"req time {time_stamp} server time {now}")
-        raise JsonRpcInvalidTimeError
-
-    return time_stamp
 
 
 def auth_device(request):
@@ -134,10 +120,6 @@ def auth_device(request):
 
     return user
 
-
-def get_jsonrpc(method, params):
-    return dict(jsonrpc='2.0', method=method, params=params,
-                id=int(get_random_number(6)))
 
 
 def check_token(token, perm_name=None):
@@ -171,44 +153,3 @@ def update_token(user):
         DBSession.flush()
     return dict(token=user.security_code)
 
-
-def get_mandatory(data, values):
-    for value in values:
-        if value not in data or not data[value]:
-            raise JsonRpcInvalidDataError(message="{} Not Found".format(value))
-
-
-def send_rpc(auth, message):
-    """
-    Digunakan untuk mengirim data dengan methode JSONRPC 2.0 with os-auth
-    :param auth: Dict
-        {"user": user,
-        "url": url,
-        "key": key,
-        "method": method,
-        "timeout": optional,
-        }
-    :param message: Dict
-    :return: Dict
-    """
-    userid = auth['user']
-    password = auth['key']
-    url = auth['url']
-    headers = json_rpc_header(userid, password)
-    params = dict(data=message)
-    data = get_jsonrpc(auth["method"], params)
-    timeout = 'timeout' in auth and int(auth['timeout']) or 5
-    log.info("URL:{} timeout:{} detik".format(url, timeout))
-    log.warning("REQUEST {}".format(data))
-    try:
-        results = requests.post(url, json=data, headers=headers, timeout=timeout)  # data=jsondata,
-    except Exception as e:
-        log.warning(str(e))
-        return
-    if results.status_code != 200:
-        log.info(results)
-        log.info(results.text)
-        return
-    rows = results.text and json.loads(results.text) or None
-    log.info("RESPONSE {}".format(rows))
-    return rows

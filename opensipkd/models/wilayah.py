@@ -1,6 +1,6 @@
 from sqlalchemy.orm import relationship, backref
 
-from opensipkd.base.models import TABLE_ARGS
+from opensipkd.models import TABLE_ARGS
 from sqlalchemy import (
     Column,
     ForeignKey,

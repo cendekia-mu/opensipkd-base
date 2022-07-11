@@ -5,8 +5,8 @@ from pyramid.view import (
     view_config,
 )
 
-from ..models import DBSession as PartnerDBSession
-from ..models import (
+from opensipkd.models import DBSession as PartnerDBSession
+from opensipkd.models import (
     Departemen,
     Jabatan,
     Partner,

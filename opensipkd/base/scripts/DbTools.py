@@ -7,7 +7,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.schema import PrimaryKeyConstraint
 from sqlalchemy.sql.expression import text
-from ..models import (
+from opensipkd.models import (
     Base,
     BaseModel,
     CommonModel,

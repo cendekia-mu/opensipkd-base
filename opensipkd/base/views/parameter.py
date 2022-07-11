@@ -3,7 +3,7 @@ from deform import (widget, )
 from pyramid.view import (view_config, )
 
 from . import BaseView
-from ..models import (
+from opensipkd.models import (
     DBSession,
     Parameter)
 

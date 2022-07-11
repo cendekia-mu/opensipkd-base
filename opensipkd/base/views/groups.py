@@ -4,7 +4,7 @@ from pyramid.i18n import TranslationStringFactory
 from pyramid.view import view_config
 
 from . import BaseView
-from ..models import (
+from opensipkd.models import (
     DBSession,
     Group,
     Permission,

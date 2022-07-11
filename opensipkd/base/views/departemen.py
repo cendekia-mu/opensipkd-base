@@ -12,7 +12,7 @@ from sqlalchemy.orm import aliased
 
 from .company import company_widget
 from .upload import AddSchema as UploadSchema
-from ..models import DBSession, Departemen, Partner, PartnerDepartemen
+from opensipkd.models import DBSession, Departemen, Partner, PartnerDepartemen
 from ..views import ColumnDT, DataTables, BaseView
 
 SESS_ADD_FAILED = 'Tambah departemen gagal'

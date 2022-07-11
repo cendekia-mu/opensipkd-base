@@ -5,8 +5,8 @@ from pyramid.view import (
     view_config,
 )
 
-from ..models import DBSession
-from ..models import (Partner, Departemen,
+from opensipkd.models import DBSession
+from opensipkd.models import (Partner, Departemen,
                       )
 from opensipkd.tools.report import (
     open_rml_row,

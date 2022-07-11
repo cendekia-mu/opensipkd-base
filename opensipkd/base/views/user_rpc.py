@@ -18,8 +18,8 @@ from .user import EmailValidator as EmailValidatorBase
 from .user_group import save as save_groups
 from .user_login import (ChangePassword, change_password_validator,
                          regenerate_security_code, send_email_security_code)
-from ..models import DBSession, UserService, Departemen
-from ..models import (User, Partner, Group, UserGroup, PartnerDepartemen)
+from opensipkd.models import DBSession, UserService, Departemen
+from opensipkd.models import (User, Partner, Group, UserGroup, PartnerDepartemen)
 
 _ = TranslationStringFactory('user')
 
@@ -93,18 +93,19 @@ def login(request, data):
     :param request:
     :param data:
     {
-        user_name:
-        password:
-        device_id:
+        "user_name": "user_name",
+        "password": "password"
     }
-    :return:{
-        "user_name": user_name,
-        "token": token,
-        "nik": nik,
-        "nama": nik,
-        "group": [group],
-        "departemens": departemen
-    }
+    :return:
+        result: "data":
+        {
+            "user_name": "user_name",
+            "nik": nik,
+            "nama": nik,
+            "group": [group],
+            "departemens": [departemen]
+        }
+        error:"error":{}
     """
     is_list = type(data) is list
     data = is_list and data[0] or data
@@ -125,7 +126,6 @@ def logout(request, data):
     :return:{
     }
     """
-    # token_auth(request, logout=True)
     headers = forget(request)
     request.session.delete()
     request.response.headers.update(headers)
@@ -155,7 +155,7 @@ def get_profile(request, data):
     Digunakan untuk memperoleh profile user yang sedang login
     parameter
     @param request: Request
-    @param data: Dict(password=password)
+    @param data: {"password": password}
     @return:
     """
     user = request.user
@@ -257,6 +257,8 @@ def set_profile(request, data):
         email="",
         mobile="",
         nama="",
+        alamat_1="",
+        alamat_2=""
     )
     :return:
     """
@@ -288,13 +290,14 @@ def register_user(request, data):
     """
     Digunakan untuk registrasi user dan profile
     :param request:
-    :param data:Dict(
-        user_name="",
-        nik="",
-        email="",
-        mobile="",
-        nama="",
-    )
+    :param data:{
+        "user_name"="",
+        "email"="",
+        "mobile"="",
+        "nama"="",
+        "alamat_1"="",
+        "alamat_2"=""
+    }
     :return:
     """
     is_list = type(data) is list
@@ -341,6 +344,16 @@ def get_password_(request, data):
 @jsonrpc_method(method='get-password', endpoint='rpc-user')
 @jsonrpc_method(method='get_password', endpoint='rpc-user')
 def get_password(request, data):
+    """
+    Digunakan untuk request password
+    :param request:
+    :param data: {
+        "email": email
+        }
+    :return:
+        success: {"result": {}}
+        error: {"error": {}}
+    """
     return get_password_(request, data)
 
 

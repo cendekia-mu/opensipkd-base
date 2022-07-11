@@ -7,7 +7,7 @@ from pyramid.view import (
 )
 
 from .partner_base import NamaSchema
-from ..models import (
+from opensipkd.models import (
     DBSession,
     Eselon
 )

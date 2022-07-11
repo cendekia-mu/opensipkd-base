@@ -14,7 +14,7 @@ from pyramid.view import (
     view_config,
 )
 
-from ..models import Departemen
+from opensipkd.models import Departemen
 from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah departemen gagal'

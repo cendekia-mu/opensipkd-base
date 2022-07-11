@@ -13,7 +13,7 @@ from sqlalchemy.orm import (
     backref
 )
 
-from opensipkd.base.models import Partner
+from opensipkd.models import Partner
 from ..models import DBSession, Base
 from ..models import (DefaultModel, NamaModel, TABLE_ARGS,
                       User, Departemen)

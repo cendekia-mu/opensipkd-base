@@ -4,7 +4,7 @@ from opensipkd.base.tools.api import rpc_auth
 from opensipkd.tools.api import JsonRpcInvalidLoginError
 from pyramid.renderers import render_to_response
 
-from .models import (
+from opensipkd.models import (
     User,
     UserGroup,
     DBSession,

@@ -7,7 +7,7 @@ from pyramid.paster import (
     setup_logging,
 )
 from sqlalchemy import engine_from_config
-from opensipkd.base.models.meta import Base
+from opensipkd.models.meta import Base
 
 config = context.config
 

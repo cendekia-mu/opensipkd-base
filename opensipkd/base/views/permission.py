@@ -2,7 +2,7 @@ import colander
 from deform import (widget, )
 from pyramid.view import (view_config, )
 
-from ..models import Permission
+from opensipkd.models import Permission
 from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah permission gagal'

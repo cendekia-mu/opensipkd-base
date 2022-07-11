@@ -11,8 +11,8 @@ from sqlalchemy.schema import CreateSchema
 from ziggurat_foundations.models.services.user import UserService
 from pyramid.paster import (get_appsettings, setup_logging, )
 
-from ..models.handlers import LogDBSession
-from ..models import (
+from opensipkd.models.handlers import LogDBSession
+from opensipkd.models import (
     init_model, DBSession, Base, Group, UserGroup, Permission, GroupPermission,
     User, Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa)
 

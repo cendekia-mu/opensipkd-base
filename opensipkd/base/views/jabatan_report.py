@@ -11,8 +11,8 @@ from pyramid.view import (
     view_config,
 )
 
-from ..models import DBSession
-from ..models import (
+from opensipkd.models import DBSession
+from opensipkd.models import (
     Jabatan,
     Departemen,
 )

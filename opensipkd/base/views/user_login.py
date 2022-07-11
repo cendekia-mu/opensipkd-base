@@ -34,7 +34,7 @@ from ziggurat_foundations.models.services.external_identity import \
 from ziggurat_foundations.models.services.user import UserService
 
 from opensipkd.base import DBSession, get_params
-from opensipkd.base.models import User, ExternalIdentity
+from opensipkd.models import User, ExternalIdentity
 from opensipkd.tools import create_now, set_user_log, get_settings
 from opensipkd.base.views import _, one_hour, two_minutes, BaseView
 from pyramid_mailer.message import Message
@@ -323,7 +323,8 @@ def reset_password_validator(form, value):
 
 
 def security_code_age(user):
-    return create_now() - user.security_code_date
+    now = create_now()
+    return  now - user.security_code_date
 
 
 def send_email_security_code(

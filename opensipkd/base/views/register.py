@@ -30,7 +30,7 @@ import os
 
 import colander
 from deform import (widget, Button, FileData)
-from opensipkd.tools import Upload
+from opensipkd.tools import Upload, mem_tmp_store, image_validator
 from pyramid.httpexceptions import HTTPFound
 from pyramid.i18n import TranslationStringFactory
 from pyramid.security import forget
@@ -40,9 +40,9 @@ from ziggurat_foundations.models.services.user import UserService
 from opensipkd.base import get_params
 from opensipkd.base.views.user import email_validator, add_member_count
 from . import widget_os
-from .base_views import store, image_validator, need_captcha, need_verify, get_url_captcha
+from .base_views import  need_captcha, need_verify, get_url_captcha
 from .user_login import regenerate_security_code, get_login_headers, send_email_security_code, send_email_pending
-from ..models import User, DBSession, Partner, Group, UserGroup, ExternalIdentity
+from opensipkd.models import User, DBSession, Partner, Group, UserGroup, ExternalIdentity
 from ..views import BaseView
 
 _ = TranslationStringFactory('user')
@@ -88,9 +88,9 @@ class AddSchema(colander.Schema):
                 title=_("ID Number"),
                 # missing=colander.drop,
                 oid="kode")
-            self["doc_id_card"] = colander.SchemaNode(
+            self["idcard"] = colander.SchemaNode(
                 FileData(),
-                widget=widget.FileUploadWidget(store),
+                widget=widget.FileUploadWidget(mem_tmp_store),
                 title=_("ID Card"),
                 validator=image_validator)
         if not request.user and need_captcha():
@@ -178,8 +178,14 @@ class Registrasi(BaseView):
             raise exc
 
         def err_user():
-            raise colander.Invalid(
-                form['user_name'], 'User name %s sudah ada yang menggunakan' % value['user_name'])
+            if 'user_name' in form:
+                raise colander.Invalid(
+                    form['user_name'], 'User name %s sudah ada yang menggunakan' % value['user_name'])
+            else:
+                raise colander.Invalid(
+                    form['email'], 'User name %s sudah ada yang menggunakan' % value['email'])
+
+
 
         def err_nik():
             if "kode" in form:
@@ -198,10 +204,12 @@ class Registrasi(BaseView):
             ses_captcha = request.session.pop('captcha')
             if captcha != ses_captcha:
                 err_captcha()
-
         is_logged = form.request.user
         if not "email" in value and "id_info" in session:
             value["email"] = session["id_info"]["email"]
+
+        if "user_name" not in value or not value["user_name"]:
+            value["user_name"] = value["email"]
 
         if 'user_name' in value:
             user_name = value["user_name"]
@@ -212,8 +220,7 @@ class Registrasi(BaseView):
             if user and is_logged:
                 if user.id != is_logged.id:
                     err_user()
-        if "user_name" not in value or not value["user_name"]:
-            value["user_name"] = value["mobile"]
+
 
         email = value["email"]
         user = user_found(email)
@@ -262,19 +269,6 @@ class Registrasi(BaseView):
         if need_captcha():
             result.update(dict(captcha=get_url_captcha(self.req)))
         return result
-
-    def before_save(self, row, values):
-        if "doc_id_card" not in values or not values["doc_id_card"]:
-            return row
-
-        path = get_params('reg_folder', '/tmp/registrasi')
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-        upload = Upload(path)
-        values["doc_id_card"] = upload.save(self.req, 'upload')
-        row.doc_id_card = values["doc_id_card"]
-        return row
 
     def after_save(self, row, values):
         if not self.req.user:  # User Baru
@@ -355,7 +349,7 @@ class Registrasi(BaseView):
         forget(self.req)
         self.ses.delete()
 
-    @view_config(route_name='register', renderer='templates/form_input.pt')
+    @view_config(route_name='register', renderer='templates/form.pt')
     def view_register(self):
         if "g_state" in self.req.cookies:
             if "id_info" not in self.ses or not self.ses["id_info"]:
@@ -390,7 +384,7 @@ class Registrasi(BaseView):
             form.set_appstruct(values)
         return form
 
-    @view_config(route_name='profile', renderer='templates/form_input.pt',
+    @view_config(route_name='profile', renderer='templates/form.pt',
                  permission='view')
     def view_profile(self):
         reg_form = get_params("reg_form")
@@ -398,3 +392,11 @@ class Registrasi(BaseView):
             return HTTPFound(location=self.req.route_url(reg_form))
         self.bindings = dict(user=self.req.user)
         return super(Registrasi, self).view_edit()
+
+    def save_request(self, values, row=None):
+        if "idcard" in values and values["idcard"]:
+            path = get_params('idcard_folder', '/tmp/idcard')
+            upload = Upload(path)
+            values["idcard"] = upload.save(self.req, 'upload')
+        row = super().save_request(values, row)
+        return row
