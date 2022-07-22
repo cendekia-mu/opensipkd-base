@@ -1,13 +1,20 @@
 kode,path,nama,status,type
-home,/,Home,0
-home-auth,/home,Home Auth,0
+home,/,Home,1
+home-auth,/home,Home Auth,1
 home-about,/home/{id}/about,Home About
-login,/login,Login,0
-logout,/logout,,0
+login,/login,Login,1,0
+logout,/logout,Logout,1,0
+rpc,/rpc,RPC,1,1
 change-password,/password/{code},Ubah password,0
 password,/password,Ubah password,0
 reset-password,/reset-password,0
 reset-password-sent,/reset-password-sent,0
+menu,/menu,Menus,0
+menu-act,/menu/{act}/act,Menus Act,0
+menu-add,/menu/add,Menus Add,0
+menu-edit,/menu/{id}/edit,Menus Edit,0
+menu-delete,/menu/{id}/delete,Menus Delete,0
+menu-view,/menu/{id}/view,Menus View,0
 user,/user,Daftar User
 user-add,/user/add,Tambah User
 user-edit,/user/{id}/edit,Edit User

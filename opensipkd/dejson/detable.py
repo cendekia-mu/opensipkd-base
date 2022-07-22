@@ -107,8 +107,6 @@ class DeTable(field.Field):
             filters='true',
             paginates='true',
             params="",
-            server_side='true',
-            data=[],
             # ajax_options="{}",
             # autocomplete=None,
             # focus="on",
@@ -156,14 +154,11 @@ class DeTable(field.Field):
         if table_widget is None:
             table_widget = widget.TableWidget()
         self.widget = table_widget
-        self.server_side = server_side
-        self.data = data
         columns = []
         cols2 = []
         for f in schema:
             d = {'data': f.name}
             data = []
-
             if hasattr(f, 'width'):
                 d["width"] = f.width
                 data.append(f"width: '{f.width}'")

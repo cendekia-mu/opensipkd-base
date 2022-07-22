@@ -6,21 +6,15 @@
         </div>
         <div class="panel-body">
             <div tal:content="structure form"></div>
+            <div class="jarviswidget jarviswidget-color-blueLight">
+                <div tal:content="structure table"></div>
+            </div>
         </div>
     </div>
 </div>
 
 <div metal:fill-slot="scripts">
     <script>
-        $(document).ready(function () {
-            $(".read-only").attr("readonly", true);
-            $(".readonly").attr("readonly", true);
-            $(".date").attr("readonly", true);
-            $(".date").datepicker({
-                format: 'dd-mm-yyyy'
-            });
-                ${structure:scripts}
-        });
     </script>
     <div metal:define-slot="scripts"></div>
 </div>

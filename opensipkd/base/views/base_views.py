@@ -1,9 +1,15 @@
+import logging
 import os
 import re
 from datetime import datetime
 
 from datatables import ColumnDT
 from dateutil.relativedelta import relativedelta
+
+from opensipkd.tools.api import JsonRpcInvalidLoginError
+from opensipkd.tools.form_api import formfield2dict
+from pyramid.security import remember
+
 from opensipkd.tools.captcha import get_captcha
 from pyramid.httpexceptions import HTTPFound
 
@@ -11,14 +17,18 @@ from .common import DataTables
 from .. import DBSession, get_params
 from opensipkd.tools import dmy, dmy_to_date, get_settings, get_ext
 import colander
-from deform import (widget, Form, ValidationFailure, )
+from deform import (widget, Form, ValidationFailure, Button, )
 from email.utils import parseaddr
 
-from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, btn_view, btn_add, btn_edit, btn_csv, \
+from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
+    btn_view, btn_add, btn_edit, btn_csv, \
     btn_pdf
 
-from opensipkd.models import User
+from opensipkd.models import User, Menus
+from ..tools.api import auth_from_rpc
 from ...detable import DeTable
+
+log = logging.getLogger(__name__)
 
 
 class BaseView(object):
@@ -138,7 +148,8 @@ class BaseView(object):
         if msg:
             self.ses.flash(msg, error)
         if self.headers:
-            return HTTPFound(location=self.req.route_url(self.list_route), headers=self.headers)
+            return HTTPFound(location=self.req.route_url(self.list_route),
+                             headers=self.headers)
         else:
             return HTTPFound(location=self.req.route_url(self.list_route))
 
@@ -148,7 +159,8 @@ class BaseView(object):
     def get_params(self, params, default=None):
         return get_params(params, default)
 
-    def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel), **kwargs):
+    def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel),
+                 **kwargs):
         buttons = self.buttons and self.buttons or buttons
         if "bindings" in kwargs and kwargs["bindings"]:
             bindings = kwargs["bindings"]
@@ -173,12 +185,14 @@ class BaseView(object):
 
     def view_list(self, arg=None):
         if self.list_schema:
-            table = DeTable(self.list_schema(), action=self.req.route_url(self.list_route),
+            table = DeTable(self.list_schema(),
+                            action=self.req.route_url(self.list_route),
                             action_suffix="/grid/act",
                             buttons=self.list_buttons)
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")
-            return dict(form=table.render(), scripts="", css=resources["css"], js=resources["js"])
+            return dict(form=table.render(), scripts="", css=resources["css"],
+                        js=resources["js"])
 
         arg = arg and arg or {}
         arg.update(url=self.list_url, col_defs=self.list_col_defs,
@@ -194,13 +208,15 @@ class BaseView(object):
         if not row:
             return self.id_not_found()
         bindings = self.get_bindings(row)
-        form = self.get_form(self.edit_schema, buttons=(btn_close,), bindings=bindings)
+        form = self.get_form(self.edit_schema, buttons=(btn_close,),
+                             bindings=bindings)
         if request.POST:
             return self.route_list()
 
         form.set_appstruct(self.get_values(row))
         table = self.get_item_table(row)
-        return dict(form=form.render(readonly=True), table=table and table.render() or None,
+        return dict(form=form.render(readonly=True),
+                    table=table and table.render() or None,
                     scripts=self.form_scripts)
 
     def before_add(self):
@@ -226,20 +242,25 @@ class BaseView(object):
         if url_dict['act'] == 'grid':
             columns = []
             for d in self.list_schema():
-                global_search = hasattr(d, "searchable") and hasattr(d, "searchable") == False and False or True
+                global_search = hasattr(d, "searchable") and hasattr(d,
+                                                                     "searchable") == False and False or True
                 if hasattr(d, "field"):
                     if type(d.field) == str:
                         columns.append(
-                            ColumnDT(getattr(self.table, d.field), mData=d.name, global_search=global_search))
+                            ColumnDT(getattr(self.table, d.field), mData=d.name,
+                                     global_search=global_search))
                     else:
                         columns.append(ColumnDT(d.field, mData=d.name))
                 else:
-                    columns.append(ColumnDT(getattr(self.table, d.name), mData=d.name))
+                    columns.append(
+                        ColumnDT(getattr(self.table, d.name), mData=d.name))
 
             query = DBSession.query().select_from(self.table)
             query = self.list_join(query)
-            if self.req.user and self.req.user.company_id and hasattr(self.table, "company_id"):
-                query = query.filter(self.table.company_id == self.req.user.company_id)
+            if self.req.user and self.req.user.company_id and hasattr(
+                    self.table, "company_id"):
+                query = query.filter(
+                    self.table.company_id == self.req.user.company_id)
             row_table = DataTables(self.req.GET, query, columns)
             return row_table.output_result()
         else:
@@ -278,12 +299,6 @@ class BaseView(object):
                     scripts=self.form_scripts, css=resources["css"],
                     js=resources["js"])
 
-    def before_save(self, row, values):
-        return row
-
-    def after_save(self, row, values):
-        pass
-
     def save(self, values, user, row=None):
         self.ses["old_email"] = user and user.email or None
         if not row:
@@ -296,10 +311,8 @@ class BaseView(object):
 
         row.from_dict(values)
         row.status = 'status' in values and values['status'] and 1 or 0
-        row = self.before_save(row, values)
         DBSession.add(row)
         DBSession.flush()
-        self.after_save(row, values)
         return row
 
     def save_request(self, values, row=None):
@@ -347,8 +360,10 @@ class BaseView(object):
                     controls = form.validate(controls)
                 except ValidationFailure as e:
                     form.set_appstruct(e.cstruct)
-                    return dict(form=form.render(), table=table and table.render() or None,
-                                scripts=self.form_scripts, css=resources["css"], js=resources["js"])
+                    return dict(form=form.render(),
+                                table=table and table.render() or None,
+                                scripts=self.form_scripts, css=resources["css"],
+                                js=resources["js"])
                 c = dict(controls)
                 self.save_request(c, row)
             return self.route_list()
@@ -356,7 +371,8 @@ class BaseView(object):
         form.set_appstruct(values)
         form = self.before_edit(form)
         return dict(form=form.render(), table=table and table.render() or None,
-                    scripts=self.form_scripts, css=resources["css"], js=resources["js"])
+                    scripts=self.form_scripts, css=resources["css"],
+                    js=resources["js"])
 
     def before_delete(self, row):
         pass
@@ -381,8 +397,10 @@ class BaseView(object):
         table = self.get_item_table(row)
         resources = form.get_widget_resources()
         form.set_appstruct(self.get_values(row))
-        return dict(form=form.render(readonly=True), table=table and table.render() or None,
-                    scripts=self.form_scripts, css=resources["css"], js=resources["js"])
+        return dict(form=form.render(readonly=True),
+                    table=table and table.render() or None,
+                    scripts=self.form_scripts, css=resources["css"],
+                    js=resources["js"])
 
     def query_id(self):
         q = DBSession.query(self.table).filter_by(
@@ -393,7 +411,8 @@ class BaseView(object):
 
     def filter_company(self, query):
         if self.req.user.company_id:
-            return query.filter(self.table.company_id == self.req.user.company_id)
+            return query.filter(
+                self.table.company_id == self.req.user.company_id)
         return query
 
     def next_add(self, form):
@@ -403,6 +422,8 @@ class BaseView(object):
         :return:
         """
         return self.route_list()
+
+
 
 
 @colander.deferred
@@ -420,7 +441,6 @@ def email_validator(node, value):
 class Store(dict):
     def preview_url(self, name):
         return ""
-
 
 
 username_re = re.compile('^[a-z0-9_]{6,16}$', re.IGNORECASE)

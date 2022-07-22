@@ -18,7 +18,6 @@ class MySession(Session):
 
 session_factory = sessionmaker(class_=MySession)
 DBSession = scoped_session(session_factory)
-
 register(DBSession)
 ziggurat_foundations.models.DBSession = DBSession
 TABLE_ARGS = dict(extend_existing=True, schema="public")

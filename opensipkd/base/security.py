@@ -1,19 +1,10 @@
 import logging
 
-from opensipkd.base.tools.api import rpc_auth
-from opensipkd.tools.api import JsonRpcInvalidLoginError
-from pyramid.renderers import render_to_response
-
-from opensipkd.models import (
-    User,
-    UserGroup,
-    DBSession,
-)
+from opensipkd.models import (User, UserGroup, DBSession, )
 
 log = logging.getLogger(__name__)
 
 
-# It is used by RootFactory
 def group_finder(user_id, request):
     if user_id != 'None':
         q = DBSession.query(User).filter_by(id=user_id)

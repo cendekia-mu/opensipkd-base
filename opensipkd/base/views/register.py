@@ -40,9 +40,11 @@ from ziggurat_foundations.models.services.user import UserService
 from opensipkd.base import get_params
 from opensipkd.base.views.user import email_validator, add_member_count
 from . import widget_os
-from .base_views import  need_captcha, need_verify, get_url_captcha
-from .user_login import regenerate_security_code, get_login_headers, send_email_security_code, send_email_pending
-from opensipkd.models import User, DBSession, Partner, Group, UserGroup, ExternalIdentity
+from .base_views import need_captcha, need_verify, get_url_captcha
+from .user_login import regenerate_security_code, get_login_headers, \
+    send_email_security_code, send_email_pending
+from opensipkd.models import User, DBSession, Partner, Group, UserGroup, \
+    ExternalIdentity
 from ..views import BaseView
 
 _ = TranslationStringFactory('user')
@@ -137,7 +139,8 @@ def show_error(request, msg):
 
 
 def reg_buttons():
-    btn_register = Button(name='save', css_class='btn-success', type="submit", title="Register")
+    btn_register = Button(name='save', css_class='btn-success', type="submit",
+                          title="Register")
     btn_cancel = Button(name='batal', css_class='btn-primary', type="submit")
     return btn_cancel, btn_register
 
@@ -174,26 +177,30 @@ class Registrasi(BaseView):
 
         def err_email():
             exc = colander.Invalid(
-                form['email'], 'e-mail %s sudah ada yang menggunakan' % value['email'])
+                form['email'],
+                'e-mail %s sudah ada yang menggunakan' % value['email'])
             raise exc
 
         def err_user():
             if 'user_name' in form:
                 raise colander.Invalid(
-                    form['user_name'], 'User name %s sudah ada yang menggunakan' % value['user_name'])
+                    form['user_name'],
+                    'User name %s sudah ada yang menggunakan' % value[
+                        'user_name'])
             else:
                 raise colander.Invalid(
-                    form['email'], 'User name %s sudah ada yang menggunakan' % value['email'])
-
-
+                    form['email'],
+                    'User name %s sudah ada yang menggunakan' % value['email'])
 
         def err_nik():
             if "kode" in form:
                 raise colander.Invalid(
-                    form['kode'], 'NIK %s sudah ada yang menggunakan' % value['kode'])
+                    form['kode'],
+                    'NIK %s sudah ada yang menggunakan' % value['kode'])
             else:
                 raise colander.Invalid(
-                    form['mobile'], 'Mobile %s sudah ada yang menggunakan' % value['kode'])
+                    form['mobile'],
+                    'Mobile %s sudah ada yang menggunakan' % value['kode'])
 
         def err_login():
             raise colander.Invalid(
@@ -220,7 +227,6 @@ class Registrasi(BaseView):
             if user and is_logged:
                 if user.id != is_logged.id:
                     err_user()
-
 
         email = value["email"]
         user = user_found(email)
@@ -258,14 +264,16 @@ class Registrasi(BaseView):
 
         if 'password' in value:
             user = form.request.user
-            if not user or not UserService.check_password(user, value['password']):
+            if not user or not UserService.check_password(user,
+                                                          value['password']):
                 err_login()
 
     def before_add(self):
         result = {}
         if "id_info" in self.ses and self.ses['id_info']:
             result = self.ses["id_info"]
-            result.update(dict(nama=" ".join([result["given_name"], result["family_name"]])))
+            result.update(dict(
+                nama=" ".join([result["given_name"], result["family_name"]])))
         if need_captcha():
             result.update(dict(captcha=get_url_captcha(self.req)))
         return result
@@ -299,7 +307,8 @@ class Registrasi(BaseView):
                 DBSession.add(external)
                 DBSession.flush()
                 if need_verify():
-                    send_email_pending(self.req, row, 'Welcome new user', 'email-new-user',
+                    send_email_pending(self.req, row, 'Welcome new user',
+                                       'email-new-user',
                                        'email-pending.tpl')
                     ts = _(
                         'user-added',
@@ -345,6 +354,7 @@ class Registrasi(BaseView):
         DBSession.add(partner)
         DBSession.flush()
         return row
+
     def cancel_act(self):
         forget(self.req)
         self.ses.delete()
@@ -399,4 +409,5 @@ class Registrasi(BaseView):
             upload = Upload(path)
             values["idcard"] = upload.save(self.req, 'upload')
         row = super().save_request(values, row)
+        self.after_save(row, values)
         return row

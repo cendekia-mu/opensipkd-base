@@ -14,6 +14,7 @@ from pyramid.i18n import TranslationStringFactory
 from pyramid.security import remember, forget
 from pyramid_rpc.jsonrpc import jsonrpc_method
 
+from .base_views_api import BaseApi
 from .user import EmailValidator as EmailValidatorBase
 from .user_group import save as save_groups
 from .user_login import (ChangePassword, change_password_validator,
@@ -110,7 +111,7 @@ def login(request, data):
     is_list = type(data) is list
     data = is_list and data[0] or data
     resp = login_(request, data)
-    resp["token"] = get_user_device(request, resp["id"]).token
+    # resp["token"] = get_user_device(request, resp["id"]).token
     result = is_list and [resp] or resp
     return result
 
@@ -147,7 +148,6 @@ def get_profile_(user):
                 mobile=partner.mobile,
                 nama=partner.nama, )
 
-
 @jsonrpc_method(method='get-profile', endpoint='rpc-user', permission="view")
 @jsonrpc_method(method='get_profile', endpoint='rpc-user', permission="view")
 def get_profile(request, data):
@@ -158,12 +158,12 @@ def get_profile(request, data):
     @param data: {"password": password}
     @return:
     """
-    user = request.user
+    user = request.request.user
     is_list = type(data) == list
     data = is_list and data[0] or data
-    print(data)
     if not user or not UserService.check_password(user, data['password']):
         raise JsonRpcInvalidLoginError
+
     resp = get_profile_(user)
     resp = is_list and [resp] or resp
     return resp

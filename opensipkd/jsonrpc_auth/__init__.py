@@ -1,15 +1,20 @@
 import logging
 
+from icecream import ic
 from pyramid.httpexceptions import HTTPForbidden
 from pyramid.httpexceptions import HTTPNotFound
-from pyramid.renderers import null_renderer
-from pyramid.security import NO_PERMISSION_REQUIRED
-from pyramid_rpc.jsonrpc import (JsonRpcError, JsonRpcMethodNotFound, JsonRpcParamsInvalid,
-                                 JsonRpcInternalError, make_error_response, MethodPredicate, BatchedRequestPredicate,
-                                 jsonrpc_renderer, add_jsonrpc_method,
-                                 DEFAULT_RENDERER,
-                                 batched_request_view, Endpoint, EndpointPredicate)
+from pyramid.renderers import null_renderer, render
+from pyramid.response import Response
+from pyramid.security import NO_PERMISSION_REQUIRED, remember
+from pyramid_rpc.jsonrpc import (
+    JsonRpcError, JsonRpcMethodNotFound, JsonRpcParamsInvalid,
+    JsonRpcInternalError, make_error_response, MethodPredicate,
+    BatchedRequestPredicate, jsonrpc_renderer, add_jsonrpc_method,
+    DEFAULT_RENDERER, batched_request_view, Endpoint,
+    JsonRpcRequestInvalid, parse_request_GET, parse_request_POST)
 from pyramid_rpc.mapper import ViewMapperArgsInvalid, MapplyViewMapper
+
+from opensipkd.base.tools.api import auth_from_rpc
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +27,7 @@ class JsonRpcRequestForbidden(JsonRpcError):
 class JsonRpcInvalidLogin(JsonRpcError):
     code = -32605
     message = "Invalid User/Password"
+
 
 #
 # class EndpointPredicate(BaseEndpointPredicate):
@@ -67,31 +73,51 @@ class JsonRpcInvalidLogin(JsonRpcError):
 #         log.debug('id:%s invalid rpc method', request.rpc_id)
 #         raise JsonRpcRequestInvalid
 
-    # env = request.environ
-    # if 'HTTP_TOKEN' in env:
-    #     try:
-    #         user_device = token_auth(request)
-    #         user = user_device.user
-    #         headers = remember(request, user.id)
-    #         request.headers["Cookie"] = dict(headers)["Set-Cookie"]
-    #         request.headers["token"]=user_device.token
-    #         log.debug(request.headers["Cookie"])
-    #     except JsonRpcInvalidLoginError as e:
-    #         raise JsonRpcInvalidLogin
-    #
-    # elif ('HTTP_USERID' in env and 'HTTP_SIGNATURE' in env and
-    #       'HTTP_KEY' in env):
-    #     try:
-    #         user = rpc_auth(request)
-    #         headers = remember(request, user.id)
-    #         request.headers["Cookie"] = dict(headers)["Set-Cookie"]
-    #         log.debug(request.headers["Cookie"])
-    #     except JsonRpcInvalidLoginError as e:
-    #         raise JsonRpcInvalidLogin
+# env = request.environ
+# if 'HTTP_TOKEN' in env:
+#     try:
+#         user_device = token_auth(request)
+#         user = user_device.user
+#         headers = remember(request, user.id)
+#         request.headers["Cookie"] = dict(headers)["Set-Cookie"]
+#         request.headers["token"]=user_device.token
+#         log.debug(request.headers["Cookie"])
+#     except JsonRpcInvalidLoginError as e:
+#         raise JsonRpcInvalidLogin
+#
+# elif ('HTTP_USERID' in env and 'HTTP_SIGNATURE' in env and
+#       'HTTP_KEY' in env):
+#     try:
+#         user = rpc_auth(request)
+#         headers = remember(request, user.id)
+#         request.headers["Cookie"] = dict(headers)["Set-Cookie"]
+#         log.debug(request.headers["Cookie"])
+#     except JsonRpcInvalidLoginError as e:
+#         raise JsonRpcInvalidLogin
 
-    # log.debug('handling id:%s method:%s',
-    #           request.rpc_id, request.rpc_method)
+# log.debug('handling id:%s method:%s',
+#           request.rpc_id, request.rpc_method)
 
+def make_error_response(request, error, id=None):
+    """ Marshal a Python Exception into a ``Response`` object with a
+    body that is a JSON string suitable for use as a JSON-RPC response
+    with a content-type of ``application/json`` and return the response.
+
+    """
+    # we may need to render a parse error, at which point we don't know
+    # much about the request
+    renderer = getattr(request, 'rpc_renderer', DEFAULT_RENDERER)
+    out = {
+        'jsonrpc': '2.0',
+        'id': id,
+        'error': error.as_dict(),
+    }
+    ic(out)
+    body = render(renderer, out, request=request).encode('utf-8')
+
+    response = Response(body, charset='utf-8')
+    response.content_type = 'application/json'
+    return response
 
 def exception_view(exc, request):
     rpc_id = getattr(request, 'rpc_id', None)
@@ -161,6 +187,71 @@ def add_jsonrpc_endpoint(config, name, *args, **kw):
                     permission=NO_PERMISSION_REQUIRED, **kw)
     config.add_view(exception_view, route_name=name, context=Exception,
                     permission=NO_PERMISSION_REQUIRED)
+
+
+def setup_request(endpoint, request):
+    """ Parse a JSON-RPC request body."""
+    if request.method == 'GET':
+        parse_request_GET(request)
+    elif request.method == 'POST':
+        parse_request_POST(request)
+    else:
+        log.debug('unsupported request method "%s"', request.method)
+        raise JsonRpcRequestInvalid
+
+    if hasattr(request, 'batched_rpc_requests'):
+        log.debug('handling batched rpc request')
+        # the checks below will look at the subrequests
+        return
+
+    if request.rpc_version != '2.0':
+        log.debug('id:%s invalid rpc version %s',
+                  request.rpc_id, request.rpc_version)
+        raise JsonRpcRequestInvalid
+
+    if request.rpc_method is None:
+        log.debug('id:%s invalid rpc method', request.rpc_id)
+        raise JsonRpcRequestInvalid
+
+    log.debug('handling id:%s method:%s',
+              request.rpc_id, request.rpc_method)
+    env = request.environ
+    if 'HTTP_USERID' in env or 'HTTP_SIGNATURE' in env or 'HTTP_KEY' in env:
+        user = auth_from_rpc(request)
+        if user:
+            headers = remember(request, user.id)
+            for k, v in headers:
+                if k == "Set-Cookie":
+                    req_headers = [("Cookie", v)]
+                    request.headers.update(req_headers)
+                    log.debug('handling request headers: %s', req_headers)
+
+
+class EndpointPredicate(object):
+    def __init__(self, val, config):
+        self.val = val
+
+    def text(self):
+        return 'jsonrpc endpoint = %s' % self.val
+
+    phash = text
+
+    def __call__(self, info, request):
+        if self.val:
+            # find the endpoint info
+            key = info['route'].name
+            endpoint = request.registry.jsonrpc_endpoints[key]
+
+            # potentially setup either rpc v1 or v2 from the parsed body
+            setup_request(endpoint, request)
+
+            # update request with endpoint information
+            request.rpc_endpoint = endpoint
+
+            # Always return True so that even if it isn't a valid RPC it
+            # will fall through to the notfound_view which will still
+            # return a valid JSON-RPC response.
+            return True
 
 
 def includeme(config):

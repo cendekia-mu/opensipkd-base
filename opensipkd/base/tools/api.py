@@ -1,25 +1,14 @@
-import json
-from datetime import timedelta, timezone, tzinfo
-
-import requests
-from opensipkd.tools import (
-    get_random_number, devel, get_random_string, get_settings, DefaultTimeZone, get_params, get_timezone)
-from opensipkd.tools.api import *
 from opensipkd.models import (DBSession, User, GroupPermission, UserDeviceModel)
-import logging
+
+from opensipkd.tools import (
+    devel, get_random_string)
+from opensipkd.tools.api import *
 
 log = logging.getLogger(__name__)
 
 lima_menit = 300
 
 #
-def auth_from_rpc(request):
-    return auth_from(request)
-
-def rpc_auth(request):
-    return auth_from(request)
-
-
 def auth_from(request, field=None):
     global lima_menit
     env = request.environ
@@ -49,6 +38,13 @@ def auth_from(request, field=None):
         raise JsonRpcInvalidLoginError
 
     return user
+def auth_from_rpc(request):
+    return auth_from(request)
+
+def rpc_auth(request):
+    return auth_from(request)
+
+
 
 # def auth_from_token(request):
 #     return auth_from(request, "security_code")

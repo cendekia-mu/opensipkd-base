@@ -14,11 +14,11 @@ from pyramid.paster import (get_appsettings, setup_logging, )
 from opensipkd.models.handlers import LogDBSession
 from opensipkd.models import (
     init_model, DBSession, Base, Group, UserGroup, Permission, GroupPermission,
-    User, Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa)
+    User, Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa,
+    Menus)
 
 from sqlalchemy.dialects import oracle
 from sqlalchemy import text
-
 
 # , mssql
 # from .tools import mkdir
@@ -32,10 +32,12 @@ def usage(argv):
 
 
 def create_schema(engine, schema):
-    sql = select([text('schema_name')]).select_from(text('information_schema.schemata')).where(
+    sql = select([text('schema_name')]).select_from(
+        text('information_schema.schemata')).where(
         text("schema_name = '%s'" % schema))
     if isinstance(engine.dialect, oracle.dialect):
-        sql = select(['owner']).select_from('dba_segments').where("owner = '%s'" % schema.upper())
+        sql = select(['owner']).select_from('dba_segments').where(
+            "owner = '%s'" % schema.upper())
     print(sql)
     q = engine.execute(sql)
     if not q.fetchone():
@@ -250,7 +252,9 @@ def alembic_run(ini_file, name=None):
     bin_path = os.path.split(sys.executable)[0]
     alembic_bin = os.path.join(bin_path, 'alembic')
     if not name:
-        command = (alembic_bin, '-c', ini_file, '-n', 'alembic_ziggurat', 'upgrade', 'head')
+        command = (
+        alembic_bin, '-c', ini_file, '-n', 'alembic_ziggurat', 'upgrade',
+        'head')
         if subprocess.call(command) != 0:
             sys.exit()
     else:
@@ -258,12 +262,14 @@ def alembic_run(ini_file, name=None):
         if subprocess.call(command) != 0:
             sys.exit()
 
+
 def alembic_run(ini_file, name='alembic_base'):
     bin_path = os.path.split(sys.executable)[0]
     alembic_bin = os.path.join(bin_path, 'alembic')
     command = (alembic_bin, '-c', ini_file, '-n', name, 'upgrade', 'head')
     if subprocess.call(command) != 0:
         sys.exit()
+
 
 def base_alembic_run(ini_file):
     alembic_run(ini_file)
@@ -296,8 +302,10 @@ def main(argv=sys.argv):
         append_csv(Group, 'groups.csv', ['group_name'])
         restore_csv(UserGroup, 'users_groups.csv')
         append_csv(Permission, 'permissions.csv', ['perm_name'])
-        append_csv(GroupPermission, 'group_permission.csv', ['group_id', 'perm_name'])
+        append_csv(GroupPermission, 'group_permission.csv',
+                   ['group_id', 'perm_name'])
         append_csv(Route, 'routes.csv', ['kode'])
+        append_csv(Menus, 'menus.csv', ['kode'])
         append_csv(Eselon, 'eselon.csv', ['kode'])
         append_csv(Jabatan, 'jabatan.csv', ['kode'])
         restore_csv(ResProvinsi, 'provinsi.csv')

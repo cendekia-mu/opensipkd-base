@@ -25,6 +25,7 @@ from importlib import import_module
 import colander
 import requests
 from deform import widget, Form, ValidationFailure, Button
+from icecream import ic
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.renderers import render_to_response
 from pyramid.security import remember, forget
@@ -39,11 +40,19 @@ from opensipkd.tools import create_now, set_user_log, get_settings
 from opensipkd.base.views import _, one_hour, two_minutes, BaseView
 from pyramid_mailer.message import Message
 
+from opensipkd.tools.form_api import formfield2dict
+
 log = __import__("logging").getLogger(__name__)
 
 
 class Login(colander.Schema):
-    username = colander.SchemaNode(colander.String())
+    username = colander.SchemaNode(
+        colander.String(),
+        widget=widget.TextInputWidget(
+            placeholder="User Name"),
+        # validator=colander.Length(min=3, max=3),
+        oid="username",
+    )
     password = colander.SchemaNode(
         colander.String(), widget=widget.PasswordWidget())
 
@@ -61,8 +70,26 @@ def get_login_headers(request, user):
     return headers
 
 
-class Views(BaseView):
-    @view_config(route_name='login', renderer='templates/login.pt')
+class LoginUser(object):
+    def __init__(self, request):
+        # self.user = user
+        self.request = request
+        # self.identity=identity
+        self.message = "Sukses Login"
+        self.user = None
+
+    def login(self, values, user=None):
+        self.user = user and user or User.get_by_identity(values["username"])
+        if not self.user or not UserService.check_password(
+                self.user, values["password"]):
+            self.message = "Login Gagal"
+            set_user_log(self.message, self.request, log, values["username"])
+            return
+        return True
+
+
+class ViewLogin(BaseView):
+    @view_config(route_name='login', renderer='templates/form.pt')
     def view_login(self):
         request = self.req
         request.session["login"] = True
@@ -110,11 +137,9 @@ class Views(BaseView):
                     return HTTPFound(location=request.route_url('login'))
 
             else:
-                if not user or not UserService.check_password(user, values[
-                    'password']):
-                    msg = "Login Gagal"
-                    set_user_log(msg, request, log, identity)
-                    request.session.flash(msg, "error")
+                login = LoginUser(self.req)
+                if not login.login(values, user):
+                    request.session.flash(login.message, "error")
                     next_url = f"{request.route_url('login')}?next={next_url}"
                     return HTTPFound(location=next_url)
 
@@ -166,6 +191,13 @@ class Views(BaseView):
                 message = "User anda masih menunggu verifikasi atau lagi di blokir"
                 request.session.flash(message, "error")
         login = ""
+        if login_tpl == 'templates/login.pt':
+            return dict(form=form.render(),
+                        message=message,
+                        url=request.route_url('login'),
+                        next_url=next_url,
+                        login=login, )
+
         return render_to_response(
             renderer_name=login_tpl,
             request=request,
@@ -238,6 +270,7 @@ def view_change_password(request):
     if request.authenticated_userid:
         request.session.flash('Anda sudah login', 'error')
         return HTTPFound(location=f"{request.route_url('home')}")
+
     schema = ChangePassword(validator=change_password_validator)
     btn_save = Button('save', _('Simpan'))
     btn_cancel = Button('cancel', _('Batalkan'))
@@ -259,6 +292,7 @@ def view_change_password(request):
             create_now() - user.security_code_date > one_hour:
         request.session.flash('Security code expired', 'error')
         return HTTPFound(location=request.route_url('login'))
+
     user.security_code = None
     UserService.set_password(user, c['new_password'])
     DBSession.add(user)
@@ -324,18 +358,21 @@ def reset_password_validator(form, value):
 
 def security_code_age(user):
     now = create_now()
-    return  now - user.security_code_date
+    return now - user.security_code_date
 
 
 def send_email_security_code(
-        request, user, time_remain, subject, body_msg_id, body_default_file):
+        request, user, time_remain, subject, body_msg_id, body_default_file,
+        **kwargs):
     settings = get_settings()
+    password = kwargs.get("password", "")
     if 'mail.sender_name' not in settings \
             or 'mail.username' not in settings:
         return
 
-    url = '{}password/{}'.format(
-        request.route_url('home'), user.security_code)
+    url = '{}password/{}?password={}'.format(
+        request.home, user.security_code, password)
+
     minutes = int(time_remain.seconds / 60)
     data = dict(url=url, minutes=minutes)
     here = os.path.abspath(os.path.dirname(__file__))

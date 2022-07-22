@@ -2,8 +2,6 @@ import locale
 import logging
 import re
 
-# from opensipkd.base.tools.this_framework import api_has_permission_
-
 try:
     from urllib import (urlencode, quote, quote_plus, )
 except ImportError:
@@ -11,15 +9,8 @@ except ImportError:
 
 from pyramid.config import Configurator
 from pyramid_beaker import session_factory_from_settings
-from pyramid.authentication import AuthTktAuthenticationPolicy
-from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.events import subscriber
 from pyramid.events import BeforeRender
-from pyramid.interfaces import IRoutesMapper
-from pyramid.httpexceptions import (
-    default_exceptionresponse_view,
-    HTTPFound,
-)
 from pyramid.renderers import JSON
 from pyramid_mailer import mailer_factory_from_settings
 import datetime, decimal
@@ -130,12 +121,33 @@ def get_params(params, alternate=None, settings=None):
 
     if not settings:
         settings = get_settings()
-    result = settings and params in settings and settings[params].strip() or None
+    result = settings and params in settings and \
+             settings[params].strip() or None
     if not result:
         row = Parameter.query_kode(params).first()
         result = row and row.value or None
 
     return result and result or alternate
+
+
+def get_ini(request, var):
+    settings = get_settings()
+    if var in settings and settings[var]:
+        return settings[var]
+    return
+
+
+def get_ini_params(request, params=None, alternate=None, settings=None):
+    """
+    Digunakan untuk mengambil nilai dari konfigurasi sesuai params yang disebut
+    :param params: variable
+    :param alternate: default apabila tidak ditemukan data/params
+    :param settings: default settings
+    :return: value
+    contoh penggunaan:
+        get_params('devel', False)
+    """
+    return get_params(params, alternate, settings)
 
 
 def allow_register(request):
@@ -182,13 +194,6 @@ def get_app_name(request):
     return get_params('app_name', 'openSIPKD Application')
 
 
-def get_ini(request, var):
-    settings = get_settings()
-    if var in settings and settings[var]:
-        return settings[var]
-    return
-
-
 def is_devel(request):
     return get_params('devel') == 'true'
 
@@ -217,7 +222,8 @@ def get_modules(settings=None):
         setting = settings
 
     settings = setting
-    modules = 'modules' in settings and settings['modules'] and settings['modules'].split(',') or []
+    modules = 'modules' in settings and settings['modules'] and settings[
+        'modules'].split(',') or []
     result = {}
     for modul in modules:
         if not 'opensipkd.base' in modul:
@@ -322,22 +328,23 @@ def json_rpc():
 
 def get_host(request):
     host = get_params('_host', "")
-    if not host:
-        proto = 'HTTP_X_FORWARDED_PROTO' in request.environ \
-                and request.environ['HTTP_X_FORWARDED_PROTO'] \
-                or "http"
-        host = f"{proto}://{request.host}"
-    return host
+    # if not host:
+    #     host = request.route_url('home')[:-1]
+    #     proto = 'HTTP_X_FORWARDED_PROTO' in request.environ \
+    #             and request.environ['HTTP_X_FORWARDED_PROTO'] \
+    #             or "http"
+    #     host = f"{proto}://{request.host}"
+    return host and host or get_home(request)
 
 
 def get_home(request):
-    return request.route_url('home')
+    return request.route_url('home')[:-1]
 
 
 def set_routes(config, app_id=None):
     q = DBSession.query(Route)
     if not app_id:
-        q.filter(or_(Route.app_id == 0, Route.app_id == None))
+        q.filter(or_(Route.app_id == 0, None == Route.app_id))
     else:
         q.filter(Route.app_id == app_id)
 
@@ -350,7 +357,10 @@ def set_routes(config, app_id=None):
             config.add_jsonrpc_endpoint(route.kode, route.path,
                                         default_renderer="json_rpc")
 
+
 partner_idcard_folder = 'partner/idcard'
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -372,7 +382,6 @@ def main(global_config, **settings):
     config = Configurator(settings=settings,
                           root_factory='opensipkd.models.RootFactory',
                           session_factory=session_factory)
-    from opensipkd.models import RootFactory
     modules = get_modules(settings)
     from importlib import import_module
     for module in modules:
@@ -403,18 +412,25 @@ def main(global_config, **settings):
     config.add_request_method(get_home, 'home', reify=True)
     # config.add_request_method(api_has_permission_, 'api_has_permission', reify=True)
 
-    config.add_request_method(google_signin_client_id, 'google_signin_client_id', reify=True)
-    config.add_request_method(google_signin_client_ids, 'google_signin_client_ids', reify=True)
+    config.add_request_method(google_signin_client_id,
+                              'google_signin_client_id', reify=True)
+    config.add_request_method(google_signin_client_ids,
+                              'google_signin_client_ids', reify=True)
     config.add_request_method(allow_register, 'allow_register', reify=True)
-    config.add_request_method(disable_responsive, 'disable_responsive', reify=True)
-    config.add_request_method(get_params, 'get_params', reify=True)
-    config.add_static_view('static', 'opensipkd.base:static', cache_max_age=3600)
+    config.add_request_method(disable_responsive, 'disable_responsive',
+                              reify=True)
+    # config.add_request_method(get_params, 'get_params', reify=True)
+    # config.add_request_method(get_ini_params, 'get_ini', reify=True)
+    config.add_request_method(get_ini, 'get_ini', reify=True)
+    config.add_static_view('static', 'opensipkd.base:static',
+                           cache_max_age=3600)
     config.add_static_view(partner_idcard_folder,
                            get_params("partner_idcard_folder", '/tmp/idcard'),
                            cache_max_age=3600)
     config.add_static_view('deform_static', 'deform:static')
 
-    captcha_files = get_params('captcha_files', settings=settings, alternate="/tmp/captcha")
+    captcha_files = get_params('captcha_files', settings=settings,
+                               alternate="/tmp/captcha")
     if not os.path.exists(captcha_files):
         os.makedirs(captcha_files)
 

@@ -13,8 +13,6 @@
         sorts sorts|field.sorts;
         filters filters|field.filters;
         paginates paginates|field.paginates;
-        server_side server_side|field.server_side;
-        data data|field.data;
         "
          tal:attributes="style style;
                 class css_class;
@@ -32,7 +30,7 @@
                     <thead>
                     <tr>
                         <th tal:repeat="child field">${child.title}</th>
-                        <!--?                        <th>Action</th>-->
+<!--?                        <th>Action</th>-->
                     </tr>
                     </thead>
                     <tbody>
@@ -68,10 +66,12 @@
                         },
                         "lengthMenu": " _MENU_ baris "
                     };
-                    var params = {
+
+                    o${tableid} = $('#${tableid}').DataTable({
                         dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
                         processing: true,
-                        serverSide: ${server_side},
+                        serverSide: true,
+                        ajax: o${tableid}Url,
                         stateSave: false,
                         scrollCollapse: true,
                         sort: ${sorts},
@@ -88,17 +88,7 @@
                         columns: ${structure:columns},
                         "language": language,
 
-                    }
-                    if (${server_side}===false)
-                    {
-                        params.data = ${data};
-                    }else{
-                        params.ajax=o${tableid}Url;
-                    }
-
-
-                    o${tableid} = $('#${tableid}').DataTable(params);
-
+                    });
 
                     var tb = tb_array.join(' ');
                     $("div.toolbar").html(tb);
