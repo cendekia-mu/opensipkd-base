@@ -422,6 +422,8 @@ def main(global_config, **settings):
     # config.add_request_method(get_params, 'get_params', reify=True)
     # config.add_request_method(get_ini_params, 'get_ini', reify=True)
     config.add_request_method(get_ini, 'get_ini', reify=True)
+    path_dir = os.path.join(os.path.dirname(__file__),"../locale")
+    config.add_translation_dirs(path_dir)
     config.add_static_view('static', 'opensipkd.base:static',
                            cache_max_age=3600)
     config.add_static_view(partner_idcard_folder,

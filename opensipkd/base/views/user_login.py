@@ -20,6 +20,7 @@ Perubahan Mendasar dari fungsi login adalah:
     result object dari fungsi tersebut harus berupa class User()
 """
 import os
+from datetime import timedelta
 from importlib import import_module
 
 import colander
@@ -418,15 +419,16 @@ def send_email_pending(
     sending_mail(request, user, subject, body)
 
 
-def regenerate_security_code(user):
+def regenerate_security_code(user, hour=1.0):
+    hour = timedelta(float(hour) / 24.0)
     age = security_code_age(user)
-    remain = one_hour - age
-    if user.security_code and age < one_hour and remain > two_minutes:
+    remain = hour - age
+    if user.security_code and age < hour and remain > two_minutes:
         return remain
     UserService.regenerate_security_code(user)
     user.security_code_date = create_now()
     DBSession.add(user)
-    return one_hour
+    return hour
 
 
 @view_config(route_name='reset-password',

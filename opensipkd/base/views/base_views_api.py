@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from deform import ValidationFailure, Form, Button
-from icecream import ic
 from opensipkd.models import flush, DBSession, Menus
 from pyramid_rpc.jsonrpc import JsonRpcError
 
@@ -15,14 +14,21 @@ class BaseApi(object):
         self.add_schema = {}
         self.buttons = ()
         self.data = {}
+    def make_response(self, resp, **kwargs):
+        code = kwargs.get("code")
+        message = kwargs.get("message")
+        if code: resp.update({"code":code})
+        if message:resp.update({"message":message})
+        return resp
 
     def get_form(self, class_form, row=None, **kwargs):
         bindings = kwargs.get("bindings")
         validator = kwargs.get("validator")
-        if "action" in kwargs:
-            action = kwargs.get("action", "")
+        self.buttons = kwargs.get("buttons", self.buttons)
+        if "url" in kwargs:
+            url = kwargs.get("url", "")
         else:
-            action = self.url
+            url = self.url
         if validator:
             schema = class_form(validator=validator)
         else:
@@ -35,7 +41,7 @@ class BaseApi(object):
         if row:
             schema.deserialize(row)
 
-        return Form(schema, action=action, buttons=self.buttons)
+        return Form(schema, url=url, buttons=self.buttons)
 
     def validate_field(self, form):
         resp = {}
@@ -52,9 +58,9 @@ class BaseApi(object):
     def get_menu_buttons(self, kode):
         qry = Menus.get(kode).order_by(Menus.order_id)
         if self.request.user:
-            qry = qry.filter_by(need_login=True)
+            qry = qry.filter_by(need_login=1)
         else:
-            qry = qry.filter_by(need_login=False)
+            qry = qry.filter(Menus.need_login!=1)
 
         buttons = []
         for row in qry.all():
@@ -67,7 +73,7 @@ class BaseApi(object):
                     continue
 
             buttons.append(Button(row.kode, title=row.nama, type="button",
-                                  value=row.kode, icon=row.icon))
+                                  value=row.url, icon=row.icon))
         return tuple(buttons)
 
     def update_headers(self, headers):
