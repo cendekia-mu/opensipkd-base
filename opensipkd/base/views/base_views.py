@@ -5,6 +5,7 @@ from datetime import datetime
 
 from datatables import ColumnDT
 from dateutil.relativedelta import relativedelta
+from opensipkd.pbb.eta import nik_url
 
 from opensipkd.tools.api import JsonRpcInvalidLoginError
 from opensipkd.tools.form_api import formfield2dict
@@ -15,7 +16,8 @@ from pyramid.httpexceptions import HTTPFound
 
 from .common import DataTables
 from .. import DBSession, get_params
-from opensipkd.tools import dmy, dmy_to_date, get_settings, get_ext
+from opensipkd.tools import dmy, dmy_to_date, get_settings, get_ext, \
+    date_from_str
 import colander
 from deform import (widget, Form, ValidationFailure, Button, )
 from email.utils import parseaddr
@@ -84,9 +86,6 @@ class BaseView(object):
             self.akhir = akhir
         except:
             self.dt_akhir = dmy_to_date(self.akhir)
-
-        self.ses['akhir'] = self.akhir
-        self.ses['dt_akhir'] = self.dt_akhir
 
         self.tahun_awal = 'tahun_awal' in self.ses and self.ses[
             'tahun_awal'] or self.tahun
@@ -237,13 +236,18 @@ class BaseView(object):
     def list_join(self, query):
         return query
 
-    def view_act(self):
+    def list_filter(self, query):
+        return query
+
+    def view_act(self, **kwargs):
         url_dict = self.req.matchdict
         if url_dict['act'] == 'grid':
+            url=[]
             columns = []
             for d in self.list_schema():
-                global_search = hasattr(d, "searchable") and hasattr(d,
-                                                                     "searchable") == False and False or True
+                global_search = hasattr(d, "searchable") and \
+                                hasattr(d, "searchable") == False and False \
+                                or True
                 if hasattr(d, "field"):
                     if type(d.field) == str:
                         columns.append(
@@ -254,15 +258,23 @@ class BaseView(object):
                 else:
                     columns.append(
                         ColumnDT(getattr(self.table, d.name), mData=d.name))
-
+                if hasattr(d, "url"):
+                    url.append(d.name)
             query = DBSession.query().select_from(self.table)
             query = self.list_join(query)
             if self.req.user and self.req.user.company_id and hasattr(
                     self.table, "company_id"):
                 query = query.filter(
                     self.table.company_id == self.req.user.company_id)
+            query=self.list_filter(query)
             row_table = DataTables(self.req.GET, query, columns)
-            return row_table.output_result()
+            result = row_table.output_result()
+            for d in result["data"]:
+                for k, v in d.items():
+                    if k in url and v:
+                        link = "/".join([self.home, nik_url, v])
+                        d[k] =f'<a href="{link}" target="_blank">View</a>'
+            return result
         else:
             return self.next_act()
 
@@ -290,7 +302,7 @@ class BaseView(object):
             elif "cancel" in self.req.POST or 'batal' in self.req.POST:
                 self.cancel_act()
             else:
-                return self.next_add(form)
+                return self.next_add(form, table=table, resources=resources)
 
             return self.route_list()
         values = self.before_add()
@@ -422,8 +434,6 @@ class BaseView(object):
         :return:
         """
         return self.route_list()
-
-
 
 
 @colander.deferred

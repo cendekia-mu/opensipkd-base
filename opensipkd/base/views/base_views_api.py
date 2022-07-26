@@ -82,17 +82,16 @@ class BaseApi(object):
 
     def _view_add(self, **kwargs):
         form = self.get_form(self.add_schema, **kwargs)
-        if "action" in self.data:
-            self.action = self.data["action"]
-            if 'save' == self.action:
-                values = self.validate_field(form)
-                row = self.save_request(values)
-            elif "cancel" == self.action or 'batal' == self.action:
-                self.cancel_act()
-            else:
-                return self.next_add(form)
+        self.action = self.data.get("action","")
+        if 'save' == self.action:
+            values = self.validate_field(form)
+            row = self.save_request(values)
+        elif "cancel" == self.action or 'batal' == self.action:
+            self.cancel_act()
+        else:
+            return self.next_add(form)
 
-            return self.route_list()
+        return self.route_list()
         values = self.before_add()
         form.set_appstruct(values)
         return form

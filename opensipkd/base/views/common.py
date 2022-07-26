@@ -9,6 +9,9 @@ from opensipkd.base import log
 
 
 class DataTables(BaseDataTables):
+    def __init__(self, request, query, columns, allow_regex_searches=False):
+        super().__init__(request, query, columns, allow_regex_searches)
+
     def _set_global_filter_expression(self):
         # global search filter
         global_search = self.params.get('search[value]', '')
