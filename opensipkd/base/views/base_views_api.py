@@ -3,7 +3,6 @@ from datetime import datetime
 from deform import ValidationFailure, Form, Button
 from opensipkd.models import flush, DBSession, Menus
 from pyramid_rpc.jsonrpc import JsonRpcError
-
 from opensipkd.tools.form_api import formfield2dict
 
 
@@ -14,11 +13,13 @@ class BaseApi(object):
         self.add_schema = {}
         self.buttons = ()
         self.data = {}
-    def make_response(self, resp, **kwargs):
+        
+    def make_response(self, data, **kwargs):
+        resp = {"data": data}
         code = kwargs.get("code")
         message = kwargs.get("message")
         if code: resp.update({"code":code})
-        if message:resp.update({"message":message})
+        if message: resp.update({"message":message})
         return resp
 
     def get_form(self, class_form, row=None, **kwargs):
@@ -51,7 +52,7 @@ class BaseApi(object):
         except ValidationFailure as e:
             form.set_appstruct(e.cstruct)
             resp.update(formfield2dict(form))
-            message = "\n".join([v for k,v in e.error.asdict().items()])
+            message = "\n".join([v for k, v in e.error.asdict().items()])
             raise JsonRpcError(message=message, data=resp)
         return dict(c)
 
@@ -73,7 +74,7 @@ class BaseApi(object):
                     continue
 
             buttons.append(Button(row.kode, title=row.nama, type="button",
-                                  value=row.url, icon=row.icon))
+                                  value=row.url, icon=row.icon, attributes=dict(method=row.url)))
         return tuple(buttons)
 
     def update_headers(self, headers):
