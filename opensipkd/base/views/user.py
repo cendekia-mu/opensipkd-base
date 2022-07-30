@@ -20,12 +20,19 @@ _ = TranslationStringFactory('user')
 
 
 class ListSchema(colander.Schema):
-    id = colander.SchemaNode(colander.String(), title="ID", visible=False, searchable=False)
+    id = colander.SchemaNode(colander.String(),
+                             title="ID", visible=False,
+                             searchable=False)
     email = colander.SchemaNode(colander.String())
-    user_name = colander.SchemaNode(colander.String())
+    user_name = colander.SchemaNode(colander.String(),
+                                    title=_("user-name", default="User Name"))
     status = colander.SchemaNode(colander.Integer(), width=50, searchable=False)
-    last_login = colander.SchemaNode(colander.String(), width=100, field="last_login_date", searchable=False)
-    registered = colander.SchemaNode(colander.String(), width=100, field="registered_date", searchable=False)
+    last_login = colander.SchemaNode(colander.String(), width=100,
+                                     field="last_login_date",
+                                     searchable=False)
+    registered = colander.SchemaNode(colander.String(), width=100,
+                                     field="registered_date",
+                                     searchable=False)
 
 
 class Views(BaseView):

@@ -38,7 +38,8 @@
 
     <!-- Basic Styles -->
     <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/font-awesome.min.css">
+<!--?    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/font-awesome.min.css">-->
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/fonts/fontawesome-free-6.1.2-web/css/all.min.css">
 
     <!-- SmartAdmin Styles : Caution! DO NOT change the order -->
     <link rel="stylesheet" type="text/css" media="screen"

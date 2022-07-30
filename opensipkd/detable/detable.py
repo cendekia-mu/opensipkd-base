@@ -109,10 +109,8 @@ class DeTable(field.Field):
             params="",
             server_side='true',
             data=[],
-            # ajax_options="{}",
-            # autocomplete=None,
-            # focus="on",
-            # cols = None,
+            allow_edit=True,
+            allow_delete=True,
             **kw
     ):
         params = params and f"?{params}" or ""
@@ -122,12 +120,16 @@ class DeTable(field.Field):
                 if (m%sID) window.location = o%sUri+'/'+m%sID+'/edit%s';
                 else alert('Pilih Baris');
                 }""" % (tableid, tableid, tableid, params)
-        btn_view_js = "{window.location = o%sUri+'/'+m%sID+'/view%s';}" % (tableid, tableid, params)
-        btn_delete_js = "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (tableid, tableid, params)
-        btn_csv_js = "{window.location = o%sUri+'/csv/act%s';}" % (tableid, params)
+        btn_view_js = "{window.location = o%sUri+'/'+m%sID+'/view%s';}" % (
+            tableid, tableid, params)
+        btn_delete_js = "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (
+            tableid, tableid, params)
+        btn_csv_js = "{window.location = o%sUri+'/csv/act%s';}" % (
+            tableid, params)
         btn_pdf_js = "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params)
         action_suffix = f"{action_suffix}{params}"
         field.Field.__init__(self, schema, **kw)
+        self.request=kw.get("request")
         _buttons = []
         for button in buttons:
             if isinstance(button, compat.string_types):
@@ -147,11 +149,12 @@ class DeTable(field.Field):
                     """)
             _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
                             eval('btn_' + button.name + '_js') + ');')
-            # <span tal:condition="button.icon" class="glyphicon glyphicon-${button.icon}"></span>
-
-        self.buttons = "','".join(_buttons).replace('\n', "").replace(';', ';\n')
+        self.buttons = "','".join(_buttons).replace('\n', "").replace(';',
+                                                                      ';\n')
         self.tableid = tableid
         self.scripts = ''.join(_scripts).replace(';', ";\n")
+        self.allow_edit = json.dumps(allow_edit)
+        self.allow_delete = json.dumps(allow_delete)
         table_widget = getattr(schema, "widget", None)
         if table_widget is None:
             table_widget = widget.TableWidget()
@@ -175,44 +178,38 @@ class DeTable(field.Field):
                 d["searchable"] = f.searchable
                 data.append(f"searchable: {f.searchable}")
 
-            if hasattr(f, 'visible') :
+            if hasattr(f, 'visible'):
                 d["visible"] = f.visible
                 data.append(f"visible: {f.visible}")
 
-            if isinstance(f.widget,deform.widget.HiddenWidget):
-                 d["visible"] = False
+            if isinstance(f.widget, deform.widget.HiddenWidget):
+                d["visible"] = False
 
             if hasattr(f, 'orderable'):
                 d["orderable"] = f.orderable
                 data.append(f"orderable: {f.orderable}")
 
             thousand = hasattr(f, 'thousand') and f.thousand or None
-            separator = thousand and "separator" in thousand and thousand["separator"] or ','
-            decimal = thousand and "decimal" in thousand and thousand["decimal"] or '.'
-            point = thousand and "point" in thousand and  thousand["point"] or 0
-            currency = thousand and "currency" in thousand and thousand["currency"] or ""
-            if thousand or type(f.typ) == colander.Float() or type(f.typ) == colander.Integer():
-                d["render"] = f"<script>$.fn.dataTable.render.number( '{separator}', '{decimal}', {point}, '{currency}' )</script>"
+            separator = thousand and "separator" in thousand and thousand[
+                "separator"] or ','
+            decimal = thousand and "decimal" in thousand and thousand[
+                "decimal"] or '.'
+            point = thousand and "point" in thousand and thousand["point"] or 0
+            currency = thousand and "currency" in thousand and thousand[
+                "currency"] or ""
+            if thousand or type(f.typ) == colander.Float() or type(
+                    f.typ) == colander.Integer():
+                d[
+                    "render"] = f"<script>$.fn.dataTable.render.number( '{separator}', " \
+                                f"'{decimal}', {point}, '{currency}' )</script>"
                 if 'className' not in d:
                     d["className"] = "text-right"
-            # if hasattr(f, "edit_link"):
-            #     s = """function ( data, type, row, meta ) {
-            #                     return '<a href="'+data+'">Download</a>';
-            #                     }"""
-            #     d["render"] = s
-
             columns.append(d)
             cols2.append(data)
-        # columns.append(dict(title="Action",
-        #                     data='id',
-        #                     width="40pt",
-        #                     orderable=False,
-        #                     align="text-center",
-        #                     searchable=False))
+
         self.columns = json.dumps(columns)
-        self.columns = self.columns.replace('"<script>', "").replace('</script>"', "").replace("\n", "")
-        # self.columns = columns
-        # self.columns = json.dumps(cols2)
+        self.columns = self.columns.replace('"<script>', "").replace(
+            '</script>"', "").replace("\n", "")
         self.url = action
         self.url_suffix = action_suffix
         self.sorts = sorts

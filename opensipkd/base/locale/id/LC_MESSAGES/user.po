@@ -1,0 +1,101 @@
+#
+# Indonesian translations for PACKAGE package
+# This file is distributed under the same license as the PACKAGE package.
+#  <aagusti@desktop-pa2epik.localdomain>, 2022.
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE 1.0\n"
+"POT-Creation-Date: 2022-07-30 20:57+0700\n"
+"PO-Revision-Date: 2022-07-30 20:58+0700\n"
+"Last-Translator:  <aagusti@desktop-pa2epik.localdomain>\n"
+"Language-Team: Indonesian\n"
+"Language: id\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Lingua 4.15.0\n"
+
+#. Default: User Name
+#: opensipkd/base/views/user.py:28
+msgid "user-name"
+msgstr "Nama User"
+
+#: opensipkd/base/views/user.py:50
+msgid "Active"
+msgstr ""
+
+#: opensipkd/base/views/user.py:51
+msgid "Archived"
+msgstr ""
+
+#: opensipkd/base/views/user.py:55
+msgid "Hapus"
+msgstr ""
+
+#: opensipkd/base/views/user.py:58
+msgid "Tidak ada"
+msgstr ""
+
+#: opensipkd/base/views/user.py:59
+msgid "Buatkan"
+msgstr ""
+
+#. Default: ${username} berhasil ditambahkan.
+#: opensipkd/base/views/user.py:129
+msgid "user-added-with-password"
+msgstr ""
+
+#. Default: ${email} berhasil ditambahkan dan email untuk ubah kata kunci sudah
+#. dikirim.
+#: opensipkd/base/views/user.py:137
+msgid "user-added"
+msgstr ""
+
+#. Default: User ${email} ID ${uid} has been deleted
+#: opensipkd/base/views/user.py:199
+msgid "user-deleted"
+msgstr ""
+
+#. Default: Email ${email} already used by user ID ${uid}
+#: opensipkd/base/views/user.py:250
+msgid "email-already-used"
+msgstr ""
+
+#: opensipkd/base/views/user.py:257
+msgid "Invalid email format"
+msgstr ""
+
+#. Default: Only A-Z a-z, 0-9, and - characters are allowed
+#: opensipkd/base/views/user.py:277
+msgid "username-only-contain"
+msgstr ""
+
+#. Default: Only A-Z a-z or 0-9 at the start and end
+#: opensipkd/base/views/user.py:283
+msgid "username-first-end-alphanumeric"
+msgstr ""
+
+#. Default: Username ${username} already used by ID ${uid}
+#: opensipkd/base/views/user.py:293
+msgid "username-already-used"
+msgstr ""
+
+#: opensipkd/base/views/user.py:325
+msgid "Email"
+msgstr ""
+
+#: opensipkd/base/views/user.py:327
+msgid "Username"
+msgstr ""
+
+#: opensipkd/base/views/user.py:330
+msgid "Group"
+msgstr ""
+
+#: opensipkd/base/views/user.py:332
+msgid "API Key"
+msgstr ""
+
+#: opensipkd/base/views/user.py:345
+msgid "Status"
+msgstr ""

@@ -15,11 +15,11 @@
         paginates paginates|field.paginates;
         server_side server_side|field.server_side;
         data data|field.data;
+        allow_edit allow_edit|field.allow_edit;
+        allow_delete allow_delete|field.allow_delete;
+        edit_url 'edit.com';
         "
-         tal:attributes="style style;
-                class css_class;
-        attributes|field.widget.attributes|{};"
-
+         tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};"
          i18n:domain="detable">
     <header role="heading" class="txt-color-grayDark">
         <h2 tal:condition="title">
@@ -32,7 +32,7 @@
                     <thead>
                     <tr>
                         <th tal:repeat="child field">${child.title}</th>
-                        <!--?                        <th>Action</th>-->
+                        <th tal:condition="allow_edit or allow_delete">Action</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -42,81 +42,92 @@
             </div> <!-- widget-body -->
         </div>
     </header>
+
     <script type="text/javascript">
-        deform.addCallback(
-                '${tableid}',
-                function (oid) {
-                    var m${tableid}ID;
-                    var o${tableid};
-                    var o${tableid}Uri = "${url}";
-                    var o${tableid}Url = o${tableid}Uri + "${url_suffix}";
-                    var tb_array = [
-                        '<div class="btn-group pull-left">',
-                        '${structure:buttons}',
-                        '	&nbsp;',
-                        '</div>',
-                    ]
-
-
-                    var language = {
-                        "search": "Cari: ",
-                        "paginate": {
-                            "first": '<span class="glyphicon glyphicon-step-backward"></span> ',
-                            "last": '<span class="glyphicon glyphicon glyphicon-step-forward"></span> ',
-                            "previous": '<span class="glyphicon glyphicon-backward"></span>  ',
-                            "next": '<span class="glyphicon glyphicon-forward"></span>  ',
-                        },
-                        "lengthMenu": " _MENU_ baris "
-                    };
-                    var params = {
-                        dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
-                        processing: true,
-                        serverSide: ${server_side},
-                        stateSave: false,
-                        scrollCollapse: true,
-                        sort: ${sorts},
-                        info: false,
-                        filter: ${filters},
-                        autoWidth: false,
-                        paginate: ${paginates},
-                        paginationType: "full_numbers",
-
-                        lengthMenu: [
-                            [10, 25, 50, 100],
-                            [10, 25, 50, 100]
-                        ],
-                        columns: ${structure:columns},
-                        "language": language,
-
+        deform.addCallback
+        ('${tableid}', function (oid) {
+            let m${tableid}ID;
+            let o${tableid};
+            let o${tableid}Uri = "${url}";
+            let o${tableid}Url = o${tableid}Uri + "${url_suffix}";
+            let tb_array = [
+                '<div class="btn-group pull-left">',
+                '${structure:buttons}',
+                '	&nbsp;',
+                '</div>',
+            ]
+            let columns = ${structure: columns};
+            let action_column = {
+                "data": "id",
+                "className": "text-center",
+                "width": 50,
+                "render": function (id) {
+                    let result = '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true"></i></a>&nbsp;';
+                    if (${allow_edit}) {
+                        result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true"></i></a>&nbsp;'
                     }
-                    if (${server_side}===false)
-                    {
-                        params.data = ${data};
-                    }else{
-                        params.ajax=o${tableid}Url;
+                    if (${allow_delete}) {
+                        result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true"></i></a>';
                     }
 
+                    return result;
+                }
+            }
+            columns.push(action_column);
+            let language = {
+                "search": "Cari: ",
+                "paginate": {
+                    "first": '<span class="glyphicon glyphicon-step-backward"></span> ',
+                    "last": '<span class="glyphicon glyphicon glyphicon-step-forward"></span> ',
+                    "previous": '<span class="glyphicon glyphicon-backward"></span> ',
+                    "next": '<span class="glyphicon glyphicon-forward"></span> ',
+                },
+                "lengthMenu": " _MENU_ baris "
+            };
+            let params = {
+                dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
+                processing: true,
+                serverSide: ${server_side},
+                stateSave: false,
+                scrollCollapse: true,
+                sort: ${sorts},
+                info: false,
+                filter: ${filters},
+                autoWidth: false,
+                paginate: ${paginates},
+                paginationType: "full_numbers",
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
+                columns: columns,
+                "language": language,
 
-                    o${tableid} = $('#${tableid}').DataTable(params);
-
-
-                    var tb = tb_array.join(' ');
-                    $("div.toolbar").html(tb);
-                    $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
-                    $('#${tableid} tbody').on('click', 'tr', function () {
-                        if ($(this).hasClass('selected')) {
-                            $(this).removeClass('selected');
-                        } else {
-                            var aData = o${tableid}.row(this).data();
-                            o${tableid}.$('tr.selected').removeClass('selected');
-                            $(this).addClass('selected');
-                            m${tableid}ID = aData.id;
-                            // console.log(mID);
-                            o${tableid}.$('tr.row_selected').removeClass('row_selected');
-                            $(this).addClass('row_selected');
-                        }
-                    });
-                        ${structure:btnscripts}
-                });
+            }
+            if (${server_side}==false)
+            {params.data = ${data};}
+            else
+            {
+                params.ajax = o${tableid}Url;
+            }
+            o${tableid} = $('#${tableid}').DataTable(params);
+            let tb = tb_array.join(' ');
+            $("div.toolbar").html(tb);
+            $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
+            $('#${tableid} tbody').on('click', 'tr', function () {
+                if ($(this).hasClass('selected')) {
+                    $(this).removeClass('selected');
+                } else {
+                    var aData = o${tableid}.row(this).data();
+                    o${tableid}.$('tr.selected').removeClass('selected');
+                    $(this).addClass('selected');
+                    m${tableid}ID = aData.id;
+                    // console.log(mID);
+                    o${tableid}.$('tr.row_selected').removeClass('row_selected');
+                    $(this).addClass('row_selected');
+                }
+            });
+                ${structure:btnscripts}
+        });
     </script>
 </div>

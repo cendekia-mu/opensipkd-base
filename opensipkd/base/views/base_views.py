@@ -5,11 +5,7 @@ from datetime import datetime
 
 from datatables import ColumnDT
 from dateutil.relativedelta import relativedelta
-from opensipkd.pbb.eta import nik_url
 
-from opensipkd.tools.api import JsonRpcInvalidLoginError
-from opensipkd.tools.form_api import formfield2dict
-from pyramid.security import remember
 
 from opensipkd.tools.captcha import get_captcha
 from pyramid.httpexceptions import HTTPFound
@@ -119,7 +115,8 @@ class BaseView(object):
         # self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
         #                     'btn_close'
         self.list_report = (btn_csv, btn_pdf)
-        self.list_buttons = (btn_view, btn_add, btn_edit, btn_delete, btn_close)
+        # self.list_buttons = (btn_view, btn_add, btn_edit, btn_delete, btn_close)
+        self.list_buttons = (btn_add, btn_close)
         self.form_params = dict(scripts="")
         self.list_url = ''
         self.list_route = ''
@@ -187,7 +184,8 @@ class BaseView(object):
             table = DeTable(self.list_schema(),
                             action=self.req.route_url(self.list_route),
                             action_suffix="/grid/act",
-                            buttons=self.list_buttons)
+                            buttons=self.list_buttons,
+                            request=self.req)
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")
             return dict(form=table.render(), scripts="", css=resources["css"],
@@ -269,11 +267,11 @@ class BaseView(object):
             query=self.list_filter(query)
             row_table = DataTables(self.req.GET, query, columns)
             result = row_table.output_result()
-            for d in result["data"]:
-                for k, v in d.items():
-                    if k in url and v:
-                        link = "/".join([self.home, nik_url, v])
-                        d[k] =f'<a href="{link}" target="_blank">View</a>'
+            # for d in result["data"]:
+            #     for k, v in d.items():
+            #         if k in url and v:
+            #             link = "/".join([self.home, nik_url, v])
+            #             d[k] =f'<a href="{link}" target="_blank">View</a>'
             return result
         else:
             return self.next_act()

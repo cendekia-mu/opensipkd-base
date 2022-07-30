@@ -1,8 +1,8 @@
 kode,url,nama,status,order_id,parent_id/menus.kode,icon,need_login,class_name
-login,/login,Login,1,1,,,False,
-reset-password,/reset/password,Reset Password,1,1,,,False,
-register,/register,Register,1,1,,,False,
-base,/,Base,1,1,,,False,
+login,/login,Login,1,1,,,0,
+reset-password,/reset/password,Reset Password,1,1,,,0,
+register,/register,Register,1,1,,,0,
+base,/,Base,1,1,,,0,
 logout,/logout,Logout,1,2,base,,,
 change-password,/password/{code},Ubah password,1,3,base,,,
 menus,/menu,Menus,1,4,base,,,
