@@ -417,8 +417,7 @@ def main(global_config, **settings):
     config.add_request_method(google_signin_client_ids,
                               'google_signin_client_ids', reify=True)
     config.add_request_method(allow_register, 'allow_register', reify=True)
-    config.add_request_method(disable_responsive, 'disable_responsive',
-                              reify=True)
+    config.add_request_method(disable_responsive, 'disable_responsive', reify=True)
     # config.add_request_method(get_params, 'get_params', reify=True)
     # config.add_request_method(get_ini_params, 'get_ini', reify=True)
     config.add_request_method(get_ini, 'get_ini', reify=True)

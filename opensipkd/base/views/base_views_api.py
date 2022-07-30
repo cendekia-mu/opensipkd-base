@@ -13,13 +13,13 @@ class BaseApi(object):
         self.add_schema = {}
         self.buttons = ()
         self.data = {}
-        
+
     def make_response(self, data, **kwargs):
         resp = {"data": data}
         code = kwargs.get("code")
         message = kwargs.get("message")
-        if code: resp.update({"code":code})
-        if message: resp.update({"message":message})
+        if code: resp.update({"code": code})
+        if message: resp.update({"message": message})
         return resp
 
     def get_form(self, class_form, row=None, **kwargs):
@@ -61,7 +61,7 @@ class BaseApi(object):
         if self.request.user:
             qry = qry.filter_by(need_login=1)
         else:
-            qry = qry.filter(Menus.need_login!=1)
+            qry = qry.filter(Menus.need_login != 1)
 
         buttons = []
         for row in qry.all():
@@ -74,7 +74,8 @@ class BaseApi(object):
                     continue
 
             buttons.append(Button(row.kode, title=row.nama, type="button",
-                                  value=row.url, icon=row.icon, attributes=dict(method=row.url)))
+                                  value=row.url, icon=row.icon,
+                                  attributes=dict(method=row.url)))
         return tuple(buttons)
 
     def update_headers(self, headers):
@@ -83,16 +84,18 @@ class BaseApi(object):
 
     def _view_add(self, **kwargs):
         form = self.get_form(self.add_schema, **kwargs)
-        self.action = self.data.get("action","")
+        self.action = self.data.get("action", "")
         if 'save' == self.action:
             values = self.validate_field(form)
             row = self.save_request(values)
         elif "cancel" == self.action or 'batal' == self.action:
             self.cancel_act()
         else:
-            return self.next_add(form)
+            next = self.next_add(form)
+            if next:
+                return next
 
-        return self.route_list()
+        # return self.route_list()
         values = self.before_add()
         form.set_appstruct(values)
         return form
@@ -136,7 +139,7 @@ class BaseApi(object):
         :param form:  Object Form
         :return:
         """
-        return self.route_list()
+        return ""
 
     def query_id(self):
         q = DBSession.query(self.table).filter_by(
