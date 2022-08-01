@@ -99,11 +99,12 @@ class EditSchema(AddSchema):
 
 
 class ListSchema(colander.Schema):
-    id = colander.SchemaNode(colander.String(), title="ID", visible=False)
+    id = colander.SchemaNode(colander.String(), title="Action", visible=False)
     kode = colander.SchemaNode(colander.String(), title="Kode", width='100pt')
     nama = colander.SchemaNode(colander.String(), title="Nama")
-    status = colander.SchemaNode(colander.Boolean(), title="Status", width='50pt')
-    level_id = colander.SchemaNode(colander.String(), title="Level", width='50pt')
+    status = colander.SchemaNode(colander.Boolean(), title="Status", width='50pt',
+                                 widget=widget.CheckboxWidget())
+    level_id = colander.SchemaNode(colander.Integer(), title="Level", width='50pt')
     parent = colander.SchemaNode(colander.String(), title="Induk", width='200pt')
 
 

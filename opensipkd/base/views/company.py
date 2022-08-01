@@ -34,8 +34,22 @@ class EditSchema(AddSchema):
                                      oid="partner_id")
 
 
-class ListSchema(NamaSchema):
-    id = colander.SchemaNode(colander.String(), missing=colander.drop, visible=False)
+class ListSchema(colander.Schema):
+    id = colander.SchemaNode(colander.String(),title="Action")
+    kode = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=32),
+        oid="kode",
+        title="Kode",
+        width="100pt")
+    nama = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=64),
+        oid="nama")
+    status = colander.SchemaNode(
+        colander.Integer(),
+        widget=widget.CheckboxWidget(),
+        oid="status")
 
 
 class ViewCompany(BaseView):

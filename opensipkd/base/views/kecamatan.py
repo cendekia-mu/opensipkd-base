@@ -1,5 +1,7 @@
 import colander
 from deform import (widget, )
+from pyramid.i18n import TranslationStringFactory
+
 from opensipkd.base.views.provinsi import provinsi_widget
 from opensipkd.models import DBSession, ResKecamatan, ResDati2, ResProvinsi
 from pyramid.view import (view_config, )
@@ -10,6 +12,7 @@ from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah kecamatan gagal'
 SESS_EDIT_FAILED = 'Edit kecamatan gagal'
+_ = TranslationStringFactory("opensipkd")
 
 
 @colander.deferred
@@ -52,12 +55,11 @@ class EditSchema(AddSchema):
 
 
 class ListSchema(colander.Schema):
-    id = colander.SchemaNode(colander.Integer(), searchable=False,
-                             orderable=False, visible=False)
+    id = colander.SchemaNode(colander.Integer(),
+                             title=_("action", default="Action"))
     kode = colander.SchemaNode(colander.String(), width='100pt', title="Kode")
     nama = colander.SchemaNode(colander.String(), title="Nama")
     kabupaten = colander.SchemaNode(colander.String(), field=ResDati2.nama)
-    status = colander.SchemaNode(colander.Integer(), width="30pt")
 
 
 class Views(BaseView):
@@ -114,7 +116,7 @@ class Views(BaseView):
                  renderer='templates/table.pt',
                  permission='kecamatan')
     def view_list(self):
-        return super(Views, self).view_list(self)
+        return super(Views, self).view_list()
 
     @view_config(route_name='kecamatan-act', renderer='json',
                  permission='view')

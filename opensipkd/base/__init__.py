@@ -6,7 +6,7 @@ try:
     from urllib import (urlencode, quote, quote_plus, )
 except ImportError:
     from urllib.parse import (urlencode, quote, quote_plus, )
-
+from pyramid.events import NewRequest
 from pyramid.config import Configurator
 from pyramid_beaker import session_factory_from_settings
 from pyramid.events import subscriber
@@ -82,6 +82,16 @@ titles = {}
 #                     return HTTPFound(location=noslash_path)
 #         return self.notfound_view(context, request)
 
+def add_cors_headers_response_callback(event):
+    def cors_headers(request, response):
+        response.headers.update({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
+        'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '1728000',
+        })
+    event.request.add_response_callback(cors_headers)
 
 # https://groups.google.com/forum/#!topic/pylons-discuss/QIj4G82j04c
 def has_permission_(request, perm_names, context=None):
@@ -396,6 +406,8 @@ def main(global_config, **settings):
             config = cfg
 
     config.set_security_policy(MySecurityPolicy(settings["session.secret"]))
+    config.add_subscriber(add_cors_headers_response_callback, NewRequest)
+
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_title, 'title', reify=True)
     config.add_request_method(get_company, 'company', reify=True)

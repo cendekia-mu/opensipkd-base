@@ -5,6 +5,7 @@ from datatables import ColumnDT
 from deform import Form, widget
 from opensipkd.tools.buttons import btn_view, btn_delete
 from pyramid.httpexceptions import HTTPFound
+from pyramid.i18n import TranslationStringFactory
 from pyramid.view import view_config
 
 from opensipkd.base import DBSession
@@ -34,12 +35,12 @@ class EditSchema(AddSchema):
                              widget=widget.HiddenWidget(),
                              )
 
+_ = TranslationStringFactory("opensipkd")
 
 class ListSchema(colander.Schema):
-    id = colander.SchemaNode(colander.String(),
-                             missing=colander.drop,
-                             widget=widget.HiddenWidget(),
-                             visible=False)
+    id = colander.SchemaNode(colander.Integer(),
+                             title=_("action", default="Action"))
+
     created_at = colander.SchemaNode(
         colander.DateTime())
     logger = colander.SchemaNode(

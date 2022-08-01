@@ -7,6 +7,7 @@ from opensipkd.models import (
     DBSession,
     Parameter)
 
+
 class AddSchema(colander.Schema):
     kode = colander.SchemaNode(
         colander.String(),
@@ -32,7 +33,31 @@ class EditSchema(AddSchema):
     id = colander.SchemaNode(colander.String(),
                              missing=colander.drop,
                              widget=widget.HiddenWidget(readonly=True),
-                             visible=False)
+                             title="Action")
+
+
+class ListSchema(colander.Schema):
+    id = colander.SchemaNode(colander.Integer(),
+                             title="Action")
+    kode = colander.SchemaNode(
+        colander.String(),
+        oid="kode",
+        title="Kode")
+
+    nama = colander.SchemaNode(
+        colander.String(),
+        oid="nama",
+        title="Nama")
+
+    value = colander.SchemaNode(
+        colander.String(),
+        widget=widget.TextAreaWidget(rows=5),
+        oid="value",
+        title="Nilai")
+
+    status = colander.SchemaNode(
+        colander.Integer(),
+        widget=widget.CheckboxWidget())
 
 
 class Views(BaseView):
@@ -44,7 +69,7 @@ class Views(BaseView):
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
         self.table = Parameter
-        self.list_schema = EditSchema
+        self.list_schema = ListSchema
 
     @view_config(route_name='parameter', renderer='templates/table.pt',
                  permission='user-edit')

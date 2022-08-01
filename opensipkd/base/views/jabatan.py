@@ -1,22 +1,26 @@
-import colander
 import os
+
+import colander
 from deform import (widget, )
-from opensipkd.tools.buttons import btn_view, btn_add, btn_edit, btn_delete, btn_close
-from opensipkd.tools.report import csv_response, open_rml_pdf, open_rml_row, pdf_response
+from opensipkd.tools.report import csv_response, open_rml_pdf, open_rml_row, \
+    pdf_response
+from pyramid.i18n import TranslationStringFactory
 from pyramid.view import (view_config, )
-from .partner_base import NamaSchema
+
 from opensipkd.models import (
     DBSession,
     Jabatan,
     Eselon, Departemen
 )
+from .partner_base import NamaSchema
 from ..views import BaseView, deferred_jenis
 
+_ = TranslationStringFactory("opensipkd")
 SESS_ADD_FAILED = 'Tambah jabatan gagal'
 SESS_EDIT_FAILED = 'Edit jabatan gagal'
-JENIS = ((1, 'Struktural'),
-         (2, 'Fungsional'),
-         (3, 'Keuangan'),
+JENIS = ((1, _('structural', default='Structural')),
+         (2, _('functional', default='Functional')),
+         (3, _('finance', default='Finance')),
          )
 
 
@@ -50,12 +54,12 @@ class AddSchema(colander.Schema):
         colander.Integer(),
         oid="jenis",
         widget=deferred_jenis,
-        title="Jenis")
+        title=_("type", default="Jenis"))
     eselon_id = colander.SchemaNode(
         colander.Integer(),
         oid="eselon_id",
         widget=deferred_eselon,
-        title="Eselon")
+        title=_("eselon", default="Eselon"))
     status = colander.SchemaNode(
         colander.Boolean(),
         oid="status")
@@ -67,9 +71,22 @@ class EditSchema(AddSchema):
                              widget=widget.HiddenWidget())
 
 
-class ListSchema(NamaSchema):
-    id = colander.SchemaNode(colander.String(),
-                             visible=False)
+class ListSchema(colander.Schema):
+    id = colander.SchemaNode(colander.String(), title="Action")
+    kode = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=32),
+        oid="kode",
+        title="Kode",
+        width="100pt")
+    nama = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=64),
+        oid="nama")
+    status = colander.SchemaNode(
+        colander.Integer(),
+        widget=widget.CheckboxWidget(),
+        oid="status")
 
 
 class ViewJabatan(BaseView):
@@ -83,7 +100,6 @@ class ViewJabatan(BaseView):
         self.table = Jabatan
         self.list_schema = ListSchema
         # self.list_buttons = (btn_view, btn_add, btn_edit, btn_delete, btn_close)
-
 
     def get_bindings(self, row=None):
         return dict(daftar_jenis=JENIS,
@@ -124,7 +140,8 @@ class ViewJabatan(BaseView):
 
         elif url_dict['act'] == 'hon':
             term = 'term' in params and params['term'] or ''
-            q = DBSession.query(Jabatan.id, Jabatan.kode, Jabatan.nama, Jabatan.jenis). \
+            q = DBSession.query(Jabatan.id, Jabatan.kode, Jabatan.nama,
+                                Jabatan.jenis). \
                 filter(Jabatan.nama.ilike('%%%s%%' % term)). \
                 order_by(Jabatan.nama)
             rows = q.all()
@@ -147,7 +164,8 @@ class ViewJabatan(BaseView):
 
         elif url_dict['act'] == 'headofnama':
             term = 'term' in params and params['term'] or ''
-            q = DBSession.query(Jabatan.id, Jabatan.kode, Jabatan.nama, Jabatan.jenis). \
+            q = DBSession.query(Jabatan.id, Jabatan.kode, Jabatan.nama,
+                                Jabatan.jenis). \
                 filter(Jabatan.nama.ilike('%%%s%%' % term)). \
                 order_by(Jabatan.nama)
             rows = q.all()
@@ -160,7 +178,8 @@ class ViewJabatan(BaseView):
                 else:
                     nama_jenis = 'Fungsional'
 
-                d = {'id': k[0], 'value': k[2] + ' (' + nama_jenis + ')', 'kode': k[1], 'nama': k[2]}
+                d = {'id': k[0], 'value': k[2] + ' (' + nama_jenis + ')',
+                     'kode': k[1], 'nama': k[2]}
                 r.append(d)
             return r
         elif url_dict['act'] == 'csv':
@@ -186,14 +205,18 @@ class ViewJabatan(BaseView):
 
             rows = []
             for r in query.all():
-                s = rml_row.format(kode=r.kode, nama=r.nama, status=r.status and "Aktif" or "Pasif")
+                s = rml_row.format(kode=r.kode, nama=r.nama,
+                                   status=r.status and "Aktif" or "Pasif")
                 rows.append(s)
 
             pdf, filename = open_rml_pdf(path + '/jabatan.rml', rows=rows,
                                          company=request.company,
-                                         departement=request.session['departemen_nm'],
+                                         departement=request.session[
+                                             'departemen_nm'],
                                          address=request.address,
-                                         alamat=Departemen.query_id(request.session['departemen_id']).first(),
+                                         alamat=Departemen.query_id(
+                                             request.session[
+                                                 'departemen_id']).first(),
                                          periode='01-01-2017 s.d 31-12-2017')
             return pdf_response(request, pdf, filename)
 
@@ -237,7 +260,8 @@ class ViewJabatan(BaseView):
         else:
             jabatan = None
 
-        q = Jabatan.query_kode(value['kode'])  # DBSession.query(Jabatan).filter_by(kode=value['kode'])
+        q = Jabatan.query_kode(value[
+                                   'kode'])  # DBSession.query(Jabatan).filter_by(kode=value['kode'])
         found = q.first()
         if jabatan:
             if found and found.id != jabatan.id:

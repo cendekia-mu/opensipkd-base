@@ -25,7 +25,7 @@ class EditSchema(AddSchema):
 
 
 class ListSchema(colander.Schema):
-    id = colander.SchemaNode(colander.String(), field="external_id")
+    id = colander.SchemaNode(colander.String(), field="external_id", title="Action")
     external_user_name = colander.SchemaNode(
         colander.String(), title=_('User Name'))
     provider_name = (colander.SchemaNode(colander.String(), title=_('Provider')))
@@ -38,24 +38,24 @@ class UserExt(BaseView):
         self.edit_schema = EditSchema
         self.list_schema = ListSchema
         self.list_route = "user-ext"
-        self.list_buttons = (btn_view, btn_delete, btn_close)
+        self.list_buttons = (btn_close,)
         self.table = ExternalIdentity
 
     @view_config(
         route_name='user-ext', renderer='templates/table.pt',
         permission='user-view')
     def view_list(self):
-        form = super(UserExt, self).view_list()
+        form = super(UserExt, self).view_list(allow_edit=False, allow_delete=False)
         return form
 
     @view_config(
-        route_name='user-ext-view', renderer='templates/form_input.pt',
+        route_name='user-ext-view', renderer='templates/form.pt',
         permission='user-view')
     def view_view(self):
         return super(UserExt, self).view_view()
 
     @view_config(
-        route_name='user-ext-delete', renderer='templates/form_input.pt',
+        route_name='user-ext-delete', renderer='templates/form.pt',
         permission='user-edit')
     def view_delete(self):
         return super(UserExt, self).view_delete()

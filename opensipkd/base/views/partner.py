@@ -4,6 +4,7 @@ import colander
 from deform import (
     widget,
 )
+from pyramid.i18n import TranslationStringFactory
 from pyramid.view import (
     view_config,
 )
@@ -19,6 +20,7 @@ from opensipkd.models import DBSession, Partner
 
 from .. import partner_idcard_folder
 from ..views import BaseView
+_ = TranslationStringFactory("opensipkd")
 
 SESS_ADD_FAILED = 'Tambah partner gagal'
 SESS_EDIT_FAILED = 'Edit partner gagal'
@@ -54,16 +56,26 @@ class EditSchema(AddSchema):
                              )
 
 
-class ListSchema(NamaSchema):
-    id = colander.SchemaNode(colander.String(),
-                             missing=colander.drop,
-                             widget=widget.HiddenWidget(),
-                             )
+class ListSchema(colander.Schema):
+    id = colander.SchemaNode(colander.Integer(),
+                             title=_("action", default="Action"))
+    kode = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=32),
+        oid="kode",
+        title="Kode",
+        width="100pt")
+    nama = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=64),
+        oid="nama")
+
     email = colander.SchemaNode(
         colander.String(),
         oid="email")
     status = colander.SchemaNode(
         colander.Boolean(),
+        widget=widget.CheckboxWidget(),
         oid="status")
 
 

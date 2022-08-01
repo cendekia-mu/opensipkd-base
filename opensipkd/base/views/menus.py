@@ -1,10 +1,13 @@
 import colander
 from deform import (widget, )
+from pyramid.i18n import TranslationStringFactory
+
 from opensipkd.models import Menus, flush
 from pyramid.view import (view_config, )
 from sqlalchemy.orm import aliased
 
 from ..views import ColumnDT, DataTables, BaseView
+_ = TranslationStringFactory("opensipkd")
 
 SESS_ADD_FAILED = 'Tambah menu gagal'
 SESS_EDIT_FAILED = 'Edit menu gagal'
@@ -70,7 +73,8 @@ class EditSchema(AddSchema):
 
 
 class ListSchema(colander.Schema):
-    id = colander.SchemaNode(colander.String(), title="ID", visible=False)
+    id = colander.SchemaNode(colander.Integer(),
+                             title=_("action", default="Action"))
     kode = colander.SchemaNode(colander.String(), title="Kode", width='100pt')
     nama = colander.SchemaNode(colander.String(), title="Nama")
     status = colander.SchemaNode(colander.Boolean(), title="Status",

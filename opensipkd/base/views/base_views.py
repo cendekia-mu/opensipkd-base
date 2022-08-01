@@ -179,19 +179,23 @@ class BaseView(object):
         del self.req.session[session_name]
         return r
 
-    def view_list(self, arg=None):
+    def view_list(self, **kwargs):
         if self.list_schema:
+            allow_edit=kwargs.get("allow_edit", True)
+            allow_delete=kwargs.get("allow_delete", True)
             table = DeTable(self.list_schema(),
                             action=self.req.route_url(self.list_route),
                             action_suffix="/grid/act",
                             buttons=self.list_buttons,
-                            request=self.req)
+                            request=self.req,
+                            allow_edit=allow_edit,
+                            allow_delete=allow_delete)
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")
             return dict(form=table.render(), scripts="", css=resources["css"],
                         js=resources["js"])
 
-        arg = arg and arg or {}
+        arg = kwargs and kwargs or {}
         arg.update(url=self.list_url, col_defs=self.list_col_defs,
                    cols=self.list_cols, buttons=self.list_buttons)
         return arg
@@ -285,7 +289,7 @@ class BaseView(object):
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
                 try:
-                    controls = form.validate(controls)
+                    c = form.validate(controls)
                 except ValidationFailure as e:
                     # value = self.validation_failure(e.cstruct)
                     # value.update(self.before_add())
@@ -294,7 +298,7 @@ class BaseView(object):
                                 table=table and table.render() or None,
                                 scripts=self.form_scripts, css=resources["css"],
                                 js=resources["js"])
-                values = dict(controls)
+                values = dict(c)
                 row = self.save_request(values)
                 self.after_add(row, values)
             elif "cancel" in self.req.POST or 'batal' in self.req.POST:

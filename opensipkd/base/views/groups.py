@@ -40,7 +40,7 @@ class EditSchema(AddSchema):
 
 
 class ListSchema(colander.Schema):
-    id = colander.SchemaNode(colander.Integer(), visible=False)
+    id = colander.SchemaNode(colander.Integer(), visible=False, title="Action")
     group_name = colander.SchemaNode(
         colander.String(), )
     description = colander.SchemaNode(colander.String())

@@ -10,7 +10,7 @@ from chameleon.utils import Markup
 from deform import compat
 from deform import field
 from . import widget
-
+# from deform import widget
 log = logging.getLogger(__name__)
 
 
@@ -166,24 +166,24 @@ class DeTable(field.Field):
         for f in schema:
             d = {'data': f.name}
             data = []
-
             if hasattr(f, 'width'):
                 d["width"] = f.width
                 data.append(f"width: '{f.width}'")
-
             if hasattr(f, 'aligned'):
                 d["className"] = f.aligned
                 data.append(f"className: '{f.aligned}'")
             if hasattr(f, 'searchable'):
                 d["searchable"] = f.searchable
                 data.append(f"searchable: {f.searchable}")
-
             if hasattr(f, 'visible'):
                 d["visible"] = f.visible
                 data.append(f"visible: {f.visible}")
-
             if isinstance(f.widget, deform.widget.HiddenWidget):
                 d["visible"] = False
+            if isinstance(f.widget, deform.widget.CheckboxWidget):
+                d["checkbox"] = True
+            else:
+                d["checkbox"]=False
 
             if hasattr(f, 'orderable'):
                 d["orderable"] = f.orderable
@@ -199,8 +199,7 @@ class DeTable(field.Field):
                 "currency"] or ""
             if thousand or type(f.typ) == colander.Float() or type(
                     f.typ) == colander.Integer():
-                d[
-                    "render"] = f"<script>$.fn.dataTable.render.number( '{separator}', " \
+                d["render"] = f"<script>$.fn.dataTable.render.number( '{separator}', " \
                                 f"'{decimal}', {point}, '{currency}' )</script>"
                 if 'className' not in d:
                     d["className"] = "text-right"

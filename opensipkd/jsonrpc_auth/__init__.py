@@ -191,6 +191,8 @@ def add_jsonrpc_endpoint(config, name, *args, **kw):
 
 def setup_request(endpoint, request):
     """ Parse a JSON-RPC request body."""
+    print(request.__dict__)
+    print(request.environ.get("ACCESS_CONTROL_ALLOW_ORIGIN"))
     if request.method == 'GET':
         parse_request_GET(request)
     elif request.method == 'POST':
