@@ -263,12 +263,12 @@ def alembic_run(ini_file, name=None):
             sys.exit()
 
 
-def alembic_run(ini_file, name='alembic_base'):
-    bin_path = os.path.split(sys.executable)[0]
-    alembic_bin = os.path.join(bin_path, 'alembic')
-    command = (alembic_bin, '-c', ini_file, '-n', name, 'upgrade', 'head')
-    if subprocess.call(command) != 0:
-        sys.exit()
+# def alembic_run(ini_file, name='alembic_base'):
+#     bin_path = os.path.split(sys.executable)[0]
+#     alembic_bin = os.path.join(bin_path, 'alembic')
+#     command = (alembic_bin, '-c', ini_file, '-n', name, 'upgrade', 'head')
+#     if subprocess.call(command) != 0:
+#         sys.exit()
 
 
 def base_alembic_run(ini_file):
@@ -285,9 +285,10 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
-    alembic_run(config_uri)
+    alembic_run(config_uri)  # alembicnya ziggurat
     Base.metadata.create_all(engine)
-    base_alembic_run(config_uri)
+    alembic_run(config_uri, "alembic_base")
+    # base_alembic_run(config_uri)
 
     reset_sequences()
     Base.metadata.bind = engine
