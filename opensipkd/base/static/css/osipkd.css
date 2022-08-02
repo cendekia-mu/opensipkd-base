@@ -184,3 +184,11 @@ div.tab-content {
   -ms-user-select: none;
   user-select: none;
 }
+
+.dataTables_paginate {
+  font-size: 10px !important;
+}
+
+.paginate_button .current{
+  font-size: 10px !important;
+}

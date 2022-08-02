@@ -12,7 +12,7 @@ from pyramid.httpexceptions import HTTPFound
 
 from .common import DataTables
 from .. import DBSession, get_params
-from opensipkd.tools import dmy, dmy_to_date, get_settings, get_ext, \
+from opensipkd.tools import dmy, date_from_str, get_settings, get_ext, \
     date_from_str
 import colander
 from deform import (widget, Form, ValidationFailure, Button, )
@@ -36,6 +36,12 @@ class BaseView(object):
         self.params = self.req.params
         self.settings = get_settings()
         now = datetime.now()
+        # self.dt_awal = self.ses["dt_awal"] if "dt_awal" in self.ses else now
+        # self.awal = dmy(self.dt_awal)
+        # self.dt_akhir = self.ses["dt_akhir"] if "dt_akhir" in self.ses else now
+        # self.akhir = dmy(self.dt_akhir)
+        # self.ses["dt_awal"] = self.dt_awal
+        # self.ses["dt_akhir"] = self.dt_akhir
         self.tahun = 'tahun' in self.ses and self.ses['tahun'] or now.strftime(
             '%Y')
         self.tahun = 'tahun' in self.params and self.params[
@@ -47,7 +53,7 @@ class BaseView(object):
 
         if 'bulan' in self.params and self.params['bulan']:
             self.bulan = self.params['bulan'].strip().zfill(2)
-            dt_awal = dmy_to_date(
+            dt_awal = date_from_str(
                 '{d}-{m}-{y}'.format(y=self.tahun, m=self.bulan, d='01'))
             dt_akhir = dt_awal + relativedelta(months=1) - relativedelta(days=1)
 
@@ -66,10 +72,10 @@ class BaseView(object):
         self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
         awal = 'awal' in self.params and self.params['awal'] or self.awal
         try:
-            self.dt_awal = dmy_to_date(awal)
+            self.dt_awal = date_from_str(awal)
             self.awal = awal
         except:
-            self.dt_awal = dmy_to_date(self.awal)
+            self.dt_awal = date_from_str(self.awal)
 
         self.ses['awal'] = self.awal
         self.ses['dt_awal'] = self.dt_awal
@@ -78,10 +84,10 @@ class BaseView(object):
         akhir = 'akhir' in self.params and self.params['akhir'] or self.akhir
 
         try:
-            self.dt_akhir = dmy_to_date(akhir)
+            self.dt_akhir = date_from_str(akhir)
             self.akhir = akhir
         except:
-            self.dt_akhir = dmy_to_date(self.akhir)
+            self.dt_akhir = date_from_str(self.akhir)
 
         self.tahun_awal = 'tahun_awal' in self.ses and self.ses[
             'tahun_awal'] or self.tahun
@@ -181,8 +187,8 @@ class BaseView(object):
 
     def view_list(self, **kwargs):
         if self.list_schema:
-            allow_edit=kwargs.get("allow_edit", True)
-            allow_delete=kwargs.get("allow_delete", True)
+            allow_edit = kwargs.get("allow_edit", True)
+            allow_delete = kwargs.get("allow_delete", True)
             table = DeTable(self.list_schema(),
                             action=self.req.route_url(self.list_route),
                             action_suffix="/grid/act",
@@ -219,7 +225,7 @@ class BaseView(object):
         return dict(form=form.render(readonly=True),
                     table=table and table.render() or None,
                     scripts=self.form_scripts)
-
+    
     def before_add(self):
         return {}
 
@@ -227,7 +233,7 @@ class BaseView(object):
         return value
 
     def cancel_act(self):
-        pass
+        return self.route_list()
 
     def after_add(self, row, values):
         return
@@ -244,12 +250,12 @@ class BaseView(object):
     def view_act(self, **kwargs):
         url_dict = self.req.matchdict
         if url_dict['act'] == 'grid':
-            url=[]
+            url = []
             columns = []
             for d in self.list_schema():
                 global_search = hasattr(d, "searchable") and \
-                                hasattr(d, "searchable") == False and False \
-                                or True
+                    hasattr(d, "searchable") == False and False \
+                    or True
                 if hasattr(d, "field"):
                     if type(d.field) == str:
                         columns.append(
@@ -268,7 +274,7 @@ class BaseView(object):
                     self.table, "company_id"):
                 query = query.filter(
                     self.table.company_id == self.req.user.company_id)
-            query=self.list_filter(query)
+            query = self.list_filter(query)
             row_table = DataTables(self.req.GET, query, columns)
             result = row_table.output_result()
             # for d in result["data"]:
@@ -301,7 +307,7 @@ class BaseView(object):
                 values = dict(c)
                 row = self.save_request(values)
                 self.after_add(row, values)
-            elif "cancel" in self.req.POST or 'batal' in self.req.POST:
+            elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
             else:
                 return self.next_add(form, table=table, resources=resources)
@@ -407,7 +413,8 @@ class BaseView(object):
                 DBSession.flush()
                 request.session.flash(msg)
             return self.route_list()
-        form = self.get_form(self.edit_schema, buttons=(btn_delete, btn_cancel))
+        form = self.get_form(
+            self.edit_schema, buttons=(btn_delete, btn_cancel))
         table = self.get_item_table(row)
         resources = form.get_widget_resources()
         form.set_appstruct(self.get_values(row))

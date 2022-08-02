@@ -52,7 +52,7 @@ import string
 import os
 import zipfile
 import xml.dom.minidom
-from reportlab.lib.divisis import toLength
+#from reportlab.lib.divisis import toLength
 import base64
 
 class DomApiGeneral:
@@ -150,7 +150,7 @@ class DomApi(DomApiGeneral):
 		# ******** always use the following order:
 		self.buildStyleDict()
 		self.buildStylePropertiesDict()
-		if self.styles_dom.getElementsByTagName("style:page-master").__len__()<>0:
+		if self.styles_dom.getElementsByTagName("style:page-master").__len__()!=0:
 			self.page_master = self.styles_dom.getElementsByTagName("style:page-master")[0]
 		self.document = self.content_dom.getElementsByTagName("office:document-content")[0]
 
@@ -354,12 +354,13 @@ if __name__ == "__main__":
 		parser.error("incorrect number of arguments")
 
 	import sys
-	import StringIO
+	import io 
+        #StringIO
 
 	fname = sys.argv[1]
-	f = StringIO.StringIO(file(fname).read())
+	f = io.StringIO(open(fname).read())
 
-	xsl = file(os.path.join(os.getcwd(), os.path.dirname(sys.argv[0]), 'normalized_oo2rml.xsl')).read()
+	xsl = open(os.path.join(os.getcwd(), os.path.dirname(sys.argv[0]), 'normalized_oo2rml.xsl')).read()
 	result = sxw2rml(f, xsl, output=opt.output, save_pict=False)
 
-	print result
+	print(result)

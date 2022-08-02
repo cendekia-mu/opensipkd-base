@@ -178,6 +178,22 @@ class DeTable(field.Field):
             if hasattr(f, 'visible'):
                 d["visible"] = f.visible
                 data.append(f"visible: {f.visible}")
+            
+            if hasattr(f, 'orderable'):
+                d["orderable"] = f.orderable
+                data.append(f"orderable: {f.orderable}")
+                
+            if hasattr(f, "url"):
+                request=kw.get("request")
+                if request:
+                    d["url"]= request.static_url(f.url)
+                    log.debug(d["url"])
+                    
+            if hasattr(f, "action"):
+                d["action"] = f.action
+            else:
+                d["action"]=True
+                
             if isinstance(f.widget, deform.widget.HiddenWidget):
                 d["visible"] = False
             if isinstance(f.widget, deform.widget.CheckboxWidget):
@@ -185,9 +201,8 @@ class DeTable(field.Field):
             else:
                 d["checkbox"]=False
 
-            if hasattr(f, 'orderable'):
-                d["orderable"] = f.orderable
-                data.append(f"orderable: {f.orderable}")
+                
+                
 
             thousand = hasattr(f, 'thousand') and f.thousand or None
             separator = thousand and "separator" in thousand and thousand[
