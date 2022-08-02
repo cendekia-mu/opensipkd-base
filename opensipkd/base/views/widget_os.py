@@ -3,8 +3,8 @@ from deform.widget import Widget, _StrippedString, Select2Widget
 
 
 class DokumenWidget(Widget):
-    template = "opensipkd.base:/views/templates/dokumen.pt"
-    readonly_template = "opensipkd.base:/views/templates/readonly/dokumen.pt"
+    template = "opensipkd.base:/views/widgets/dokumen.pt"
+    readonly_template = "opensipkd.base:/views/widgets/readonly/dokumen.pt"
     assume_y2k = True
 
     _pstruct_schema = SchemaNode(
@@ -61,8 +61,8 @@ class DokumenWidget(Widget):
 
 
 class FormulirWidget(Widget):
-    template = "opensipkd.base:/views/templates/formulir.pt"
-    readonly_template = "opensipkd.base:/views/templates/readonly/formulir.pt"
+    template = "opensipkd.base:/views/widgets/formulir.pt"
+    readonly_template = "opensipkd.base:/views/widgets/readonly/formulir.pt"
     assume_y2k = True
 
     _pstruct_schema = SchemaNode(
@@ -115,8 +115,8 @@ class FormulirWidget(Widget):
 
 
 class BlokKavNoWidget(Widget):
-    template = "opensipkd.base:/views/templates/blok_kav_no.pt"
-    readonly_template = "opensipkd.base:/views/templates/readonly/blok_kav_no.pt"
+    template = "opensipkd.base:/views/widgets/blok_kav_no.pt"
+    readonly_template = "opensipkd.base:/views/widgets/readonly/blok_kav_no.pt"
 
     _pstruct_schema = SchemaNode(
         Mapping(),
@@ -185,8 +185,8 @@ class Select2MsWidget(Select2Widget):
     template = "select2_ms.pt"
 
 class QtyWidget(Widget):
-    template = "opensipkd.base:/views/templates/qty.pt"
-    readonly_template = "opensipkd.base:/views/templates/readonly/qty.pt"
+    template = "opensipkd.base:/views/widgets/qty.pt"
+    readonly_template = "opensipkd.base:/views/widgets/readonly/qty.pt"
 
     _pstruct_schema = SchemaNode(
         Mapping(),

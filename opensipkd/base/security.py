@@ -21,7 +21,6 @@ def group_finder(user_id, request):
     for ug in q:
         acl_name = 'group:{gid}'.format(gid=ug.group_id)
         r.append(acl_name)
-    log.debug(r)
     return r
 
 
