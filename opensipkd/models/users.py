@@ -1,30 +1,29 @@
 from datetime import datetime
 
 import pytz
-from ziggurat_foundations import ziggurat_model_init
-
 import sqlalchemy as sa
 from pyramid.authorization import (Allow, Authenticated, ALL_PERMISSIONS)
 from sqlalchemy import (
-    Column, Integer, DateTime, ForeignKey, String)
+    Column, Integer, DateTime, String)
 from sqlalchemy.orm import (relationship, backref)
+from ziggurat_foundations import ziggurat_model_init
 from ziggurat_foundations.models.base import BaseModel
 from ziggurat_foundations.models.external_identity import ExternalIdentityMixin
 from ziggurat_foundations.models.group import GroupMixin
 from ziggurat_foundations.models.group_permission import GroupPermissionMixin
-from ziggurat_foundations.models.group_resource_permission import GroupResourcePermissionMixin
+from ziggurat_foundations.models.group_resource_permission import \
+    GroupResourcePermissionMixin
 from ziggurat_foundations.models.resource import ResourceMixin
 from ziggurat_foundations.models.services.user import UserService
 from ziggurat_foundations.models.user import UserMixin
 from ziggurat_foundations.models.user_group import UserGroupMixin
 from ziggurat_foundations.models.user_permission import UserPermissionMixin
-from ziggurat_foundations.models.user_resource_permission import UserResourcePermissionMixin
-from ziggurat_foundations.models.services.external_identity import ExternalIdentityService
-from opensipkd.tools import as_timezone, get_timezone
+from ziggurat_foundations.models.user_resource_permission import \
+    UserResourcePermissionMixin
 
+from opensipkd.tools import as_timezone
 from .base import CommonModel, DBSession, DefaultModel
 from .meta import Base
-# from .partner import Partner
 
 
 class GroupPermission(GroupPermissionMixin, Base):
@@ -74,13 +73,16 @@ class User(UserMixin, BaseModel, CommonModel, Base):
                              nullable=False,
                              default=datetime.utcnow)
     security_code_date = Column(DateTime(timezone=True),
-                                default=datetime(2000, 1, 1, tzinfo=pytz.timezone('Asia/Jakarta')),
+                                default=datetime(2000, 1, 1,
+                                                 tzinfo=pytz.timezone(
+                                                     'Asia/Jakarta')),
                                 server_default="2000-01-01 01:01+7",
                                 )
     api_key = Column(String(256))
-    partner_id = Column(Integer) #, ForeignKey(Partner.id))
-    company_id = Column(Integer) #, ForeignKey(Partner.id))
-    #partners = relationship(Partner, backref=backref('users'))
+    partner_id = Column(Integer)  # , ForeignKey(Partner.id))
+    company_id = Column(Integer)  # , ForeignKey(Partner.id))
+
+    # partners = relationship(Partner, backref=backref('users'))
 
     def _get_password(self):
         return self._password
@@ -127,6 +129,7 @@ class User(UserMixin, BaseModel, CommonModel, Base):
     def get_by_token(cls, token):
         return DBSession.query(cls).filter_by(security_code=token)
 
+
     # @classmethod
     # def get_departemen_id(cls, user_id):
     #     partner = Partner.query_user_id(user_id).first()
@@ -159,6 +162,19 @@ class User(UserMixin, BaseModel, CommonModel, Base):
 
 class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
     user = relationship(User, backref=backref("external"))
+
+    @classmethod
+    def query(cls):
+        return DBSession.query(cls)
+
+    @classmethod
+    def query_user(cls, user):
+        return cls.query().filter_by(local_user_id=user.id)
+
+    @classmethod
+    def external(cls, user):
+        return cls.query_user(user).count()>0
+
 
 
 # class GroupRoutePermission(Base, CommonModel):
@@ -194,7 +210,9 @@ class RootFactory:
             acl_name = 'group:{}'.format(gp.group_id)
             self.__acl__.append((Allow, acl_name, gp.perm_name))
 
+
 def init_model():
     ziggurat_model_init(User, Group, UserGroup, GroupPermission, UserPermission,
-                        UserResourcePermission, GroupResourcePermission, Resource,
+                        UserResourcePermission, GroupResourcePermission,
+                        Resource,
                         ExternalIdentity, passwordmanager=None)
