@@ -331,14 +331,17 @@ class Registrasi(BaseView):
                       "idcard"]
             for f in fields:
                 d[f] = hasattr(partner, f) and getattr(partner, f) or ""
-            if "idcard" in d and d["idcard"]:
-                filename = d["idcard"]
-                preview_url = "/".join(
-                    [self.home, partner_idcard_folder, filename])
-                d["idcard"] = {"uid": filename.split(".")[0],
-                               "filename": filename,
-                               "preview_url": preview_url
-                               }
+            if "idcard" in d :
+                if  d["idcard"]:
+                    filename = d["idcard"]
+                    preview_url = "/".join(
+                        [self.home, partner_idcard_folder, filename])
+                    d["idcard"] = {"uid": filename.split(".")[0],
+                                   "filename": filename,
+                                   "preview_url": preview_url
+                                   }
+            else:
+                d.pop("idcard")
 
         return d
 
