@@ -73,9 +73,9 @@ class BaseApi(object):
                         row.permissions):
                     continue
 
-            buttons.append(Button(row.kode, title=row.nama, type="button",
-                                  value=row.url, icon=row.icon,
-                                  attributes=dict(method=row.url)))
+            buttons.append(Button(row.kode, title=row.title, type="button",
+                                  value=row.url, icon=row.icon,))
+                                  # attributes=dict(method=row.url)))
         return tuple(buttons)
 
     def update_headers(self, headers):

@@ -27,6 +27,7 @@ class Menus(Base, NamaModel):
     class_name = Column(String(256))
     need_login = Column(SmallInteger, server_default="1")
     permissions = Column(String(128), server_default="")
+    title = Column(String(256))
     children = relationship(
         "Menus", backref=backref('parent', remote_side=[id]))
 
