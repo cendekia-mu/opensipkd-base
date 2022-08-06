@@ -29,7 +29,7 @@ Link dalam module registrasi:
 import os
 
 import colander
-from deform import (widget, Button, FileData)
+from deform import (widget, Button, FileData, ValidationFailure)
 from pyramid.threadlocal import get_current_registry
 
 from opensipkd.tools import Upload, mem_tmp_store, image_validator
@@ -441,3 +441,20 @@ class Registrasi(BaseView):
         DBSession.flush()
         self.req.session.flash("Sukses update profile")
         return row
+
+    def next_add(self, form, **kwargs):
+        table = kwargs.get("table")
+        resources = kwargs.get("resources")
+        if 'register' in self.req.POST:
+            controls = self.req.POST.items()
+            try:
+                c = form.validate(controls)
+            except ValidationFailure as e:
+                return dict(form=form.render(e.cstruct),
+                            table=table and table.render() or None,
+                            scripts=self.form_scripts, css=resources["css"],
+                            js=resources["js"])
+            values = dict(c)
+            row = self.save_request(values)
+            self.after_add(row, values)
+        return self.route_list()

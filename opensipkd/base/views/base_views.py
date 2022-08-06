@@ -436,7 +436,7 @@ class BaseView(object):
                 self.table.company_id == self.req.user.company_id)
         return query
 
-    def next_add(self, form):
+    def next_add(self, form, **kwargs):
         """
         Digunakan untuk memverifikasi button yang lainnya
         :param form:  Object Form

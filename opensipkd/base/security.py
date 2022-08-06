@@ -13,7 +13,7 @@ def group_finder(user_id, request):
         user = None
 
     if not user or not user.status:
-        log.info("User tidak ditemukan")
+        log.debug(f"user_id {user_id} not found or archived")
         return []
 
     r = []
