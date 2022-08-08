@@ -64,7 +64,7 @@
             return 'Archived';
         }
 
-        for (co in columns) {
+        for (let co in columns) {
             console.log(columns[co]);
             if (columns[co].checkbox === true) {
                 columns[co].className = "text-center";

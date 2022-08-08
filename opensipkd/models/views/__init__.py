@@ -75,11 +75,11 @@ class BaseApiTableFilter(object):
 
         offset = (page - 1) * page_size
         qry = qry.offset(offset).limit(page_size)
-        return qry, page, total_page
+        return qry, page, page_size, total_page
 
 
     def get_filter(self):
-        qry, page, total_page = self.get_data()
+        qry, page, page_size, total_page = self.get_data()
         row = qry.first()
         if not row:
             raise JsonRpcDataNotFoundError
@@ -89,4 +89,5 @@ class BaseApiTableFilter(object):
 
         return dict(record=result,
                     total_page=total_page,
-                    page=page)
+                    page=page,
+                    page_size=page_size)
