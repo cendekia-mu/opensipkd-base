@@ -162,6 +162,7 @@ class DeTable(field.Field):
         self.server_side = server_side
         self.data = data
         columns = []
+        headers = []
         cols2 = []
         for f in schema:
             d = {'data': f.name}
@@ -219,8 +220,17 @@ class DeTable(field.Field):
                 if 'className' not in d:
                     d["className"] = "text-right"
             columns.append(d)
+            headers.append(f.title)
             cols2.append(data)
 
+        # for t in d:
+        #     if "title" in t:
+        #         headers.append(t["title"])
+        #     else:
+        #         headers.append(t)
+
+        self.headers = headers
+        self.head = headers
         self.columns = json.dumps(columns)
         self.columns = self.columns.replace('"<script>', "").replace(
             '</script>"', "").replace("\n", "")
@@ -229,6 +239,7 @@ class DeTable(field.Field):
         self.sorts = sorts
         self.paginates = paginates
         self.filters = filters
+        print(self.headers)
 
 
 class Button(object):

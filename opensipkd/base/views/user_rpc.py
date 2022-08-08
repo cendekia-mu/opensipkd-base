@@ -14,7 +14,6 @@ from pyramid.i18n import TranslationStringFactory
 from pyramid.security import remember, forget
 from pyramid_rpc.jsonrpc import jsonrpc_method
 
-from .base_views_api import BaseApi
 from .user import EmailValidator as EmailValidatorBase
 from .user_group import save as save_groups
 from .user_login import (ChangePassword, change_password_validator,

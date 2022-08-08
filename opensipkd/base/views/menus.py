@@ -7,6 +7,7 @@ from pyramid.view import (view_config, )
 from sqlalchemy.orm import aliased
 
 from ..views import ColumnDT, DataTables, BaseView
+
 _ = TranslationStringFactory("opensipkd")
 
 SESS_ADD_FAILED = 'Tambah menu gagal'
@@ -45,6 +46,14 @@ class AddSchema(colander.Schema):
     kode = colander.SchemaNode(colander.String(),
                                validator=colander.Length(max=32), oid="kode")
     nama = colander.SchemaNode(colander.String(), oid="nama")
+    url = colander.SchemaNode(colander.String(), oid="url",
+                              title="URL/METHOD")
+    icon = colander.SchemaNode(colander.String(),
+                               missing=colander.drop)
+    class_name = colander.SchemaNode(colander.String(), oid="url",
+                                     missing=colander.drop)
+    need_login = colander.SchemaNode(colander.Boolean())
+    title = colander.SchemaNode(colander.String())
     status = colander.SchemaNode(colander.Boolean(), oid="status")
 
     def after_bind(self, schema, kwargs):
