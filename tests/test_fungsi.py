@@ -1,9 +1,14 @@
 import unittest
 from pyramid import testing
-
+from pyramid.paster import get_appsettings
 
 class MyTest(unittest.TestCase):
     def setUp(self):
+        settings = get_appsettings('../test.ini', name='main')
+        from opensipkd.base import main
+        self.app = TestApp(main(global_config = None, **settings))
+
+
         self.config = testing.setUp()
 
     def tearDown(self):
@@ -11,7 +16,7 @@ class MyTest(unittest.TestCase):
 
     def test_view_fn_query_table(self):
         from pyramid.httpexceptions import HTTPForbidden
-        from opensipkd.base.models import query_table
+        from opensipkd.models import query_table
         res = query_table('routes', ['id'])
         print(res.first())
         # , [('id', '=', 1)]

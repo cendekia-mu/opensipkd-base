@@ -22,9 +22,9 @@ class Menus(Base, NamaModel):
     parent_id = Column(Integer, ForeignKey('public.menus.id'))
     level_id = Column(SmallInteger)
     order_id = Column(SmallInteger)
-    url = Column(String(256))
+    url = Column(String(256)) # value
     icon = Column(String(256))
-    class_name = Column(String(256))
+    css_class = Column(String(256))
     need_login = Column(SmallInteger, server_default="1")
     permissions = Column(String(128), server_default="")
     title = Column(String(256))
