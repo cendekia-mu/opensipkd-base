@@ -1,6 +1,6 @@
 # from pyramid_rpc.amfgateway import PyramidGateway
 from pyramid_rpc.jsonrpc import jsonrpc_method
-from opensipkd.tools.api import JsonRpcInvalidDataError, JsonRpcInvalidLoginError
+from opensipkd.tools.api import JsonRpcInvalidData, JsonRpcInvalidLoginError
 from ziggurat_foundations.models.services.user import UserService
 
 from opensipkd.models import Partner, User

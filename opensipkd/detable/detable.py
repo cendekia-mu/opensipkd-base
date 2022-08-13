@@ -10,6 +10,7 @@ from chameleon.utils import Markup
 from deform import compat
 from deform import field
 from . import widget
+
 # from deform import widget
 log = logging.getLogger(__name__)
 
@@ -129,7 +130,7 @@ class DeTable(field.Field):
         btn_pdf_js = "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params)
         action_suffix = f"{action_suffix}{params}"
         field.Field.__init__(self, schema, **kw)
-        self.request=kw.get("request")
+        self.request = kw.get("request")
         _buttons = []
         for button in buttons:
             if isinstance(button, compat.string_types):
@@ -179,31 +180,28 @@ class DeTable(field.Field):
             if hasattr(f, 'visible'):
                 d["visible"] = f.visible
                 data.append(f"visible: {f.visible}")
-            
+
             if hasattr(f, 'orderable'):
                 d["orderable"] = f.orderable
                 data.append(f"orderable: {f.orderable}")
-                
+
             if hasattr(f, "url"):
-                request=kw.get("request")
+                request = kw.get("request")
                 if request:
-                    d["url"]= request.static_url(f.url)
+                    d["url"] = request.static_url(f.url)
                     log.debug(d["url"])
-                    
+
             if hasattr(f, "action"):
                 d["action"] = f.action
             else:
-                d["action"]=True
-                
+                d["action"] = True
+
             if isinstance(f.widget, deform.widget.HiddenWidget):
                 d["visible"] = False
             if isinstance(f.widget, deform.widget.CheckboxWidget):
                 d["checkbox"] = True
             else:
-                d["checkbox"]=False
-
-                
-                
+                d["checkbox"] = False
 
             thousand = hasattr(f, 'thousand') and f.thousand or None
             separator = thousand and "separator" in thousand and thousand[
@@ -213,10 +211,11 @@ class DeTable(field.Field):
             point = thousand and "point" in thousand and thousand["point"] or 0
             currency = thousand and "currency" in thousand and thousand[
                 "currency"] or ""
-            if thousand or type(f.typ) == colander.Float() or type(
-                    f.typ) == colander.Integer():
-                d["render"] = f"<script>$.fn.dataTable.render.number( '{separator}', " \
-                                f"'{decimal}', {point}, '{currency}' )</script>"
+            if thousand or isinstance(f.typ, colander.Float) or \
+                    isinstance(f.typ, colander.Integer):
+                d["render"] = \
+                    f"<script>$.fn.dataTable.render.number( '{separator}', " \
+                    f"'{decimal}', {point}, '{currency}' )</script>"
                 if 'className' not in d:
                     d["className"] = "text-right"
             columns.append(d)

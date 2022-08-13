@@ -1,0 +1,8 @@
+<span tal:define="name name|field.name;
+    css_class css_class|field.widget.css_class;
+    oid oid|field.oid;
+    style style|field.widget.style;
+    "
+     tal:omit-tag="">
+    <img style="height:30px; width:auto; margin-bottom:5px;" src="${cstruct}">
+</span>

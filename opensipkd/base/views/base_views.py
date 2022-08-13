@@ -6,7 +6,6 @@ from datetime import datetime
 from datatables import ColumnDT
 from dateutil.relativedelta import relativedelta
 
-
 from opensipkd.tools.captcha import get_captcha
 from pyramid.httpexceptions import HTTPFound
 
@@ -209,6 +208,9 @@ class BaseView(object):
     def get_bindings(self, row=None):
         return {}
 
+    def next_view(self, form, **kwargs):
+        return self.route_list()
+
     def view_view(self):  # row = query_id(request).first()
         request = self.req
         row = self.query_id().first()
@@ -218,14 +220,16 @@ class BaseView(object):
         form = self.get_form(self.edit_schema, buttons=(btn_close,),
                              bindings=bindings)
         if request.POST:
-            return self.route_list()
+            result = self.next_view(form)
+            if result:
+                return result
 
         form.set_appstruct(self.get_values(row))
         table = self.get_item_table(row)
         return dict(form=form.render(readonly=True),
                     table=table and table.render() or None,
                     scripts=self.form_scripts)
-    
+
     def before_add(self):
         return {}
 
@@ -254,8 +258,8 @@ class BaseView(object):
             columns = []
             for d in self.list_schema():
                 global_search = hasattr(d, "searchable") and \
-                    hasattr(d, "searchable") == False and False \
-                    or True
+                                hasattr(d, "searchable") == False and False \
+                                or True
                 if hasattr(d, "field"):
                     if type(d.field) == str:
                         columns.append(

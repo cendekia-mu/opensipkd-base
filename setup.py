@@ -33,7 +33,7 @@ requires = [
     'google-api-python-client',
     'google',
     'pyjwt',
-    'z3c.rml',
+#    'z3c.rml',
     'opensipkd-tools @git+https://git.opensipkd.com/aa.gusti/opensipkd-tools.git',
 ]
 

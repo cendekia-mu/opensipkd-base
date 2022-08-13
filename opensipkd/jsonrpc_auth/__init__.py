@@ -1,9 +1,13 @@
+import decimal
+import json
 import logging
+from datetime import datetime
 
+import colander
 from icecream import ic
 from pyramid.httpexceptions import HTTPForbidden
 from pyramid.httpexceptions import HTTPNotFound
-from pyramid.renderers import null_renderer, render
+from pyramid.renderers import null_renderer, render, JSON
 from pyramid.response import Response
 from pyramid.security import NO_PERMISSION_REQUIRED, remember
 from pyramid_rpc.jsonrpc import (
@@ -255,6 +259,13 @@ class EndpointPredicate(object):
             # return a valid JSON-RPC response.
             return True
 
+def json_rpc():
+    json_r = JSON()
+    json_r.add_adapter(datetime.datetime, lambda v, request: v.isoformat())
+    json_r.add_adapter(datetime.date, lambda v, request: v.isoformat())
+    json_r.add_adapter(decimal.Decimal, lambda v, request: str(v))
+    json_r.add_adapter(colander.null, lambda v, request: None)
+    return json_r
 
 def includeme(config):
     """ Set up standard configurator registrations.  Use via:

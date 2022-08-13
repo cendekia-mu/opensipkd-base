@@ -8,7 +8,7 @@ from opensipkd.base.views.partner_base import NamaSchema
 from opensipkd.jsonrpc_auth import JsonRpcInvalidLogin
 from opensipkd.tools import create_now
 from opensipkd.tools.api import (
-    JsonRpcInvalidLoginError, JsonRpcInvalidDataError,
+    JsonRpcInvalidLoginError, JsonRpcInvalidData,
     JsonRpcUserNotFoundError)
 from pyramid.i18n import TranslationStringFactory
 from pyramid.security import remember, forget
@@ -234,7 +234,7 @@ def set_profile_(request, data):
         controls = form.validate(controls)
     except ValidationFailure as e:
         print(e.error, type(e.error))
-        raise JsonRpcInvalidDataError(data=e.error.asdict())
+        raise JsonRpcInvalidData(data=e.error.asdict())
     values = dict(controls)
     partner = Partner.query().filter_by(email=values["email"]).first()
     if not partner:

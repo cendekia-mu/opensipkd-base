@@ -275,3 +275,50 @@ class CaptchaWidget(Widget):
         if not pstruct:
             return null
         return pstruct
+
+class ImageWidget(Widget):
+    """
+    Renders an ``<img src="src"/>`` widget.
+
+    **Attributes/Arguments**
+
+    template
+       The template name used to render the widget.  Default:
+        ``image``.
+
+    readonly_template
+        The template name used to render the widget in read-only mode.
+        Default: ``readonly/image``.
+
+    strip
+        If true, during deserialization, strip the value of leading
+        and trailing whitespace (default ``True``).
+
+    """
+
+    template = "opensipkd.base:views/widgets/image.pt"
+    readonly_template = "image"
+    strip = True
+    requirements = ()
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+
+    def serialize(self, field, cstruct, **kw):
+        if cstruct in (null, None):
+            cstruct = ""
+        readonly = kw.get("readonly", self.readonly)
+        template = readonly and self.readonly_template or self.template
+        values = self.get_template_values(field, cstruct, kw)
+        return field.renderer(template, **values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct is null:
+            return null
+        elif not isinstance(pstruct, string_types):
+            raise Invalid(field.schema, "Pstruct is not a string")
+        if self.strip:
+            pstruct = pstruct.strip()
+        if not pstruct:
+            return null
+        return pstruct

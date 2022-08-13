@@ -2,6 +2,8 @@ import locale
 import logging
 import re
 
+import colander
+
 try:
     from urllib import (urlencode, quote, quote_plus, )
 except ImportError:
@@ -101,6 +103,8 @@ def has_permission_(request, perm_names, context=None):
         if request.has_permission(perm_name, context):
             return True
 
+def _get_params(request, params, default=None, settings=None, context=None):
+    return get_params(params, default, settings)
 
 @subscriber(BeforeRender)
 def add_global(event):
@@ -422,16 +426,12 @@ def main(global_config, **settings):
     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(get_host, '_host', reify=True)
     config.add_request_method(get_home, 'home', reify=True)
-    # config.add_request_method(api_has_permission_, 'api_has_permission', reify=True)
-
     config.add_request_method(google_signin_client_id,
                               'google_signin_client_id', reify=True)
     config.add_request_method(google_signin_client_ids,
                               'google_signin_client_ids', reify=True)
     config.add_request_method(allow_register, 'allow_register', reify=True)
     config.add_request_method(disable_responsive, 'disable_responsive', reify=True)
-    # config.add_request_method(get_params, 'get_params', reify=True)
-    # config.add_request_method(get_ini_params, 'get_ini', reify=True)
     config.add_request_method(get_ini, 'get_ini', reify=True)
     config.add_translation_dirs('opensipkd.base:locale/')
 

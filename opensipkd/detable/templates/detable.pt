@@ -1,39 +1,39 @@
 <div
-  tal:define="style style|field.widget.style;
-        css_class css_class|string:${field.widget.css_class or field.css_class or 'jarviswidget jarviswidget-color-blueLight'};
-        item_template item_template|field.widget.item_template;
-        title title|field.title;
-        errormsg errormsg|field.errormsg;
-        description description|field.description;
-        buttons buttons|field.buttons;
-        tableid tableid|field.tableid;
-        columns columns|field.columns;
-        btnscripts scripts|field.scripts;
-        url url|field.url;
-        url_suffix url_suffix|field.url_suffix;
-        sorts sorts|field.sorts;
-        filters filters|field.filters;
-        paginates paginates|field.paginates;
-        server_side server_side|field.server_side;
-        data data|field.data;
-        allow_edit allow_edit|field.allow_edit;
-        allow_delete allow_delete|field.allow_delete;
-        "
-  tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};"
-  i18n:domain="detable"
+     tal:define="style style|field.widget.style;
+    css_class css_class|string:${field.widget.css_class or field.css_class or 'jarviswidget jarviswidget-color-blueLight'};
+    item_template item_template|field.widget.item_template;
+    title title|field.title;
+    errormsg errormsg|field.errormsg;
+    description description|field.description;
+    buttons buttons|field.buttons;
+    tableid tableid|field.tableid;
+    columns columns|field.columns;
+    btnscripts scripts|field.scripts;
+    url url|field.url;
+    url_suffix url_suffix|field.url_suffix;
+    sorts sorts|field.sorts;
+    filters filters|field.filters;
+    paginates paginates|field.paginates;
+    server_side server_side|field.server_side;
+    data data|field.data;
+    allow_edit allow_edit|field.allow_edit;
+    allow_delete allow_delete|field.allow_delete;
+    "
+     tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};"
+     i18n:domain="detable"
 >
   <header role="heading" class="txt-color-grayDark">
     <h2 tal:condition="title"><i class="fa fa-fw fa-table"></i>${title}</h2>
     <div role="content">
       <div class="widget-body">
         <table
-          id="${tableid}"
-          class="table table-bordered table-hover table-condensed dataTable no-footer"
+            id="${tableid}"
+            class="table table-bordered table-hover table-condensed dataTable no-footer"
         >
           <thead>
-            <tr>
-              <th tal:repeat="child field">${child.title}</th>
-            </tr>
+          <tr>
+            <th tal:repeat="child field">${child.title}</th>
+          </tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -43,121 +43,118 @@
   </header>
 
   <script type="text/javascript">
+    var m${tableid}ID;
+    var o${tableid};
+    var o${tableid}Uri = "${url}";
+    var o${tableid}Url = o${tableid}Uri + "${url_suffix}";
     deform.addCallback
     ('${tableid}', function (oid) {
-        let m${tableid}ID;
-        let o${tableid};
-        let o${tableid}Uri = "${url}";
-        let o${tableid}Url = o${tableid}Uri + "${url_suffix}";
-        let tb_array = [
-            '<div class="btn-group pull-left">',
-            '${structure:buttons}',
-            '	&nbsp;',
-            '</div>',
-        ]
-        let columns = ${structure: columns};
+      // $(document).ready(function () {
 
-        function render_checkbox(value) {
-            if (value == true) {
-                return '<i class="fas fa-check-square" aria-hidden="true">';
+
+      let tb_array = [
+        '<div class="btn-group pull-left">',
+        '${structure:buttons}',
+        '	&nbsp;',
+        '</div>',
+      ]
+      let ${tableid}Columns = ${structure: columns};
+
+      function render_checkbox(value) {
+        if (value === true) {
+          return '<i class="fas fa-check-square" aria-hidden="true">';
+        }
+        return 'Archived';
+      }
+
+      for (let co in ${tableid}Columns) {
+        if (${tableid}Columns[co].checkbox === true) {
+          ${tableid}Columns[co].className = "text-center";
+          ${tableid}Columns[co].width = "30pt";
+          ${tableid}Columns[co].render = function (val) {
+            if (["", false, 0].indexOf(val) === -1) {
+              return render_checkbox(true);
+            } else return render_checkbox(false);
+          }
+        } else if (${tableid}Columns[co].hasOwnProperty("url")) {
+          let url = ${tableid}Columns[co].url;
+          ${tableid}Columns[co].render = function (data) {
+            let result = '<a href="' + url + '/' + data + '" target="_blank">Link</a>&nbsp;';
+            return result;
+          }
+        } else if (${tableid}Columns[co].data === "id" && ${tableid}Columns[co].action === true) {
+          ${tableid}Columns[co].render = function (id) {
+            let result = '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true"></i></a>&nbsp;';
+            if (${allow_edit}) {
+              result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true"></i></a>&nbsp;'
             }
-            return 'Archived';
-        }
-
-        for (let co in columns) {
-            console.log(columns[co]);
-            if (columns[co].checkbox === true) {
-                columns[co].className = "text-center";
-                columns[co].width = "30pt";
-                columns[co].render = function (val) {
-                    if (["", false, 0].indexOf(val) === -1) {
-                        return render_checkbox(true);
-                    } else return render_checkbox(false);
-                }
-            }else if (columns[co].hasOwnProperty("url")){
-                let url = columns[co].url;
-                columns[co].render = function (data) {
-                    let result = '<a href="'+url+'/' + data + '" target="_blank">'+data+'</a>&nbsp;';
-                    return result;
-                }
-            }else if(columns[co].data == "id" && columns[co].action == true){
-                columns[co].render = function (id) {
-                    let result = '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true"></i></a>&nbsp;';
-                    if (${allow_edit}) {
-                        result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true"></i></a>&nbsp;'
-                    }
-                    if (${allow_delete}) {
-                        result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true"></i></a>';
-                    }
-
-                    return result;
-                }
-                columns[co].width = "30pt";
-                columns[co].orderable = false;
-                columns[co].className = "text-center";
-                columns[co].visible = true;
-                //columns[1].order = "order_asc";
-
+            if (${allow_delete}) {
+              result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true"></i></a>';
             }
-        }
-        let language = {
-            "search": "Cari: ",
-            "paginate": {
-                "first": '<span class="glyphicon glyphicon-step-backward"></span> ',
-                "last": '<span class="glyphicon glyphicon glyphicon-step-forward"></span> ',
-                "previous": '<span class="glyphicon glyphicon-backward"></span> ',
-                "next": '<span class="glyphicon glyphicon-forward"></span> ',
-            },
-            "lengthMenu": " _MENU_ baris "
-        };
-        let params = {
-            dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
-            processing: true,
-            serverSide: ${server_side},
-            stateSave: false,
-            scrollCollapse: true,
-            sort: ${sorts},
-            info: false,
-            filter: ${filters},
-            autoWidth: false,
-            paginate: ${paginates},
-            paginationType: "full_numbers",
-            order: [],
-            lengthMenu: [
-                [10, 25, 50, 100],
-                [10, 25, 50, 100]
-            ],
-            columns: columns,
-            "language": language,
+            return result;
+          }
+          ${tableid}Columns[co].width = "30pt";
+          ${tableid}Columns[co].orderable = false;
+          ${tableid}Columns[co].className = "text-center";
+          ${tableid}Columns[co].visible = true;
+          //columns[1].order = "order_asc";
 
         }
-        if (${server_side}==false
-    )
-        {
-            params.data = ${data};
+      }
+      let ${tableid}Language = {
+        "search": "Cari: ",
+        "paginate": {
+          "first": '<span class="glyphicon glyphicon-step-backward"></span> ',
+          "last": '<span class="glyphicon glyphicon glyphicon-step-forward"></span> ',
+          "previous": '<span class="glyphicon glyphicon-backward"></span> ',
+          "next": '<span class="glyphicon glyphicon-forward"></span> ',
+        },
+        "lengthMenu": " _MENU_ baris "
+      };
+      let ${tableid}Params = {
+        dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
+        processing: true,
+        serverSide: ${server_side},
+        stateSave: false,
+        scrollCollapse: true,
+        sort: ${sorts},
+        info: false,
+        filter: ${filters},
+        autoWidth: false,
+        paginate: ${paginates},
+        paginationType: "full_numbers",
+        order: [],
+        lengthMenu: [
+          [10, 25, 50, 100],
+          [10, 25, 50, 100]
+        ],
+        columns: ${tableid}Columns,
+        "language": ${tableid}Language,
+
+      }
+      if (!${server_side}) {
+        ${tableid}Params.data = ${data};
+      } else {
+        ${tableid}Params.ajax = o${tableid}Url;
+      }
+      o${tableid} = $('#${tableid}').DataTable(${tableid}Params);
+      let tb = tb_array.join(' ');
+      $("div.toolbar").html(tb);
+      $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
+      $('#${tableid} tbody').on('click', 'tr', function () {
+        if ($(this).hasClass('selected')) {
+          $(this).removeClass('selected');
+        } else {
+          let aData = o${tableid}.row(this).data();
+          o${tableid}.$('tr.selected').removeClass('selected');
+          $(this).addClass('selected');
+          m${tableid}ID = aData.id;
+          //console.log("m${tableid}ID", m${tableid}ID);
+          o${tableid}.$('tr.row_selected').removeClass('row_selected');
+          $(this).addClass('row_selected');
         }
-    else
-        {
-            params.ajax = o${tableid}Url;
-        }
-        o${tableid} = $('#${tableid}').DataTable(params);
-        let tb = tb_array.join(' ');
-        $("div.toolbar").html(tb);
-        $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
-        $('#${tableid} tbody').on('click', 'tr', function () {
-            if ($(this).hasClass('selected')) {
-                $(this).removeClass('selected');
-            } else {
-                let aData = o${tableid}.row(this).data();
-                o${tableid}.$('tr.selected').removeClass('selected');
-                $(this).addClass('selected');
-                m${tableid}ID = aData.id;
-                // console.log(mID);
-                o${tableid}.$('tr.row_selected').removeClass('row_selected');
-                $(this).addClass('row_selected');
-            }
-        });
-            ${structure:btnscripts}
+      });
+        ${structure:btnscripts}
     });
   </script>
 </div>
