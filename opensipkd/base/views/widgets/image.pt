@@ -2,7 +2,9 @@
     css_class css_class|field.widget.css_class;
     oid oid|field.oid;
     style style|field.widget.style;
-    "
-     tal:omit-tag="">
-    <img style="height:30px; width:auto; margin-bottom:5px;" src="${cstruct}">
+    height height|field.widget.height;
+    width 'auto'|field.widget.width;
+    " tal:omit-tag="">
+    <img id="${oid}" style="height:${height}; width:auto; margin-bottom:5px;" src="${cstruct}">
+<!--?    <p><a href="${cstruct}">Download</a></p>-->
 </span>

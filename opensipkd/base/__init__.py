@@ -103,12 +103,17 @@ def has_permission_(request, perm_names, context=None):
         if request.has_permission(perm_name, context):
             return True
 
+def has_modules_(module_name, context=None):
+    modules = get_params("pyramid.includes").split("\n")
+    return module_name in modules
+
 def _get_params(request, params, default=None, settings=None, context=None):
     return get_params(params, default, settings)
 
 @subscriber(BeforeRender)
 def add_global(event):
     event['has_permission'] = has_permission_
+    event['has_modules'] = has_modules_
     event['urlencode'] = urlencode
     event['quote_plus'] = quote_plus
     event['quote'] = quote
@@ -421,6 +426,7 @@ def main(global_config, **settings):
     config.add_request_method(get_address2, 'address2', reify=True)
     config.add_request_method(get_app_name, 'app_name', reify=True)
     config.add_request_method(get_modules, 'modules', reify=True)
+    config.add_request_method(has_modules_, 'has_modules', reify=True)
     config.add_request_method(get_menus, 'menus', reify=True)
     config.add_request_method(thousand, 'thousand', reify=True)
     config.add_request_method(is_devel, 'devel', reify=True)

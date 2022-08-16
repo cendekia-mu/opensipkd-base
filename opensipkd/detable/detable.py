@@ -184,12 +184,12 @@ class DeTable(field.Field):
             if hasattr(f, 'orderable'):
                 d["orderable"] = f.orderable
                 data.append(f"orderable: {f.orderable}")
-
             if hasattr(f, "url"):
-                request = kw.get("request")
-                if request:
-                    d["url"] = request.static_url(f.url)
-                    log.debug(d["url"])
+                d["url"]=f.url
+                # request = kw.get("request")
+                # if request:
+                #     d["url"] = request.static_url(f.url)
+                #     log.debug(d["url"])
 
             if hasattr(f, "action"):
                 d["action"] = f.action

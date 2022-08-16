@@ -300,7 +300,7 @@ class ImageWidget(Widget):
     readonly_template = "image"
     strip = True
     requirements = ()
-
+    height = "30px"
     def __init__(self, **kw):
         super().__init__(**kw)
 

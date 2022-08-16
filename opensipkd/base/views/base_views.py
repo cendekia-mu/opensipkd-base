@@ -188,7 +188,9 @@ class BaseView(object):
         if self.list_schema:
             allow_edit = kwargs.get("allow_edit", True)
             allow_delete = kwargs.get("allow_delete", True)
-            table = DeTable(self.list_schema(),
+            schema = self.list_schema()
+            schema = schema.bind(request=self.req)
+            table = DeTable(schema,
                             action=self.req.route_url(self.list_route),
                             action_suffix="/grid/act",
                             buttons=self.list_buttons,
