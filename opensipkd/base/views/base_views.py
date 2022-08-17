@@ -34,6 +34,10 @@ class BaseView(object):
         self.ses = self.req.session
         self.params = self.req.params
         self.settings = get_settings()
+        # if not request.user:
+        if "g_state" in request.cookies:
+            request.response.delete_cookie("g_state", '/')
+
         now = datetime.now()
         # self.dt_awal = self.ses["dt_awal"] if "dt_awal" in self.ses else now
         # self.awal = dmy(self.dt_awal)

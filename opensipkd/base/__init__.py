@@ -35,7 +35,7 @@ from opensipkd.tools import (
     as_timezone,
     split,
     get_settings,
-    dmy,
+    dmy, dmyhms,
 )
 
 from deform import ZPTRendererFactory, Form
@@ -321,10 +321,15 @@ def get_menus(request):
 
     return result
 
+def format_datetime(v):
+    if v.time():
+        return dmyhms(v)
+    else:
+        return dmy(v)
 
 def json_renderer():
     json_r = JSON()
-    json_r.add_adapter(datetime.datetime, lambda v, request: dmy(v))
+    json_r.add_adapter(datetime.datetime, lambda v, request: format_datetime(v))
     json_r.add_adapter(datetime.date, lambda v, request: dmy(v))
     json_r.add_adapter(decimal.Decimal, lambda v, request: str(v))
     return json_r

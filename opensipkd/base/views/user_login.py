@@ -41,6 +41,7 @@ from opensipkd.tools import create_now, set_user_log, get_settings
 from opensipkd.base.views import _, one_hour, two_minutes, BaseView
 from pyramid_mailer.message import Message
 
+from opensipkd.tools.buttons import btn_cancel
 from opensipkd.tools.form_api import formfield2dict
 
 log = __import__("logging").getLogger(__name__)
@@ -222,25 +223,41 @@ def redirect_login(request, user):
     return HTTPFound(location=next_url, headers=headers)
 
 
-@view_config(route_name='logout', renderer="templates/logout.pt")
-def view_logout(request):
-    if 'batal' in request.POST:
-        log.info(request.route_url('home'))
-        return HTTPFound(location=f"{request.route_url('home')}", )
-    elif request.POST:
-        set_user_log("Logout", request, log)
-        headers = forget(request)
-        request.session.delete()
-        if "g_state" in request.cookies:
-            del request.cookies["g_state"]
-            # if "g_state" in request.cookies:
-            # requests.post("https://accounts.google.com/o/oauth2/revoke?token=" + ACCESS_TOKEN);
-            # headers = forget(request)
-            # request.session.delete()
-            # request.session["start"]="login"
-        return HTTPFound(location=request.route_url('home'),
-                         headers=headers)
-    return dict()
+class LogoutSchema(colander.Schema):
+    message = colander.SchemaNode(
+        colander.String(),
+        widget=widget.TextInputWidget(readonly=True),
+        title=""
+    )
+
+
+btn_logout = Button("logout", css_class="btn-danger")
+btn_home = Button("home", css_class="btn-success")
+
+class Logout(BaseView):
+    @view_config(route_name='logout', renderer="templates/logout.pt")
+    def view_logout(self):
+        request = self.req
+        if not request.user:
+            if "g_state" in request.cookies:
+                request.response.delete_cookie("g_state", '/')
+
+        form = self.get_form(LogoutSchema, buttons=(btn_cancel, btn_logout ))
+        if 'cancel' in request.POST or "home" in request.POST:
+            log.info(request.route_url('home'))
+            return HTTPFound(location=f"{request.route_url('home')}", )
+
+        elif "logout" in request.POST:
+            form = self.get_form(LogoutSchema, buttons=(btn_home,))
+            set_user_log("Logout", request, log)
+            headers = forget(request)
+            request.session.delete()
+            request.response.headers.update(headers)
+            if "g_state" in request.cookies:
+                request.response.delete_cookie("g_state", '/')
+            form.set_appstruct({"message": "Sukses Logout"})
+
+        return dict(form=form.render())
 
 
 class ChangePassword(colander.Schema):

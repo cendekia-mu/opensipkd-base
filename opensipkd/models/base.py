@@ -45,7 +45,8 @@ class CommonModel(object):
             value = getattr(self, column.name)
             if value or null:
                 if type(column.type)==DateTime:
-                    values[column.name] = value.strftime(date_format)
+                    if value:
+                        values[column.name] = value.strftime(date_format)
                 else:
                     values[column.name] = value
 
