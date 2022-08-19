@@ -376,52 +376,52 @@ class Registrasi(BaseView):
                 DBSession.flush()
 
             data = dict(email=row.email)
-            if 'id_info' in self.ses and self.ses['id_info']:
-                id_info = self.ses["id_info"]
-                values['email'] = id_info['email']
-                values['external_id'] = id_info['sub']
-                values['external_user_name'] = id_info["name"]
-                values['external_email'] = id_info["email"]
-                values['provider_name'] = id_info["iss"]
-                # todo: what is this????
-                # values['access_token']
-                # values['alt_token']
-                # values['token_secret']
-                values["local_user_id"] = row.id
-                external = ExternalIdentity()
-                external.from_dict(values)
-                DBSession.add(external)
-                DBSession.flush()
-                if need_verify():
-                    send_email_pending(self.req, row, 'Welcome new user',
-                                       'email-new-user',
-                                       'email-pending.tpl')
-                    ts = _(
-                        'user-added',
-                        default='${email} berhasil ditambahkan tunggu hasil verifikasi data ',
-                        mapping=data)
-
-                else:
-                    row.status = 1
-                    DBSession.add(row)
-                    self.ses.flash('Registrasi Sukses.')
-                    DBSession.flush()
-                    self.headers = get_login_headers(self.req, row)
-                    ts = _(
-                        'user-added',
-                        default='${email} berhasil ditambahkan ',
-                        mapping=data)
-            else:  # Kirim email validasi
-                # todo validasi dan perubahan profile
-                remain = regenerate_security_code(row)
-                send_email_security_code(
-                    self.req, row, remain, 'Welcome new user', 'email-new-user',
-                    'email-new-user.tpl')
-                ts = _(
-                    'user-added',
-                    default='${email} berhasil ditambahkan dan email untuk ubah ' \
-                            'kata kunci sudah dikirim.',
-                    mapping=data)
+            # if 'id_info' in self.ses and self.ses['id_info']:
+            #     id_info = self.ses["id_info"]
+            #     values['email'] = id_info['email']
+            #     values['external_id'] = id_info['sub']
+            #     values['external_user_name'] = id_info["name"]
+            #     values['external_email'] = id_info["email"]
+            #     values['provider_name'] = id_info["iss"]
+            #     # todo: what is this????
+            #     # values['access_token']
+            #     # values['alt_token']
+            #     # values['token_secret']
+            #     values["local_user_id"] = row.id
+            #     external = ExternalIdentity()
+            #     external.from_dict(values)
+            #     DBSession.add(external)
+            #     DBSession.flush()
+            #     if need_verify():
+            #         send_email_pending(self.req, row, 'Welcome new user',
+            #                            'email-new-user',
+            #                            'email-pending.tpl')
+            #         ts = _(
+            #             'user-added',
+            #             default='${email} berhasil ditambahkan tunggu hasil verifikasi data ',
+            #             mapping=data)
+            #
+            #     else:
+            #         row.status = 1
+            #         DBSession.add(row)
+            #         self.ses.flash('Registrasi Sukses.')
+            #         DBSession.flush()
+            #         self.headers = get_login_headers(self.req, row)
+            #         ts = _(
+            #             'user-added',
+            #             default='${email} berhasil ditambahkan ',
+            #             mapping=data)
+            # else:  # Kirim email validasi
+            # todo validasi dan perubahan profile
+            remain = regenerate_security_code(row)
+            send_email_security_code(
+                self.req, row, remain, 'Welcome new user', 'email-new-user',
+                'email-new-user.tpl')
+            ts = _(
+                'user-added',
+                default='${email} berhasil ditambahkan dan email untuk ubah ' \
+                        'kata kunci sudah dikirim.',
+                mapping=data)
             self.ses.flash(ts)
 
         if "old_email" in self.ses and self.ses["old_email"]:

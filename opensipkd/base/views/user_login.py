@@ -20,7 +20,7 @@ Perubahan Mendasar dari fungsi login adalah:
     result object dari fungsi tersebut harus berupa class User()
 """
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime
 from importlib import import_module
 
 import colander
@@ -36,7 +36,7 @@ from ziggurat_foundations.models.services.external_identity import \
 from ziggurat_foundations.models.services.user import UserService
 
 from opensipkd.base import DBSession, get_params
-from opensipkd.models import User, ExternalIdentity
+from opensipkd.models import User, ExternalIdentity, Partner
 from opensipkd.tools import create_now, set_user_log, get_settings
 from opensipkd.base.views import _, one_hour, two_minutes, BaseView
 from pyramid_mailer.message import Message
@@ -156,8 +156,8 @@ class ViewLogin(BaseView):
             del request.session['login failed']
             return r
 
-        elif "provider_name" in request.params and request.params[
-            "provider_name"]:
+        elif "provider_name" in request.params and \
+                request.params["provider_name"]:
             provider_name = request.params["provider_name"]
             if provider_name == "google":
                 from .base_google import googlesignin
@@ -166,32 +166,67 @@ class ViewLogin(BaseView):
                 except Exception as e:
                     login = ""
                     request.session.flash(str(e), "error")
-                    return render_to_response(login_tpl,
-                                              dict(form=form.render(),
-                                                   message=message,
-                                                   url=request.route_url(
-                                                       'login'),
-                                                   next_url=next_url,
-                                                   login=login, ),
-                                              request=request)
+                    return render_to_response(
+                        login_tpl, dict(
+                            form=form.render(),
+                            message=message,
+                            url=request.route_url('login'),
+                            next_url=next_url,
+                            login=login, ),
+                        request=request)
 
                 request.session["id_info"] = id_info
             else:
                 id_info = None
-
             user = id_info and ExternalIdentityService. \
                 user_by_external_id_and_provider(id_info['sub'], id_info['iss'])
-
+            log.debug("Users : %s", user)
+            log.debug("IdInfo : %s", id_info)
             if id_info and not user:
-                request.session.flash('Silahkan Melakukan Registrasi')
-                register_form = get_params("register_form", 'register')
-                return HTTPFound(location=request.route_url(register_form))
+                # Proses Register user
+                # Cek Data di user dan partner
+                # Jika sudah ada user  login  klasik pake user password
+                # Simpan ke table user dan external identity
+                values = {'email': id_info['email'],
+                          "user_name": id_info["email"],
+                          "status": 1,
+                          "registered_date": datetime.now()}
+                user = User.get_by_identity(values.get("email"))
+                partner = Partner.query_email(values.get("email")).first()
+                log.debug("User  : %s", user)
+                log.debug("Partner : %s", partner)
+                if user or partner:
+                    request.session.flash(
+                        "Email sudah terdaftar silahkan login standard",
+                        'error')
+                    return HTTPFound(location=request.route_url('login'))
+
+                user = User()
+                user.from_dict(values)
+                DBSession.add(user)
+                DBSession.flush()
+                DBSession.refresh(user)
+                values = {'external_id': id_info['sub'],
+                          'external_user_name': id_info["name"],
+                          'external_email': id_info["email"],
+                          'provider_name': id_info["iss"],
+                          "local_user_id": user.id,
+                          "status": 1}
+                external = ExternalIdentity()
+                external.from_dict(values)
+                DBSession.add(external)
+                DBSession.flush()
+                #     # todo: what is this????
+                #     # values['access_token']
+                #     # values['alt_token']
+                #     # values['token_secret']
 
             if user and user.status == 1:
                 return redirect_login(request, user)
             else:
                 message = "User anda masih menunggu verifikasi atau lagi di blokir"
                 request.session.flash(message, "error")
+
         login = ""
         if login_tpl == 'templates/login.pt':
             return dict(form=form.render(),
@@ -234,6 +269,7 @@ class LogoutSchema(colander.Schema):
 btn_logout = Button("logout", css_class="btn-danger")
 btn_home = Button("home", css_class="btn-success")
 
+
 class Logout(BaseView):
     @view_config(route_name='logout', renderer="templates/logout.pt")
     def view_logout(self):
@@ -242,7 +278,7 @@ class Logout(BaseView):
             if "g_state" in request.cookies:
                 request.response.delete_cookie("g_state", '/')
 
-        form = self.get_form(LogoutSchema, buttons=(btn_cancel, btn_logout ))
+        form = self.get_form(LogoutSchema, buttons=(btn_cancel, btn_logout))
         if 'cancel' in request.POST or "home" in request.POST:
             log.info(request.route_url('home'))
             return HTTPFound(location=f"{request.route_url('home')}", )
