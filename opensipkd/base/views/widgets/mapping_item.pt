@@ -19,7 +19,7 @@
              id="req-${oid}"
       >${title}
       </label>
-      <div class="col-sm-9 col-md-10 col-lg-10">
+      <div class="col-sm-9 col-md-10 col-lg-10" tal:condition="not field.children">
         <div tal:define="input_prepend field.widget.input_prepend | None;
                    input_append field.widget.input_append  | None"
              tal:omit-tag="not (input_prepend or input_append)"
@@ -44,6 +44,33 @@
         <p tal:condition="field.description and not field.widget.hidden"
            class="help-block">
           ${field.description}
+        </p>
+      </div>
+      <div class="col-sm-12 col-md-12 col-lg-12" tal:condition="field.children">
+        <div tal:define="input_prepend field.widget.input_prepend | None;
+            input_append field.widget.input_append  | None"
+             tal:omit-tag="not (input_prepend or input_append)"
+            class="input-group">
+     <span class="input-group-addon"
+          tal:condition="input_prepend">${input_prepend}</span>
+          <span tal:replace="structure field.serialize(cstruct).strip()"/>
+          <span class="input-group-addon"
+               tal:condition="input_append">${input_append}</span>
+        </div>
+
+        <p class="help-block"
+             tal:define="errstr 'error-%s' % field.oid"
+             tal:repeat="msg field.error.messages()"
+             i18n:translate=""
+             tal:attributes="id repeat.msg.index==0 and errstr or
+                ('%s-%s' % (errstr, repeat.msg.index))"
+             tal:condition="field.error and not field.widget.hidden and not field.typ.__class__.__name__=='Mapping'">
+            ${msg}
+        </p>
+
+        <p tal:condition="field.description and not field.widget.hidden"
+            class="help-block">
+            ${field.description}
         </p>
       </div>
     </div>

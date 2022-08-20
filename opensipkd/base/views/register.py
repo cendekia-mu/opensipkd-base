@@ -338,6 +338,8 @@ class Registrasi(BaseView):
                                    "filename": filename,
                                    "preview_url": preview_url
                                    }
+                else:
+                    d.pop("idcard")
             else:
                 d.pop("idcard")
         return d
