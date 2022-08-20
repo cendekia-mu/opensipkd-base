@@ -1,3 +1,4 @@
+from opensipkd.base import get_params
 from opensipkd.models import (DBSession, User, GroupPermission, UserDeviceModel)
 
 from opensipkd.tools import (
@@ -149,3 +150,6 @@ def update_token(user):
         DBSession.flush()
     return dict(token=user.security_code)
 
+def config_pars_rpc_url(params, method=None):
+    values = get_params(params)
+    return pars_rpc_url(values, method)

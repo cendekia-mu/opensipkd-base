@@ -55,7 +55,7 @@
             </div>
             <div class="col-md-12" align="center">
               <img src="${home}static/img/logo.png"
-                   class="img-float img-thumbnail" style="height:auto;width:auto;border:none;"/>
+                   class="img-float img-thumbnail" style="height:50px;width:auto;border:none;"/>
             </div>
             <div class="clearfix"></div>
           </fieldset>
