@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, backref
-from ziggurat_foundations.tests import User
+from .users import User
 
 from .meta import Base
 from .base import NamaModel, DefaultModel, DBSession, KodeModel

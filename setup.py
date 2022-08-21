@@ -33,7 +33,7 @@ requires = [
     'google-api-python-client',
     'google',
     'pyjwt',
-#    'z3c.rml',
+    'z3c.rml',
     'opensipkd-tools @git+https://git.opensipkd.com/aa.gusti/opensipkd-tools.git',
 ]
 
@@ -71,6 +71,8 @@ setup(
         'base/alembic/*.*',
         'base/alembic/versions/*.*',
         'base/views/*.tpl',
+        'base/locale/*.*',
+        
     ], },
     data_files=[('etc', ['etc/live_opensipkd.tpl',
                          'etc/test_opensipkd.tpl', ])],
