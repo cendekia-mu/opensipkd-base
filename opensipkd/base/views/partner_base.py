@@ -23,6 +23,17 @@ class NamaSchema(colander.Schema):
 
 
 class PartnerSchema(NamaSchema):
+    nip = colander.SchemaNode(
+        colander.String(),
+        missing=colander.drop,
+        validator=colander.Length(max=32),
+        oid="nip")
+    npwp = colander.SchemaNode(
+        colander.String(),
+        missing=colander.drop,
+        validator=colander.Length(max=32),
+        oid="npwp")
+
     idcard = colander.SchemaNode(
         FileData(),
         widget=widget.FileUploadWidget(mem_tmp_store),

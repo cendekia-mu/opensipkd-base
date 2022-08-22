@@ -203,8 +203,10 @@ class Group(GroupMixin, Base, DefaultModel):
 # It is used when there is a web request.
 class RootFactory:
     def __init__(self, request):
+        gr = DBSession.query(Group).filter_by(group_name="Superuser").first()
+        gr_id = gr and gr.id or 1
         self.__acl__ = [
-            (Allow, 'group:1', ALL_PERMISSIONS),
+            (Allow, f'group:{gr_id}', ALL_PERMISSIONS),
             (Allow, Authenticated, 'view')]
         for gp in DBSession.query(GroupPermission):
             acl_name = 'group:{}'.format(gp.group_id)

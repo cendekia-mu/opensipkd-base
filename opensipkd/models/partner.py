@@ -66,6 +66,7 @@ class Partner(Base, PartnerModel):
     kecamatan_id = Column(Integer, ForeignKey(ResKecamatan.id))
     desa_id = Column(Integer, ForeignKey(ResDesa.id))
     company_id = Column(Integer)
+    nip = Column(String(32))
 
     # npwp        = Column(String(16))
     # npwpd       = Column(String(16))
