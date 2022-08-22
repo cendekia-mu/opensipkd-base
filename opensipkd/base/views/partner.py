@@ -226,7 +226,7 @@ class ViewPartner(BaseView):
 
     def save_request(self, values, row=None):
         if "idcard" in values and values["idcard"]:
-            if str(self.req.POST[ 'upload'])!="":
+            if str(self.req.POST['upload'].decode('utf-8'))!="":
                 folder = self.get_params("idcard_folder", '/tmp/idcard')
                 upload = Upload(folder)
                 file_name = upload.save(self.req, 'upload', img_exts)
