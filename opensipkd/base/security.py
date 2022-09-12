@@ -1,6 +1,8 @@
 import logging
 
+from opensipkd.base import get_params
 from opensipkd.models import (User, UserGroup, DBSession, )
+from pyramid.security import remember, forget
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +30,20 @@ def get_user(request):
     user_id = request.authenticated_userid
     if user_id:
         q = DBSession.query(User).filter_by(id=user_id)
-        return q.first()
+        row = q.first()
+        if get_params("one_browser", False) and row.security_code != request.session["token"]:
+            # cek apakah session["token"]= security_code yang disimpan oleh
+            # user_login.Login.login
+            # hapus jika beda
+
+            request.session.flash("Silahkan login ulang")
+            headers = forget(request)
+            request.session.delete()
+            request.response.headers.update(headers)
+            if "g_state" in request.cookies:
+                request.response.delete_cookie("g_state", '/')
+            return
+        return row
 
 
 # def get_user(request):

@@ -87,6 +87,11 @@ class LoginUser(object):
             self.message = "Login Gagal"
             set_user_log(self.message, self.request, log, values["username"])
             return
+        
+        # generate security_code dan simpan dalam session
+        regenerate_security_code(self.user, 0.03) # berlaku selama 1.8 menit
+        # dicek pada module security get_user
+        self.request.session["token"]=self.user.security_code
         return True
 
 
@@ -144,7 +149,6 @@ class ViewLogin(BaseView):
                     request.session.flash(login.message, "error")
                     next_url = f"{request.route_url('login')}?next={next_url}"
                     return HTTPFound(location=next_url)
-
             return redirect_login(request, user)
 
         elif 'register' in request.POST:

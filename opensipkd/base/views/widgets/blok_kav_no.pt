@@ -13,7 +13,7 @@
                  class="span2 form-control ${css_class or ''}"
                  tal:attributes="style style;
                        blok_kav_no_attributes|field.widget.blok_kav_no_attributes|{};"
-                 maxlength="4" minlength="4" placeholder="Tahun"
+                 maxlength="15" minlength="" placeholder="Blok Kav No"
                  id="${oid}"/>
         </span>
         <span class="input-group-addon">
@@ -21,7 +21,7 @@
                  class="span2 form-control ${css_class or ''}"
                  tal:attributes="style style;
              				 rt_attributes|field.widget.rt_attributes|{};"
-                 maxlength="4" minlength="4" placeholder="rt"
+                 maxlength="3" minlength="3" placeholder="RT"
                  id="${oid}-rt"/>
         </span>
         <span class="input-group-addon">
@@ -29,7 +29,7 @@
                   class="span2 form-control ${css_class or ''}"
                   tal:attributes="style style;
              				 rw_attributes|field.widget.rw_attributes|{};"
-                  maxlength="3" minlength="3" placeholder="Urut"
+                  maxlength="2" minlength="2" placeholder="RW"
                   id="${oid}-rw"/>
         </span>
       </div>
