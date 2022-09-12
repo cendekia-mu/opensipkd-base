@@ -1,6 +1,6 @@
 import logging
 
-from opensipkd.base import get_params
+from opensipkd.tools import get_params
 from opensipkd.models import (User, UserGroup, DBSession, )
 from pyramid.security import remember, forget
 
