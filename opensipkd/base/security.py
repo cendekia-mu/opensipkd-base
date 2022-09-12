@@ -1,6 +1,6 @@
 import logging
 
-from opensipkd.tools import get_params
+# from opensipkd.tools import get_params
 from opensipkd.models import (User, UserGroup, DBSession, )
 from pyramid.security import remember, forget
 
@@ -31,7 +31,8 @@ def get_user(request):
     if user_id:
         q = DBSession.query(User).filter_by(id=user_id)
         row = q.first()
-        if get_params("one_browser", False) and row.security_code != request.session["token"]:
+        # get_params("single_browser", False) and
+        if row.security_code != request.session["token"]:
             # cek apakah session["token"]= security_code yang disimpan oleh
             # user_login.Login.login
             # hapus jika beda
