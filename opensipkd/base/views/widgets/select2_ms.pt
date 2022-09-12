@@ -73,7 +73,7 @@
         $("#${slave}").val("");
         $("#${slave}").empty();
         $("#${slave}").append('<option value="" selected disabled>Pilih Data...</option>');
-        var value = $(this).val();
+        let value = $(this).val();
         if (value) {
           $.ajax({
             type: "GET",

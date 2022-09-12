@@ -172,14 +172,13 @@ class Select2MsWidget(Select2Widget):
 
     **Attributes/Arguments**
 
-    Same as :func:`~deform.widget.SelectWidget`, with some extra options
+    Same as :func:`~deform.widget.Select2Widget`, with some extra options
     listed here.
+    url: url for slave select
+    slave: id of slave  select
+    widget = widget_os.Select2MsWidget(url="https://slave_item_url?item_key=selected_value,
+                                        slave="slave_id")
 
-
-    tags: *bool*
-        Allow dynamic option creation ( default: ``False`` ).
-        See `select2 docs on tagging <https://select2.org/tagging>`_ for
-        more details.
     """
 
     template = "select2_ms.pt"
