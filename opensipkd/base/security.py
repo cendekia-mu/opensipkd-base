@@ -31,19 +31,18 @@ def get_user(request):
     if user_id:
         q = DBSession.query(User).filter_by(id=user_id)
         row = q.first()
-        # get_params("single_browser", False) and
-        if row.security_code != request.session["token"]:
-            # cek apakah session["token"]= security_code yang disimpan oleh
-            # user_login.Login.login
-            # hapus jika beda
-
-            request.session.flash("Silahkan login ulang")
-            headers = forget(request)
-            request.session.delete()
-            request.response.headers.update(headers)
-            if "g_state" in request.cookies:
-                request.response.delete_cookie("g_state", '/')
-            return
+        #todo restrict multi browser
+        # if row and "g_state" not in request.cookies and \
+        #         ("token" not in request.session or
+        #             not request.session["token"] or
+        #             row.security_code != request.session["token"]):
+        #     request.session.flash("Silahkan login ulang")
+        #     headers = forget(request)
+        #     request.session.delete()
+        #     request.response.headers.update(headers)
+        #     if "g_state" in request.cookies:
+        #         request.response.delete_cookie("g_state", '/')
+        #     return
         return row
 
 

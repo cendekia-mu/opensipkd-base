@@ -87,13 +87,15 @@ titles = {}
 def add_cors_headers_response_callback(event):
     def cors_headers(request, response):
         response.headers.update({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
-        'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Max-Age': '1728000',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
+            'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Max-Age': '1728000',
         })
+
     event.request.add_response_callback(cors_headers)
+
 
 # https://groups.google.com/forum/#!topic/pylons-discuss/QIj4G82j04c
 def has_permission_(request, perm_names, context=None):
@@ -103,12 +105,15 @@ def has_permission_(request, perm_names, context=None):
         if request.has_permission(perm_name, context):
             return True
 
+
 def has_modules_(module_name, context=None):
     modules = get_params("pyramid.includes").split("\n")
     return module_name in modules
 
+
 def _get_params(request, params, default=None, settings=None, context=None):
     return get_params(params, default, settings)
+
 
 @subscriber(BeforeRender)
 def add_global(event):
@@ -167,6 +172,13 @@ def get_ini_params(request, params=None, alternate=None, settings=None):
         get_params('devel', False)
     """
     return get_params(params, alternate, settings)
+
+
+def get_id_card_folder(ext=None):
+    folder = get_params("partner_idcard_folder", '/tmp/idcard')
+    if ext:
+        return folder + ext
+    return  folder
 
 
 def allow_register(request):
@@ -321,11 +333,13 @@ def get_menus(request):
 
     return result
 
+
 def format_datetime(v):
     if v.time():
         return dmyhms(v)
     else:
         return dmy(v)
+
 
 def json_renderer():
     json_r = JSON()
@@ -382,7 +396,7 @@ def set_routes(config, app_id=None):
                                         default_renderer="json_rpc")
 
 
-partner_idcard_folder = 'partner/idcard'
+partner_idcard_url = 'partner/idcard'
 
 
 def main(global_config, **settings):
@@ -442,14 +456,15 @@ def main(global_config, **settings):
     config.add_request_method(google_signin_client_ids,
                               'google_signin_client_ids', reify=True)
     config.add_request_method(allow_register, 'allow_register', reify=True)
-    config.add_request_method(disable_responsive, 'disable_responsive', reify=True)
+    config.add_request_method(disable_responsive, 'disable_responsive',
+                              reify=True)
     config.add_request_method(get_ini, 'get_ini', reify=True)
     config.add_translation_dirs('opensipkd.base:locale/')
 
     config.add_static_view('static', 'opensipkd.base:static',
                            cache_max_age=3600)
-    config.add_static_view(partner_idcard_folder,
-                           get_params("partner_idcard_folder", '/tmp/idcard'),
+    config.add_static_view(partner_idcard_url,
+                           get_id_card_folder("/"),
                            cache_max_age=3600)
     config.add_static_view('deform_static', 'deform:static')
 
