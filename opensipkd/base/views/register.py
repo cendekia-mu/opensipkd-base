@@ -26,30 +26,24 @@ Link dalam module registrasi:
 4. Form edit registrasi http://server/register/{uid}/edit
 5. Form Upload template
 """
-import os
 from datetime import datetime
 
 import colander
-from deform import (widget, Button, FileData, ValidationFailure)
-from pyramid.threadlocal import get_current_registry
-
+from deform import (widget, FileData, ValidationFailure)
 from opensipkd.tools import Upload, mem_tmp_store, image_validator
+from opensipkd.tools.buttons import btn_cancel, btn_register, btn_save
 from pyramid.httpexceptions import HTTPFound
 from pyramid.i18n import TranslationStringFactory
 from pyramid.security import forget
 from pyramid.view import view_config
 from ziggurat_foundations.models.services.user import UserService
 
-from opensipkd.base import get_params, partner_idcard_folder
+from opensipkd.base import get_params, get_id_card_folder
 from opensipkd.base.views.user import email_validator, add_member_count
-
-from opensipkd.tools.buttons import btn_cancel, btn_register, btn_save
+from opensipkd.models import User, DBSession, Partner, Group, UserGroup
 from . import widget_os
-from .base_views import need_captcha, need_verify, get_url_captcha
-from .user_login import regenerate_security_code, get_login_headers, \
-    send_email_security_code, send_email_pending
-from opensipkd.models import User, DBSession, Partner, Group, UserGroup, \
-    ExternalIdentity
+from .base_views import need_captcha, get_url_captcha
+from .user_login import regenerate_security_code, send_email_security_code
 from ..views import BaseView
 
 _ = TranslationStringFactory('user')
@@ -333,7 +327,7 @@ class Registrasi(BaseView):
                 if d["idcard"]:
                     filename = d["idcard"]
                     preview_url = "/".join(
-                        [self.home, partner_idcard_folder, filename])
+                        [self.req.static_url(get_id_card_folder('/')), filename])
                     d["idcard"] = {"uid": filename.split(".")[0],
                                    "filename": filename,
                                    "preview_url": preview_url
@@ -367,7 +361,7 @@ class Registrasi(BaseView):
 
         if "idcard" in values and values["idcard"]:
             if self.req.POST['upload'] != b'':
-                path = get_params('idcard_folder', '/tmp/idcard')
+                path = get_id_card_folder()
                 upload = Upload(path)
                 values["idcard"] = upload.save(self.req, 'upload')
             else:
@@ -388,7 +382,7 @@ class Registrasi(BaseView):
             user = User()
             user.email = row.email
             user.user_name = row.email
-            user.registered_date=datetime.now()
+            user.registered_date = datetime.now()
             DBSession.add(user)
             DBSession.flush()
             remain = regenerate_security_code(user)

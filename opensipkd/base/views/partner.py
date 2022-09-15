@@ -1,6 +1,7 @@
 import os
 
 import colander
+from opensipkd.base import get_params, get_id_card_folder
 from deform import (
     widget,
 )
@@ -18,8 +19,9 @@ from .company import company_widget
 from .partner_base import PartnerSchema, NamaSchema
 from opensipkd.models import DBSession, Partner
 
-from .. import partner_idcard_folder
+# from .. import partner_idcard_url
 from ..views import BaseView
+
 _ = TranslationStringFactory("opensipkd")
 
 SESS_ADD_FAILED = 'Tambah partner gagal'
@@ -55,6 +57,7 @@ class EditSchema(AddSchema):
                              missing=colander.drop,
                              widget=widget.HiddenWidget(),
                              )
+
     def after_bind(self, schema, kwargs):
         super().after_bind(schema, kwargs)
 
@@ -76,11 +79,18 @@ class ListSchema(colander.Schema):
     email = colander.SchemaNode(
         colander.String(),
         oid="email")
+    idcard = colander.SchemaNode(
+        colander.String(),
+        oid="idcard",
+        title="Identitas"
+    )
     status = colander.SchemaNode(
         colander.Boolean(),
         widget=widget.CheckboxWidget(),
         oid="status")
-
+    def after_bind(self, schema, kw):
+        request = kw.get("request")
+        self["idcard"].url = request.static_url(get_id_card_folder("/"))
 
 class ViewPartner(BaseView):
     def __init__(self, request):
@@ -210,15 +220,20 @@ class ViewPartner(BaseView):
                 err_kode()
         elif found:
             err_kode()
-        value['is_vendor'] = 'is_vendor' in value and value['is_vendor'] and 1 or 0
-        value['is_customer'] = 'is_customer' in value and value['is_customer'] and 1 or 0
+        value['is_vendor'] = 'is_vendor' in value and value[
+            'is_vendor'] and 1 or 0
+        value['is_customer'] = 'is_customer' in value and value[
+            'is_customer'] and 1 or 0
         value["status"] = 'status' in value and value['status'] and 1 or 0
 
     def get_bindings(self, row=None):
         provinsi_list = ResProvinsi.get_list()
-        dati2_list = row and row.provinsi_id and ResDati2.get_list(row.provinsi_id) or []
-        kecamatan_list = row and row.dati2_id and ResKecamatan.get_list(row.dati2_id) or []
-        desa_list = row and row.kecamatan_id and ResDesa.get_list(row.kecamatan_id) or []
+        dati2_list = row and row.provinsi_id and ResDati2.get_list(
+            row.provinsi_id) or []
+        kecamatan_list = row and row.dati2_id and ResKecamatan.get_list(
+            row.dati2_id) or []
+        desa_list = row and row.kecamatan_id and ResDesa.get_list(
+            row.kecamatan_id) or []
         return dict(
             provinsi_list=provinsi_list,
             dati2_list=dati2_list,
@@ -229,11 +244,14 @@ class ViewPartner(BaseView):
 
     def save_request(self, values, row=None):
         if "idcard" in values and values["idcard"]:
-            if str(self.req.POST['upload'].decode('utf-8'))!="":
+            if str(self.req.POST['upload'].decode('utf-8')) != "":
                 folder = self.get_params("idcard_folder", '/tmp/idcard')
                 upload = Upload(folder)
                 file_name = upload.save(self.req, 'upload', img_exts)
                 values["idcard"] = file_name
+            else:
+                del values["idcard"]
+
         row = super().save_request(values, row)
         return row
 
@@ -241,13 +259,15 @@ class ViewPartner(BaseView):
         d = super().get_values(row, istime)
         if "idcard" in d and d["idcard"]:
             filename = d["idcard"]
+            url = self.req.static_url(get_id_card_folder("/"))
             preview_url = "/".join(
-                                [self.home, partner_idcard_folder, filename])
+                [self.req.static_url(url), filename])
             d["idcard"] = {"uid": filename.split(".")[0],
-                            "filename": filename,
-                            "preview_url": preview_url
-                            }
+                           "filename": filename,
+                           "preview_url": preview_url
+                           }
         return d
+
 
 @colander.deferred
 def partner_widget(node, kw):
