@@ -32,6 +32,7 @@ class BaseView(object):
     def __init__(self, request):
         self.req = request
         self.ses = self.req.session
+        self.db_session = DBSession
         self.params = self.req.params
         self.settings = get_settings()
         # if not request.user:
@@ -126,6 +127,7 @@ class BaseView(object):
         self.list_report = (btn_csv, btn_pdf)
         # self.list_buttons = (btn_view, btn_add, btn_edit, btn_delete, btn_close)
         self.list_buttons = (btn_add, btn_close)
+        self.columns = None
         self.form_params = dict(scripts="")
         self.list_url = ''
         self.list_route = ''
@@ -261,24 +263,28 @@ class BaseView(object):
         url_dict = self.req.matchdict
         if url_dict['act'] == 'grid':
             url = []
-            columns = []
-            for d in self.list_schema():
-                global_search = hasattr(d, "searchable") and \
-                                hasattr(d, "searchable") == False and False \
-                                or True
-                if hasattr(d, "field"):
-                    if type(d.field) == str:
-                        columns.append(
-                            ColumnDT(getattr(self.table, d.field), mData=d.name,
-                                     global_search=global_search))
+            if not self.columns:
+                columns = []
+                for d in self.list_schema():
+                    global_search = hasattr(d, "searchable") and \
+                                    hasattr(d, "searchable") == False and False \
+                                    or True
+                    if hasattr(d, "field"):
+                        if type(d.field) == str:
+                            columns.append(
+                                ColumnDT(getattr(self.table, d.field), mData=d.name,
+                                         global_search=global_search))
+                        else:
+                            columns.append(ColumnDT(d.field, mData=d.name))
                     else:
-                        columns.append(ColumnDT(d.field, mData=d.name))
-                else:
-                    columns.append(
-                        ColumnDT(getattr(self.table, d.name), mData=d.name))
-                if hasattr(d, "url"):
-                    url.append(d.name)
-            query = DBSession.query().select_from(self.table)
+                        columns.append(
+                            ColumnDT(getattr(self.table, d.name), mData=d.name))
+                    if hasattr(d, "url"):
+                        url.append(d.name)
+            else:
+                columns = self.columns
+
+            query = self.db_session.query().select_from(self.table)
             query = self.list_join(query)
             if self.req.user and self.req.user.company_id and hasattr(
                     self.table, "company_id"):
@@ -341,8 +347,8 @@ class BaseView(object):
 
         row.from_dict(values)
         row.status = 'status' in values and values['status'] and 1 or 0
-        DBSession.add(row)
-        DBSession.flush()
+        self.db_session.add(row)
+        self.db_session.flush()
         return row
 
     def save_request(self, values, row=None):
@@ -389,6 +395,8 @@ class BaseView(object):
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
+                    log.debug(f"Edit Error: {str(e.error)}")
+                    log.debug(f"Edit Data: {e.cstruct}")
                     form.set_appstruct(e.cstruct)
                     return dict(form=form.render(),
                                 table=table and table.render() or None,
@@ -420,7 +428,7 @@ class BaseView(object):
                 msg = self.delete_msg(row)
                 self.before_delete(row)
                 q.delete()
-                DBSession.flush()
+                self.db_session.flush()
                 request.session.flash(msg)
             return self.route_list()
         form = self.get_form(
@@ -434,7 +442,7 @@ class BaseView(object):
                     js=resources["js"])
 
     def query_id(self):
-        q = DBSession.query(self.table).filter_by(
+        q = self.db_session.query(self.table).filter_by(
             id=self.req.matchdict['id'])
         if hasattr(self.table, 'compnay_id') and self.req.user.company_id:
             q = q.filter_by(company_id=self.req.user.company_id)
