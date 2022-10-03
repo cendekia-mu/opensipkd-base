@@ -13,7 +13,7 @@ debug_routematch = false
 debug_templates = true
 default_locale_name = en
 
-sqlalchemy.url = postgresql://user:password@server:port/db
+sqlalchemy.url = postgresql://user:password@localhost:5432/db
 
 pyramid.includes =
     pyramid_tm
@@ -27,7 +27,7 @@ session.type = ext:database
 session.secret = s0s3cr3t
 session.cookie_expires = true
 session.key = WhatEver
-session.url = postgresql://user:password@server:port/db
+session.url = postgresql://user:password@localhost:5432/db
 session.timeout = 3000
 session.lock_dir = %(here)s/tmp
 
@@ -52,9 +52,9 @@ mail.sender_name =
 mail.username =
 mail.host =
 mail.port = 25
-mail.password	None	SMTP password
+mail.password =
 mail.tls = False
-mail.ssl=False
+mail.ssl = False
 mail.keyfile =
 #SSL key file
 mail.certfile =
@@ -173,8 +173,8 @@ format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s
 
 [alembic_ziggurat]
 script_location=ziggurat_foundations:migrations
-sqlalchemy.url = postgresql://user:password@server:port/db
+sqlalchemy.url = postgresql://user:password@localhost:5432/db
 
 [alembic_base]
 script_location=opensipkd.base:alembic
-sqlalchemy.url =  postgresql://user:password@server:port/db
+sqlalchemy.url =  postgresql://user:password@localhost:5432/db
