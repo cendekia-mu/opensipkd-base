@@ -9,6 +9,7 @@ from sqlalchemy import (
 from .common import NamaModel
 from .wilayah import ResProvinsi, ResDesa, ResKecamatan, ResDati2
 from .meta import (Base)
+from sqlalchemy.orm import relationship, backref
 
 
 class PartnerModel(NamaModel):
@@ -67,6 +68,14 @@ class Partner(Base, PartnerModel):
     desa_id = Column(Integer, ForeignKey(ResDesa.id))
     company_id = Column(Integer)
     nip = Column(String(32))
+    res_provinsi = relationship(
+        "ResProvinsi", backref=backref('partner'))
+    res_dati2 = relationship(
+        "ResDati2", backref=backref('partner'))
+    res_kecamatan = relationship(
+        "ResKecamatan", backref=backref('partner'))
+    res_desa = relationship(
+        "ResDesa", backref=backref('partner'))
 
     # npwp        = Column(String(16))
     # npwpd       = Column(String(16))

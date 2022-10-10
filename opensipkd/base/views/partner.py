@@ -88,9 +88,11 @@ class ListSchema(colander.Schema):
         colander.Boolean(),
         widget=widget.CheckboxWidget(),
         oid="status")
+
     def after_bind(self, schema, kw):
         request = kw.get("request")
         self["idcard"].url = request.static_url(get_id_card_folder("/"))
+
 
 class ViewPartner(BaseView):
     def __init__(self, request):
@@ -261,7 +263,7 @@ class ViewPartner(BaseView):
             filename = d["idcard"]
             url = self.req.static_url(get_id_card_folder("/"))
             preview_url = "/".join(
-                [self.req.static_url(url), filename])
+                [url, filename])
             d["idcard"] = {"uid": filename.split(".")[0],
                            "filename": filename,
                            "preview_url": preview_url
