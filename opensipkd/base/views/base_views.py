@@ -231,8 +231,12 @@ class BaseView(object):
             result = self.next_view(form)
             if result:
                 return result
+            return self.route_list()
 
-        form.set_appstruct(self.get_values(row))
+        values = self.get_values(row)
+        if not values:
+            return self.route_list("Nilai Data tidak ditemukan", "error")
+        form.set_appstruct(values)
         table = self.get_item_table(row)
         return dict(form=form.render(readonly=True),
                     table=table and table.render() or None,
