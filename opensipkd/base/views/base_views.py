@@ -219,6 +219,9 @@ class BaseView(object):
     def next_view(self, form, **kwargs):
         return self.route_list()
 
+    def next_edit(self, form, **kwargs):
+        return self.route_list()
+
     def view_view(self):  # row = query_id(request).first()
         request = self.req
         row = self.query_id().first()
@@ -228,7 +231,7 @@ class BaseView(object):
         form = self.get_form(self.edit_schema, buttons=(btn_close,),
                              bindings=bindings)
         if request.POST:
-            result = self.next_view(form)
+            result = self.next_view(form, row=row)
             if result:
                 return result
             return self.route_list()
@@ -276,7 +279,8 @@ class BaseView(object):
                     if hasattr(d, "field"):
                         if type(d.field) == str:
                             columns.append(
-                                ColumnDT(getattr(self.table, d.field), mData=d.name,
+                                ColumnDT(getattr(self.table, d.field),
+                                         mData=d.name,
                                          global_search=global_search))
                         else:
                             columns.append(ColumnDT(d.field, mData=d.name))
@@ -350,7 +354,13 @@ class BaseView(object):
             row.update_uid = user and user.id or None
 
         row.from_dict(values)
-        row.status = 'status' in values and values['status'] and 1 or 0
+        if hasattr(row, "status"):
+            status = "status" in values and values["status"] or 0
+            try:
+                status = int(status)
+            except:
+                status = status and 1 or 0
+            row.status = status
         self.db_session.add(row)
         self.db_session.flush()
         return row
@@ -408,6 +418,9 @@ class BaseView(object):
                                 js=resources["js"])
                 c = dict(controls)
                 self.save_request(c, row)
+            else:
+                return self.next_edit(form, row=row)
+
             return self.route_list()
         values = self.get_values(row)
         form.set_appstruct(values)
