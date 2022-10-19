@@ -74,6 +74,13 @@ class Home(BaseView):
             elif not request.user:
                 return HTTPFound(location=request.route_url(modules_default))
         logo = get_params('logo', "static/img/logo.png")
+        home_tpl = get_params("home_tpl")
+        if home_tpl:
+            return render_to_response(
+                home_tpl,
+                dict(modules=modules, logo=logo),
+                request=request
+            )
         return dict(modules=modules, logo=logo)
 
 
@@ -107,7 +114,8 @@ def password_validator(form, value):
 
 
 @view_config(
-    route_name='password', renderer='templates/chg_password.pt', permission='view')
+    route_name='password', renderer='templates/chg_password.pt',
+    permission='view')
 def view_password(request):
     schema = Password(validator=password_validator)
     btn_save = Button('save', _('Simpan'))

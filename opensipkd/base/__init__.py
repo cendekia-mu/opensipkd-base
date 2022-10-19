@@ -178,7 +178,7 @@ def get_id_card_folder(ext=None):
     folder = get_params("partner_idcard_folder", '/tmp/idcard')
     if ext:
         return folder + ext
-    return  folder
+    return folder
 
 
 def allow_register(request):
@@ -291,7 +291,6 @@ def get_menus(request):
 
     result = {}
     for menu in menus:
-
         if menu.find(',') > -1:
             key, val = menu.strip().split(',')
             key = key.strip().strip('/')
@@ -335,7 +334,7 @@ def get_menus(request):
 
 
 def format_datetime(v):
-    if v.time():
+    if v.time() != datetime.time(0, 0):
         return dmyhms(v)
     else:
         return dmy(v)
