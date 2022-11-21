@@ -128,7 +128,7 @@ class DeTable(field.Field):
         btn_csv_js = "{window.location = o%sUri+'/csv/act%s';}" % (
             tableid, params)
         btn_pdf_js = "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params)
-        btn_upload_js = "{window.location(o%sUri+'/upload%s');}" % (tableid, params)
+        btn_upload_js = "{window.location = o%sUri+'/upload%s';}" % (tableid, params)
 
         action_suffix = f"{action_suffix}{params}"
         field.Field.__init__(self, schema, **kw)
