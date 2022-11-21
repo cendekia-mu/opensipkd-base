@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import csv
@@ -20,6 +21,7 @@ from opensipkd.models import (
 from sqlalchemy.dialects import oracle
 from sqlalchemy import text
 
+log = logging.getLogger(__name__)
 # , mssql
 # from .tools import mkdir
 
@@ -144,6 +146,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
         is_first = True
         fmap = dict()
         for cf in reader:
+            log.info(cf)
             if is_first:
                 is_first = False
                 for fname in cf.keys():

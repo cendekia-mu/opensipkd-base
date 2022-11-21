@@ -286,7 +286,9 @@ class BaseView(object):
                     if not data:
                         break
                     output_file.write(data)
+                output_file.close()
                 self.save_upload(fullpath)
+
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
             else:
