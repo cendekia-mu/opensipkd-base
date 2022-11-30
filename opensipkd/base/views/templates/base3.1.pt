@@ -52,7 +52,7 @@
     <!-- We recommend you use "your_style.css" to override SmartAdmin
          specific styles this will also ensure you retrain your customization with each SmartAdmin update. -->
 
-    <!-- OTHER CSS -->
+    <!-- LOOP FORM CSS INCLUDED-->
     <tal:loop tal:repeat="css_resource css">
         <link rel="stylesheet" href="${home}${request.static_path(css_resource)}"
               type="text/css">
@@ -271,6 +271,7 @@
 <!--?<script src="${home}/static/v3/js/select2.full.min.js"></script>-->
 <!--?<script src="${home}/deform_static/scripts/file_upload.js"></script>-->
 <script src="${home}/static/v3/js/osipkd.js"></script>
+<!-- LOOP ON JS RESOURCE -->
 <tal:loop tal:repeat="js_resource js">
     <script src="${home}${request.static_path(js_resource)}"></script>
 </tal:loop>

@@ -4,7 +4,8 @@ import re
 import colander
 from deform import (widget, )
 from opensipkd.tools import create_now, SaveFile
-from opensipkd.tools.report import open_rml_row, csv_response, open_rml_pdf, pdf_response, file_response
+from opensipkd.tools.report import open_rml_row, csv_response, open_rml_pdf, \
+    pdf_response, file_response
 from pyramid.i18n import TranslationStringFactory
 from pyramid.view import view_config
 from sqlalchemy import (func, )
@@ -95,7 +96,8 @@ class Views(BaseView):
             path = os.path.join(base_path, 'reports')
             rml_row = open_rml_row(path + '/user.row.rml')
             rows = [rml_row.format(user_name=r.user_name, email=r.email,
-                                   registered_date=r.registered_date) for r in query.all()]
+                                   registered_date=r.registered_date) for r in
+                    query.all()]
             pdf, filename = open_rml_pdf(path + '/user.rml', rows=rows,
                                          company=self.req.company,
                                          departement=self.req.departement,
@@ -118,7 +120,8 @@ class Views(BaseView):
         values["email"] = values['email'].lower()
         values["user_name"] = re.sub(' ', '', values['user_name'])  # .lower()
         values["security_code_date"] = create_now()
-        company_id = request.user and request.user.company_id or "company_id" in values and values["company_id"] or None
+        company_id = request.user and request.user.company_id or "company_id" in values and \
+                     values["company_id"] or None
         values["company_id"] = company_id
         if 'is_api_key' in values:
             values["api_key"] = generate_api_key()
@@ -261,7 +264,7 @@ class EmailValidator(colander.Email, Validator):
         email = value.lower()
         q = DBSession.query(User).filter_by(email=email)
         found = q.first()
-        if found and (not self.user or self.user.email!=found.email):
+        if found and (not self.user or self.user.email != found.email):
             email_found()
 
 
@@ -380,5 +383,7 @@ def user_group_set(user):
 
 def query_register():
     return DBSession.query(User.user_name, User.email,
-                           func.to_char(User.registered_date, "DD-MM-YYYY").label("registered_date")).order_by(
+                           func.to_char(User.registered_date,
+                                        "DD-MM-YYYY").label(
+                               "registered_date")).order_by(
         User.user_name)

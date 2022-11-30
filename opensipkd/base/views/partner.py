@@ -222,10 +222,11 @@ class ViewPartner(BaseView):
                 err_kode()
         elif found:
             err_kode()
-        value['is_vendor'] = 'is_vendor' in value and value[
-            'is_vendor'] and 1 or 0
-        value['is_customer'] = 'is_customer' in value and value[
-            'is_customer'] and 1 or 0
+
+        value['is_vendor'] = 'is_vendor' in value and \
+                             value['is_vendor'] and 1 or 0
+        value['is_customer'] = 'is_customer' in value and \
+                               value['is_customer'] and 1 or 0
         value["status"] = 'status' in value and value['status'] and 1 or 0
 
     def get_bindings(self, row=None):

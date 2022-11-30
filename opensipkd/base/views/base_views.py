@@ -253,9 +253,13 @@ class BaseView(object):
             return self.route_list("Nilai Data tidak ditemukan", "error")
         form.set_appstruct(values)
         table = self.get_item_table(row)
+        resources = form.get_widget_resources()
         return dict(form=form.render(readonly=True),
                     table=table and table.render() or None,
-                    scripts=self.form_scripts)
+                    scripts=self.form_scripts,
+                    css=resources["css"],
+                    js=resources["js"]
+                    )
 
     def view_upload(self, exts=('.png', '.ico')):
         bindings = self.get_bindings()

@@ -1,3 +1,5 @@
+import json
+
 from colander import SchemaNode, null, Mapping, Invalid, text_, string_types
 from deform.widget import Widget, _StrippedString, Select2Widget
 
@@ -160,7 +162,8 @@ class BlokKavNoWidget(Widget):
             result = "|".join([blok_kav_no, rt, rw])
 
             if not blok_kav_no or not rt or not rw:
-                raise Invalid(field.schema, "Blok Kav No RT/RW tidak lengkap", result)
+                raise Invalid(field.schema, "Blok Kav No RT/RW tidak lengkap",
+                              result)
 
             return result
 
@@ -182,6 +185,7 @@ class Select2MsWidget(Select2Widget):
     """
 
     template = "select2_ms.pt"
+
 
 class QtyWidget(Widget):
     template = "opensipkd.base:/views/widgets/qty.pt"
@@ -227,6 +231,7 @@ class QtyWidget(Widget):
                 raise Invalid(field.schema, "Data tidak lengkap", result)
 
             return result
+
 
 class CaptchaWidget(Widget):
     """
@@ -275,6 +280,7 @@ class CaptchaWidget(Widget):
             return null
         return pstruct
 
+
 class ImageWidget(Widget):
     """
     Renders an ``<img src="src"/>`` widget.
@@ -300,8 +306,72 @@ class ImageWidget(Widget):
     strip = True
     requirements = ()
     height = "30px"
+
     def __init__(self, **kw):
         super().__init__(**kw)
+
+    def serialize(self, field, cstruct, **kw):
+        if cstruct in (null, None):
+            cstruct = ""
+        readonly = kw.get("readonly", self.readonly)
+        template = readonly and self.readonly_template or self.template
+        values = self.get_template_values(field, cstruct, kw)
+        return field.renderer(template, **values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct is null:
+            return null
+        elif not isinstance(pstruct, string_types):
+            raise Invalid(field.schema, "Pstruct is not a string")
+        if self.strip:
+            pstruct = pstruct.strip()
+        if not pstruct:
+            return null
+        return pstruct
+
+
+class MapWidget(Widget):
+    """
+    Renders an ``<div id="map"/>`` widget.
+
+    **Attributes/Arguments**
+
+    template
+       The template name used to render the widget.  Default:
+        ``textinput``.
+
+    readonly_template
+        The template name used to render the widget in read-only mode.
+        Default: ``readonly/textinput``.
+
+    strip
+        If true, during deserialization, strip the value of leading
+        and trailing whitespace (default ``True``).
+
+    """
+
+    template = "opensipkd.base:views/widgets/gmap.pt"
+    readonly_template = "opensipkd.base:views/widgets/gmap.pt"
+    map_center = [0, 0]
+    map_zoom = 12
+    gmap_key = None
+    gmap_control = ['Point', 'Polygon', 'LineString']
+    gmap_height = "400px"
+    gmap_width = "100%"
+    strip = True
+    html_info = {}
+    gmap_data_style = {
+        "editable": "true",
+        "draggable": "true",
+        "clickable": "true",
+        "removable": "true",
+    }
+    gmap_edit_url = ""
+    requirements = ()
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.gmap_data_style = json.dumps(self.gmap_data_style)
 
     def serialize(self, field, cstruct, **kw):
         if cstruct in (null, None):
