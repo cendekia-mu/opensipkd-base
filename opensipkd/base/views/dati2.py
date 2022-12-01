@@ -7,6 +7,7 @@ from . import widget_os
 from .provinsi import provinsi_widget
 from opensipkd.models import DBSession, ResDati2, kategori_dati2, ResProvinsi
 from ..views import BaseView
+
 _ = TranslationStringFactory("opensipkd")
 
 SESS_ADD_FAILED = 'Tambah dati2 gagal'
@@ -29,12 +30,15 @@ def dati2_widget(node, kw):
 class AddSchema(colander.Schema):
     provinsi_id = colander.SchemaNode(colander.String(),
                                       widget=provinsi_widget,
-                                      validator=colander.Length(max=32), oid="kode")
+                                      validator=colander.Length(max=32),
+                                      oid="kode")
     kode = colander.SchemaNode(colander.String(),
                                validator=colander.Length(max=32), oid="kode")
     kategori = colander.SchemaNode(colander.String(),
-                                   widget=widget.SelectWidget(values=kategori_dati2),
-                                   validator=colander.Length(max=32), oid="kode")
+                                   widget=widget.SelectWidget(
+                                       values=kategori_dati2),
+                                   validator=colander.Length(max=32),
+                                   oid="kode")
 
     nama = colander.SchemaNode(colander.String(), oid="nama")
 
@@ -103,12 +107,12 @@ class ViewDati2(BaseView):
 
     @view_config(route_name='dati2',
                  renderer='templates/table.pt',
-                 permission='dati2')
+                 permission='wilayah')
     def view_list(self):
         return super(ViewDati2, self).view_list()
 
     @view_config(route_name='dati2-view',
-                 renderer='templates/form.pt', permission='dati2')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_view(self):  # row = query_id(request).first()
         return super(ViewDati2, self).view_view()
 
@@ -129,16 +133,21 @@ class ViewDati2(BaseView):
             return result
 
     @view_config(route_name='dati2-add',
-                 renderer='templates/form.pt', permission='dati2')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_add(self):
         return super(ViewDati2, self).view_add()
 
     @view_config(route_name='dati2-edit',
-                 renderer='templates/form.pt', permission='dati2')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_edt(self):
         return super(ViewDati2, self).view_edit()
 
     @view_config(route_name='dati2-delete',
-                 renderer='templates/form.pt', permission='dati2')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_delete(self):
         return super(ViewDati2, self).view_delete()
+
+    @view_config(route_name='dati2-upload',
+                 renderer='templates/form.pt', permission='wilayah')
+    def view_upload(self):
+        return super(ViewDati2, self).view_upload(exts=(".csv",))

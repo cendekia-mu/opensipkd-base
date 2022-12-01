@@ -110,13 +110,13 @@ class Views(BaseView):
             err_nama()
 
     @view_config(route_name='kecamatan-view',
-                 renderer='templates/form.pt', permission='kecamatan')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_view(self):  # row = query_id(request).first()
         return super().view_view()
 
     @view_config(route_name='kecamatan',
                  renderer='templates/table.pt',
-                 permission='kecamatan')
+                 permission='wilayah')
     def view_list(self):
         return super(Views, self).view_list()
 
@@ -138,7 +138,7 @@ class Views(BaseView):
             return result
 
     @view_config(route_name='kecamatan-add',
-                 renderer='templates/form.pt', permission='kecamatan')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_add(self):
         return super(Views, self).view_add()
 
@@ -160,16 +160,16 @@ class Views(BaseView):
         return d
 
     @view_config(route_name='kecamatan-edit',
-                 renderer='templates/form.pt', permission='kecamatan')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_edt(self):
         return super(Views, self).view_edit()
 
     @view_config(route_name='kecamatan-delete',
-                 renderer='templates/form.pt', permission='kecamatan')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_delete(self):
         return super(Views, self).view_delete()
 
     @view_config(route_name='kecamatan-upload',
-                 renderer='templates/form.pt', permission='kecamatan')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_upload(self):
         return super(Views, self).view_upload(exts=(".csv",))
