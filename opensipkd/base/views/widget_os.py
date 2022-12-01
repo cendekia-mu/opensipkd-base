@@ -368,7 +368,11 @@ class MapWidget(Widget):
     }
     gmap_edit_url = ""
     show_options = False
-    requirements = ()
+    requirements = (('deform', None),
+                    {
+                        "js": "opensipkd.base:static/js/gmap.js",
+                        "css": "deform:static/select2/select2.css",
+                    },)
 
     def __init__(self, **kw):
         super().__init__(**kw)
