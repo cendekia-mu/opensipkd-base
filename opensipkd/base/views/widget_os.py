@@ -361,12 +361,13 @@ class MapWidget(Widget):
     strip = True
     html_info = {}
     gmap_data_style = {
-        "editable": "true",
-        "draggable": "true",
-        "clickable": "true",
-        "removable": "true",
+        "editable": True,
+        "draggable": True,
+        "clickable": True,
+        "removable": True,
     }
     gmap_edit_url = ""
+    show_options = False
     requirements = ()
 
     def __init__(self, **kw):

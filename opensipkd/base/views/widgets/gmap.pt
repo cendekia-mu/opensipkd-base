@@ -11,13 +11,65 @@
     html_info html_info|field.widget.html_info;
     gmap_data_style gmap_data_style|field.widget.gmap_data_style;
     gmap_edit_url gmap_edit_url|field.widget.gmap_edit_url;
+    show_options show_options|field.widget.show_options;
     "
      tal:omit-tag="">
-  <textarea id="${oid}" name="${name}" style="display:none;" readonly
+  <textarea id="${oid}" name="${name}" readonly
        tal:attributes="class string: form-control ${css_class or ''};
       style style;
       attributes|field.widget.attributes|{};">${cstruct}</textarea>
-
+  <textarea id="${oid}-options" name="${name}-options" style="display:block;" readonly
+       tal:attributes="class string: form-control ${css_class or ''};
+      style style;
+      attributes|field.widget.attributes|{};">${cstruct}</textarea>
+  <div class="row" tal:condition="show_options">
+    <div class="input-group">
+      <label class="control-label">Fill Color</label>
+      <input type="color" id="fillColor" value="#ffff00">
+      <label class="control-label">Opacity</label>
+      <select id="fillOpacity">
+        <option value="0.0">0.0</option>
+        <option value="0.1">0.1</option>
+        <option value="0.2" selected>0.2</option>
+        <option value="0.3">0.3</option>
+        <option value="0.4">0.4</option>
+        <option value="0.5">0.5</option>
+        <option value="0.6">0.6</option>
+        <option value="0.7">0.7</option>
+        <option value="0.8">0.8</option>
+        <option value="0.9">0.9</option>
+        <option value="1.0">1.0</option>
+      </select>
+      <label class="control-label">Stroke Color</label>
+      <input type="color" id="strokeColor" value="#e19209">
+      <label class="control-label">Opacity</label>
+      <select id="strokeOpacity">
+        <option value="0.0">0.0</option>
+        <option value="0.1">0.1</option>
+        <option value="0.2" selected>0.2</option>
+        <option value="0.3">0.3</option>
+        <option value="0.4">0.4</option>
+        <option value="0.5">0.5</option>
+        <option value="0.6">0.6</option>
+        <option value="0.7">0.7</option>
+        <option value="0.8">0.8</option>
+        <option value="0.9">0.9</option>
+        <option value="1.0">1.0</option>
+      </select>
+      <label class="control-label">Wight</label>
+      <select id="strokeWeight">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5" selected>5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+      </select>
+    </div>
+  </div>
   <div id="gmap" class="gmap"></div>
 
   <style>
@@ -47,12 +99,14 @@
         zoom: map_zoom,
         animation: google.maps.Animation.DROP,
         streetViewControl: false,
-        mapTypeId: "satellite",
+        mapTypeId: "hybrid",
         mapTypeControlOptions: {
-          style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+          // style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
         },
       });
+
       map.data.setStyle(${structure: gmap_data_style});
+
       infoWindow = new google.maps.InfoWindow({
         content: "",
         ariaLabel: "Uluru",
@@ -73,13 +127,38 @@
       //   }
       // });
       google.maps.event.addListener(map.data, 'addfeature', function (e) {
-        if (map.data.getDrawingMode() !== null) {
+        if (map.data.map.data.getControls() !== null) {
           let bounds = new google.maps.LatLngBounds();
           bounds = extendBound(bounds, e.feature);
+          selectedFeature = e.feature;
+          btnRemove.disabled = false;
           map.fitBounds(bounds);
+          let strokeColor = document.getElementById('strokeColor');
+          if (strokeColor !== null) {
+            map.data.revertStyle();
+            map.data.overrideStyle(e.feature, {
+              strokeColor: document.getElementById('strokeColor').value,
+              strokeOpacity: document.getElementById('strokeOpacity').value,
+              strokeWeight: document.getElementById('strokeWeight').value,
+              fillColor: document.getElementById('fillColor').value,
+              fillOpacity: document.getElementById('fillOpacity').value,
+            });
+          }
+          // console.log(e.feature.strokeColor);
+          // e.feature.strokeColor = document.getElementById('strokeColor').value;
+          // e.feature.strokeOpacity = document.getElementById('strokeOpacity').value;
+          // e.feature.strokeWeight = document.getElementById('strokeWeight').value;
+          // e.feature.fillColor = document.getElementById('fillColor').value;
+          // e.feature.fillOpacity = document.getElementById('fillOpacity').value;
         }
       });
-
+      google.maps.event.addListener(map.data, 'polygoncomplete', function (e) {
+        e.strokeColor = document.getElementById('strokeColor').value;
+        e.strokeOpacity = document.getElementById('strokeOpacity').value;
+        e.strokeWeight = document.getElementById('strokeWeight').value;
+        e.fillColor = document.getElementById('fillColor').value;
+        e.fillOpacity = document.getElementById('fillOpacity').value;
+      });
       google.maps.event.addListener(map.data, 'click', function (e) {
         if (e.hasOwnProperty("feature") === true) {
           selectedFeature = e.feature;
@@ -95,8 +174,8 @@
         }
       });
 
-      loadData();
       addYourLocationButton();
+      loadData();
       bindDataLayerListeners(map.data);
     }
 
@@ -113,7 +192,7 @@
     }
 
     function showInfo(event) {
-      if (contents.length<1) return;
+      if (contents.length < 1) return;
       infoWindow.setPosition(event.latLng);
       let content = "";
       for (let key in contents) {
@@ -191,6 +270,7 @@
         }
       } else {
         map.data.setControls(${gmap_control});
+        // map.data.setDrawingMode('polygon');
       }
     }
 
@@ -247,8 +327,9 @@
           navigator.geolocation.getCurrentPosition(function (position) {
             let latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
             map.setCenter(latlng);
+            map.setZoom(18);
             clearInterval(animationInterval);
-            secondChild.style['background-position'] = '-144px 0';
+            btnCurrent.style['background-position'] = '-144px 0';
           });
         } else {
           clearInterval(animationInterval);
@@ -288,6 +369,7 @@
           selectedFeature = null;
           btnRemove.disabled = true;
           saveData();
+          map.data.setControls(${gmap_control});
         }
       });
 
