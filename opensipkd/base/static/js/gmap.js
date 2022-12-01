@@ -80,7 +80,6 @@ function initMap() {
   });
 
   map.data.setStyle((feature) => {
-    console.log(feature);
     if (feature.getProperty("styles")) {
       featureStyleOptions = Object.assign(featureStyleOptions, JSON.parse(feature.getProperty("styles")));
       setFeatureStyleOptionControls();
@@ -141,7 +140,6 @@ function selectedFeatureSetStyle(f) {
   f.setProperty("styles", JSON.stringify(featureStyleOptions));
   map.data.revertStyle();
   map.data.overrideStyle(f, featureStyleOptions);
-  console.log(f.getProperty("styles"));
   saveData();
 }
 
