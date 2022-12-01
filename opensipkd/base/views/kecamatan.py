@@ -1,5 +1,6 @@
 import colander
 from deform import (widget, )
+from opensipkd.tools.buttons import btn_upload, btn_close, btn_add
 from pyramid.i18n import TranslationStringFactory
 
 from opensipkd.base.views.provinsi import provinsi_widget
@@ -72,6 +73,7 @@ class Views(BaseView):
         self.edit_schema = EditSchema
         self.table = ResKecamatan
         self.list_schema = ListSchema
+        self.list_buttons = (btn_add, btn_close, btn_upload)
 
     def form_validator(self, form, value):
         def err_kode():
@@ -166,3 +168,8 @@ class Views(BaseView):
                  renderer='templates/form.pt', permission='kecamatan')
     def view_delete(self):
         return super(Views, self).view_delete()
+
+    @view_config(route_name='kecamatan-upload',
+                 renderer='templates/form.pt', permission='kecamatan')
+    def view_upload(self):
+        return super(Views, self).view_upload(exts=(".csv",))
