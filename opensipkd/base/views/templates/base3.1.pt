@@ -55,7 +55,9 @@
     <!-- LOOP FORM CSS INCLUDED-->
     <tal:loop tal:repeat="css_resource css">
         <link rel="stylesheet" href="${home}${request.static_path(css_resource)}"
-              type="text/css">
+              type="text/css" tal:condition="css_resource[:4]!='http'">
+      <link rel="stylesheet" href="${css_resource}"
+              type="text/css" tal:condition="css_resource[:4]=='http'">
     </tal:loop>
     <!--?    <link href="${home}/static/v3/js/plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css"-->
     <!--?          rel="stylesheet">-->
@@ -273,7 +275,8 @@
 <script src="${home}/static/v3/js/osipkd.js"></script>
 <!-- LOOP ON JS RESOURCE -->
 <tal:loop tal:repeat="js_resource js">
-    <script src="${home}${request.static_path(js_resource)}"></script>
+    <script src="${home}${request.static_path(js_resource)}" tal:condition="js_resource[:4]!='http'"></script>
+    <script src="${js_resource}" tal:condition="js_resource[:4]=='http'"></script>
 </tal:loop>
 
 <metal:js define-slot="js_files"></metal:js>

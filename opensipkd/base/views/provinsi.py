@@ -18,7 +18,9 @@ def provinsi_widget(node, kw):
     url = node and hasattr(node, 'slave_url') and node.slave_url or ""
     slave = node and hasattr(node, 'slave') and node.slave or ""
     values.insert(0, ("", "Pilih Propinsi..."))
+    readonly = kw.get("readonly", False)
     return widget_os.Select2MsWidget(values=values,
+                                     readonly=readonly,
                                      url=url,
                                      slave=slave,
                                      placeholder="Pilih Provinsi")
