@@ -1,0 +1,46 @@
+<span tal:define="name name|field.name;
+    css_class css_class|field.widget.css_class;
+    oid oid|field.oid;
+    style style|field.widget.style;
+    map_zoom map_zoom|field.widget.map_zoom;
+    map_center map_center|field.widget.map_center;
+    gmap_key gmap_key|field.widget.gmap_key;
+    gmap_height gmap_height|field.widget.gmap_height;
+    gmap_width gmap_width|field.widget.gmap_width;
+    gmap_control gmap_control|field.widget.gmap_control;
+    html_info html_info|field.widget.html_info;
+    gmap_data_style gmap_data_style|field.widget.gmap_data_style;
+    gmap_edit_url gmap_edit_url|field.widget.gmap_edit_url;
+    show_options show_options|field.widget.show_options;
+    "
+     tal:omit-tag="">
+  <textarea id="${oid}" name="${name}" readonly
+       tal:attributes="class string: form-control ${css_class or ''};
+      style style;
+      attributes|field.widget.attributes|{};">${cstruct}</textarea>
+  <div class="row" tal:condition="show_options">
+  <div id="gmap" class="gmap"></div>
+
+  <style>
+    .gmap {
+      height: ${gmap_height};
+      width: ${gmap_width};
+    }
+  </style>
+
+  <script type="text/javascript">
+    let map_zoom = ${map_zoom};
+    let map_center = ${map_center};
+    let geom = document.getElementById('${oid}');
+    let contents = ${html_info};
+    let edit_url = "${gmap_edit_url}";
+    let gmapDataStyle = ${structure: gmap_data_style};
+    let gmapControls = ${gmap_control};
+    //styleControls = document.getElementById("${oid}-options");
+    //styleControls.value = JSON.stringify(featureStyleOptions);
+  </script>
+
+  <script async defer
+          src="https://maps.googleapis.com/maps/api/js?v=3&key=${gmap_key}&libraries=drawing&callback=initMap">
+  </script>
+</span>

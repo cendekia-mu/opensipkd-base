@@ -1,8 +1,9 @@
 import json
+import logging
 
 from colander import SchemaNode, null, Mapping, Invalid, text_, string_types
 from deform.widget import Widget, _StrippedString, Select2Widget
-
+_logging = logging.getLogger(__name__)
 
 class DokumenWidget(Widget):
     template = "opensipkd.base:/views/widgets/dokumen.pt"
@@ -351,7 +352,7 @@ class MapWidget(Widget):
     """
 
     template = "opensipkd.base:views/widgets/gmap.pt"
-    readonly_template = "opensipkd.base:views/widgets/gmap.pt"
+    readonly_template = "opensipkd.base:views/widgets/readonly/gmap.pt"
     map_center = [0, 0]
     map_zoom = 12
     gmap_key = None
@@ -376,6 +377,7 @@ class MapWidget(Widget):
 
     def __init__(self, **kw):
         super().__init__(**kw)
+        _logging.info(self.gmap_data_style)
         self.gmap_data_style = json.dumps(self.gmap_data_style)
 
     def serialize(self, field, cstruct, **kw):
@@ -383,6 +385,17 @@ class MapWidget(Widget):
             cstruct = ""
         readonly = kw.get("readonly", self.readonly)
         template = readonly and self.readonly_template or self.template
+        _logging.debug(self.gmap_data_style)
+        # if readonly:
+        gmap_data_style = {
+            "editable": not readonly,
+            "draggable": not readonly,
+            "clickable": True,
+            "removable": not readonly,
+        }
+        self.gmap_data_style = json.dumps(gmap_data_style)
+        _logging.info(self.gmap_data_style)
+
         values = self.get_template_values(field, cstruct, kw)
         return field.renderer(template, **values)
 
