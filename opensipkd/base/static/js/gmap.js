@@ -36,18 +36,6 @@ function initMap() {
 
   map.data.setControls(gmapControls);
 
-  // google.maps.event.addListener(map, 'zoom_changed', function () {
-  //   let zoomLevel = map.getZoom();
-  //   if (zoomLevel < 11) {
-  //     map.data.forEach(function (e) {
-  //       let bounds = new google.maps.LatLngBounds();
-  //       bounds = extendBound(bounds, e);
-  //       map.data.add({
-  //         geometry: new google.maps.Data.Point(bounds.getCenter()),
-  //       });
-  //     });
-  //   }
-  // });
   google.maps.event.addListener(map.data, 'addfeature', function (e) {
     if (map.data.map.data.getControls() !== null) {
       let bounds = new google.maps.LatLngBounds();
@@ -57,13 +45,6 @@ function initMap() {
       map.fitBounds(bounds);
     }
   });
-  // google.maps.event.addListener(map.data, 'polygoncomplete', function (e) {
-  //   e.strokeColor = document.getElementById('strokeColor').value;
-  //   e.strokeOpacity = document.getElementById('strokeOpacity').value;
-  //   e.strokeWeight = document.getElementById('strokeWeight').value;
-  //   e.fillColor = document.getElementById('fillColor').value;
-  //   e.fillOpacity = document.getElementById('fillOpacity').value;
-  // });
   google.maps.event.addListener(map.data, 'click', function (e) {
     if (e.hasOwnProperty("feature") === true) {
       selectedFeature = e.feature;
@@ -182,20 +163,28 @@ function bindDataLayerListeners(dataLayer) {
   dataLayer.addListener('setgeometry', saveData);
 }
 
-function extendBound(bounds, feature) {
-  if (feature === undefined) return bounds;
+function extendBound(newbounds, feature) {
+  if (feature === undefined) return newbounds;
   let featureType = feature.getGeometry().getType();
   if (featureType === 'LineString') {
     feature.getGeometry().getArray().forEach(function (latLng) {
-      bounds.extend(latLng);
+      newbounds.extend(latLng);
     });
   } else if (featureType === 'Polygon') {
     feature.getGeometry().getArray().forEach(function (path) {
       path.getArray().forEach(function (latLng) {
-        bounds.extend(latLng);
+        newbounds.extend(latLng);
       });
     });
   }
+  return newbounds;
+}
+
+function getFeatureBounds() {
+  let bounds = new google.maps.LatLngBounds();
+  map.data.forEach(function (e) {
+    bounds = extendBound(bounds, e);
+  });
   return bounds;
 }
 

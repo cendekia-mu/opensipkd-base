@@ -69,7 +69,6 @@ def view_file(request):
             input_file = request.POST['upload'].file
             filename = request.POST['upload'].filename.lower()
             ext = get_ext(filename).lower()
-
             if ext.lower() not in ['.png', '.ico']:
                 request.session.flash('File harus format png', 'error')
                 return dict(form=form.render())
