@@ -1,0 +1,198 @@
+<span tal:define="name name|field.name;
+    css_class css_class|field.widget.css_class;
+    oid oid|field.oid;
+    style style|field.widget.style;
+    map_zoom map_zoom|field.widget.map_zoom;
+    map_center map_center|field.widget.map_center;
+    map_width map_width|field.widget.map_width;
+    map_height map_height|field.widget.map_height;
+    show_options show_options|field.widget.show_options;
+    "
+     tal:omit-tag="">
+  <!--?    gmap_key gmap_key|field.widget.gmap_key;-->
+  <!--?    gmap_control gmap_control|field.widget.gmap_control;-->
+  <!--?    html_info html_info|field.widget.html_info;-->
+  <!--?    gmap_data_style gmap_data_style|field.widget.gmap_data_style;-->
+  <!--?    gmap_edit_url gmap_edit_url|field.widget.gmap_edit_url;-->
+  <textarea id="${oid}" name="${name}" readonly
+       tal:attributes="class string: form-control ${css_class or ''};
+      style style;
+      attributes|field.widget.attributes|{};">${cstruct}</textarea>
+  <div class="row" tal:condition="show_options">
+    <div class="input-group">
+      <label class="control-label">Fill Color</label>
+      <input type="color" id="fillColor">
+      <label class="control-label">Opacity</label>
+      <select id="fillOpacity">
+        <option value="0.0">0.0</option>
+        <option value="0.1">0.1</option>
+        <option value="0.2">0.2</option>
+        <option value="0.3">0.3</option>
+        <option value="0.4">0.4</option>
+        <option value="0.5">0.5</option>
+        <option value="0.6">0.6</option>
+        <option value="0.7">0.7</option>
+        <option value="0.8">0.8</option>
+        <option value="0.9">0.9</option>
+        <option value="1.0">1.0</option>
+      </select>
+      <label class="control-label">Stroke Color</label>
+      <input type="color" id="strokeColor">
+      <label class="control-label">Opacity</label>
+      <select id="strokeOpacity">
+        <option value="0.0">0.0</option>
+        <option value="0.1">0.1</option>
+        <option value="0.2">0.2</option>
+        <option value="0.3">0.3</option>
+        <option value="0.4">0.4</option>
+        <option value="0.5">0.5</option>
+        <option value="0.6">0.6</option>
+        <option value="0.7">0.7</option>
+        <option value="0.8">0.8</option>
+        <option value="0.9">0.9</option>
+        <option value="1.0">1.0</option>
+      </select>
+      <label class="control-label">Weight</label>
+      <select id="strokeWeight">
+        <option value="1.0">1.0</option>
+        <option value="2.0">2.0</option>
+        <option value="3.0">3.0</option>
+        <option value="4.0">4.0</option>
+        <option value="5.0">5.0</option>
+        <option value="6.0">6.0</option>
+        <option value="7.0">7.0</option>
+        <option value="8.0">8.0</option>
+        <option value="9.0">9.0</option>
+      </select>
+    </div>
+  </div>
+  <div id="map" class="lmap"></div>
+
+  <style>
+    .lmap {
+      height: ${map_height};
+      width: ${map_width};
+    }
+  </style>
+
+  <script type="text/javascript">
+    let map_zoom = ${map_zoom};
+    let map_center = ${map_center};
+    let geom = document.getElementById('${oid}');
+    //let contents = {html_info};
+    //let edit_url = "{gmap_edit_url}";
+    //let gmapDataStyle = {structure: gmap_data_style};
+    //let gmapControls = {gmap_control};
+    //styleControls = document.getElementById("${oid}-options");
+    //styleControls.value = JSON.stringify(featureStyleOptions);
+    // let map = L.map('map').setView(map_center, map_zoom);
+
+    L.CursorHandler = L.Handler.extend({
+      addHooks: function () {
+        this._popup = new L.Popup();
+        this._map.on('mouseover', this._open, this);
+        this._map.on('mousemove', this._update, this);
+        this._map.on('mouseout', this._close, this);
+      },
+      removeHooks: function () {
+        this._map.off('mouseover', this._open, this);
+        this._map.off('mousemove', this._update, this);
+        this._map.off('mouseout', this._close, this);
+      },
+      _open: function (e) {
+        this._update(e);
+        this._popup.openOn(this._map);
+      },
+      _close: function () {
+        this._map.closePopup(this._popup);
+      },
+      _update: function (e) {
+        this._popup.setLatLng(e.latlng)
+            .setContent(e.latlng.toString());
+      }
+    });
+
+    L.Map.addInitHook('addHandler', 'cursor', L.CursorHandler);
+
+    // let map = L.map('map', {
+    // center: map_center, //[map_center[1], map_center[0]],
+    // zoom: map_zoom,
+    // drawControl: true,
+    // crs: L.CRS.EPSG3857,
+    // cursor: false,
+    // layers: [new L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    //   maxZoom: 19,
+    //   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    //   crs: L.CRS.EPSG3857,
+    // })]
+    // });
+
+    let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: osmAttrib}),
+        map = new L.Map('map', {center: map_center, zoom: map_zoom}),
+        drawnItems = L.featureGroup().addTo(map);
+    L.control.layers(
+        {
+          'osm': osm.addTo(map),
+          "google": L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
+            attribution: 'google'
+          })
+        },
+        {'drawlayer': drawnItems},
+        {position: 'topleft', collapsed: false}).addTo(map);
+    map.addControl(new L.Control.Draw({
+      edit: {
+        featureGroup: drawnItems,
+        poly: {
+          allowIntersection: false
+        }
+      },
+      draw: {
+        polygon: {
+          allowIntersection: false,
+          showArea: true
+        }
+      }
+    }));
+
+    map.on(L.Draw.Event.CREATED, function (event) {
+      var layer = event.layer;
+      drawnItems.addLayer(layer);
+    });
+
+    // let drawnItems = new L.FeatureGroup();
+    // map.addLayer(drawnItems);
+    // let drawControl = new L.Control.Draw({
+    //   edit: {
+    //     featureGroup: drawnItems
+    //   }
+    // });
+    // map.addControl(drawControl);
+
+    // .addTo(map);
+    // let jsonLayer = L.geoJSON().addTo(map);
+    // jsonLayer.addData(JSON.parse(geom.value));
+    // map.fitBounds(jsonLayer.getBounds());
+    // let popup = L.popup();
+
+    let jsonFeatures = JSON.parse(geom.value);
+    let jsonLayer = L.geoJson(jsonFeatures, {
+      onEachFeature: onEachFeature
+    });
+    map.fitBounds(jsonLayer.getBounds());
+    // Take advantage of the onEachFeature callback to initialize drawnItems
+    function onEachFeature(feature, layer) {
+      drawnItems.addLayer(layer);
+    }
+
+    // function onMapClick(e) {
+    //   popup
+    //       .setLatLng(e.latlng)
+    //       .setContent("You clicked the map at " + e.latlng.toString())
+    //       .openOn(map);
+    // }
+
+  </script>
+
+</span>
