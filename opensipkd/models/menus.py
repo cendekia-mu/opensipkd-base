@@ -22,7 +22,10 @@ class Menus(Base, NamaModel):
     parent_id = Column(Integer, ForeignKey('public.menus.id'))
     level_id = Column(SmallInteger)
     order_id = Column(SmallInteger)
-    url = Column(String(256)) # value
+    valu = Column(String(256))  # value/action
+    meth = Column(String(256))  # new method
+    page_typ = Column(String(256))  # PageType
+    url = Column(String(256))
     icon = Column(String(256))
     css_class = Column(String(256))
     need_login = Column(SmallInteger, server_default="1")
@@ -71,4 +74,3 @@ class Menus(Base, NamaModel):
             row = cls.query().filter(cls.kode == parent).first()
             if row:
                 return cls.query().filter(cls.parent_id == row.id)
-

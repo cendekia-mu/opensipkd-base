@@ -46,13 +46,23 @@ class AddSchema(colander.Schema):
     kode = colander.SchemaNode(colander.String(),
                                validator=colander.Length(max=32), oid="kode")
     nama = colander.SchemaNode(colander.String(), oid="nama")
-    url = colander.SchemaNode(colander.String(), oid="url",
-                              title="URL/METHOD")
+    valu = colander.SchemaNode(colander.String(), oid="valu",
+                               title="Action")
+    meth = colander.SchemaNode(colander.String(), oid="meth",
+                               title="Method")
+    page_typ = colander.SchemaNode(colander.String(), oid="page_typ",
+                               title="Page Type")
+
     icon = colander.SchemaNode(colander.String(),
                                missing=colander.drop)
     class_name = colander.SchemaNode(colander.String(), oid="url",
                                      missing=colander.drop)
-    need_login = colander.SchemaNode(colander.Boolean())
+    need_login = colander.SchemaNode(colander.Integer(),
+                                     widget=widget.RadioChoiceWidget(
+                                         values=(("-1", "Unlogged"),
+                                                 ("0", "All"),
+                                                 ("1", "Logged User"),
+                                                 )))
     title = colander.SchemaNode(colander.String())
     status = colander.SchemaNode(colander.Boolean(), oid="status")
 
@@ -88,6 +98,14 @@ class ListSchema(colander.Schema):
     nama = colander.SchemaNode(colander.String(), title="Nama")
     status = colander.SchemaNode(colander.Boolean(), title="Status",
                                  width='50pt')
+    need_login = colander.SchemaNode(colander.Integer(), title="Login",
+                                     width='50pt')
+    valu = colander.SchemaNode(colander.String(), title="Value",
+                               width='50pt')
+    meth = colander.SchemaNode(colander.String(), title="Method",
+                               width='50pt')
+    page_typ = colander.SchemaNode(colander.String(), title="Type",
+                               width='50pt')
     level_id = colander.SchemaNode(colander.String(), title="Level",
                                    width='50pt')
     parent = colander.SchemaNode(colander.String(), title="Induk",
@@ -121,14 +139,14 @@ class ViewMenus(BaseView):
         else:
             current = None
 
-        found = Menus.query_kode(value['kode'])
+        found = Menus.query_kode(value['kode']).first()
         if current:
             if found and found.id != current.id:
                 err_kode()
         elif found:
             err_kode()
 
-        found = Menus.query_nama(value['nama'])
+        found = Menus.query_nama(value['nama']).first()
         if current:
             if found and found.id != current.id:
                 err_nama()
@@ -164,6 +182,7 @@ class ViewMenus(BaseView):
                  permission='view')
     def view_act(self):
         request = self.req
+
         params = request.params
         url_dict = request.matchdict
         table_alias = aliased(Menus)
@@ -173,13 +192,16 @@ class ViewMenus(BaseView):
                        ColumnDT(Menus.nama, mData='nama'),
                        ColumnDT(table_alias.nama, mData='parent'),
                        ColumnDT(Menus.status, mData='status'),
-                       ColumnDT(Menus.level_id, mData='level_id'), ]
+                       ColumnDT(Menus.need_login, mData='need_login'),
+                       ColumnDT(Menus.level_id, mData='level_id'),
+                       ColumnDT(Menus.meth, mData='meth'),
+                       ColumnDT(Menus.valu, mData='valu'),
+                       ColumnDT(Menus.page_typ, mData='page_typ'), ]
             query = Menus.query_grid() \
                 .outerjoin(table_alias, Menus.parent_id == table_alias.id)
             query = self.filter_company(query)
             row_table = DataTables(request.GET, query, columns)
             return row_table.output_result()
-
         elif url_dict['act'] == 'hon':
             term = 'term' in params and params['term'] or ''
             q = Menus.query(). \

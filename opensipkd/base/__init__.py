@@ -86,6 +86,12 @@ titles = {}
 
 def add_cors_headers_response_callback(event):
     def cors_headers(request, response):
+        origin = request.headers.get("Origin", None)
+        allowed_origin = get_params("allowed_origin", None)
+        if allowed_origin:
+            if origin not in allowed_origin.split('\n'):
+                origin = None
+
         response.headers.update({
             # 'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
@@ -93,10 +99,11 @@ def add_cors_headers_response_callback(event):
             'Access-Control-Allow-Credentials': 'true',
             'Access-Control-Max-Age': '1728000',
         })
-        if  'Access-Control-Allow-Origin' not in response.headers:
+        log.info(f"{origin} {request.is_xhr}")
+        if origin:
             response.headers.update(
-                {'Access-Control-Allow-Origin': '*'})
-
+                {'Access-Control-Allow-Origin': origin}
+            )
 
     event.request.add_response_callback(cors_headers)
 
