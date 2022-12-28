@@ -100,6 +100,9 @@ def add_cors_headers_response_callback(event):
             'Access-Control-Max-Age': '1728000',
         })
         log.info(f"{origin} {request.is_xhr}")
+        response.headers.update(
+            {'Access-Control-Allow-Credential': True}
+        )
         if origin:
             response.headers.update(
                 {'Access-Control-Allow-Origin': origin}
