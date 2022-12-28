@@ -101,7 +101,7 @@ def add_cors_headers_response_callback(event):
         })
         log.info(f"{origin} {request.is_xhr}")
         response.headers.update(
-            {'Access-Control-Allow-Credential': True,
+            {'Access-Control-Allow-Credential': 'true',
              'Access-Control-Allow-Origin': "*"}
         )
         if origin:
