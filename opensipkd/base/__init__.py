@@ -90,10 +90,9 @@ def add_cors_headers_response_callback(event):
         allowed_origin = get_params("allowed_origin", None)
         if allowed_origin:
             if origin not in allowed_origin.split('\n'):
-                origin = None
+                origin = "null"
 
         headers = {
-            # 'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
             'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
             'Access-Control-Allow-Credentials': 'true',
