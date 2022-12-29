@@ -47,9 +47,11 @@ class AddSchema(colander.Schema):
                                validator=colander.Length(max=32), oid="kode")
     nama = colander.SchemaNode(colander.String(), oid="nama")
     valu = colander.SchemaNode(colander.String(), oid="valu",
-                               title="Action")
+                               title="Action",
+                               missing=colander.drop)
     meth = colander.SchemaNode(colander.String(), oid="meth",
-                               title="Method")
+                               title="Method",
+                               missing=colander.drop)
     page_typ = colander.SchemaNode(colander.String(), oid="page_typ",
                                title="Page Type")
 
