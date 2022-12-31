@@ -306,6 +306,7 @@ class ChangePassword(colander.Schema):
     retype_password = colander.SchemaNode(
         colander.String(), widget=widget.PasswordWidget())
     password = colander.SchemaNode(colander.String(),
+                                   widget=widget.PasswordWidget(),
                                    title=_("Old Password"))
 
 
