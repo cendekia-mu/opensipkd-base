@@ -5,6 +5,7 @@ from datetime import datetime
 
 from datatables import ColumnDT
 from dateutil.relativedelta import relativedelta
+from opensipkd.base.views.upload import tmpstore
 
 from opensipkd.tools.captcha import get_captcha
 from pyramid.httpexceptions import HTTPFound
@@ -14,7 +15,7 @@ from .. import DBSession, get_params
 from opensipkd.tools import dmy, date_from_str, get_settings, get_ext, \
     date_from_str
 import colander
-from deform import (widget, Form, ValidationFailure, Button, )
+from deform import (widget, Form, ValidationFailure, Button, FileData, )
 from email.utils import parseaddr
 
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
@@ -22,10 +23,19 @@ from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete,
     btn_pdf
 
 from opensipkd.models import User, Menus
+
+from ..scripts.initializedb import append_csv
 from ..tools.api import auth_from_rpc
 from ...detable import DeTable
 
 log = logging.getLogger(__name__)
+
+
+class UploadSchema(colander.Schema):
+    upload = colander.SchemaNode(
+        FileData(),
+        widget=widget.FileUploadWidget(tmpstore),
+        title='Unggah')
 
 
 class BaseView(object):
@@ -140,6 +150,7 @@ class BaseView(object):
         });"""
         self.edit_schema = ""
         self.add_schema = ""
+        self.upload_schema = UploadSchema
         self.table = ""
         self.home = self.req.route_url('home')[:-1]
         self.buttons = None
@@ -147,6 +158,7 @@ class BaseView(object):
         self.bindings = {}
         self.autocomplete = 'on'
         self.action_suffix = "/grid/act"
+        self.upload_keys = ["kode"]
 
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
@@ -241,9 +253,62 @@ class BaseView(object):
             return self.route_list("Nilai Data tidak ditemukan", "error")
         form.set_appstruct(values)
         table = self.get_item_table(row)
+        resources = form.get_widget_resources()
         return dict(form=form.render(readonly=True),
                     table=table and table.render() or None,
-                    scripts=self.form_scripts)
+                    scripts=self.form_scripts,
+                    css=resources["css"],
+                    js=resources["js"]
+                    )
+
+    def view_upload(self, exts=('.png', '.ico')):
+        bindings = self.get_bindings()
+        form = self.get_form(self.upload_schema, bindings=bindings)
+        resources = form.get_widget_resources()
+        if self.req.POST:
+            if 'save' in self.req.POST:
+                input_file = self.req.POST['upload'].file
+                filename = self.req.POST['upload'].filename.lower()
+                ext = get_ext(filename).lower()
+                if ext.lower() not in exts:
+                    ext = ", ".join([ex for ex in exts])
+                    self.req.session.flash(f'File harus format {ext}', 'error')
+                    return dict(form=form.render(),
+                                scripts=self.form_scripts, css=resources["css"],
+                                js=resources["js"])
+
+                _here = get_params('tmp', '/tmp')
+                folder = os.path.join(_here, 'upload')
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
+
+                fullpath = os.path.join(folder, filename)
+                output_file = open(fullpath, 'wb')
+                input_file.seek(0)
+                while True:
+                    data = input_file.read(2 << 16)
+                    if not data:
+                        break
+                    output_file.write(data)
+                output_file.close()
+                self.save_upload(fullpath)
+
+            elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
+                self.cancel_act()
+            else:
+                return self.next_add(form, resources=resources)
+
+            return self.route_list()
+        return dict(form=form.render(),
+                    scripts=self.form_scripts, css=resources["css"],
+                    js=resources["js"])
+
+    def get_file(self, filename):
+        return open(filename)
+
+    def save_upload(self, file_name):
+        return append_csv(self.table, file_name, self.upload_keys,
+                          get_file_func=self.get_file, update_exist=True)
 
     def before_add(self):
         return {}
@@ -502,13 +567,16 @@ username_re = re.compile('^[a-z0-9_]{6,16}$', re.IGNORECASE)
 
 def user_name_validator(node, value):
     if not username_re.match(value):
-        raise colander.Invalid(node,
-                               'Value must be between 6 and 16 characters and can only contain uppercase and lowercase alphanumeric characters or an underscore')
+        raise colander.Invalid(
+            node,
+            'Value must be between 6 and 16 characters and can only contain ' +
+            'uppercase and lowercase alphanumeric characters or an underscore')
 
 
 def need_captcha():
     is_captcha = get_params("reg_captcha")
-    return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" or is_captcha == True
+    return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" \
+           or is_captcha == True
 
 
 def need_verify():

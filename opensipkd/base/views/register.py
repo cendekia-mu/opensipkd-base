@@ -103,6 +103,7 @@ class AddSchema(colander.Schema):
                 colander.String(),
                 widget=widget_os.CaptchaWidget(),
                 oid="captcha", title=_("Captcha"))
+
         if request.user and request.user.id and not external_user:
             # todo: external user tidak ada password
             # validasi harusnya menggunakan authentikasi ke provider lagi

@@ -1,5 +1,10 @@
+import json
+import logging
+
 from colander import SchemaNode, null, Mapping, Invalid, text_, string_types
 from deform.widget import Widget, _StrippedString, Select2Widget
+
+_logging = logging.getLogger(__name__)
 
 
 class DokumenWidget(Widget):
@@ -160,7 +165,8 @@ class BlokKavNoWidget(Widget):
             result = "|".join([blok_kav_no, rt, rw])
 
             if not blok_kav_no or not rt or not rw:
-                raise Invalid(field.schema, "Blok Kav No RT/RW tidak lengkap", result)
+                raise Invalid(field.schema, "Blok Kav No RT/RW tidak lengkap",
+                              result)
 
             return result
 
@@ -182,6 +188,7 @@ class Select2MsWidget(Select2Widget):
     """
 
     template = "select2_ms.pt"
+
 
 class QtyWidget(Widget):
     template = "opensipkd.base:/views/widgets/qty.pt"
@@ -227,6 +234,7 @@ class QtyWidget(Widget):
                 raise Invalid(field.schema, "Data tidak lengkap", result)
 
             return result
+
 
 class CaptchaWidget(Widget):
     """
@@ -275,6 +283,7 @@ class CaptchaWidget(Widget):
             return null
         return pstruct
 
+
 class ImageWidget(Widget):
     """
     Renders an ``<img src="src"/>`` widget.
@@ -300,6 +309,7 @@ class ImageWidget(Widget):
     strip = True
     requirements = ()
     height = "30px"
+
     def __init__(self, **kw):
         super().__init__(**kw)
 
@@ -308,6 +318,168 @@ class ImageWidget(Widget):
             cstruct = ""
         readonly = kw.get("readonly", self.readonly)
         template = readonly and self.readonly_template or self.template
+        values = self.get_template_values(field, cstruct, kw)
+        return field.renderer(template, **values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct is null:
+            return null
+        elif not isinstance(pstruct, string_types):
+            raise Invalid(field.schema, "Pstruct is not a string")
+        if self.strip:
+            pstruct = pstruct.strip()
+        if not pstruct:
+            return null
+        return pstruct
+
+
+class MapWidget(Widget):
+    """
+    Renders an ``<div id="map"/>`` widget.
+
+    **Attributes/Arguments**
+
+    template
+       The template name used to render the widget.  Default:
+        ``textinput``.
+
+    readonly_template
+        The template name used to render the widget in read-only mode.
+        Default: ``readonly/textinput``.
+
+    strip
+        If true, during deserialization, strip the value of leading
+        and trailing whitespace (default ``True``).
+
+    """
+
+    template = "opensipkd.base:views/widgets/gmap.pt"
+    readonly_template = "opensipkd.base:views/widgets/readonly/gmap.pt"
+    map_center = [0, 0]
+    map_zoom = 12
+    gmap_key = None
+    gmap_control = ['Point', 'Polygon', 'LineString']
+    gmap_height = "400px"
+    gmap_width = "100%"
+    strip = True
+    html_info = {}
+    gmap_data_style = {
+        "editable": True,
+        "draggable": True,
+        "clickable": True,
+        "removable": True,
+    }
+    gmap_edit_url = ""
+    show_options = False
+    requirements = (('deform', None),
+                    {
+                        "js": "opensipkd.base:static/js/gmap.js",
+                        "css": "deform:static/select2/select2.css",
+                    },)
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        _logging.info(self.gmap_data_style)
+        self.gmap_data_style = json.dumps(self.gmap_data_style)
+
+    def serialize(self, field, cstruct, **kw):
+        if cstruct in (null, None):
+            cstruct = ""
+        readonly = kw.get("readonly", self.readonly)
+        template = readonly and self.readonly_template or self.template
+        _logging.debug(self.gmap_data_style)
+        # if readonly:
+        gmap_data_style = {
+            "editable": not readonly,
+            "draggable": not readonly,
+            "clickable": True,
+            "removable": not readonly,
+        }
+        self.gmap_data_style = json.dumps(gmap_data_style)
+        _logging.info(self.gmap_data_style)
+
+        values = self.get_template_values(field, cstruct, kw)
+        return field.renderer(template, **values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct is null:
+            return null
+        elif not isinstance(pstruct, string_types):
+            raise Invalid(field.schema, "Pstruct is not a string")
+        if self.strip:
+            pstruct = pstruct.strip()
+        if not pstruct:
+            return null
+        return pstruct
+
+
+class LeafMapWidget(Widget):
+    """
+    Renders an ``<div id="map"/>`` widget.
+
+    **Attributes/Arguments**
+
+    template
+       The template name used to render the widget.  Default:
+        ``textinput``.
+
+    readonly_template
+        The template name used to render the widget in read-only mode.
+        Default: ``readonly/textinput``.
+
+    strip
+        If true, during deserialization, strip the value of leading
+        and trailing whitespace (default ``True``).
+
+    """
+
+    template = "opensipkd.base:views/widgets/leafmap.pt"
+    readonly_template = "opensipkd.base:views/widgets/readonly/leafmap.pt"
+    map_center = [0, 0]
+    map_zoom = 12
+    # gmap_control = ['Point', 'Polygon', 'LineString']
+    map_height = "400px"
+    map_width = "100%"
+    strip = True
+    html_info = {}
+    # gmap_data_style = {
+    #     "editable": True,
+    #     "draggable": True,
+    #     "clickable": True,
+    #     "removable": True,
+    # }
+    # gmap_edit_url = ""
+    show_options = True
+    requirements = (
+        ('deform', None),
+        {
+            "js": ["opensipkd.base:static/v3/map/leaflet/leaflet.js",
+                   "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"],
+            "css": ["opensipkd.base:static/v3/map/leaflet/leaflet.css",
+                    "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"],
+        })
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        # _logging.info(self.gmap_data_style)
+        # self.gmap_data_style = json.dumps(self.gmap_data_style)
+
+    def serialize(self, field, cstruct, **kw):
+        if cstruct in (null, None):
+            cstruct = ""
+        readonly = kw.get("readonly", self.readonly)
+        template = readonly and self.readonly_template or self.template
+        # _logging.debug(self.gmap_data_style)
+        # if readonly:
+        gmap_data_style = {
+            "editable": not readonly,
+            "draggable": not readonly,
+            "clickable": True,
+            "removable": not readonly,
+        }
+        # self.gmap_data_style = json.dumps(gmap_data_style)
+        # _logging.info(self.gmap_data_style)
+
         values = self.get_template_values(field, cstruct, kw)
         return field.renderer(template, **values)
 

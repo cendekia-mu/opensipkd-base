@@ -112,8 +112,14 @@ class DeTable(field.Field):
             data=[],
             allow_edit=True,
             allow_delete=True,
+            allow_view=True,
             **kw
     ):
+        # field.Field.__init__(self, schema, **kw)
+        super().__init__(schema, **kw)
+        self.request = kw.get("request")
+        self.rows = kw.get("rows")
+
         params = params and f"?{params}" or ""
         btn_close_js = "{window.location = '/'; return false;}"
         btn_add_js = "{window.location = o%sUri+'/add%s';}" % (tableid, params)
@@ -128,9 +134,10 @@ class DeTable(field.Field):
         btn_csv_js = "{window.location = o%sUri+'/csv/act%s';}" % (
             tableid, params)
         btn_pdf_js = "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params)
+        btn_upload_js = "{window.location = o%sUri+'/upload%s';}" % (
+        tableid, params)
+
         action_suffix = f"{action_suffix}{params}"
-        field.Field.__init__(self, schema, **kw)
-        self.request = kw.get("request")
         _buttons = []
         for button in buttons:
             if isinstance(button, compat.string_types):
@@ -150,12 +157,13 @@ class DeTable(field.Field):
                     """)
             _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
                             eval('btn_' + button.name + '_js') + ');')
-        self.buttons = "','".join(_buttons).replace('\n', "").replace(';',
-                                                                      ';\n')
+        self.buttons = "','".join(_buttons).replace('\n', ""). \
+            replace(';', ';\n')
         self.tableid = tableid
         self.scripts = ''.join(_scripts).replace(';', ";\n")
         self.allow_edit = json.dumps(allow_edit)
         self.allow_delete = json.dumps(allow_delete)
+        self.allow_view = json.dumps(allow_view)
         table_widget = getattr(schema, "widget", None)
         if table_widget is None:
             table_widget = widget.TableWidget()
@@ -185,7 +193,7 @@ class DeTable(field.Field):
                 d["orderable"] = f.orderable
                 data.append(f"orderable: {f.orderable}")
             if hasattr(f, "url"):
-                d["url"]=f.url
+                d["url"] = f.url
                 # request = kw.get("request")
                 # if request:
                 #     d["url"] = request.static_url(f.url)
@@ -238,7 +246,6 @@ class DeTable(field.Field):
         self.sorts = sorts
         self.paginates = paginates
         self.filters = filters
-        print(self.headers)
 
 
 class Button(object):

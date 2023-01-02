@@ -1,5 +1,6 @@
 import colander
 from deform import (widget, )
+from opensipkd.tools.buttons import btn_upload, btn_close, btn_add
 from pyramid.i18n import TranslationStringFactory
 from pyramid.view import (view_config, )
 
@@ -76,6 +77,7 @@ class ViewDesa(BaseView):
         self.edit_schema = EditSchema
         self.table = ResDesa
         self.list_schema = ListSchema
+        self.list_buttons = (btn_add, btn_close, btn_upload)
 
     def form_validator(self, form, value):
         def err_kode():
@@ -132,13 +134,13 @@ class ViewDesa(BaseView):
         return d
 
     @view_config(route_name='desa-view',
-                 renderer='templates/form.pt', permission='desa')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_view(self):
         return super().view_view()
 
     @view_config(route_name='desa',
                  renderer='templates/table.pt',
-                 permission='desa')
+                 permission='wilayah')
     def view_list(self):
         return super(ViewDesa, self).view_list()
 
@@ -160,16 +162,21 @@ class ViewDesa(BaseView):
             return result
 
     @view_config(route_name='desa-add',
-                 renderer='templates/form.pt', permission='desa')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_add(self):
         return super(ViewDesa, self).view_add()
 
     @view_config(route_name='desa-edit',
-                 renderer='templates/form.pt', permission='desa')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_edt(self):
         return super(ViewDesa, self).view_edit()
 
     @view_config(route_name='desa-delete',
-                 renderer='templates/form.pt', permission='desa')
+                 renderer='templates/form.pt', permission='wilayah')
     def view_delete(self):
         return super(ViewDesa, self).view_delete()
+
+    @view_config(route_name='desa-upload',
+                 renderer='templates/form.pt', permission='wilayah')
+    def view_upload(self):
+        return super(ViewDesa, self).view_upload(exts=('.csv',))

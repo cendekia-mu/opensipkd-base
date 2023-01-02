@@ -160,6 +160,7 @@ dati2-view,/dati2/{id}/view,Kabupaten/Kota View,1,0
 dati2-delete,/dati2/{id}/delete,Kabupaten/Kota Hapus,1,0
 dati2-act,/dati2/{act}/act,Kabupaten/Kota Act,1,0
 dati2-rpt,/dati2/{rpt}/rpt,Kabupaten/Kota Report,1,0
+dati2-upload,/dati2/upload,Kabupaten/Kota Upload,1,0
 kecamatan,/kecamatan,Kecamatan,1,0
 kecamatan-add,/kecamatan/add,Kecamatan Add,1,0
 kecamatan-edit,/kecamatan/{id}/edit,Kecamatan Edit,1,0
@@ -167,6 +168,7 @@ kecamatan-view,/kecamatan/{id}/view,Kecamatan View,1,0
 kecamatan-delete,/kecamatan/{id}/delete,Kecamatan Hapus,1,0
 kecamatan-act,/kecamatan/{act}/act,Kecamatan Act,1,0
 kecamatan-rpt,/kecamatan/{rpt}/rpt,Kecamatan Report,1,0
+kecamatan-upload,/kecamatan/upload,Kecamatan Upload,1,0
 desa,/desa,Desa/Kelurahan,1,0
 desa-add,/desa/add,Desa/Kelurahan Add,1,0
 desa-edit,/desa/{id}/edit,Desa/Kelurahan Edit,1,0
@@ -174,6 +176,7 @@ desa-view,/desa/{id}/view,Desa/Kelurahan View,1,0
 desa-delete,/desa/{id}/delete,Desa/Kelurahan Hapus,1,0
 desa-act,/desa/{act}/act,Desa/Kelurahan Act,1,0
 desa-rpt,/desa/{rpt}/rpt,Desa/Kelurahan Report,1,0
+desa-upload,/desa/upload,Desa/Kelurahan Upload,1,0
 company,/company,Pemda,1,0
 company-add,/company/add,Pemda Add,1,0
 company-edit,/company/{id}/edit,Pemda Edit,1,0
