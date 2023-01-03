@@ -470,7 +470,13 @@ class BaseView(object):
         resources = form.get_widget_resources()
         if request.POST:
             if 'save' in request.POST:
+                log.debug("Save Edit")
+                log.debug(dict(request.POST.items()))
+                log.debug(request.POST)
                 controls = request.POST.items()
+                log.debug(controls)
+                # log.debug(dict(controls))
+                # log.debug(list(controls))
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
