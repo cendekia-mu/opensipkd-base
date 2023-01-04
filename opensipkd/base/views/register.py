@@ -223,7 +223,7 @@ class Registrasi(BaseView):
                 err_captcha()
 
         user = request.user
-        if not "email" in value and "id_info" in session:
+        if "email" not in value and "id_info" in session:
             value["email"] = session["id_info"]["email"]
 
         if not user and (
