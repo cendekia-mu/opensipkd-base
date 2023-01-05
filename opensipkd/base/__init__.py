@@ -250,7 +250,7 @@ def is_devel(request):
 def google_signin_client_ids(request):
     ids = get_params('google-signin-client-id', '')
     if ids:
-        return ids.split(',')
+        return ids.split('\n')
     else:
         return []
 
