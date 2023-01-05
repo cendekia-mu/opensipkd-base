@@ -64,13 +64,14 @@ def googlesignin(request, data=None):
 
     # Or, if multiple clients access the backend server:
     id_token = "id_token" in request.params and request.params[
-        'id_token'] or None
+        'id_token'] or ""
     gtoken = None
     if id_token:
         gtoken = json.loads(id_token)
     else:
         if data and "id_token" in data:
             gtoken = data["id_token"]
+
     _logging.debug(gtoken)
     if not gtoken:
         raise Exception("Gtoken not found")

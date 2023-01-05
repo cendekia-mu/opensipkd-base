@@ -20,6 +20,7 @@ Perubahan Mendasar dari fungsi login adalah:
     result object dari fungsi tersebut harus berupa class User()
 """
 import os
+import re
 from datetime import timedelta, datetime
 from importlib import import_module
 
@@ -87,12 +88,74 @@ class LoginUser(object):
             self.message = "Login Gagal"
             set_user_log(self.message, self.request, log, values["username"])
             return
-        
+
         # generate security_code dan simpan dalam session
-        regenerate_security_code(self.user, 0.03) # berlaku selama 1.8 menit
+        regenerate_security_code(self.user, 0.03)  # berlaku selama 1.8 menit
         # dicek pada module security get_user
-        self.request.session["token"]=self.user.security_code
+        self.request.session["token"] = self.user.security_code
         return True
+
+
+class Oauth2ParseExc(Exception):
+    """Error parsing"""
+
+
+class Oauth2UserExc(Exception):
+    """Error User Found"""
+
+
+def oauth2_login(request, params=None):
+    provider_name = params and params["provider_name"] \
+                    or request.params["provider_name"]
+    if provider_name == "google":
+        from .base_google import googlesignin
+        try:
+            id_info = googlesignin(request, params)
+        except Exception as e:
+            raise Oauth2ParseExc(str(e))
+
+        request.session["id_info"] = id_info
+    else:
+        id_info = None
+
+    iss = id_info and re.sub(r'https?://', '', id_info['iss']) or None
+    user = id_info and ExternalIdentityService. \
+        user_by_external_id_and_provider(id_info['sub'], iss)
+    log.debug("Users : %s", user)
+    log.debug("IdInfo : %s", id_info)
+    if id_info and not user:
+        values = {'email': id_info['email'],
+                  "user_name": id_info["email"],
+                  "status": 1,
+                  "registered_date": datetime.now()}
+        user = User.get_by_identity(values.get("email"))
+        partner = Partner.query_email(values.get("email")).first()
+        log.debug("User  : %s", user)
+        log.debug("Partner : %s", partner)
+        if user or partner:
+            raise Oauth2UserExc("Email sudah terdaftar silahkan login standard")
+
+        user = User()
+        user.from_dict(values)
+        DBSession.add(user)
+        DBSession.flush()
+        DBSession.refresh(user)
+        values = {'external_id': id_info['sub'],
+                  'external_user_name': id_info["name"],
+                  'external_email': id_info["email"],
+                  'provider_name': iss,
+                  "local_user_id": user.id,
+                  "status": 1}
+        external = ExternalIdentity()
+        external.from_dict(values)
+        DBSession.add(external)
+        DBSession.flush()
+
+    #     # todo: what is this????
+    #     # values['access_token']
+    #     # values['alt_token']
+    #     # values['token_secret']
+    return user
 
 
 class ViewLogin(BaseView):
@@ -162,69 +225,22 @@ class ViewLogin(BaseView):
 
         elif "provider_name" in request.params and \
                 request.params["provider_name"]:
-            provider_name = request.params["provider_name"]
-            if provider_name == "google":
-                from .base_google import googlesignin
-                try:
-                    id_info = googlesignin(request)
-                except Exception as e:
-                    login = ""
-                    request.session.flash(str(e), "error")
-                    return render_to_response(
-                        login_tpl, dict(
-                            form=form.render(),
-                            message=message,
-                            url=request.route_url('login'),
-                            next_url=next_url,
-                            login=login, ),
-                        request=request)
-
-                request.session["id_info"] = id_info
-            else:
-                id_info = None
-            user = id_info and ExternalIdentityService. \
-                user_by_external_id_and_provider(id_info['sub'], id_info['iss'])
-            log.debug("Users : %s", user)
-            log.debug("IdInfo : %s", id_info)
-            if id_info and not user:
-                # Proses Register user
-                # Cek Data di user dan partner
-                # Jika sudah ada user  login  klasik pake user password
-                # Simpan ke table user dan external identity
-                values = {'email': id_info['email'],
-                          "user_name": id_info["email"],
-                          "status": 1,
-                          "registered_date": datetime.now()}
-                user = User.get_by_identity(values.get("email"))
-                partner = Partner.query_email(values.get("email")).first()
-                log.debug("User  : %s", user)
-                log.debug("Partner : %s", partner)
-                if user or partner:
-                    request.session.flash(
-                        "Email sudah terdaftar silahkan login standard",
-                        'error')
-                    return HTTPFound(location=request.route_url('login'))
-
-                user = User()
-                user.from_dict(values)
-                DBSession.add(user)
-                DBSession.flush()
-                DBSession.refresh(user)
-                values = {'external_id': id_info['sub'],
-                          'external_user_name': id_info["name"],
-                          'external_email': id_info["email"],
-                          'provider_name': id_info["iss"],
-                          "local_user_id": user.id,
-                          "status": 1}
-                external = ExternalIdentity()
-                external.from_dict(values)
-                DBSession.add(external)
-                DBSession.flush()
-                #     # todo: what is this????
-                #     # values['access_token']
-                #     # values['alt_token']
-                #     # values['token_secret']
-
+            try:
+                user = oauth2_login(request)
+            except Oauth2ParseExc as e:
+                login = ""
+                request.session.flash(str(e), "error")
+                return render_to_response(
+                    login_tpl, dict(
+                        form=form.render(),
+                        message=message,
+                        url=request.route_url('login'),
+                        next_url=next_url,
+                        login=login, ),
+                    request=request)
+            except Oauth2UserExc as e:
+                request.session.flash(str(e), 'error')
+                return HTTPFound(location=request.route_url('login'))
             if user and user.status == 1:
                 return redirect_login(request, user)
             else:
