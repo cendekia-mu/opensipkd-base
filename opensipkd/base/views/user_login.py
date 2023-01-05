@@ -150,7 +150,9 @@ def oauth2_login(request, params=None):
         external.from_dict(values)
         DBSession.add(external)
         DBSession.flush()
-
+    if user and user.status != 1:
+        raise Oauth2UserExc(
+            "User anda masih menunggu verifikasi atau lagi di blokir")
     #     # todo: what is this????
     #     # values['access_token']
     #     # values['alt_token']
@@ -243,9 +245,6 @@ class ViewLogin(BaseView):
                 return HTTPFound(location=request.route_url('login'))
             if user and user.status == 1:
                 return redirect_login(request, user)
-            else:
-                message = "User anda masih menunggu verifikasi atau lagi di blokir"
-                request.session.flash(message, "error")
 
         login = ""
         if login_tpl == 'templates/login.pt':
