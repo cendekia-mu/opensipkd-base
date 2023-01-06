@@ -383,12 +383,26 @@ class BaseView(object):
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
+                log.debug(self.req.POST.items())
+                log.debug(dict(self.req.POST.items()))
                 try:
                     c = form.validate(controls)
                 except ValidationFailure as e:
                     # value = self.validation_failure(e.cstruct)
                     # value.update(self.before_add())
                     # form.render(appstruct=value)
+                    # log.debug(e.cstruct)
+                    # log.debug(e.field)
+                    # efield = e.field
+                    for f in e.field.children:
+                        if isinstance(f.typ, colander.Date):
+                            e.cstruct[f.name] = date_from_str(e.cstruct[f.name])
+
+                    # for k, v in e.cstruct.items():
+                    #     log.debug(hasattr(e.field, k))
+                        # if isinstance(f, colander.Date):
+                        #     e.cstruct[f] = date_from_str(e.cstruct[f])
+
                     return dict(form=form.render(e.cstruct),
                                 table=table and table.render() or None,
                                 scripts=self.form_scripts, css=resources["css"],

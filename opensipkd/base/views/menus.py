@@ -163,11 +163,16 @@ class ViewMenus(BaseView):
                 self.update_children(child.children)
 
     def save_request(self, values, row=None):  # save(self, row, values):
-        for k, v in values.items():
-            if not v:
-                setattr(row, k, None)
-        row = super().save_request(values, row)
-        return row
+        # for k, v in values.items():
+        #     if not v:
+        #         setattr(row, k, None)
+        # row = super().save_request(values, row)
+        for k, v in self.req.GET.items():
+            if k not in values:
+                if v:
+                    values[k] = v
+        values["status"] = "status" in values and values["status"] or 0
+        return self.save(values, self.req.user, row)
 
     @view_config(route_name='menu',
                  renderer='templates/table.pt',
