@@ -18,7 +18,7 @@
     data data|field.data;
     allow_edit allow_edit|field.allow_edit;
     allow_delete allow_delete|field.allow_delete;
-    allow_view allow_delete|field.allow_view;
+    allow_view allow_view|field.allow_view;
     "
      tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};"
      i18n:domain="detable"
