@@ -423,6 +423,9 @@ class BaseView(object):
                     js=resources["js"])
 
     def save(self, values, user, row=None):
+        log.debug("Save")
+        log.debug(values)
+        values.pop("id", None)
         self.ses["old_email"] = user and user.email or None
         if not row:
             row = self.table()

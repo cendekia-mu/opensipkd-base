@@ -119,8 +119,7 @@ class ViewDati2(BaseView):
     def list_join(self, query):
         return query.join(ResProvinsi, ResProvinsi.id == ResDati2.provinsi_id)
 
-    @view_config(route_name='dati2-act', renderer='json',
-                 permission='view')
+    @view_config(route_name='dati2-act', renderer='json')
     def view_act(self):
         return super().view_act()
 
