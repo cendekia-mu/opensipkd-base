@@ -1,3 +1,5 @@
+import logging
+
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from opensipkd.base import get_params
@@ -6,6 +8,8 @@ from pyramid.view import (view_config, )
 from opensipkd.models import User
 from opensipkd.tools import get_settings
 import json
+
+_logging = logging.getLogger(__name__)
 
 
 def validate_user(request, idinfo):
@@ -49,7 +53,7 @@ def google_oauth2(request):
 
 
 @view_config(route_name='googlesignin', renderer='json')
-def googlesignin(request):
+def googlesignin(request, data=None):
     # (Receive token by HTTPS POST)
     # ...
     CLIENT_IDS = request.google_signin_client_ids
@@ -59,15 +63,30 @@ def googlesignin(request):
     # idinfo = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
 
     # Or, if multiple clients access the backend server:
-    gtoken = json.loads(request.params['id_token'])
+    id_token = "id_token" in request.params and request.params[
+        'id_token'] or ""
+    gtoken = None
+    if id_token:
+        gtoken = json.loads(id_token)
+    else:
+        if data and "id_token" in data:
+            gtoken = data["id_token"]
+
+    _logging.debug(gtoken)
+    if not gtoken:
+        raise Exception("Gtoken not found")
     # idinfo = id_token.verify_oauth2_token(gtoken, requests.Request())
     # test
     import jwt
-    idinfo = jwt.decode(gtoken["credential"], options={"verify_signature": False})  # KEY, algorithms=["RS256"]) #
+    idinfo = jwt.decode(gtoken["credential"], options={
+        "verify_signature": False})  # KEY, algorithms=["RS256"]) #
+    _logging.debug(CLIENT_IDS)
+    _logging.debug(idinfo)
     if idinfo['aud'] not in CLIENT_IDS or idinfo['azp'] not in CLIENT_IDS:
         raise ValueError('Could not verify audience.')
 
-    if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+    if idinfo['iss'] not in ['accounts.google.com',
+                             'https://accounts.google.com']:
         raise ValueError('Wrong issuer.')
 
     return idinfo

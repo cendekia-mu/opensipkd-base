@@ -1,4 +1,5 @@
 import json
+import logging
 
 from deform.widget import (
     SchemaType,
@@ -56,6 +57,7 @@ class DateInputWidget(DeformDateInputWidget):
         return field.renderer(template, **values)
 
     def deserialize(self, field, pstruct):
+        logging.debug(f"widget: {field} {pstruct}")
         if pstruct in ("", null):
             return null
         try:

@@ -26,6 +26,8 @@ Link dalam module registrasi:
 4. Form edit registrasi http://server/register/{uid}/edit
 5. Form Upload template
 """
+import base64
+import logging
 from datetime import datetime
 
 import colander
@@ -47,6 +49,8 @@ from .user_login import regenerate_security_code, send_email_security_code
 from ..views import BaseView
 
 _ = TranslationStringFactory('user')
+
+_logging = logging.getLogger(__name__)
 
 
 class AddSchema(colander.Schema):
@@ -173,6 +177,7 @@ class Registrasi(BaseView):
         3. Cek kode pada Partner jika ada dan Partner.id beda reject
         4. Cek mobile pada Partner jika ada dan Users.id beda reject
         """
+        _logging.debug(value)
         form_exc = colander.Invalid(form, '')
         request = form.request
         session = request.session
@@ -218,7 +223,7 @@ class Registrasi(BaseView):
                 err_captcha()
 
         user = request.user
-        if not "email" in value and "id_info" in session:
+        if "email" not in value and "id_info" in session:
             value["email"] = session["id_info"]["email"]
 
         if not user and (
@@ -274,6 +279,16 @@ class Registrasi(BaseView):
             if not user or not UserService.check_password(
                     user, value['password']):
                 err_login()
+        if "idcard" in value and value["idcard"]:
+            idcard = value["idcard"]
+            path = get_id_card_folder()
+            if "fp" in idcard and idcard["fp"] and idcard["fp"] != b'':
+                _logging.debug(idcard["fp"])
+                upload = Upload(path)
+                value["idcard"] = upload.save_fp(idcard)
+
+            else:
+                value.pop("idcard")
 
     def before_add(self):
         result = {}
@@ -328,7 +343,8 @@ class Registrasi(BaseView):
                 if d["idcard"]:
                     filename = d["idcard"]
                     preview_url = "/".join(
-                        [self.req.static_url(get_id_card_folder('/')), filename])
+                        [self.req.static_url(get_id_card_folder('/')),
+                         filename])
                     d["idcard"] = {"uid": filename.split(".")[0],
                                    "filename": filename,
                                    "preview_url": preview_url
@@ -360,13 +376,6 @@ class Registrasi(BaseView):
         if not "email" in values or not values["email"]:
             values["email"] = self.req.user and self.req.user.email or ""
 
-        if "idcard" in values and values["idcard"]:
-            if self.req.POST['upload'] != b'':
-                path = get_id_card_folder()
-                upload = Upload(path)
-                values["idcard"] = upload.save(self.req, 'upload')
-            else:
-                values.pop("idcard")
         if not row:
             values["is_vendor"] = 0
             values["is_customer"] = 1
