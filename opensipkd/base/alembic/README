@@ -1,1 +1,2 @@
 Generic single-database configuration.
+alembic -c config -n section_name revision -m "notes "

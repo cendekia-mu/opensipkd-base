@@ -185,11 +185,19 @@ class BaseView(object):
             bindings = kwargs["bindings"]
         else:
             bindings = self.bindings
-
+        form_params = {}
+        # form_params["after_bind"] = after_bind
         if "validator" in kwargs and kwargs["validator"]:
-            schema = class_form(validator=kwargs["validator"])
+            form_params["validator"] = kwargs["validator"]
+            # schema = class_form(validator=kwargs["validator"])
         else:
-            schema = class_form(validator=self.form_validator)
+            form_params["validator"] = self.form_validator
+            # schema = class_form(validator=self.form_validator)
+        if "after_bind" in kwargs and kwargs["after_bind"]:
+            form_params["after_bind"] = kwargs["after_bind"]
+            # schema = class_form(validator=kwargs["validator"])
+
+        schema = class_form(**form_params)
 
         schema = schema.bind(request=self.req, **bindings)
         schema.request = self.req
@@ -400,8 +408,8 @@ class BaseView(object):
 
                     # for k, v in e.cstruct.items():
                     #     log.debug(hasattr(e.field, k))
-                        # if isinstance(f, colander.Date):
-                        #     e.cstruct[f] = date_from_str(e.cstruct[f])
+                    # if isinstance(f, colander.Date):
+                    #     e.cstruct[f] = date_from_str(e.cstruct[f])
 
                     return dict(form=form.render(e.cstruct),
                                 table=table and table.render() or None,
