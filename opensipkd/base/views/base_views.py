@@ -31,6 +31,7 @@ from ...detable import DeTable
 log = logging.getLogger(__name__)
 
 
+
 class UploadSchema(colander.Schema):
     upload = colander.SchemaNode(
         FileData(),
@@ -184,7 +185,7 @@ class BaseView(object):
         if "bindings" in kwargs and kwargs["bindings"]:
             bindings = kwargs["bindings"]
         else:
-            bindings = self.bindings
+            bindings = self.get_bindings()
         form_params = {}
         # form_params["after_bind"] = after_bind
         if "validator" in kwargs and kwargs["validator"]:
@@ -383,10 +384,10 @@ class BaseView(object):
         else:
             return self.next_act()
 
-    def view_add(self):
-        bindings = self.get_bindings()
-        form = self.get_form(self.add_schema, bindings=bindings)
-        table = self.get_item_table()
+    def view_add(self, **kwargs):
+        # bindings = self.get_bindings()
+        form = self.get_form(self.add_schema, **kwargs)
+        table = self.get_item_table(**kwargs)
         resources = form.get_widget_resources()
         if self.req.POST:
             if 'save' in self.req.POST:
@@ -477,7 +478,7 @@ class BaseView(object):
                 d[f] = d[f].strip()
         return d
 
-    def get_item_table(self, row=None):
+    def get_item_table(self, row=None, **kwargs):
         return
 
     def before_edit(self, form):
