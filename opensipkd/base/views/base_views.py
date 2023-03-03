@@ -11,7 +11,8 @@ from opensipkd.tools.captcha import get_captcha
 from pyramid.httpexceptions import HTTPFound
 
 from .common import DataTables
-from .. import DBSession, get_params
+from .. import DBSession, get_params, get_urls
+from
 from opensipkd.tools import dmy, date_from_str, get_settings, get_ext, \
     date_from_str
 import colander
@@ -168,10 +169,10 @@ class BaseView(object):
         if msg:
             self.ses.flash(msg, error)
         if self.headers:
-            return HTTPFound(location=self.req.route_url(self.list_route),
+            return HTTPFound(location=get_urls(self.req.route_url(self.list_route)),
                              headers=self.headers)
         else:
-            return HTTPFound(location=self.req.route_url(self.list_route))
+            return HTTPFound(location=get_urls(self.req.route_url(self.list_route)))
 
     def form_validator(self, form, value):
         pass
@@ -218,7 +219,7 @@ class BaseView(object):
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
             table = DeTable(schema,
-                            action=self.req.route_url(self.list_route),
+                            action=get_urls(self.req.route_url(self.list_route)),
                             action_suffix="/grid/act",
                             buttons=self.list_buttons,
                             request=self.req,
@@ -618,4 +619,4 @@ def need_verify():
 
 def get_url_captcha(request):
     captcha = get_captcha(request)
-    return os.path.join(request.route_url('home'), 'captcha', captcha)
+    return os.path.join(get_urls(request.route_url('home')), 'captcha', captcha)

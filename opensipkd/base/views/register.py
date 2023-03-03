@@ -47,6 +47,7 @@ from . import widget_os
 from .base_views import need_captcha, get_url_captcha
 from .user_login import regenerate_security_code, send_email_security_code
 from ..views import BaseView
+from .. import get_urls
 
 _ = TranslationStringFactory('user')
 
@@ -146,7 +147,7 @@ def _show_error(request, msg):
 
 def show_error(request, msg):
     _show_error(request, msg)
-    return HTTPFound(location=request.route_url('home'))
+    return HTTPFound(location=get_urls(request.route_url('home')))
 
 
 # def reg_buttons():
@@ -310,16 +311,16 @@ class Registrasi(BaseView):
     def view_register(self):
         if "g_state" in self.req.cookies:
             if "id_info" not in self.ses or not self.ses["id_info"]:
-                return HTTPFound(location=self.req.route_url("login"))
+                return HTTPFound(location=get_urls(self.req.route_url("login")))
 
         request = self.req
         reg_form = get_params("reg_form")
         if reg_form:
-            return HTTPFound(location=self.req.route_url(reg_form))
+            return HTTPFound(location=get_urls(self.req.route_url(reg_form)))
 
         self.bindings = dict(user=None)
         if request.user:
-            return HTTPFound(location=request.route_url("profile"))
+            return HTTPFound(location=get_urls(request.route_url("profile")))
 
         return super(Registrasi, self).view_add()
 
@@ -365,7 +366,7 @@ class Registrasi(BaseView):
         self.buttons = (btn_save, btn_cancel)
         reg_form = get_params("reg_form")
         if reg_form:
-            return HTTPFound(location=self.req.route_url(reg_form))
+            return HTTPFound(location=get_urls(self.req.route_url(reg_form)))
         self.bindings = dict(user=self.req.user)
         resp = super(Registrasi, self).view_edit()
         if not resp:

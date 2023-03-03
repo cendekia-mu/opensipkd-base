@@ -148,7 +148,7 @@ def add_global(event):
     event['allow_register'] = allow_register
     event['change_unit'] = change_unit
     event['get_params'] = get_params
-    event['route_urls'] = get_urls
+    # event['route_urls'] = get_urls
 
 
 def get_params(params, alternate=None, settings=None):
@@ -352,16 +352,6 @@ def get_menus(request):
     return result
 
 
-def get_urls(request, route_name, *elements, **kw):
-    url = request.route_url(route_name, *elements, **kw)
-    home = get_host(request)
-    urls = url.split(":")
-    homes = home.split(":")
-    if urls[0] != homes[0]:
-        return ":".join([homes[0], urls[1:]])
-    return url
-
-
 def format_datetime(v):
     if v.time() != datetime.time(0, 0):
         return dmyhms(v)
@@ -391,6 +381,14 @@ def json_rpc():
 #         if user is not None:
 #             return user.id
 
+def get_urls(url):
+    home = get_params('_host', "")
+    if home:
+        urls = url.split(":")
+        homes = home.split(":")
+        if urls[0] != homes[0]:
+            return ":".join([homes[0], urls[1:]])
+    return url
 
 def get_host(request):
     host = get_params('_host', "")

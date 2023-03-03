@@ -15,7 +15,7 @@ from pyramid.response import Response
 from pyramid.security import remember
 from pyramid.view import view_config
 
-from opensipkd.base import get_params
+from opensipkd.base import get_params, get_urls
 
 from opensipkd.base.tools.api import rpc_auth
 from .base_views import BaseView
@@ -68,11 +68,11 @@ class Home(BaseView):
         log.info(request.session.peek_flash())
         if modules_default:
             if request.user and request.has_permission(modules_default):
-                return HTTPFound(location=request.route_url(modules_default))
+                return HTTPFound(location=get_urls(request.route_url(modules_default)))
             elif request.user and len(request.session.peek_flash('error')) < 2:
-                return HTTPFound(location=request.route_url(modules_default))
+                return HTTPFound(location=get_urls(request.route_url(modules_default)))
             elif not request.user:
-                return HTTPFound(location=request.route_url(modules_default))
+                return HTTPFound(location=get_urls(request.route_url(modules_default)))
         logo = get_params('logo', "static/img/logo.png")
         home_tpl = get_params("home_tpl")
         if home_tpl:
@@ -87,7 +87,7 @@ class Home(BaseView):
 @view_config(context=HTTPForbidden, renderer='templates/403.pt')
 def http_forbidden(request):
     if not request.is_authenticated:
-        next_url = request.route_url('login', _query={'next': request.url})
+        next_url = get_urls(request.route_url('login', _query={'next': request.url}))
         return HTTPSeeOther(location=next_url)
 
     request.response.status = 403

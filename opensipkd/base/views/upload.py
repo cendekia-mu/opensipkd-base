@@ -13,12 +13,12 @@ from opensipkd.tools import (
 )
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
-
+from .. import get_urls
 
 # from unggah import DbUpload
 def route_list(request, p={}):
     q = dict_to_str(p)
-    return HTTPFound(location=request.route_url('upload-logo', _query=q))
+    return HTTPFound(location=get_urls(request.route_url('upload-logo', _query=q)))
 
 
 ##########
