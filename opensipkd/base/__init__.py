@@ -351,6 +351,16 @@ def get_menus(request):
     return result
 
 
+def get_urls(request, route_name, *elements, **kw):
+    url = request.route_url(route_name, *elements, **kw)
+    home = get_host(request)
+    urls = url.split(":")
+    homes = home.split(":")
+    if urls[0] != homes[0]:
+        return ":".join([homes[0], urls[1:]])
+    return url
+
+
 def format_datetime(v):
     if v.time() != datetime.time(0, 0):
         return dmyhms(v)
@@ -462,6 +472,7 @@ def main(global_config, **settings):
     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(get_host, '_host', reify=True)
     config.add_request_method(get_host, 'home', reify=True)
+    config.add_request_method(get_urls, 'route_urls', reify=True)
     config.add_request_method(google_signin_client_id,
                               'google_signin_client_id', reify=True)
     config.add_request_method(google_signin_client_ids,

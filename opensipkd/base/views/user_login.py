@@ -168,11 +168,11 @@ class ViewLogin(BaseView):
         next_url = request.params.get('next', request.referrer)
         login_tpl = get_params('login_tpl', 'templates/login.pt')
         if not next_url:
-            next_url = request.route_url('home')
+            next_url = request.route_urls('home')
 
         if request.authenticated_userid:  # (request):
             request.session.flash('Anda sudah login', 'error')
-            return HTTPFound(location=f"{request.route_url('home')}")
+            return HTTPFound(location=f"{request.route_urls('home')}")
 
         schema = Login(validator=login_validator)
         form = Form(schema, buttons=('login',))
@@ -187,7 +187,7 @@ class ViewLogin(BaseView):
                 msg = 'Login gagal'
                 set_user_log(msg, request, log, identity)
                 request.session.flash(msg, 'error')
-                return HTTPFound(location=request.route_url('login'))
+                return HTTPFound(location=request.route_urls('login'))
 
             values = dict(c)
             # start cek external module
@@ -206,19 +206,19 @@ class ViewLogin(BaseView):
                 except Exception as e:
                     log.warn(str(e))
                     request.session.flash(str(e), "error")
-                    return HTTPFound(location=request.route_url('login'))
+                    return HTTPFound(location=request.route_urls('login'))
 
             else:
                 login = LoginUser(self.req)
                 if not login.login(values, user):
                     request.session.flash(login.message, "error")
-                    next_url = f"{request.route_url('login')}?next={next_url}"
+                    next_url = f"{request.route_urls('login')}?next={next_url}"
                     return HTTPFound(location=next_url)
             return redirect_login(request, user)
 
         elif 'register' in request.POST:
             register_form = get_params("register_form", 'register')
-            return HTTPFound(location=request.route_url(register_form))
+            return HTTPFound(location=request.route_urls(register_form))
 
         elif 'login failed' in request.session:
             r = dict(form=request.session['login failed'])
@@ -236,13 +236,13 @@ class ViewLogin(BaseView):
                     login_tpl, dict(
                         form=form.render(),
                         message=message,
-                        url=request.route_url('login'),
+                        url=request.route_urls('login'),
                         next_url=next_url,
                         login=login, ),
                     request=request)
             except Oauth2UserExc as e:
                 request.session.flash(str(e), 'error')
-                return HTTPFound(location=request.route_url('login'))
+                return HTTPFound(location=request.route_urls('login'))
             if user and user.status == 1:
                 return redirect_login(request, user)
 
@@ -250,7 +250,7 @@ class ViewLogin(BaseView):
         if login_tpl == 'templates/login.pt':
             return dict(form=form.render(),
                         message=message,
-                        url=request.route_url('login'),
+                        url=request.route_urls('login'),
                         next_url=next_url,
                         login=login, )
 
@@ -259,7 +259,7 @@ class ViewLogin(BaseView):
             request=request,
             value=dict(form=form.render(),
                        message=message,
-                       url=request.route_url('login'),
+                       url=request.route_urls('login'),
                        next_url=next_url,
                        login=login, ),
         )
@@ -272,7 +272,7 @@ def redirect_login(request, user):
     next_url = request.params.get('next')
     if not next_url and request.matched_route.name == 'login':
         url = get_params('modules_default', 'home')
-        return HTTPFound(location=request.route_url(url),
+        return HTTPFound(location=request.route_urls(url),
                          headers=headers)
     return HTTPFound(location=next_url, headers=headers)
 
@@ -299,8 +299,8 @@ class Logout(BaseView):
 
         form = self.get_form(LogoutSchema, buttons=(btn_cancel, btn_logout))
         if 'cancel' in request.POST or "home" in request.POST:
-            log.info(request.route_url('home'))
-            return HTTPFound(location=f"{request.route_url('home')}", )
+            log.info(request.route_urls('home'))
+            return HTTPFound(location=f"{request.route_urls('home')}", )
 
         elif "logout" in request.POST:
             form = self.get_form(LogoutSchema, buttons=(btn_home,))
@@ -343,7 +343,7 @@ def change_password_validator(form, value):
 def view_change_password(request):
     if request.authenticated_userid:
         request.session.flash('Anda sudah login', 'error')
-        return HTTPFound(location=f"{request.route_url('home')}")
+        return HTTPFound(location=f"{request.route_urls('home')}")
 
     schema = ChangePassword(validator=change_password_validator)
     btn_save = Button('save', _('Simpan'))
@@ -353,7 +353,7 @@ def view_change_password(request):
     if not request.POST:
         return dict(form=form.render())
     if 'save' not in request.POST:
-        return HTTPFound(location=request.route_url('login'))
+        return HTTPFound(location=request.route_urls('login'))
     items = request.POST.items()
     try:
         c = form.validate(items)
@@ -365,7 +365,7 @@ def view_change_password(request):
     if not user or \
             create_now() - user.security_code_date > one_hour:
         request.session.flash('Security code expired', 'error')
-        return HTTPFound(location=request.route_url('login'))
+        return HTTPFound(location=request.route_urls('login'))
 
     user.security_code = None
     UserService.set_password(user, c['new_password'])
@@ -373,7 +373,7 @@ def view_change_password(request):
     headers = get_login_headers(request, user)
     request.session.flash('Password baru Anda sudah disimpan.')
     set_user_log("Change Password", request, log)
-    return HTTPFound(location=f"{request.route_url('home')}", headers=headers)
+    return HTTPFound(location=f"{request.route_urls('home')}", headers=headers)
 
 
 ######################
@@ -403,12 +403,12 @@ def view_recreate_api_key(request):
         d = dict(api_key=request.user.api_key)
         return dict(form=form.render(appstruct=d))
     if 'recreate' not in request.POST:
-        return HTTPFound(location=f"{request.route_url('home')}")
+        return HTTPFound(location=f"{request.route_urls('home')}")
     request.user.api_key = api_key = generate_api_key()
     DBSession.add(request.user)
     msg = 'API Key Anda yang baru {}'.format(api_key)
     request.session.flash(msg)
-    return HTTPFound(location=f"{request.route_url('home')}")
+    return HTTPFound(location=f"{request.route_urls('home')}")
 
 
 ##################
@@ -508,7 +508,7 @@ def regenerate_security_code(user, hour=1.0):
              renderer='templates/reset-password.pt')
 def view_reset_password(request):
     if request.authenticated_userid:
-        return HTTPFound(location=f"{request.route_url('home')}")
+        return HTTPFound(location=f"{request.route_urls('home')}")
 
     resp = dict(title=_('Reset password'))
     schema = ResetPassword(validator=reset_password_validator)
@@ -530,7 +530,7 @@ def view_reset_password(request):
         send_email_security_code(
             request, user, remain, 'Reset password', 'reset-password-body',
             'reset-password-body.tpl')
-        return HTTPFound(location=request.route_url('reset-password-sent'))
+        return HTTPFound(location=request.route_urls('reset-password-sent'))
     resp['form'] = form.render()
     return resp
 

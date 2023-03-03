@@ -132,7 +132,7 @@ class PartnerSchema(NamaSchema):
 
     def after_bind(self, schema, kwargs):
         request = kwargs["request"]
-        prefix = request.route_url("home")
+        prefix = request.route_urls("home")
         self["provinsi_id"].slave_url=f"{prefix}/dati2/select/act?provinsi_id="
         self["dati2_id"].slave_url=f"{prefix}/kecamatan/select/act?dati2_id="
         self["kecamatan_id"].slave_url = f"{prefix}/desa/select/act?kecamatan_id="

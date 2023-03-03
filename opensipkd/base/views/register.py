@@ -146,7 +146,7 @@ def _show_error(request, msg):
 
 def show_error(request, msg):
     _show_error(request, msg)
-    return HTTPFound(location=request.route_url('home'))
+    return HTTPFound(location=request.route_urls('home'))
 
 
 # def reg_buttons():
@@ -310,16 +310,16 @@ class Registrasi(BaseView):
     def view_register(self):
         if "g_state" in self.req.cookies:
             if "id_info" not in self.ses or not self.ses["id_info"]:
-                return HTTPFound(location=self.req.route_url("login"))
+                return HTTPFound(location=self.req.route_urls("login"))
 
         request = self.req
         reg_form = get_params("reg_form")
         if reg_form:
-            return HTTPFound(location=self.req.route_url(reg_form))
+            return HTTPFound(location=self.req.route_urls(reg_form))
 
         self.bindings = dict(user=None)
         if request.user:
-            return HTTPFound(location=request.route_url("profile"))
+            return HTTPFound(location=request.route_urls("profile"))
 
         return super(Registrasi, self).view_add()
 
@@ -365,7 +365,7 @@ class Registrasi(BaseView):
         self.buttons = (btn_save, btn_cancel)
         reg_form = get_params("reg_form")
         if reg_form:
-            return HTTPFound(location=self.req.route_url(reg_form))
+            return HTTPFound(location=self.req.route_urls(reg_form))
         self.bindings = dict(user=self.req.user)
         resp = super(Registrasi, self).view_edit()
         if not resp:

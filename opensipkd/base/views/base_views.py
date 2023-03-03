@@ -153,7 +153,7 @@ class BaseView(object):
         self.add_schema = ""
         self.upload_schema = UploadSchema
         self.table = ""
-        self.home = self.req.route_url('home')[:-1]
+        self.home = self.req._host
         self.buttons = None
         self.headers = None
         self.bindings = {}
@@ -168,10 +168,10 @@ class BaseView(object):
         if msg:
             self.ses.flash(msg, error)
         if self.headers:
-            return HTTPFound(location=self.req.route_url(self.list_route),
+            return HTTPFound(location=self.req.route_urls(self.list_route),
                              headers=self.headers)
         else:
-            return HTTPFound(location=self.req.route_url(self.list_route))
+            return HTTPFound(location=self.req.route_urls(self.list_route))
 
     def form_validator(self, form, value):
         pass
@@ -218,7 +218,7 @@ class BaseView(object):
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
             table = DeTable(schema,
-                            action=self.req.route_url(self.list_route),
+                            action=self.req.route_urls(self.list_route),
                             action_suffix="/grid/act",
                             buttons=self.list_buttons,
                             request=self.req,
@@ -618,4 +618,4 @@ def need_verify():
 
 def get_url_captcha(request):
     captcha = get_captcha(request)
-    return os.path.join(request.route_url('home'), 'captcha', captcha)
+    return os.path.join(request.route_urls('home'), 'captcha', captcha)

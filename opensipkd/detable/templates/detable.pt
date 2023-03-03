@@ -114,7 +114,7 @@
 
           }
       }
-      
+
       let ${tableid}Language = {
         "search": "Cari: ",
         "paginate": {
