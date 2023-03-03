@@ -1,5 +1,5 @@
 
-<html tal:define="home request.route_url('home')[:-1];">
+<html tal:define="home request._host;">
 <body>
   <div class="well">
     <h2>${request.app_name}</h2>

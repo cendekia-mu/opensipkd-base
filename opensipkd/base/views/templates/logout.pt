@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" tal:define="home request.route_url('home');">
+<html lang="en" tal:define="home request._host;">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,22 +10,22 @@
   <meta tal:condition="request.google_signin_client_id"
       name="google-signin-client_id"
       content="${request.google_signin_client_id}">
-  <link rel="shortcut icon" href="${home}static/img/favicon.png">
+  <link rel="shortcut icon" href="${home}/static/img/favicon.png">
 
   <title>Logout</title>
   <!-- Basic Styles -->
-  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/font-awesome.min.css">
 
   <!-- SmartAdmin Styles : Caution! DO NOT change the order -->
   <link rel="stylesheet" type="text/css" media="screen"
-        href="${home}static/v3/css/smartadmin-production-plugins.min.css">
-  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-production.min.css">
-  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-skins.min.css">
+        href="${home}/static/v3/css/smartadmin-production-plugins.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/smartadmin-production.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/smartadmin-skins.min.css">
 
   <!-- SmartAdmin RTL Support -->
-  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-rtl.min.css">
-  <link rel="stylesheet" type="text/css" href="${home}static/css/home.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/smartadmin-rtl.min.css">
+  <link rel="stylesheet" type="text/css" href="${home}/static/css/home.css">
 
 </head>
 
@@ -54,7 +54,7 @@
                    tal:repeat="message request.session.pop_flash('error')">${message}</div>
             </div>
             <div class="col-md-12" align="center">
-              <img src="${home}static/img/logo.png"
+              <img src="${home}/static/img/logo.png"
                    class="img-float img-thumbnail" style="height:50px;width:auto;border:none;"/>
             </div>
             <div class="clearfix"></div>
@@ -83,9 +83,9 @@
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script type="text/javascript" src="${home}deform_static/scripts/jquery-2.0.3.min.js"></script>
-<script type="text/javascript" src="${home}deform_static/scripts/bootstrap.min.js"></script>
-<script type="text/javascript" src="${home}deform_static/scripts/deform.js"></script>
+<script type="text/javascript" src="${home}/deform_static/scripts/jquery-2.0.3.min.js"></script>
+<script type="text/javascript" src="${home}/deform_static/scripts/bootstrap.min.js"></script>
+<script type="text/javascript" src="${home}/deform_static/scripts/deform.js"></script>
 <!--?<script tal:condition="request.google_signin_client_id"-->
 <!--?    src="https://apis.google.com/js/platform.js" async defer></script>-->
 <!--?<script tal:condition="request.google_signin_client_id">-->

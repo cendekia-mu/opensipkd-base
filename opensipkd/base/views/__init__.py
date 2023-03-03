@@ -125,7 +125,7 @@ def view_password(request):
     if not request.POST:
         return dict(form=form.render())
     if 'save' not in request.POST:
-        return HTTPFound(location=request.route_url('home'))
+        return HTTPFound(location=request._host)
     schema.request = request
     controls = request.POST.items()
     try:
@@ -135,7 +135,7 @@ def view_password(request):
     UserService.set_password(request.user, c['new_password'])
     DBSession.add(request.user)
     request.session.flash('Password baru Anda sudah disimpan.')
-    return HTTPFound(location=request.route_url('home'))
+    return HTTPFound(location=request._host)
 
 
 ######################################

@@ -383,12 +383,6 @@ def json_rpc():
 
 def get_host(request):
     host = get_params('_host', "")
-    # if not host:
-    #     host = request.route_url('home')[:-1]
-    #     proto = 'HTTP_X_FORWARDED_PROTO' in request.environ \
-    #             and request.environ['HTTP_X_FORWARDED_PROTO'] \
-    #             or "http"
-    #     host = f"{proto}://{request.host}"
     return host and host or get_home(request)
 
 
@@ -467,7 +461,7 @@ def main(global_config, **settings):
     config.add_request_method(thousand, 'thousand', reify=True)
     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(get_host, '_host', reify=True)
-    config.add_request_method(get_home, 'home', reify=True)
+    config.add_request_method(get_host, 'home', reify=True)
     config.add_request_method(google_signin_client_id,
                               'google_signin_client_id', reify=True)
     config.add_request_method(google_signin_client_ids,

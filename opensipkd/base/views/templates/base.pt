@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"  tal:define="home request.route_url('home');">
+<html lang="en"  tal:define="home request._host;">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
