@@ -148,6 +148,7 @@ def add_global(event):
     event['allow_register'] = allow_register
     event['change_unit'] = change_unit
     event['get_params'] = get_params
+    event['route_urls'] = get_urls
 
 
 def get_params(params, alternate=None, settings=None):
@@ -472,7 +473,7 @@ def main(global_config, **settings):
     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(get_host, '_host', reify=True)
     config.add_request_method(get_host, 'home', reify=True)
-    config.add_request_method(get_urls, 'route_urls', reify=True)
+    # config.add_request_method(get_urls, 'route_urls', reify=True)
     config.add_request_method(google_signin_client_id,
                               'google_signin_client_id', reify=True)
     config.add_request_method(google_signin_client_ids,
