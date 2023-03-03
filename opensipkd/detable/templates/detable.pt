@@ -74,7 +74,6 @@
       }
       for (let co in ${tableid}Columns) {
         if (${tableid}Columns[co].checkbox === true) {
-        if (${tableid}Columns[co].checkbox === true) {
             ${tableid}Columns[co].className = "text-center";
             ${tableid}Columns[co].width = "30pt";
             ${tableid}Columns[co].render = function (val) {
@@ -115,6 +114,7 @@
 
           }
       }
+      
       let ${tableid}Language = {
         "search": "Cari: ",
         "paginate": {
