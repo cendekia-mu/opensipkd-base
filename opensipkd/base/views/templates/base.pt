@@ -6,31 +6,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
   <meta name="author" content="">
-  <link rel="shortcut icon" href="${home}static/img/favicon.png">
+  <link rel="shortcut icon" href="${home}/static/img/favicon.png">
   <title tal:content="request.title" />
 
   <!-- SmartAdmin Styles : Caution! DO NOT change the order -->
-  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-production-plugins.min.css">
-  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-production.min.css">
-  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/smartadmin-skins.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/smartadmin-production-plugins.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/smartadmin-production.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/smartadmin-skins.min.css">
 
   <!-- Bootstrap core CSS -->
-  <link href="${home}static/v3/css/bootstrap.min.css" rel="stylesheet">
+  <link href="${home}/static/v3/css/bootstrap.min.css" rel="stylesheet">
 
   <!-- Font Awesome -->
-  <link rel="stylesheet" type="text/css" media="screen" href="${home}static/v3/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/font-awesome.min.css">
 
   <!-- Jquery CSS -->
-  <link href="${home}static/v3/plugin/jqueryui/themes/base/jquery-ui.min.css" rel="stylesheet">
+  <link href="${home}/static/v3/plugin/jqueryui/themes/base/jquery-ui.min.css" rel="stylesheet">
   <!-- DataTables -->
-  <link href="${home}static/v3/plugin/datatables/1.10/media/css/dataTables.bootstrap.css" rel="stylesheet">
+  <link href="${home}/static/v3/plugin/datatables/1.10/media/css/dataTables.bootstrap.css" rel="stylesheet">
 
-  <link href="${home}deform_static/css/form.css" rel="stylesheet">
-  <link href="${home}deform_static/css/typeahead.css" rel="stylesheet">
-  <link href="${home}static/css/theme.css" rel="stylesheet">
-  <link href="${home}static/css/navbar-fixed-top.css" rel="stylesheet">
+  <link href="${home}/deform_static/css/form.css" rel="stylesheet">
+  <link href="${home}/deform_static/css/typeahead.css" rel="stylesheet">
+  <link href="${home}/static/css/theme.css" rel="stylesheet">
+  <link href="${home}/static/css/navbar-fixed-top.css" rel="stylesheet">
   <!-- Home CSS -->
-  <link href="${home}static/css/custom.css" rel="stylesheet" type="text/css">
+  <link href="${home}/static/css/custom.css" rel="stylesheet" type="text/css">
   <metal:css define-slot="css_files"></metal:css>
   <style>
     #content {
@@ -58,12 +58,12 @@
 
       <!-- <div class="navbar-collapse collapse" tal.condition="not request.user"> -->
         <!-- <ul class="nav navbar-nav"> -->
-          <!-- <li><a href="${home}eis/sipkd" class="navbar-brand txt-color-white"><strong>${request.company}</strong></a></li> -->
+          <!-- <li><a href="${home}/eis/sipkd" class="navbar-brand txt-color-white"><strong>${request.company}</strong></a></li> -->
         <!-- </ul> -->
 
         <!-- <ul class="nav navbar-nav navbar-right" style="margin-right:0px;"> -->
           <!-- <li class="dropdown"> -->
-            <!-- <a href="${home}login" class="button txt-color-white"><i class="fa fa-user"></i> Masuk</a> -->
+            <!-- <a href="${home}/login" class="button txt-color-white"><i class="fa fa-user"></i> Masuk</a> -->
           <!-- </li> -->
         <!-- </ul> -->
       <!-- </div> -->
@@ -81,21 +81,21 @@
             <a href="#" class="dropdown-toggle txt-color-white" data-toggle="dropdown">Admin <b class="caret"></b></a>
             <ul class="dropdown-menu">
                 <li tal:condition="has_permission(request, ['user-view', 'user-edit'])">
-                    <a href="${home}user">User</a>
+                    <a href="${home}/user">User</a>
                 </li>
               <li tal:condition="has_permission(request, ['user-view', 'user-edit'])">
-                  <a href="${home}group">Group</a>
+                  <a href="${home}/group">Group</a>
               </li>
-              <li tal:condition="has_permission(request, 'routes')"><a href="${home}routes">Routes</a></li>
-              <li tal:condition="has_permission(request, 'upload-logo')"><a href="${home}upload/logo">Upload Logo</a></li>
+              <li tal:condition="has_permission(request, 'routes')"><a href="${home}/routes">Routes</a></li>
+              <li tal:condition="has_permission(request, 'upload-logo')"><a href="${home}/upload/logo">Upload Logo</a></li>
               <li tal:condition="has_permission(request, 'parameter')">
-                  <a href="${home}parameter">Parameter</a></li>
+                  <a href="${home}/parameter">Parameter</a></li>
               <li tal:condition="has_permission(request, 'departemen')">
-                  <a href="${home}departemen">Departemen</a></li>
+                  <a href="${home}/departemen">Departemen</a></li>
               <li tal:condition="has_permission(request, 'partner')">
-                  <a href="${home}partner">Partner</a></li>
+                  <a href="${home}/partner">Partner</a></li>
               <li tal:condition="has_permission(request, 'parameter')">
-                   <a href="${home}parameter">Parameter</a></li>
+                   <a href="${home}/parameter">Parameter</a></li>
             </ul>
           </li>
 
@@ -104,15 +104,15 @@
               ['/password', '/recreate-api-key'] and 'active'">
             <a href="#" class="dropdown-toggle txt-color-white" data-toggle="dropdown">My Account <b class="caret"></b></a>
             <ul class="dropdown-menu">
-              <li><a style="text-transform:capitalize" href="${home}logout">${request.user.nice_username()} Logout</a></li>
-              <li><a style="text-transform:capitalize" href="${home}profile">Profile</a></li>
-              <li><a style="text-transform:capitalize" href="${home}password">Ubah password</a></li>
+              <li><a style="text-transform:capitalize" href="${home}/logout">${request.user.nice_username()} Logout</a></li>
+              <li><a style="text-transform:capitalize" href="${home}/profile">Profile</a></li>
+              <li><a style="text-transform:capitalize" href="${home}/password">Ubah password</a></li>
               <li tal:condition="request.user.api_key">
-                  <a style="text-transform:capitalize" href="${home}recreate-api-key">
+                  <a style="text-transform:capitalize" href="${home}/recreate-api-key">
                       API Key
                   </a>
               </li>
-              <li tal:condition="'core' in request.modules and change_unit(request)"><a style="text-transform:capitalize" href="${home}departemen/chg">Ubah Organisasi</a></li>
+              <li tal:condition="'core' in request.modules and change_unit(request)"><a style="text-transform:capitalize" href="${home}/departemen/chg">Ubah Organisasi</a></li>
             </ul>
           </li>
         </ul>
@@ -140,20 +140,20 @@
     <!-- Bootstrap core JavaScript
       ================================================== -->
       <!-- Placed at the end of the document so the pages load faster -->
-      <script type="text/javascript" src="${home}static/v3/js/jquery-2.1.1.min.js"></script>
-      <script type="text/javascript" src="${home}static/v3/js/jquery-ui-1.10.3.min.js"></script>
+      <script type="text/javascript" src="${home}/static/v3/js/jquery-2.1.1.min.js"></script>
+      <script type="text/javascript" src="${home}/static/v3/js/jquery-ui-1.10.3.min.js"></script>
       <script type="text/javascript">
         // Change JQueryUI plugin names to fix name collision with Bootstrap.
         $.widget.bridge('uitooltip', $.ui.tooltip);
         $.widget.bridge('uibutton', $.ui.button);
       </script>
-      <script type="text/javascript" src="${home}static/v3/js/bootstrap/bootstrap.min.js"></script>
-      <script type="text/javascript" src="${home}static/v3/plugin/datatables/1.10/media/js/jquery.dataTables.min.js"></script>
-      <script type="text/javascript" src="${home}static/v3/plugin/datatables/1.10/media/js/dataTables.bootstrap.js"></script>
-      <script type="text/javascript" src="${home}static/v3/plugin/datatables/1.10/media/js/jquery.dataTables.ext.js"></script>
-      <script type="text/javascript" src="${home}deform_static/scripts/deform.js"></script>
-      <script type="text/javascript" src="${home}deform_static/scripts/typeahead.min.js"></script>
-      <script type="text/javascript" src="${home}static/js/tools.js"></script>
+      <script type="text/javascript" src="${home}/static/v3/js/bootstrap/bootstrap.min.js"></script>
+      <script type="text/javascript" src="${home}/static/v3/plugin/datatables/1.10/media/js/jquery.dataTables.min.js"></script>
+      <script type="text/javascript" src="${home}/static/v3/plugin/datatables/1.10/media/js/dataTables.bootstrap.js"></script>
+      <script type="text/javascript" src="${home}/static/v3/plugin/datatables/1.10/media/js/jquery.dataTables.ext.js"></script>
+      <script type="text/javascript" src="${home}/deform_static/scripts/deform.js"></script>
+      <script type="text/javascript" src="${home}/deform_static/scripts/typeahead.min.js"></script>
+      <script type="text/javascript" src="${home}/static/js/tools.js"></script>
       <metal:js define-slot="js_files"></metal:js>
 
       <script metal:define-slot="scripts"></script>
