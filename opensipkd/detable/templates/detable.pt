@@ -81,7 +81,8 @@
               return render_checkbox(true);
             } else return render_checkbox(false);
           }
-        } else if (${tableid}Columns[co].hasOwnProperty("url")) {
+        }
+      else if (${tableid}Columns[co].hasOwnProperty("url")) {
           let url = ${tableid}Columns[co].url;
           ${tableid}Columns[co].render = function (data) {
             let result = "No Data"
@@ -90,7 +91,8 @@
             }
             return result;
           }
-        } else if (${tableid}Columns[co].data === "id" && ${tableid}Columns[co].action === true) {
+        }
+      else if (${tableid}Columns[co].data === "id" && ${tableid}Columns[co].action === true) {
           ${tableid}Columns[co].render = function (id) {
             let result = ""
             if (${allow_view}) {
@@ -111,7 +113,7 @@
           //columns[1].order = "order_asc";
 
         }
-      }
+
       let ${tableid}Language = {
         "search": "Cari: ",
         "paginate": {
@@ -145,7 +147,8 @@
       }
       if (!${server_side}) {
         ${tableid}Params.data = ${data};
-      } else {
+      }
+      else {
         ${tableid}Params.ajax = o${tableid}Url;
       }
       o${tableid} = $('#${tableid}').DataTable(${tableid}Params);
