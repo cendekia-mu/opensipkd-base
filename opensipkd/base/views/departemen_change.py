@@ -118,4 +118,4 @@ def save_request(request, values, row=None):
 
 
 def route_list(request):
-    return HTTPFound(location=request.route_urls('home'))
+    return HTTPFound(location=request.route_url('home'))

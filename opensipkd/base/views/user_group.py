@@ -160,7 +160,7 @@ def save_request(values, request, row=None):
 
 
 def route_list(request):
-    return HTTPFound(location=request.route_urls('user-group'))
+    return HTTPFound(location=request.route_url('user-group'))
 
 
 def session_failed(request, session_name):
@@ -186,7 +186,7 @@ def view_add(request):
                 c = form.validate(controls)
             except ValidationFailure as e:
                 request.session[SESS_ADD_FAILED] = e.render()
-                return HTTPFound(location=request.route_urls('user-group-add'))
+                return HTTPFound(location=request.route_url('user-group-add'))
             save_request(controls_dicted, request)
         return route_list(request)
     elif SESS_ADD_FAILED in request.session:
@@ -225,7 +225,7 @@ def view_edit(request):
                 c = form.validate(controls)
             except ValidationFailure as e:
                 request.session[SESS_EDIT_FAILED] = e.render()
-                return HTTPFound(location=request.route_urls('user-group-edit',
+                return HTTPFound(location=request.route_url('user-group-edit',
                                                             id=row.id))
             save_request(dict(controls), request, row)
         return route_list(request)

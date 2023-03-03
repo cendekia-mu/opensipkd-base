@@ -247,7 +247,7 @@
 #
 #
 # def route_list(request):
-#     return HTTPFound(location=request.route_urls('departemen-user'))
+#     return HTTPFound(location=request.route_url('departemen-user'))
 #
 #
 # def query_id(request):

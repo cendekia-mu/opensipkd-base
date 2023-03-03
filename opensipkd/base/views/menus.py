@@ -75,14 +75,14 @@ class AddSchema(colander.Schema):
         #     missing=colander.drop,
         #     widget=AutocompleteInputWidget(
         #         size=60, min_length=3,
-        #         values=f"{request.route_urls('menu')}/hon/act"),
+        #         values=f"{request.route_url('menu')}/hon/act"),
         #     oid="parent_nm",
         #     title="Induk", )
         # self["parent_nm"].widget = widget.AutocompleteInputWidget(
         #     size=60, min_length=3,
         #     requirements=(("typeahead", None), ("deform", None),
         #                   {"js": "opensipkd.base:static/js/form/menu.js"}),
-        #     values=f"{request.route_urls('menu')}/hon/act")
+        #     values=f"{request.route_url('menu')}/hon/act")
         # if request.user.company_id:
         #     self["company_id"].widget = widget.HiddenWidget()
         # self["company_id"].default = request.user.company_id

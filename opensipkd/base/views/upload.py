@@ -18,7 +18,7 @@ from pyramid.view import view_config
 # from unggah import DbUpload
 def route_list(request, p={}):
     q = dict_to_str(p)
-    return HTTPFound(location=request.route_urls('upload-logo', _query=q))
+    return HTTPFound(location=request.route_url('upload-logo', _query=q))
 
 
 ##########

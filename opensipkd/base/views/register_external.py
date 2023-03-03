@@ -246,7 +246,7 @@
 #
 #
 # def route_list(request):
-#     return HTTPFound(location=request.route_urls('home'))
+#     return HTTPFound(location=request.route_url('home'))
 #
 #
 # def reg_buttons():
@@ -260,12 +260,12 @@
 #     def view_add(self):
 #         request = self.req
 #         if 'id_info' not in request.session:
-#             return HTTPFound(location=request.route_urls("login"))
+#             return HTTPFound(location=request.route_url("login"))
 #
 #         if request.user:
 #             partner = Partner.query_email(request.user.email).first()
 #             if partner:
-#                 return HTTPFound(location=request.route_urls("profile-external",
+#                 return HTTPFound(location=request.route_url("profile-external",
 #                                                             id=partner.id))
 #
 #         id_info = request.session['id_info']
@@ -301,7 +301,7 @@
 #                 request.session.flash('Registrasi Sukses.')
 #                 if 'captcha' in request.session:
 #                     del(request.session['captcha'])
-#                 return HTTPFound(location=request.route_urls('home'), headers=headers)
+#                 return HTTPFound(location=request.route_url('home'), headers=headers)
 #
 #         values = dict()
 #         values['primari'] = dict(
@@ -328,7 +328,7 @@
 #         query = query_id(request)
 #         row = query.first()
 #         if not row:
-#             return HTTPFound(location=request.route_urls("register-external"))
+#             return HTTPFound(location=request.route_url("register-external"))
 #
 #         form = get_form(request, RegEditSchema)
 #         if request.POST:
