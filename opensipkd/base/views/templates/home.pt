@@ -40,7 +40,7 @@
                 <div class="col-sm-12 padding-thin">
                     <div class="box appname">
                         <div class="col-sm-3 padding-medium" align="center">
-                            <img src="${home}${logo}" alt="">
+                            <img src="${home}/${logo}" alt="">
                         </div>
                         <div class="col-sm-9 padding-high">
                             <span class="about-appname">${request.app_name}</span><br>
@@ -53,14 +53,14 @@
                 <div class="col-sm-12 no-padding" align="center">
                     <div tal:repeat="modul modules" class="col-sm-3 col-xs-6 module padding-thin">
                         <a tal:condition="modul.find('://')<0"
-                           href="${home}${modul}" icon="${modul.replace('/','_')}" class="box">
-                            <img alt="" class="icon-modul" src="${home}static/icon/${modul.replace('/','_')}.png">
+                           href="${home}/${modul}" icon="${modul.replace('/','_')}" class="box">
+                            <img alt="" class="icon-modul" src="${home}/static/icon/${modul.replace('/','_')}.png">
                             <span>${modules[modul]}</span>
                         </a>
                         <a tal:condition="modul.find('://')>-1" target="_blank"
                            href="${modul}" class="box">
                             <img alt="" class="icon-modul"
-                                 src="${home}static/icon/${modul.replace('://','').replace('https','').replace('http','')}.png">
+                                 src="${home}/static/icon/${modul.replace('://','').replace('https','').replace('http','')}.png">
                             <span>${modules[modul]}</span>
                         </a>
                     </div>
@@ -74,21 +74,21 @@
     <div class="modal-content">
       <div class="modal-body">
         <h1>ABOUT <span class="bold">OPENSIPKD</span></h1>
-        <img src="${home}static/img/slide-home-3.jpg" alt="">
+        <img src="${home}/static/img/slide-home-3.jpg" alt="">
         Kami adalah perusahaan yang bergerak di bidang perancangan dan pembuatan aplikasi keuangan yang telah digunakan oleh Pemerintah Daerah.<br>
         Aplikasi ini dibangun dengan menggunakan platform Open Source yang terdiri dari :
         <div class="clearfix" style="margin-top:20px"></div>
         <div class="col-sm-6">
-            <img class="powered" src="${home}static/img/python.png" alt=""> <a href="https://www.python.org/">Python</a><br>
-            <img class="powered" src="${home}static/img/pyramid.png" alt=""> <a href="http://pylonsproject.org/">Pyramid</a><br>
+            <img class="powered" src="${home}/static/img/python.png" alt=""> <a href="https://www.python.org/">Python</a><br>
+            <img class="powered" src="${home}/static/img/pyramid.png" alt=""> <a href="http://pylonsproject.org/">Pyramid</a><br>
             <a href="https://pypi.python.org/pypi/ziggurat-foundations">Ziggurat Foundations</a><br>
             <a href="http://docs.pylonsproject.org/projects/pyramid-chameleon/en/latest/">Chameleon</a><br>
             <a href="http://docs.pylonsproject.org/projects/deform/">Deform</a>
         </div>
         <div class="col-sm-6">
-            <img class="powered" src="${home}static/img/bootstrap.png" alt=""> <a href="http://getbootstrap.com">Bootstrap</a><br>
-            <img class="powered" src="${home}static/img/smartadmin.png" alt=""> <a href="https://github.com/kalichaudhary/SmartAdmin">Smart Admin</a><br>
-            <img class="powered" src="${home}static/img/postgree.png" alt=""> <a href="http://postgresql.org">Postgres SQL</a>
+            <img class="powered" src="${home}/static/img/bootstrap.png" alt=""> <a href="http://getbootstrap.com">Bootstrap</a><br>
+            <img class="powered" src="${home}/static/img/smartadmin.png" alt=""> <a href="https://github.com/kalichaudhary/SmartAdmin">Smart Admin</a><br>
+            <img class="powered" src="${home}/static/img/postgree.png" alt=""> <a href="http://postgresql.org">Postgres SQL</a>
         </div>
         <div class="clearfix"></div>
       </div>
@@ -101,11 +101,11 @@ $( ".module a" ).each(function() {
     var modul = $(this);
     var modulenm = modul.attr('icon');
     $.ajax({
-        url:'${home}static/icon/'+ modulenm+'.png',
+        url:'${home}/static/icon/'+ modulenm+'.png',
         type:'HEAD',
         error: function()
         {
-          modul.find('img.icon-modul').attr('src','${home}static/icon/default.png');
+          modul.find('img.icon-modul').attr('src','${home}/static/icon/default.png');
         },
     });
 });
