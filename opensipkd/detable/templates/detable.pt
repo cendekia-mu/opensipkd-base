@@ -72,48 +72,49 @@
 
         return '<input type="checkbox" checked="'+{value}+'"></input>';
       }
-
-      if (${tableid}Columns[co].checkbox === true) {
-          ${tableid}Columns[co].className = "text-center";
-          ${tableid}Columns[co].width = "30pt";
-          ${tableid}Columns[co].render = function (val) {
-            if (["", false, 0].indexOf(val) === -1) {
-              return render_checkbox(true);
-            } else return render_checkbox(false);
+      for (let co in ${tableid}Columns) {
+        if (${tableid}Columns[co].checkbox === true) {
+        if (${tableid}Columns[co].checkbox === true) {
+            ${tableid}Columns[co].className = "text-center";
+            ${tableid}Columns[co].width = "30pt";
+            ${tableid}Columns[co].render = function (val) {
+              if (["", false, 0].indexOf(val) === -1) {
+                return render_checkbox(true);
+              } else return render_checkbox(false);
+            }
           }
-        }
-      else if (${tableid}Columns[co].hasOwnProperty("url")) {
-          let url = ${tableid}Columns[co].url;
-          ${tableid}Columns[co].render = function (data) {
-            let result = "No Data"
-            if (data != null) {
-              result = '<a href="' + url + data + '" target="_blank">Link</a>&nbsp;';
+        else if (${tableid}Columns[co].hasOwnProperty("url")) {
+            let url = ${tableid}Columns[co].url;
+            ${tableid}Columns[co].render = function (data) {
+              let result = "No Data"
+              if (data != null) {
+                result = '<a href="' + url + data + '" target="_blank">Link</a>&nbsp;';
+              }
+              return result;
             }
-            return result;
           }
-        }
-      else if (${tableid}Columns[co].data === "id" && ${tableid}Columns[co].action === true) {
-          ${tableid}Columns[co].render = function (id) {
-            let result = ""
-            if (${allow_view}) {
-              result = '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true"></i></a>&nbsp;';
+        else if (${tableid}Columns[co].data === "id" && ${tableid}Columns[co].action === true) {
+            ${tableid}Columns[co].render = function (id) {
+              let result = ""
+              if (${allow_view}) {
+                result = '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true"></i></a>&nbsp;';
+              }
+              if (${allow_edit}) {
+                result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true"></i></a>&nbsp;'
+              }
+              if (${allow_delete}) {
+                result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true"></i></a>';
+              }
+              return result;
             }
-            if (${allow_edit}) {
-              result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true"></i></a>&nbsp;'
-            }
-            if (${allow_delete}) {
-              result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true"></i></a>';
-            }
-            return result;
+            ${tableid}Columns[co].width = "30pt";
+            ${tableid}Columns[co].orderable = false;
+            ${tableid}Columns[co].className = "text-center";
+            ${tableid}Columns[co].visible = true;
+            //columns[1].order = "order_asc";
+
           }
-          ${tableid}Columns[co].width = "30pt";
-          ${tableid}Columns[co].orderable = false;
-          ${tableid}Columns[co].className = "text-center";
-          ${tableid}Columns[co].visible = true;
-          //columns[1].order = "order_asc";
-
-        }
-
+      }
       let ${tableid}Language = {
         "search": "Cari: ",
         "paginate": {
