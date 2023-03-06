@@ -387,8 +387,9 @@ def get_urls(url):
         urls = url.split(":")
         homes = home.split(":")
         if urls[0] != homes[0]:
-            return ":".join([homes[0], urls[1:]])
+            return ":".join([homes[0], ":".join(urls[1:])])
     return url
+
 
 def get_host(request):
     host = get_params('_host', "")

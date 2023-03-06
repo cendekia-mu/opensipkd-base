@@ -12,7 +12,6 @@ from pyramid.httpexceptions import HTTPFound
 
 from .common import DataTables
 from .. import DBSession, get_params, get_urls
-from
 from opensipkd.tools import dmy, date_from_str, get_settings, get_ext, \
     date_from_str
 import colander
