@@ -8,12 +8,13 @@ from dateutil.relativedelta import relativedelta
 from opensipkd.base.views.upload import tmpstore
 
 from opensipkd.tools.captcha import get_captcha
-from pyramid.httpexceptions import HTTPFound
+from opensipkd.tools.report import csv_response
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
 from .common import DataTables
 from .. import DBSession, get_params, get_urls
 from opensipkd.tools import dmy, date_from_str, get_settings, get_ext, \
-    date_from_str
+    date_from_str, get_random_string
 import colander
 from deform import (widget, Form, ValidationFailure, Button, FileData, )
 from email.utils import parseaddr
@@ -185,7 +186,7 @@ class BaseView(object):
         if "bindings" in kwargs and kwargs["bindings"]:
             bindings = kwargs["bindings"]
         else:
-            bindings = self.get_bindings()
+            bindings = self.get_bindings(row)
         form_params = {}
         # form_params["after_bind"] = after_bind
         if "validator" in kwargs and kwargs["validator"]:
@@ -332,7 +333,19 @@ class BaseView(object):
         return
 
     def next_act(self):
-        raise NotImplementedError
+        url_dict = self.req.matchdict
+        if url_dict['act'] == 'csv':
+            query = self.table.query_register()
+            row = query.first()
+            header = row.keys()
+            rows = [list(item) for item in query.all()]
+            filename = f"{get_random_string(16)}.csv"
+            value = {
+                'header': header,
+                'rows': rows,
+            }
+            return csv_response(self.req, value, filename)
+        raise HTTPNotFound
 
     def list_join(self, query):
         return query
@@ -484,14 +497,14 @@ class BaseView(object):
     def before_edit(self, form):
         return form
 
-    def view_edit(self):
+    def view_edit(self, **kwargs):
         request = self.req
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
         if not self.bindings:
             self.bindings = self.get_bindings(row)
-        form = self.get_form(self.edit_schema)
+        form = self.get_form(self.edit_schema, **kwargs)
         table = self.get_item_table(row)
         resources = form.get_widget_resources()
         if request.POST:

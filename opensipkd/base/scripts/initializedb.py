@@ -135,7 +135,7 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
 # penambahan parameter db_sesion apabila caller mempunyai db_sesion yang berbeda
 # modified by tatang 12-02-2019
 # alasan: bila terjadi kesalahan append,
-# masih memungkinkan update yg sudah ada dgn syarat is value dari keys masih sama 
+# masih memungkinkan update yg sudah ada dgn syarat is value dari keys masih sama
 # sperti salah route url asalkan kode msh sama
 def append_csv(table, filename, keys, get_file_func=get_file,
                db_session=DBSession, update_exist=False):
