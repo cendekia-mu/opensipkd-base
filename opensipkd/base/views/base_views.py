@@ -185,6 +185,8 @@ class BaseView(object):
         buttons = self.buttons and self.buttons or buttons
         if "bindings" in kwargs and kwargs["bindings"]:
             bindings = kwargs["bindings"]
+        elif self.bindings:
+            bindings = self.bindings
         else:
             bindings = self.get_bindings(row)
         form_params = {}
