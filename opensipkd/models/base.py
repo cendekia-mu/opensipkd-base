@@ -106,6 +106,11 @@ class DefaultModel(CommonModel):
     def delete(cls, row_id, db_session=DBSession):
         cls.query_id(row_id, db_session).delete()
 
+    @classmethod
+    def flush(cls, row, db_session=DBSession):
+        db_session.add(row)
+        db_session.flush()
+    
 
 class StandarModel(DefaultModel):
     status = Column(SmallInteger, nullable=False, default=0)
