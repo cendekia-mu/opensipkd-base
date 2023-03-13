@@ -15,14 +15,14 @@ Biasanya pada home directory::
     $ ~/env/bin/pip install --upgrade pip setuptools
     $ ~/env/bin/pip install wheel
 
-##Instalasi
+## Instalasi
 
-###Production:
+### Production:
 
     $ ~/env/bin/pip install git+https://git.opensipkd.com/aa.gusti/base.git@latest
     $ cp ~/env/etc/live_opensipkd.tpl  ~/env/etc/live_opensipkd.ini 
 
-###Install Development::
+### Install Development::
     $ source ~/env/bin/activate 
     $ mkdir apps
     $ cd apps
@@ -30,11 +30,11 @@ Biasanya pada home directory::
     $ env/bin/pip install -e base[dev]
     $ cp ~/env/etc/test_opensipkd.tpl  ~/env/etc/test_opensipkd.ini 
 
-##Sesuaikan konfigurasi 
+## Sesuaikan konfigurasi 
 Konfigurasi tergantung pada jenis instalasi ``test_opensipkd.ini`` atau 
 ``live_opensipkd.ini``pada baris berikut ini::
 
-###Database Koneksi:
+### Database Koneksi:
     [app:main]
     sqlalchemy.url = postgresql://user:password@localhost:5432/db
     session.url = postgresql://user:password@localhost:5432/db
@@ -48,7 +48,7 @@ Konfigurasi tergantung pada jenis instalasi ``test_opensipkd.ini`` atau
     sqlalchemy.url = postgresql://user:password@localhost:5432/db
     script_location = opensipkd.base:alembic
 
-###Login/Register:
+### Login/Register:
     [app:main]
     captcha_files=
     # static folder untuk image captcha
@@ -65,7 +65,7 @@ Konfigurasi tergantung pada jenis instalasi ``test_opensipkd.ini`` atau
     # diisi nama template login apabila akan menggunakan template yang berbeda
 
 
-###Handling Log File:
+### Handling Log File:
 
 Logging dapat dilakukan console, file atau tabel
 
@@ -100,7 +100,7 @@ Logging dapat dilakukan console, file atau tabel
 	sqlalchemy.url = postgresql://user:password@localhost:5432/db
 	script_location = alembic
     ```
-###Google Integrated dan Custom Register Form
+### Google Integrated dan Custom Register Form
 Aplikasi sudah bisa terintegrsi dengan google oauth2
 
 Konfigurasi merupakan bagian dari "main"
@@ -112,7 +112,7 @@ Konfigurasi merupakan bagian dari "main"
 ```
 
 
-##Buat tabelnya::
+## Buat tabelnya::
     
 Perintah untuk membuat tabel
 

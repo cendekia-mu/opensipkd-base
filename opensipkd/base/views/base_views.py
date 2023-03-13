@@ -32,7 +32,6 @@ from ...detable import DeTable
 log = logging.getLogger(__name__)
 
 
-
 class UploadSchema(colander.Schema):
     upload = colander.SchemaNode(
         FileData(),
@@ -82,7 +81,7 @@ class BaseView(object):
         if 'posted' in self.params and self.params['posted']:
             posted = self.params['posted']
             self.posted = ((posted == 'true' or posted == '1') and 1) or (
-                    (posted == 'false' or posted == '0') and 0) or 0
+                (posted == 'false' or posted == '0') and 0) or 0
         self.ses['posted'] = self.posted
 
         self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
@@ -165,14 +164,18 @@ class BaseView(object):
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
 
-    def route_list(self, msg=None, error=""):
+    def route_list(self, msg=None, error="", **kwargs):
         if msg:
             self.ses.flash(msg, error)
+        list_url = kwargs.get("list_url", None)
+        if not list_url:
+            list_url = self.req.route_url(self.list_route)
+
         if self.headers:
-            return HTTPFound(location=get_urls(self.req.route_url(self.list_route)),
+            return HTTPFound(location=get_urls(list_url),
                              headers=self.headers)
         else:
-            return HTTPFound(location=get_urls(self.req.route_url(self.list_route)))
+            return HTTPFound(location=get_urls(list_url))
 
     def form_validator(self, form, value):
         pass
@@ -220,8 +223,11 @@ class BaseView(object):
             allow_delete = kwargs.get("allow_delete", True)
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
+            list_url = kwargs.get("list_url", None)
+            if not list_url:
+                list_url = self.req.route_url(self.list_route)
             table = DeTable(schema,
-                            action=get_urls(self.req.route_url(self.list_route)),
+                            action=list_url,
                             action_suffix="/grid/act",
                             buttons=self.list_buttons,
                             request=self.req,
@@ -258,7 +264,7 @@ class BaseView(object):
             result = self.next_view(form, row=row)
             if result:
                 return result
-            return self.route_list()
+            return self.after_view(row=row)
 
         values = self.get_values(row)
         if not values:
@@ -328,11 +334,17 @@ class BaseView(object):
     def validation_failure(self, value):
         return value
 
-    def cancel_act(self):
-        return self.route_list()
+    def cancel_act(self, **kwargs):
+        return self.route_list(**kwargs)
 
-    def after_add(self, row, values):
-        return
+    def after_add(self, **kwargs):
+        return self.route_list(**kwargs)
+
+    def after_edit(self,  **kwargs):
+        return self.route_list(**kwargs)
+
+    def after_view(self, **kwargs):
+        return self.route_list(**kwargs)
 
     def next_act(self):
         url_dict = self.req.matchdict
@@ -347,6 +359,9 @@ class BaseView(object):
                 'rows': rows,
             }
             return csv_response(self.req, value, filename)
+        elif url_dict['act'] == 'pdf':
+            pass
+
         raise HTTPNotFound
 
     def list_join(self, query):
@@ -363,8 +378,8 @@ class BaseView(object):
                 columns = []
                 for d in self.list_schema():
                     global_search = hasattr(d, "searchable") and \
-                                    hasattr(d, "searchable") == False and False \
-                                    or True
+                        hasattr(d, "searchable") == False and False \
+                        or True
                     if hasattr(d, "field"):
                         if type(d.field) == str:
                             columns.append(
@@ -433,13 +448,13 @@ class BaseView(object):
                                 js=resources["js"])
                 values = dict(c)
                 row = self.save_request(values)
-                self.after_add(row, values)
+                return self.after_add(row=row, **kwargs)
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
             else:
                 return self.next_add(form, table=table, resources=resources)
 
-            return self.route_list()
+            return self.route_list(**kwargs)
         values = self.before_add()
         form.set_appstruct(values)
         return dict(form=form.render(), table=table and table.render() or None,
@@ -478,11 +493,11 @@ class BaseView(object):
                     values[k] = v
         return self.save(values, self.req.user, row)
 
-    def id_not_found(self):
+    def id_not_found(self, **kwargs):
         msg = f"Data yang dicari Tidak Ditemukan ID:" \
               f" {self.req.matchdict['id']}."
         self.req.session.flash(msg, 'error')
-        return self.route_list()
+        return self.route_list(**kwargs)
 
     def get_values(self, row, istime=False):
         d = row.to_dict()
@@ -503,7 +518,7 @@ class BaseView(object):
         request = self.req
         row = self.query_id().first()
         if not row:
-            return self.id_not_found()
+            return self.id_not_found(**kwargs)
         if not self.bindings:
             self.bindings = self.get_bindings(row)
         form = self.get_form(self.edit_schema, **kwargs)
@@ -530,6 +545,7 @@ class BaseView(object):
                                 js=resources["js"])
                 c = dict(controls)
                 self.save_request(c, row)
+                return self.after_edit(row=row, **kwargs)
             else:
                 return self.next_edit(form, row=row)
 
@@ -623,7 +639,7 @@ def user_name_validator(node, value):
 def need_captcha():
     is_captcha = get_params("reg_captcha")
     return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" \
-           or is_captcha == True
+        or is_captcha == True
 
 
 def need_verify():

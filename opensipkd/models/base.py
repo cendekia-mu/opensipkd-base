@@ -99,6 +99,13 @@ class DefaultModel(CommonModel):
         return query
 
     @classmethod
+    def query_from(cls, db_session=DBSession, columns=None, filters=None):
+        query = db_session.query().select_from(cls)
+        for c in columns:
+            query = query.add_columns(c.sqla_expr)
+        return query
+    
+    @classmethod
     def query_id(cls, row_id, db_session=DBSession):
         return cls.query(db_session).filter_by(id=row_id)
 
