@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 from opensipkd.base.views.upload import tmpstore
 
 from opensipkd.tools.captcha import get_captcha
-from opensipkd.tools.report import csv_response
+from opensipkd.tools.report import csv_response, pdf_response
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
 from .common import DataTables
@@ -81,7 +81,7 @@ class BaseView(object):
         if 'posted' in self.params and self.params['posted']:
             posted = self.params['posted']
             self.posted = ((posted == 'true' or posted == '1') and 1) or (
-                (posted == 'false' or posted == '0') and 0) or 0
+                    (posted == 'false' or posted == '0') and 0) or 0
         self.ses['posted'] = self.posted
 
         self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
@@ -160,6 +160,8 @@ class BaseView(object):
         self.autocomplete = 'on'
         self.action_suffix = "/grid/act"
         self.upload_keys = ["kode"]
+        self.pdf_rpt = ""
+        self.query_register=""
 
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
@@ -340,7 +342,7 @@ class BaseView(object):
     def after_add(self, **kwargs):
         return self.route_list(**kwargs)
 
-    def after_edit(self,  **kwargs):
+    def after_edit(self, **kwargs):
         return self.route_list(**kwargs)
 
     def after_view(self, **kwargs):
@@ -348,21 +350,25 @@ class BaseView(object):
 
     def next_act(self):
         url_dict = self.req.matchdict
-        if url_dict['act'] == 'csv':
-            query = self.table.query_register()
-            row = query.first()
-            header = row.keys()
-            rows = [list(item) for item in query.all()]
-            filename = f"{get_random_string(16)}.csv"
-            value = {
-                'header': header,
-                'rows': rows,
-            }
-            return csv_response(self.req, value, filename)
-        elif url_dict['act'] == 'pdf':
-            pass
 
         raise HTTPNotFound
+
+    def pdf_response(self):
+        from opensipkd.base.tools.report import jasper_export
+        filename = jasper_export(self.pdf_rpt)
+        return pdf_response(self.req, filename=filename[0])
+
+    def csv_response(self):
+        query = self.table.query_register()
+        row = query.first()
+        header = row.keys()
+        rows = [list(item) for item in query.all()]
+        filename = f"{get_random_string(16)}.csv"
+        value = {
+            'header': header,
+            'rows': rows,
+        }
+        return csv_response(self.req, value, filename)
 
     def list_join(self, query):
         return query
@@ -378,8 +384,8 @@ class BaseView(object):
                 columns = []
                 for d in self.list_schema():
                     global_search = hasattr(d, "searchable") and \
-                        hasattr(d, "searchable") == False and False \
-                        or True
+                                    hasattr(d, "searchable") == False and False \
+                                    or True
                     if hasattr(d, "field"):
                         if type(d.field) == str:
                             columns.append(
@@ -411,6 +417,13 @@ class BaseView(object):
             #             link = "/".join([self.home, nik_url, v])
             #             d[k] =f'<a href="{link}" target="_blank">View</a>'
             return result
+
+        elif url_dict['act'] == 'csv':
+            return self.csv_response()
+
+        elif url_dict['act'] == 'pdf':
+            return self.pdf_response()
+
         else:
             return self.next_act()
 
@@ -639,7 +652,7 @@ def user_name_validator(node, value):
 def need_captcha():
     is_captcha = get_params("reg_captcha")
     return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" \
-        or is_captcha == True
+           or is_captcha == True
 
 
 def need_verify():
