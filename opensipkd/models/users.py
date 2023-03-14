@@ -67,7 +67,7 @@ class UserResourcePermission(UserResourcePermissionMixin, Base):
     pass
 
 
-class User(UserMixin, BaseModel, CommonModel, Base):
+class User(UserMixin, BaseModel, DefaultModel, Base):
     last_login_date = Column(DateTime(timezone=True), nullable=True)
     registered_date = Column(DateTime(timezone=True),
                              nullable=False,
@@ -129,6 +129,11 @@ class User(UserMixin, BaseModel, CommonModel, Base):
     def get_by_token(cls, token):
         return DBSession.query(cls).filter_by(security_code=token)
 
+    @classmethod
+    def query_register(cls):
+        return cls.query_from(columns=[cls.email, cls.user_name, cls.registered_date,
+                                       cls.last_login_date])
+
 
     # @classmethod
     # def get_departemen_id(cls, user_id):
@@ -170,6 +175,9 @@ class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
     @classmethod
     def query_user(cls, user):
         return cls.query().filter_by(local_user_id=user.id)
+
+    @classmethod
+
 
     @classmethod
     def external(cls, user):
