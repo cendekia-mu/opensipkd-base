@@ -77,7 +77,7 @@ def jasper_export(input_file, output_file=None, schema=None,
         parameters={'python_version': python_version()},
         locale='en_US'
     )
-    pyreportjasper.compile(write_jasper=True)
+    # pyreportjasper.compile(write_jasper=True)
     pyreportjasper.process_report()
     output_files = [".".join([output_file, f]) for f in output_formats]
     log.info(output_files)
