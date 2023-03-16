@@ -148,7 +148,7 @@ def add_global(event):
     event['allow_register'] = allow_register
     event['change_unit'] = change_unit
     event['get_params'] = get_params
-    # event['route_urls'] = get_urls
+    event['get_urls'] = get_urls
 
 
 def get_params(params, alternate=None, settings=None):
