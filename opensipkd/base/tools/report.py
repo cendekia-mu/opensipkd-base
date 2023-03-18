@@ -68,13 +68,13 @@ def jasper_export(input_file, output_file=None, schema=None,
     # log.info(output_file)
     # log.info(conn)
     # log.info(output_formats)
-
+    parameters.update({'python_version': python_version()})
     pyreportjasper.config(
         input_file,
         output_file,
         db_connection=conn,
         output_formats=output_formats,
-        parameters={'python_version': python_version()},
+        parameters=parameters,
         locale='en_US'
     )
     # pyreportjasper.compile(write_jasper=True)

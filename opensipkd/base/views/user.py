@@ -50,7 +50,7 @@ class Views(BaseView):
         path = os.path.dirname(__file__)
         path = os.path.dirname(path)
 
-        self.pdf_rpt = os.path.join(path, 'reports', 'users.jrxml')
+        self.report_file = os.path.join(path, 'reports', 'users.jrxml')
 
     def get_bindings(self, row=None):
         status_list = (
@@ -351,7 +351,7 @@ class AddSchema(colander.Schema):
 
 class EditSchema(AddSchema):
     status = colander.SchemaNode(
-        colander.String(), widget=status_widget, title=_('Status'))
+        colander.String(), widget=widget.CheckboxWidget(true_val="1", false_val="0"), title=_('Status'))
 
 
 def get_group_list():

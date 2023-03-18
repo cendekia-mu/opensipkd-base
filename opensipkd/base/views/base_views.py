@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 from opensipkd.base.views.upload import tmpstore
 
 from opensipkd.tools.captcha import get_captcha
-from opensipkd.tools.report import csv_response, pdf_response
+from opensipkd.tools.report import csv_response, file_response
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
 from .common import DataTables
@@ -160,7 +160,7 @@ class BaseView(object):
         self.autocomplete = 'on'
         self.action_suffix = "/grid/act"
         self.upload_keys = ["kode"]
-        self.pdf_rpt = ""
+        self.report_file = ""
         self.query_register=""
 
     def delete_msg(self, row):
@@ -353,10 +353,10 @@ class BaseView(object):
 
         raise HTTPNotFound
 
-    def pdf_response(self):
+    def jasper_response(self, **kwargs):
         from opensipkd.base.tools.report import jasper_export
-        filename = jasper_export(self.pdf_rpt)
-        return pdf_response(self.req, filename=filename[0])
+        filename = jasper_export(self.report_file)
+        return file_response(self.req, filename=filename[0])
 
     def csv_response(self):
         query = self.table.query_register()
@@ -422,7 +422,7 @@ class BaseView(object):
             return self.csv_response()
 
         elif url_dict['act'] == 'pdf':
-            return self.pdf_response()
+            return self.jasper_response()
 
         else:
             return self.next_act()
@@ -435,8 +435,6 @@ class BaseView(object):
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
-                log.debug(self.req.POST.items())
-                log.debug(dict(self.req.POST.items()))
                 try:
                     c = form.validate(controls)
                 except ValidationFailure as e:
