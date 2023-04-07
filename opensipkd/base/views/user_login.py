@@ -432,7 +432,9 @@ def reset_password_validator(form, value):
 
 def security_code_age(user):
     now = create_now()
-    return now - user.security_code_date
+    if user.security_code_date:
+        return now - user.security_code_date
+    return timedelta(minutes=1)
 
 
 def send_email_security_code(

@@ -223,6 +223,7 @@ class BaseView(object):
         if self.list_schema:
             allow_edit = kwargs.get("allow_edit", True)
             allow_delete = kwargs.get("allow_delete", True)
+            state_save = kwargs.get("state_save", False)
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
             list_url = kwargs.get("list_url", None)
@@ -234,7 +235,8 @@ class BaseView(object):
                             buttons=self.list_buttons,
                             request=self.req,
                             allow_edit=allow_edit,
-                            allow_delete=allow_delete)
+                            allow_delete=allow_delete,
+                            state_save=state_save)
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")
             return dict(form=table.render(), scripts="", css=resources["css"],
@@ -537,18 +539,18 @@ class BaseView(object):
         resources = form.get_widget_resources()
         if request.POST:
             if 'save' in request.POST:
-                log.debug("Save Edit")
-                log.debug(dict(request.POST.items()))
-                log.debug(request.POST)
+                # log.debug("Save Edit")
+                # log.debug(dict(request.POST.items()))
+                # log.debug(request.POST)
                 controls = request.POST.items()
-                log.debug(controls)
+                # log.debug(controls)
                 # log.debug(dict(controls))
                 # log.debug(list(controls))
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
-                    log.debug(f"Edit Error: {str(e.error)}")
-                    log.debug(f"Edit Data: {e.cstruct}")
+                    # log.debug(f"Edit Error: {str(e.error)}")
+                    # log.debug(f"Edit Data: {e.cstruct}")
                     form.set_appstruct(e.cstruct)
                     return dict(form=form.render(),
                                 table=table and table.render() or None,
@@ -557,10 +559,9 @@ class BaseView(object):
                 c = dict(controls)
                 self.save_request(c, row)
                 return self.after_edit(row=row, **kwargs)
-            else:
-                return self.next_edit(form, row=row)
+            
+            return self.next_edit(form, row=row)
 
-            return self.route_list()
         values = self.get_values(row)
         form.set_appstruct(values)
         form = self.before_edit(form)

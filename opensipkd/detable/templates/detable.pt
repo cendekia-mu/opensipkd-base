@@ -19,6 +19,7 @@
     allow_edit allow_edit|field.allow_edit;
     allow_delete allow_delete|field.allow_delete;
     allow_view allow_view|field.allow_view;
+    state_save state_save|field.state_save;
     "
      tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};"
      i18n:domain="detable"
@@ -129,7 +130,7 @@
         dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
         processing: true,
         serverSide: ${server_side},
-        stateSave: false,
+        stateSave: ${state_save},
         scrollCollapse: true,
         sort: ${sorts},
         info: false,

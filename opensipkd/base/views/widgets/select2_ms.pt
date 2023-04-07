@@ -80,10 +80,7 @@
                 url: "${url}" + value,
                 success: function (res) {
                   if (res) {
-                    console.log(res);
                     $.each(res, function (key, value) {
-                      console.log(key);
-                      console.log(value);
                       $("#${slave}").append('<option value="' + key + '">' + value + '</option>');
                     });
                   } else {

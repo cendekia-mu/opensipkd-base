@@ -107,9 +107,9 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
     def kode(self):
         pass
 
-    @classmethod
-    def query(cls):
-        return DBSession.query(cls)
+    # @classmethod
+    # def query(cls):
+    #     return DBSession.query(cls)
 
     @classmethod
     def get_by_email(cls, email):

@@ -477,7 +477,7 @@ div.col-md-6 {
     padding: 7px !important;
 
   }
-  .form-horizontal .checkbox, .form-horizontal .radio {
+  .form-horizontal .checkbox, .form-horizontal .radio,  .form-horizontal .radio-inline{
     padding: 0px;
   }
 
@@ -515,7 +515,7 @@ div.col-md-6 {
   }
 
 
-.checkbox label, .radio label {
+.checkbox label, .radio label, .radio-inline  {
 	font-size: 10px !important;
 }
 

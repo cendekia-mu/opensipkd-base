@@ -424,7 +424,8 @@ def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
 
-    engine = engine_from_config(settings, 'sqlalchemy.')
+    engine = engine_from_config(
+        settings, 'sqlalchemy.', client_encoding='utf8', convert_unicode=True)
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     Base.metadata.bind = engine
