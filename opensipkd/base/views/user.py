@@ -391,3 +391,33 @@ def query_register():
                                         "DD-MM-YYYY").label(
                                "registered_date")).order_by(
         User.user_name)
+
+
+def user_list():
+    qry = User.query().order_by(User.user_name)
+    return [(r.id, r.user_name) for r in qry]
+
+
+def user_select():
+    result = user_list()
+    result.insert(0, ('', 'Pilih User'))
+    return result
+
+
+@colander.deferred
+def user_widget(node, kw):
+    values = kw.get('user_list', [])
+    request = kw.get("request")
+    return widget.SelectWidget(values=values,
+                                     placeholder="Pilih User",
+                                     style="width:300px;")
+
+
+class UserFilterSchema(colander.Schema):
+    user_id = colander.SchemaNode(
+        colander.Integer(),
+        widget=user_widget,
+        oid="user_id",
+        title="User",
+        missing=colander.drop,
+    )

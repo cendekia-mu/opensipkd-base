@@ -70,7 +70,8 @@ class BaseView(object):
             self.bulan = self.params['bulan'].strip().zfill(2)
             dt_awal = date_from_str(
                 '{d}-{m}-{y}'.format(y=self.tahun, m=self.bulan, d='01'))
-            dt_akhir = dt_awal + relativedelta(months=1) - relativedelta(days=1)
+            dt_akhir = dt_awal + \
+                relativedelta(months=1) - relativedelta(days=1)
 
             self.ses['awal'] = dmy(dt_awal)
             self.ses['akhir'] = dmy(dt_akhir)
@@ -81,7 +82,7 @@ class BaseView(object):
         if 'posted' in self.params and self.params['posted']:
             posted = self.params['posted']
             self.posted = ((posted == 'true' or posted == '1') and 1) or (
-                    (posted == 'false' or posted == '0') and 0) or 0
+                (posted == 'false' or posted == '0') and 0) or 0
         self.ses['posted'] = self.posted
 
         self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
@@ -161,7 +162,7 @@ class BaseView(object):
         self.action_suffix = "/grid/act"
         self.upload_keys = ["kode"]
         self.report_file = ""
-        self.query_register=""
+        self.query_register = ""
 
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
@@ -385,9 +386,11 @@ class BaseView(object):
             if not self.columns:
                 columns = []
                 for d in self.list_schema():
-                    global_search = hasattr(d, "searchable") and \
-                                    hasattr(d, "searchable") == False and False \
-                                    or True
+                    global_search = True
+                    if hasattr(d, "searchable"):
+                        if d.searchable == False:
+                            global_search = False
+
                     if hasattr(d, "field"):
                         if type(d.field) == str:
                             columns.append(
@@ -395,10 +398,14 @@ class BaseView(object):
                                          mData=d.name,
                                          global_search=global_search))
                         else:
-                            columns.append(ColumnDT(d.field, mData=d.name))
+                            columns.append(
+                                ColumnDT(d.field, mData=d.name,
+                                         global_search=global_search
+                                         ))
                     else:
                         columns.append(
-                            ColumnDT(getattr(self.table, d.name), mData=d.name))
+                            ColumnDT(getattr(self.table, d.name), mData=d.name,
+                                     global_search=global_search))
                     if hasattr(d, "url"):
                         url.append(d.name)
             else:
@@ -448,7 +455,8 @@ class BaseView(object):
                     # efield = e.field
                     for f in e.field.children:
                         if isinstance(f.typ, colander.Date):
-                            e.cstruct[f.name] = date_from_str(e.cstruct[f.name])
+                            e.cstruct[f.name] = date_from_str(
+                                e.cstruct[f.name])
 
                     # for k, v in e.cstruct.items():
                     #     log.debug(hasattr(e.field, k))
@@ -543,7 +551,7 @@ class BaseView(object):
                 # log.debug(dict(request.POST.items()))
                 # log.debug(request.POST)
                 controls = request.POST.items()
-                # log.debug(controls)
+                log.debug(controls)
                 # log.debug(dict(controls))
                 # log.debug(list(controls))
                 try:
@@ -559,7 +567,7 @@ class BaseView(object):
                 c = dict(controls)
                 self.save_request(c, row)
                 return self.after_edit(row=row, **kwargs)
-            
+
             return self.next_edit(form, row=row)
 
         values = self.get_values(row)
@@ -651,7 +659,7 @@ def user_name_validator(node, value):
 def need_captcha():
     is_captcha = get_params("reg_captcha")
     return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" \
-           or is_captcha == True
+        or is_captcha == True
 
 
 def need_verify():
