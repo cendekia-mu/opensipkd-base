@@ -7,7 +7,8 @@ from deform.widget import Widget, _StrippedString, Select2Widget, default_resour
 from deform.form import Button
 from iso8601.iso8601 import ISO8601_REGEX
 from deform.i18n import _
-from  colander import compat
+from colander import compat
+from deform import widget
 _logging = logging.getLogger(__name__)
 
 
@@ -381,7 +382,7 @@ class MapWidget(Widget):
                     {
                         "js": "opensipkd.base:static/js/gmap.js",
                         "css": "deform:static/select2/select2.css",
-                    },)
+    },)
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -691,16 +692,14 @@ class BootStrapDateTimeInputWidget(Widget):
                 raise Invalid(field.schema, _("Incomplete time"), result)
 
             return result
-from deform import widget
 
-class MoneyInputWidget(widget.MoneyInputWidget):
-    requirements = ({"js":"opensipkd.base:static/jquery/jquery.maskMoney.min.js"},)
-    
+
 class TextInputWidget(widget.TextInputWidget):
     template = "textinput_btn"
-    button=None
+    button = None
+
     def __init__(self, **kw):
         super(TextInputWidget, self).__init__(**kw)
-    
+
         if isinstance(self.button, compat.string_types):
-                self.button = Button(self.button, type="button")
+            self.button = Button(self.button, type="button")
