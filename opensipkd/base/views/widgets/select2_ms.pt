@@ -1,100 +1,100 @@
 <div tal:define="
-     name name|field.name;
-     style field.widget.style;
-     oid oid|field.oid;
-     css_class css_class|field.widget.css_class;
-     unicode unicode|str;
-     optgroup_class optgroup_class|field.widget.optgroup_class;
-     multiple multiple|field.widget.multiple;
-     url url|field.widget.url;
-     slave slave|field.widget.slave;"
+    name name|field.name;
+    style field.widget.style;
+    oid oid|field.oid;
+    css_class css_class|field.widget.css_class;
+    unicode unicode|str;
+    optgroup_class optgroup_class|field.widget.optgroup_class;
+    multiple multiple|field.widget.multiple;
+    url url|field.widget.url;
+    slave slave|field.widget.slave;"
      tal:omit-tag="">
 
-   <style>
+  <style>
 
-     .select2-selection.form-control {
-       padding: 0px 0px;
-     }
+    .select2-selection.form-control {
+      padding: 0px 0px;
+    }
 
-     .select2-container--default .select2-selection--multiple,
-     .select2-container--default .select2-selection--single {
-       border: 1px solid #ccc;
-     }
+    .select2-container--default .select2-selection--multiple,
+    .select2-container--default .select2-selection--single {
+      border: 1px solid #ccc;
+    }
 
-   </style>
+  </style>
   <input type="hidden" name="__start__" value="${name}:sequence"
-         tal:condition="multiple" />
+       tal:condition="multiple" />
 
   <select tal:attributes="
-          name name;
-          id oid;
-          class string: form-control ${css_class or ''};
-          data-placeholder field.widget.placeholder|None;
-          multiple multiple;
-          style style;
-          attributes|field.widget.attributes|{};">
+      name name;
+      id oid;
+      class string: form-control ${css_class or ''};
+      data-placeholder field.widget.placeholder|None;
+      multiple multiple;
+      style style;
+      attributes|field.widget.attributes|{};">
     <tal:loop tal:repeat="item values">
       <optgroup tal:condition="isinstance(item, optgroup_class)"
-                tal:attributes="label item.label">
+           tal:attributes="label item.label">
         <option tal:repeat="(value, description) item.options"
-                tal:attributes="
+             tal:attributes="
                 selected python:field.widget.get_select_value(cstruct, value);
                 class css_class;
-                label field.widget.long_label_generator and description;
-                value value"
-                tal:content="field.widget.long_label_generator and field.widget.long_label_generator(item.label, description) or description"/>
+            label field.widget.long_label_generator and description;
+            value value"
+             tal:content="field.widget.long_label_generator and field.widget.long_label_generator(item.label, description) or description"/>
       </optgroup>
       <option tal:condition="not isinstance(item, optgroup_class)"
-              tal:attributes="
-              selected python:field.widget.get_select_value(cstruct, item[0]);
-              class css_class;
-              value item[0]">${item[1]}</option>
+           tal:attributes="
+          selected python:field.widget.get_select_value(cstruct, item[0]);
+          class css_class;
+          value item[0]">${item[1]}</option>
     </tal:loop>
   </select>
 
   <script type="text/javascript">
-   deform.addCallback(
-     '${field.oid}',
-     function(oid) {
-       $('#' + oid).select2({
-         containerCssClass: 'form-control',
-         placeholder: "${str(field.widget.placeholder).replace('"','\\"')|""}" || undefined,
-         allowClear: "${hasattr(field.widget, 'placeholder')}",
-         tags: ${str(getattr(field.widget, 'tags', 'undefined')).lower()}
-       });
-      }
-   );
-  </script>
-  <script type="text/javascript" tal:condition="url and slave">
-   deform.addCallback(
-    '${field.oid}',
-    function(oid) {
-      $('#' + oid).change(function () {
-        $("#${slave}").val("");
-        $("#${slave}").empty();
-        $("#${slave}").append('<option value="" selected disabled>Pilih Data...</option>');
-        let value = $(this).val();
-        if (value) {
-          $.ajax({
-            type: "GET",
-            url: "${url}" + value,
-            success: function (res) {
-              if (res) {
-                $.each(res, function (key, value) {
-                  $("#${slave}").append('<option value="' + key + '">' + value + '</option>');
-                });
-              } else {
-                $("#${slave}").empty();
-              }
-            }
+    deform.addCallback(
+        '${field.oid}',
+        function (oid) {
+          $('#' + oid).select2({
+            containerCssClass: 'form-control',
+            placeholder: "${str(field.widget.placeholder).replace('"','\\"')|""}" || undefined,
+            allowClear: "${hasattr(field.widget, 'placeholder')}",
+            tags: ${str(getattr(field.widget, 'tags', 'undefined')).lower()}
           });
         }
-        $("#${slave}").change();
-      });
-    });
+    );
+  </script>
+  <script type="text/javascript" tal:condition="url and slave">
+    deform.addCallback(
+        '${field.oid}',
+        function (oid) {
+          $('#' + oid).change(function () {
+            $("#${slave}").val("");
+            $("#${slave}").empty();
+            $("#${slave}").append('<option value="" selected disabled>Pilih Data...</option>');
+            let value = $(this).val();
+            if (value) {
+              $.ajax({
+                type: "GET",
+                url: "${url}" + value,
+                success: function (res) {
+                  if (res) {
+                    $.each(res, function (key, value) {
+                      $("#${slave}").append('<option value="' + key + '">' + value + '</option>');
+                    });
+                  } else {
+                    $("#${slave}").empty();
+                  }
+                }
+              });
+            }
+            $("#${slave}").change();
+          });
+        });
   </script>
 
   <input type="hidden" name="__end__" value="${name}:sequence"
-         tal:condition="multiple" />
+       tal:condition="multiple" />
 </div>
 

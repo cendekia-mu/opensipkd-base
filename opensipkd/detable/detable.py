@@ -109,6 +109,7 @@ class DeTable(field.Field):
             paginates='true',
             params="",
             server_side='true',
+            state_save=True,
             data=[],
             allow_edit=True,
             allow_delete=True,
@@ -246,6 +247,7 @@ class DeTable(field.Field):
         self.sorts = sorts
         self.paginates = paginates
         self.filters = filters
+        self.state_save = json.dumps(state_save)
 
 
 class Button(object):

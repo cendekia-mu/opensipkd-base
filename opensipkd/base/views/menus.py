@@ -7,7 +7,7 @@ from pyramid.view import (view_config, )
 from sqlalchemy.orm import aliased
 
 from ..views import ColumnDT, DataTables, BaseView
-
+from .. import get_urls
 _ = TranslationStringFactory("opensipkd")
 
 SESS_ADD_FAILED = 'Tambah menu gagal'

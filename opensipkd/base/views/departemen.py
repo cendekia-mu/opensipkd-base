@@ -13,7 +13,7 @@ from sqlalchemy.orm import aliased
 from .company import company_widget
 from .upload import AddSchema as UploadSchema
 from opensipkd.models import DBSession, Departemen, Partner, PartnerDepartemen
-from ..views import ColumnDT, DataTables, BaseView
+from ..views import ColumnDT, DataTables, BaseView, get_urls
 
 SESS_ADD_FAILED = 'Tambah departemen gagal'
 SESS_EDIT_FAILED = 'Edit departemen gagal'
@@ -87,7 +87,7 @@ class AddSchema(colander.Schema):
             size=60, min_length=3,
             requirements=(("typeahead", None), ("deform", None),
                           {"js": "opensipkd.base:static/js/form/departemen.js"}),
-            values=f"{request.route_url('departemen')}/hon/act")
+            values=get_urls(f"{request.route_url('departemen')}/hon/act"))
         if request.user.company_id:
             self["company_id"].widget = widget.HiddenWidget()
         self["company_id"].default = request.user.company_id

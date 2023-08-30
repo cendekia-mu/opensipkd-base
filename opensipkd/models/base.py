@@ -99,6 +99,13 @@ class DefaultModel(CommonModel):
         return query
 
     @classmethod
+    def query_from(cls, db_session=DBSession, columns=None, filters=None):
+        query = db_session.query().select_from(cls)
+        for c in columns:
+            query = query.add_columns(c)
+        return query
+    
+    @classmethod
     def query_id(cls, row_id, db_session=DBSession):
         return cls.query(db_session).filter_by(id=row_id)
 
@@ -106,6 +113,11 @@ class DefaultModel(CommonModel):
     def delete(cls, row_id, db_session=DBSession):
         cls.query_id(row_id, db_session).delete()
 
+    @classmethod
+    def flush(cls, row, db_session=DBSession):
+        db_session.add(row)
+        db_session.flush()
+    
 
 class StandarModel(DefaultModel):
     status = Column(SmallInteger, nullable=False, default=0)

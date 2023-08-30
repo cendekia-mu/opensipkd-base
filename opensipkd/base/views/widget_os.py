@@ -1,9 +1,14 @@
 import json
 import logging
 
-from colander import SchemaNode, null, Mapping, Invalid, text_, string_types
-from deform.widget import Widget, _StrippedString, Select2Widget
-
+from colander import SchemaNode, null, Mapping, Invalid, string_types
+from deform.widget import Widget, _StrippedString, Select2Widget, default_resources, \
+    ResourceRegistry, default_resource_registry
+from deform.form import Button
+from iso8601.iso8601 import ISO8601_REGEX
+from deform.i18n import _
+from colander import compat
+from deform import widget
 _logging = logging.getLogger(__name__)
 
 
@@ -46,7 +51,7 @@ class DokumenWidget(Widget):
             try:
                 validated = self._pstruct_schema.deserialize(pstruct)
             except Invalid as exc:
-                raise Invalid(field.schema, text_("Invalid pstruct: %s" % exc))
+                raise Invalid(field.schema, f"Invalid pstruct: {exc}")
             jenis = validated["jenis"]
             year = validated["year"]
             bundle = validated["bundle"]
@@ -101,7 +106,7 @@ class FormulirWidget(Widget):
             try:
                 validated = self._pstruct_schema.deserialize(pstruct)
             except Invalid as exc:
-                raise Invalid(field.schema, text_("Invalid pstruct: %s" % exc))
+                raise Invalid(field.schema, f"Invalid pstruct: {exc}")
             year = validated["year"]
             bundle = validated["bundle"]
             seq = validated["seq"]
@@ -154,7 +159,7 @@ class BlokKavNoWidget(Widget):
             try:
                 validated = self._pstruct_schema.deserialize(pstruct)
             except Invalid as exc:
-                raise Invalid(field.schema, text_("Invalid pstruct: %s" % exc))
+                raise Invalid(field.schema, f"Invalid pstruct: {exc}")
             blok_kav_no = validated["blok_kav_no"]
             rt = validated["rt"]
             rw = validated["rw"]
@@ -187,6 +192,8 @@ class Select2MsWidget(Select2Widget):
 
     """
 
+    url = ""
+    slave = ""
     template = "select2_ms.pt"
 
 
@@ -221,7 +228,7 @@ class QtyWidget(Widget):
             try:
                 validated = self._pstruct_schema.deserialize(pstruct)
             except Invalid as exc:
-                raise Invalid(field.schema, text_("Invalid pstruct: %s" % exc))
+                raise Invalid(field.schema, f"Invalid pstruct: {exc}")
             qty = validated["qty"]
             measure = validated["measure"]
 
@@ -375,7 +382,7 @@ class MapWidget(Widget):
                     {
                         "js": "opensipkd.base:static/js/gmap.js",
                         "css": "deform:static/select2/select2.css",
-                    },)
+    },)
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -493,3 +500,206 @@ class LeafMapWidget(Widget):
         if not pstruct:
             return null
         return pstruct
+
+
+class BootStrapDateInputWidget(Widget):
+    """
+    Renders a date picker widget.
+
+    The default rendering is as a native HTML5 date input widget,
+    falling back to pickadate (https://github.com/amsul/pickadate.js.)
+
+    Most useful when the schema node is a ``colander.Date`` object.
+
+    **Attributes/Arguments**
+
+    options
+        Dictionary of options for configuring the widget (eg: date format)
+
+    template
+        The template name used to render the widget.  Default:
+        ``dateinput``.
+
+    readonly_template
+        The template name used to render the widget in read-only mode.
+        Default: ``readonly/textinput``.
+    """
+    template = "bootstrapdateinput"
+    readonly_template = "readonly/textinput"
+    type_name = "text"
+    req_path = "opensipkd.base:static/v3/js/plugin"
+    requirements = (
+        ('deform', None),
+        {
+            "js": (
+                f"{req_path}/bootstrap-datepicker/js/bootstrap-datepicker.min.js",
+                f"{req_path}/bootstrap-timepicker/bootstrap-timepicker.min.js",
+                f"{req_path}/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js",
+            ),
+            "css": (
+                f"{req_path}/bootstrap-datepicker/css/bootstrap-datepicker.min.css",
+                # f"{req_path}/bootstrap-timepicker/css/bootstrap-timepicker.min.css",
+                f"{req_path}/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css",
+            ),
+        }
+    )
+    default_options = (
+        ("format", "yyyy-mm-dd"),
+    )
+    # ("selectMonths", True),
+    # ("selectYears", True),
+    options = None
+
+    _pstruct_schema = SchemaNode(
+        Mapping(),
+        SchemaNode(_StrippedString(), name="date"),
+        SchemaNode(_StrippedString(), name="date_submit", missing=""),
+    )
+
+    def serialize(self, field, cstruct, **kw):
+        if cstruct in (null, None):
+            cstruct = ""
+        readonly = kw.get("readonly", self.readonly)
+        template = readonly and self.readonly_template or self.template
+        options = dict(
+            kw.get("options") or self.options or self.default_options
+        )
+        options["formatSubmit"] = "yyyy-mm-dd"
+        kw.setdefault("options_json", json.dumps(options))
+        values = self.get_template_values(field, cstruct, kw)
+        return field.renderer(template, **values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct in ("", null):
+            return null
+        try:
+            validated = self._pstruct_schema.deserialize(pstruct)
+        except Invalid as exc:
+            raise Invalid(field.schema, "Invalid pstruct: %s" % exc)
+        return validated["date_submit"] or validated["date"]
+
+
+class BootStrapDateTimeInputWidget(Widget):
+    """
+    Renders a datetime picker widget.
+
+    The default rendering is as a pair of inputs (a date and a time) using
+    pickadate.js (https://github.com/amsul/pickadate.js).
+
+    Used for ``colander.DateTime`` schema nodes.
+
+    **Attributes/Arguments**
+
+    date_options
+        A dictionary of date options passed to pickadate.
+
+    time_options
+        A dictionary of time options passed to pickadate.
+
+    template
+        The template name used to render the widget.  Default:
+        ``dateinput``.
+
+    readonly_template
+        The template name used to render the widget in read-only mode.
+        Default: ``readonly/textinput``.
+    """
+
+    template = "datetimeinput"
+    readonly_template = "readonly/datetimeinput"
+    type_name = "datetime"
+    requirements = (("modernizr", None), ("pickadate", None))
+    default_date_options = (
+        ("format", "yyyy-mm-dd"),
+        ("selectMonths", True),
+        ("selectYears", True),
+    )
+    date_options = None
+    default_time_options = (("format", "h:i A"), ("interval", 30))
+    time_options = None
+
+    _pstruct_schema = SchemaNode(
+        Mapping(),
+        SchemaNode(_StrippedString(), name="date"),
+        SchemaNode(_StrippedString(), name="time"),
+        SchemaNode(_StrippedString(), name="date_submit", missing=""),
+        SchemaNode(_StrippedString(), name="time_submit", missing=""),
+    )
+
+    def serialize(self, field, cstruct, **kw):
+        if cstruct in (null, None):
+            cstruct = ""
+        readonly = kw.get("readonly", self.readonly)
+        if cstruct:
+            parsed = ISO8601_REGEX.match(cstruct)
+            if parsed:  # strip timezone if it's there
+                timezone = parsed.groupdict()["timezone"]
+                if timezone and cstruct.endswith(timezone):
+                    cstruct = cstruct[: -len(timezone)]
+
+        try:
+            date, time = cstruct.split("T", 1)
+            try:
+                # get rid of milliseconds
+                time, _ = time.split(".", 1)
+            except ValueError:
+                pass
+            kw["date"], kw["time"] = date, time
+        except ValueError:  # need more than one item to unpack
+            kw["date"] = kw["time"] = ""
+
+        date_options = dict(
+            kw.get("date_options")
+            or self.date_options
+            or self.default_date_options
+        )
+        date_options["formatSubmit"] = "yyyy-mm-dd"
+        kw["date_options_json"] = json.dumps(date_options)
+
+        time_options = dict(
+            kw.get("time_options")
+            or self.time_options
+            or self.default_time_options
+        )
+        time_options["formatSubmit"] = "HH:i"
+        kw["time_options_json"] = json.dumps(time_options)
+
+        values = self.get_template_values(field, cstruct, kw)
+        template = readonly and self.readonly_template or self.template
+        return field.renderer(template, **values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct is null:
+            return null
+        else:
+            try:
+                validated = self._pstruct_schema.deserialize(pstruct)
+            except Invalid as exc:
+                raise Invalid(field.schema, "Invalid pstruct: %s" % exc)
+            # seriously pickadate?  oh.  right.  i forgot.  you're javascript.
+            date = validated["date_submit"] or validated["date"]
+            time = validated["time_submit"] or validated["time"]
+
+            if not time and not date:
+                return null
+
+            result = "T".join([date, time])
+
+            if not date:
+                raise Invalid(field.schema, _("Incomplete date"), result)
+
+            if not time:
+                raise Invalid(field.schema, _("Incomplete time"), result)
+
+            return result
+
+
+class TextInputWidget(widget.TextInputWidget):
+    template = "textinput_btn"
+    button = None
+
+    def __init__(self, **kw):
+        super(TextInputWidget, self).__init__(**kw)
+
+        if isinstance(self.button, compat.string_types):
+            self.button = Button(self.button, type="button")

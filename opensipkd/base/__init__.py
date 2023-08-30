@@ -40,7 +40,7 @@ from opensipkd.tools import (
 
 from deform import ZPTRendererFactory, Form
 from pkg_resources import resource_filename
-
+from deform.widget import default_resource_registry
 import os
 
 from opensipkd.models.handlers import LogDBSession
@@ -148,6 +148,7 @@ def add_global(event):
     event['allow_register'] = allow_register
     event['change_unit'] = change_unit
     event['get_params'] = get_params
+    event['get_urls'] = get_urls
 
 
 def get_params(params, alternate=None, settings=None):
@@ -380,15 +381,18 @@ def json_rpc():
 #         if user is not None:
 #             return user.id
 
+def get_urls(url):
+    home = get_params('_host', "")
+    if home:
+        urls = url.split(":")
+        homes = home.split(":")
+        if urls[0] != homes[0]:
+            return ":".join([homes[0], ":".join(urls[1:])])
+    return url
+
 
 def get_host(request):
     host = get_params('_host', "")
-    # if not host:
-    #     host = request.route_url('home')[:-1]
-    #     proto = 'HTTP_X_FORWARDED_PROTO' in request.environ \
-    #             and request.environ['HTTP_X_FORWARDED_PROTO'] \
-    #             or "http"
-    #     host = f"{proto}://{request.host}"
     return host and host or get_home(request)
 
 
@@ -419,8 +423,11 @@ partner_idcard_url = 'partner/idcard'
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+    default_resource_registry.registry['jquery.maskMoney'] = {
+        None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
 
-    engine = engine_from_config(settings, 'sqlalchemy.')
+    engine = engine_from_config(
+        settings, 'sqlalchemy.', client_encoding='utf8', convert_unicode=True)
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     Base.metadata.bind = engine
@@ -467,7 +474,8 @@ def main(global_config, **settings):
     config.add_request_method(thousand, 'thousand', reify=True)
     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(get_host, '_host', reify=True)
-    config.add_request_method(get_home, 'home', reify=True)
+    config.add_request_method(get_host, 'home', reify=True)
+    # config.add_request_method(get_urls, 'route_urls', reify=True)
     config.add_request_method(google_signin_client_id,
                               'google_signin_client_id', reify=True)
     config.add_request_method(google_signin_client_ids,

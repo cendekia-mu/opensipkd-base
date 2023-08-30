@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="users" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="cc1a9dab-bb8a-4181-94ac-73c3dc91137c">
+	<property name="ireport.zoom" value="1.3310000000000004"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="New Data Adapter"/>
+	<queryString>
+		<![CDATA[SELECT * FROM users]]>
+	</queryString>
+	<field name="userid" class="java.lang.String"/>
+	<field name="nama" class="java.lang.String"/>
+	<field name="created" class="java.sql.Timestamp"/>
+	<field name="disabled" class="java.lang.Integer"/>
+	<field name="passwd" class="java.lang.String"/>
+	<field name="id" class="java.lang.Integer"/>
+	<field name="kd_kantor" class="java.lang.String"/>
+	<field name="kd_kanwil" class="java.lang.String"/>
+	<field name="kd_tp" class="java.lang.String"/>
+	<field name="kd_kanwil_bank" class="java.lang.String"/>
+	<field name="kd_kppbb_bank" class="java.lang.String"/>
+	<field name="kd_bank_tunggal" class="java.lang.String"/>
+	<field name="kd_bank_persepsi" class="java.lang.String"/>
+	<field name="nip" class="java.lang.String"/>
+	<field name="jabatan" class="java.lang.String"/>
+	<field name="handphone" class="java.lang.String"/>
+	<field name="token" class="java.lang.String"/>
+	<field name="security_code" class="java.lang.String"/>
+	<field name="last_login_date" class="java.sql.Timestamp"/>
+	<field name="user_name" class="java.lang.String"/>
+	<field name="user_password" class="java.lang.String"/>
+	<field name="email" class="java.lang.String"/>
+	<field name="status" class="java.lang.Integer"/>
+	<field name="registered_date" class="java.sql.Timestamp"/>
+	<field name="security_code_date" class="java.sql.Timestamp"/>
+	<field name="api_key" class="java.lang.String"/>
+	<field name="partner_id" class="java.lang.Integer"/>
+	<field name="company_id" class="java.lang.Integer"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="21" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="35" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="100" height="20" uuid="45c2cace-4a3f-495c-9002-be2f2ac8eca4"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[User Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="0" width="255" height="20" uuid="3a03e8b0-96f7-4754-b00e-ceae1a0e5aa9"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Email]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="355" y="0" width="100" height="20" uuid="f19e05c8-f1bf-4d94-927d-07111ed068df"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Status]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="455" y="0" width="100" height="20" uuid="8a8040c2-e6ba-4473-835f-c9cfe3568fb9"/>
+				<textElement>
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Last Login]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="22" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="100" height="20" uuid="aec5f07a-b9fb-4ce1-9e7e-957f6315acb0"/>
+				<textFieldExpression><![CDATA[$F{user_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="0" width="255" height="20" uuid="04eef3a7-87ca-4a27-9392-1368a6ba2fd1"/>
+				<textFieldExpression><![CDATA[$F{email}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="455" y="0" width="100" height="20" uuid="24a12a8f-a1e1-4ae3-adb7-bbcf450560ee"/>
+				<textFieldExpression><![CDATA[$F{registered_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="355" y="2" width="100" height="20" uuid="47051f05-f634-4c32-97cc-ce9af7b8f382"/>
+				<textFieldExpression><![CDATA[$F{status}.equals( 1 ) ? "Aktif" : ""]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

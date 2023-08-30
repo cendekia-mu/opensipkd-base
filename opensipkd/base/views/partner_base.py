@@ -7,6 +7,7 @@ from opensipkd.base.views.kecamatan import kecamatan_widget
 from opensipkd.base.views.provinsi import provinsi_widget
 
 from opensipkd.tools import mem_tmp_store
+from .. import get_urls
 
 
 class NamaSchema(colander.Schema):
@@ -132,8 +133,7 @@ class PartnerSchema(NamaSchema):
 
     def after_bind(self, schema, kwargs):
         request = kwargs["request"]
-        prefix = request.route_url("home")
-        self["provinsi_id"].slave_url=f"{prefix}/dati2/select/act?provinsi_id="
-        self["dati2_id"].slave_url=f"{prefix}/kecamatan/select/act?dati2_id="
+        prefix = get_urls(request.route_url("home"))
+        self["provinsi_id"].slave_url = f"{prefix}/dati2/select/act?provinsi_id="
+        self["dati2_id"].slave_url = f"{prefix}/kecamatan/select/act?dati2_id="
         self["kecamatan_id"].slave_url = f"{prefix}/desa/select/act?kecamatan_id="
-

@@ -8,12 +8,13 @@ from dateutil.relativedelta import relativedelta
 from opensipkd.base.views.upload import tmpstore
 
 from opensipkd.tools.captcha import get_captcha
-from pyramid.httpexceptions import HTTPFound
+from opensipkd.tools.report import csv_response, file_response
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
 from .common import DataTables
-from .. import DBSession, get_params
+from .. import DBSession, get_params, get_urls
 from opensipkd.tools import dmy, date_from_str, get_settings, get_ext, \
-    date_from_str
+    date_from_str, get_random_string
 import colander
 from deform import (widget, Form, ValidationFailure, Button, FileData, )
 from email.utils import parseaddr
@@ -69,7 +70,8 @@ class BaseView(object):
             self.bulan = self.params['bulan'].strip().zfill(2)
             dt_awal = date_from_str(
                 '{d}-{m}-{y}'.format(y=self.tahun, m=self.bulan, d='01'))
-            dt_akhir = dt_awal + relativedelta(months=1) - relativedelta(days=1)
+            dt_akhir = dt_awal + \
+                relativedelta(months=1) - relativedelta(days=1)
 
             self.ses['awal'] = dmy(dt_awal)
             self.ses['akhir'] = dmy(dt_akhir)
@@ -80,7 +82,7 @@ class BaseView(object):
         if 'posted' in self.params and self.params['posted']:
             posted = self.params['posted']
             self.posted = ((posted == 'true' or posted == '1') and 1) or (
-                    (posted == 'false' or posted == '0') and 0) or 0
+                (posted == 'false' or posted == '0') and 0) or 0
         self.ses['posted'] = self.posted
 
         self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
@@ -152,25 +154,31 @@ class BaseView(object):
         self.add_schema = ""
         self.upload_schema = UploadSchema
         self.table = ""
-        self.home = self.req.route_url('home')[:-1]
+        self.home = self.req._host
         self.buttons = None
         self.headers = None
         self.bindings = {}
         self.autocomplete = 'on'
         self.action_suffix = "/grid/act"
         self.upload_keys = ["kode"]
+        self.report_file = ""
+        self.query_register = ""
 
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
 
-    def route_list(self, msg=None, error=""):
+    def route_list(self, msg=None, error="", **kwargs):
         if msg:
             self.ses.flash(msg, error)
+        list_url = kwargs.get("list_url", None)
+        if not list_url:
+            list_url = self.req.route_url(self.list_route)
+
         if self.headers:
-            return HTTPFound(location=self.req.route_url(self.list_route),
+            return HTTPFound(location=get_urls(list_url),
                              headers=self.headers)
         else:
-            return HTTPFound(location=self.req.route_url(self.list_route))
+            return HTTPFound(location=get_urls(list_url))
 
     def form_validator(self, form, value):
         pass
@@ -183,13 +191,23 @@ class BaseView(object):
         buttons = self.buttons and self.buttons or buttons
         if "bindings" in kwargs and kwargs["bindings"]:
             bindings = kwargs["bindings"]
-        else:
+        elif self.bindings:
             bindings = self.bindings
-
-        if "validator" in kwargs and kwargs["validator"]:
-            schema = class_form(validator=kwargs["validator"])
         else:
-            schema = class_form(validator=self.form_validator)
+            bindings = self.get_bindings(row)
+        form_params = {}
+        # form_params["after_bind"] = after_bind
+        if "validator" in kwargs and kwargs["validator"]:
+            form_params["validator"] = kwargs["validator"]
+            # schema = class_form(validator=kwargs["validator"])
+        else:
+            form_params["validator"] = self.form_validator
+            # schema = class_form(validator=self.form_validator)
+        if "after_bind" in kwargs and kwargs["after_bind"]:
+            form_params["after_bind"] = kwargs["after_bind"]
+            # schema = class_form(validator=kwargs["validator"])
+
+        schema = class_form(**form_params)
 
         schema = schema.bind(request=self.req, **bindings)
         schema.request = self.req
@@ -206,15 +224,20 @@ class BaseView(object):
         if self.list_schema:
             allow_edit = kwargs.get("allow_edit", True)
             allow_delete = kwargs.get("allow_delete", True)
+            state_save = kwargs.get("state_save", False)
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
+            list_url = kwargs.get("list_url", None)
+            if not list_url:
+                list_url = self.req.route_url(self.list_route)
             table = DeTable(schema,
-                            action=self.req.route_url(self.list_route),
+                            action=list_url,
                             action_suffix="/grid/act",
                             buttons=self.list_buttons,
                             request=self.req,
                             allow_edit=allow_edit,
-                            allow_delete=allow_delete)
+                            allow_delete=allow_delete,
+                            state_save=state_save)
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")
             return dict(form=table.render(), scripts="", css=resources["css"],
@@ -246,7 +269,7 @@ class BaseView(object):
             result = self.next_view(form, row=row)
             if result:
                 return result
-            return self.route_list()
+            return self.after_view(row=row)
 
         values = self.get_values(row)
         if not values:
@@ -316,14 +339,39 @@ class BaseView(object):
     def validation_failure(self, value):
         return value
 
-    def cancel_act(self):
-        return self.route_list()
+    def cancel_act(self, **kwargs):
+        return self.route_list(**kwargs)
 
-    def after_add(self, row, values):
-        return
+    def after_add(self, **kwargs):
+        return self.route_list(**kwargs)
+
+    def after_edit(self, **kwargs):
+        return self.route_list(**kwargs)
+
+    def after_view(self, **kwargs):
+        return self.route_list(**kwargs)
 
     def next_act(self):
-        raise NotImplementedError
+        url_dict = self.req.matchdict
+
+        raise HTTPNotFound
+
+    def jasper_response(self, **kwargs):
+        from opensipkd.base.tools.report import jasper_export
+        filename = jasper_export(self.report_file)
+        return file_response(self.req, filename=filename[0])
+
+    def csv_response(self):
+        query = self.table.query_register()
+        row = query.first()
+        header = row.keys()
+        rows = [list(item) for item in query.all()]
+        filename = f"{get_random_string(16)}.csv"
+        value = {
+            'header': header,
+            'rows': rows,
+        }
+        return csv_response(self.req, value, filename)
 
     def list_join(self, query):
         return query
@@ -338,9 +386,11 @@ class BaseView(object):
             if not self.columns:
                 columns = []
                 for d in self.list_schema():
-                    global_search = hasattr(d, "searchable") and \
-                                    hasattr(d, "searchable") == False and False \
-                                    or True
+                    global_search = True
+                    if hasattr(d, "searchable"):
+                        if d.searchable == False:
+                            global_search = False
+
                     if hasattr(d, "field"):
                         if type(d.field) == str:
                             columns.append(
@@ -348,10 +398,14 @@ class BaseView(object):
                                          mData=d.name,
                                          global_search=global_search))
                         else:
-                            columns.append(ColumnDT(d.field, mData=d.name))
+                            columns.append(
+                                ColumnDT(d.field, mData=d.name,
+                                         global_search=global_search
+                                         ))
                     else:
                         columns.append(
-                            ColumnDT(getattr(self.table, d.name), mData=d.name))
+                            ColumnDT(getattr(self.table, d.name), mData=d.name,
+                                     global_search=global_search))
                     if hasattr(d, "url"):
                         url.append(d.name)
             else:
@@ -372,19 +426,24 @@ class BaseView(object):
             #             link = "/".join([self.home, nik_url, v])
             #             d[k] =f'<a href="{link}" target="_blank">View</a>'
             return result
+
+        elif url_dict['act'] == 'csv':
+            return self.csv_response()
+
+        elif url_dict['act'] == 'pdf':
+            return self.jasper_response()
+
         else:
             return self.next_act()
 
-    def view_add(self):
-        bindings = self.get_bindings()
-        form = self.get_form(self.add_schema, bindings=bindings)
-        table = self.get_item_table()
+    def view_add(self, **kwargs):
+        # bindings = self.get_bindings()
+        form = self.get_form(self.add_schema, **kwargs)
+        table = self.get_item_table(**kwargs)
         resources = form.get_widget_resources()
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
-                log.debug(self.req.POST.items())
-                log.debug(dict(self.req.POST.items()))
                 try:
                     c = form.validate(controls)
                 except ValidationFailure as e:
@@ -396,12 +455,13 @@ class BaseView(object):
                     # efield = e.field
                     for f in e.field.children:
                         if isinstance(f.typ, colander.Date):
-                            e.cstruct[f.name] = date_from_str(e.cstruct[f.name])
+                            e.cstruct[f.name] = date_from_str(
+                                e.cstruct[f.name])
 
                     # for k, v in e.cstruct.items():
                     #     log.debug(hasattr(e.field, k))
-                        # if isinstance(f, colander.Date):
-                        #     e.cstruct[f] = date_from_str(e.cstruct[f])
+                    # if isinstance(f, colander.Date):
+                    #     e.cstruct[f] = date_from_str(e.cstruct[f])
 
                     return dict(form=form.render(e.cstruct),
                                 table=table and table.render() or None,
@@ -409,13 +469,13 @@ class BaseView(object):
                                 js=resources["js"])
                 values = dict(c)
                 row = self.save_request(values)
-                self.after_add(row, values)
+                return self.after_add(row=row, **kwargs)
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
             else:
                 return self.next_add(form, table=table, resources=resources)
 
-            return self.route_list()
+            return self.route_list(**kwargs)
         values = self.before_add()
         form.set_appstruct(values)
         return dict(form=form.render(), table=table and table.render() or None,
@@ -454,11 +514,11 @@ class BaseView(object):
                     values[k] = v
         return self.save(values, self.req.user, row)
 
-    def id_not_found(self):
+    def id_not_found(self, **kwargs):
         msg = f"Data yang dicari Tidak Ditemukan ID:" \
               f" {self.req.matchdict['id']}."
         self.req.session.flash(msg, 'error')
-        return self.route_list()
+        return self.route_list(**kwargs)
 
     def get_values(self, row, istime=False):
         d = row.to_dict()
@@ -469,27 +529,27 @@ class BaseView(object):
                 d[f] = d[f].strip()
         return d
 
-    def get_item_table(self, row=None):
+    def get_item_table(self, row=None, **kwargs):
         return
 
     def before_edit(self, form):
         return form
 
-    def view_edit(self):
+    def view_edit(self, **kwargs):
         request = self.req
         row = self.query_id().first()
         if not row:
-            return self.id_not_found()
+            return self.id_not_found(**kwargs)
         if not self.bindings:
             self.bindings = self.get_bindings(row)
-        form = self.get_form(self.edit_schema)
+        form = self.get_form(self.edit_schema, **kwargs)
         table = self.get_item_table(row)
         resources = form.get_widget_resources()
         if request.POST:
             if 'save' in request.POST:
-                log.debug("Save Edit")
-                log.debug(dict(request.POST.items()))
-                log.debug(request.POST)
+                # log.debug("Save Edit")
+                # log.debug(dict(request.POST.items()))
+                # log.debug(request.POST)
                 controls = request.POST.items()
                 log.debug(controls)
                 # log.debug(dict(controls))
@@ -497,8 +557,8 @@ class BaseView(object):
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
-                    log.debug(f"Edit Error: {str(e.error)}")
-                    log.debug(f"Edit Data: {e.cstruct}")
+                    # log.debug(f"Edit Error: {str(e.error)}")
+                    # log.debug(f"Edit Data: {e.cstruct}")
                     form.set_appstruct(e.cstruct)
                     return dict(form=form.render(),
                                 table=table and table.render() or None,
@@ -506,10 +566,10 @@ class BaseView(object):
                                 js=resources["js"])
                 c = dict(controls)
                 self.save_request(c, row)
-            else:
-                return self.next_edit(form, row=row)
+                return self.after_edit(row=row, **kwargs)
 
-            return self.route_list()
+            return self.next_edit(form, row=row)
+
         values = self.get_values(row)
         form.set_appstruct(values)
         form = self.before_edit(form)
@@ -599,7 +659,7 @@ def user_name_validator(node, value):
 def need_captcha():
     is_captcha = get_params("reg_captcha")
     return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" \
-           or is_captcha == True
+        or is_captcha == True
 
 
 def need_verify():
@@ -609,4 +669,4 @@ def need_verify():
 
 def get_url_captcha(request):
     captcha = get_captcha(request)
-    return os.path.join(request.route_url('home'), 'captcha', captcha)
+    return os.path.join(get_urls(request.route_url('home')), 'captcha', captcha)

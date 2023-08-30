@@ -47,6 +47,10 @@ class Views(BaseView):
         self.edit_schema = EditSchema
         self.add_schema = AddSchema
         self.list_buttons = self.list_buttons + self.list_report
+        path = os.path.dirname(__file__)
+        path = os.path.dirname(path)
+
+        self.report_file = os.path.join(path, 'reports', 'users.jrxml')
 
     def get_bindings(self, row=None):
         status_list = (
@@ -76,38 +80,38 @@ class Views(BaseView):
     @view_config(
         route_name='user-act', renderer='json', permission='user-view')
     def view_act(self):
-        url_dict = self.req.matchdict
-        if url_dict['act'] == 'csv':
-            query = query_register()
-            row = query.first()
-            header = row.keys()
-            rows = [list(item) for item in query.all()]
-            filename = 'user.csv'
-            value = {
-                'header': header,
-                'rows': rows,
-            }
-            return csv_response(self.req, value, filename)
-
-        elif url_dict['act'] == 'pdf':
-            query = query_register()
-            import opensipkd.base
-            base_path = os.path.dirname(opensipkd.base.__file__)
-            path = os.path.join(base_path, 'reports')
-            rml_row = open_rml_row(path + '/user.row.rml')
-            rows = [rml_row.format(user_name=r.user_name, email=r.email,
-                                   registered_date=r.registered_date) for r in
-                    query.all()]
-            pdf, filename = open_rml_pdf(path + '/user.rml', rows=rows,
-                                         company=self.req.company,
-                                         departement=self.req.departement,
-                                         address=self.req.address,
-                                         base_path=base_path)
-            filename = os.path.basename(filename)
-            resp = pdf_response(self.req, pdf, filename)
-            if resp.content_length < 10:
-                resp.content_length = len(resp.body)
-            return resp
+        # url_dict = self.req.matchdict
+        # if url_dict['act'] == 'csv':
+        #     query = query_register()
+        #     row = query.first()
+        #     header = row.keys()
+        #     rows = [list(item) for item in query.all()]
+        #     filename = 'user.csv'
+        #     value = {
+        #         'header': header,
+        #         'rows': rows,
+        #     }
+        #     return csv_response(self.req, value, filename)
+        #
+        # elif url_dict['act'] == 'pdf':
+        #     query = query_register()
+        #     import opensipkd.base
+        #     base_path = os.path.dirname(opensipkd.base.__file__)
+        #     path = os.path.join(base_path, 'reports')
+        #     rml_row = open_rml_row(path + '/user.row.rml')
+        #     rows = [rml_row.format(user_name=r.user_name, email=r.email,
+        #                            registered_date=r.registered_date) for r in
+        #             query.all()]
+        #     pdf, filename = open_rml_pdf(path + '/user.rml', rows=rows,
+        #                                  company=self.req.company,
+        #                                  departement=self.req.departement,
+        #                                  address=self.req.address,
+        #                                  base_path=base_path)
+        #     filename = os.path.basename(filename)
+        #     resp = pdf_response(self.req, pdf, filename)
+        #     if resp.content_length < 10:
+        #         resp.content_length = len(resp.body)
+        #     return resp
 
         return super(Views, self).view_act()
 
@@ -347,7 +351,7 @@ class AddSchema(colander.Schema):
 
 class EditSchema(AddSchema):
     status = colander.SchemaNode(
-        colander.String(), widget=status_widget, title=_('Status'))
+        colander.String(), widget=widget.CheckboxWidget(true_val="1", false_val="0"), title=_('Status'))
 
 
 def get_group_list():
@@ -387,3 +391,33 @@ def query_register():
                                         "DD-MM-YYYY").label(
                                "registered_date")).order_by(
         User.user_name)
+
+
+def user_list():
+    qry = User.query().order_by(User.user_name)
+    return [(r.id, r.user_name) for r in qry]
+
+
+def user_select():
+    result = user_list()
+    result.insert(0, ('', 'Pilih User'))
+    return result
+
+
+@colander.deferred
+def user_widget(node, kw):
+    values = kw.get('user_list', [])
+    request = kw.get("request")
+    return widget.SelectWidget(values=values,
+                                     placeholder="Pilih User",
+                                     style="width:300px;")
+
+
+class UserFilterSchema(colander.Schema):
+    user_id = colander.SchemaNode(
+        colander.Integer(),
+        widget=user_widget,
+        oid="user_id",
+        title="User",
+        missing=colander.drop,
+    )

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-us"
          tal:define="
-        home request.route_url('home')[:-1];
+        home request._host;
         user_path  ['user', 'user-add', 'user-edit', 'user-view', 'user-delete'];
         user_ext_path  ['user-ext', 'user-ext-view', 'user-ext-delete'];
         group_path  ['group', 'group-add', 'group-edit', 'group-view', 'group-delete'];
