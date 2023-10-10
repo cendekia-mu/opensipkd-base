@@ -101,16 +101,16 @@ class Password(colander.Schema):
     old_password = colander.SchemaNode(
         colander.String(), widget=widget.PasswordWidget())
     new_password = colander.SchemaNode(
-        colander.String(), widget=widget.PasswordWidget())
-    retype_password = colander.SchemaNode(
-        colander.String(), widget=widget.PasswordWidget())
+        colander.String(), widget=widget.CheckedPasswordWidget())
+    # retype_password = colander.SchemaNode(
+        # colander.String(), widget=widget.PasswordWidget())
 
 
 def password_validator(form, value):
     if not UserService.check_password(form.request.user, value['old_password']):
         raise colander.Invalid(form, 'Invalid old password.')
-    if value['new_password'] != value['retype_password']:
-        raise colander.Invalid(form, 'Retype mismatch.')
+    # if value['new_password'] != value['retype_password']:
+        # raise colander.Invalid(form, 'Retype mismatch.')
 
 
 @view_config(
