@@ -4,7 +4,7 @@ import logging
 from deform.widget import (
     SchemaType,
     DateInputWidget as DeformDateInputWidget,
-    DateInputWidget
+    DateInputWidget,
     default_resources, ResourceRegistry, default_resource_registry, _StrippedString, Widget)
 from colander import null, Invalid, SchemaNode, Mapping
 
