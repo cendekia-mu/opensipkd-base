@@ -1,0 +1,64 @@
+<!-- <div>
+  <p class="form-control-static" id="${oid|field.oid}">${year}.${bundle}.${seq}</p>
+</div> -->
+
+<div i18n:domain="deform"
+     tal:omit-tag=""
+     tal:define="oid oid|field.oid;
+                  name name|field.name;
+                  css_class css_class|field.widget.css_class;
+                  mask_placeholder '_';
+                  style style|field.widget.style;">
+  ${field.start_mapping()}
+  <div class="row">
+    <div class="col-xs-4">
+      <div class="input-group">
+        <span class="input-group-addon">
+          <input type="text" name="year" value="${year}"
+                 class="span2 form-control ${css_class or ''}"
+                 tal:attributes="style style;
+                       year_attributes|field.widget.year_attributes|{};"
+                 maxlength="4" minlength="4" placeholder="Tahun"
+                 id="tahun-formulir"/>
+        </span>
+        <span class="input-group-addon">
+          <input type="text" name="bundle" value="${bundle}"
+                 class="span2 form-control ${css_class or ''}"
+                 tal:attributes="style style;
+             				 bundle_attributes|field.widget.bundle_attributes|{};"
+                 maxlength="4" minlength="4" placeholder="Bundle"
+                 id="bundle-formulir"/>
+        </span>
+        <span class="input-group-addon">
+           <input type="text" name="seq" value="${seq}"
+                  class="span2 form-control ${css_class or ''}"
+                  tal:attributes="style style;
+             				 seq_attributes|field.widget.seq_attributes|{};"
+                  maxlength="3" minlength="3" placeholder="Urut"
+                  id="urut-formulir"/>
+        </span>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    deform.addCallback(
+        'year',
+        function (oid) {
+          $("#tahun-formulir").mask("9999", 
+                {placeholder:"${mask_placeholder}"});
+        });
+    deform.addCallback(
+        'bundle',
+        function (oid) {
+          $("#bundle-formulir").mask("9999", 
+                {placeholder:"${mask_placeholder}"});
+        });
+    deform.addCallback(
+        'seq',
+        function (oid) {
+          $("#urut-formulir").mask("999", 
+                {placeholder:"${mask_placeholder}"});
+        });
+  </script>
+  ${field.end_mapping()}
+</div>
