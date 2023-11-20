@@ -1,9 +1,10 @@
 import json
 import logging
 
-from colander import SchemaNode, null, Mapping, Invalid, string_types
+from colander import SchemaNode, null, Mapping, Invalid #, string_types
 from deform.widget import Widget, _StrippedString, Select2Widget, default_resources, \
     ResourceRegistry, default_resource_registry
+from deform.widget import string_types
 from iso8601.iso8601 import ISO8601_REGEX
 from deform.i18n import _
 

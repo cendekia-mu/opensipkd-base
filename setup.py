@@ -11,6 +11,7 @@ line = CHANGES.splitlines()[0]
 version = line.split()[0]
 requires = [
     'wheel',
+    'colander',
     'pyramid',
     'pyramid_tm',
     'SQLAlchemy',
@@ -21,7 +22,7 @@ requires = [
     'ziggurat-foundations',
     'zope.sqlalchemy',
     'pytz',
-    'deform >= 2.0a2',
+    'deform',
     'psycopg2-binary',
     'pyramid_chameleon',
     'pyramid_rpc',
