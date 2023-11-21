@@ -99,7 +99,6 @@
 
       <input type="hidden" name="__end__" value="${field.name}:sequence"/>
       <!-- /sequence -->
-      <input tal:define="templates subfields[0][1].widget.template|''" tal:condition="templates=='file_upload'" id="daftar_file_hapus" name="daftar_file_hapus" type="hidden">
     </div>
 
   </div>
