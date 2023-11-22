@@ -7,24 +7,15 @@
         delete cstruct.get('delete')|'';">
     ${field.start_mapping()}
     <tal:block tal:condition="preview_url and ext in ['jpg','jpeg','png','bmp','gif']">
-        <img id="preview-${oid}" alt="" src="${structure: preview_url}" style="width:100px;height:auto;"
+        <img id="preview-${oid}" alt="" src="${structure: preview_url}" style="width:100px;height:auto;display:block;"
         onload="window.URL.revokeObjectURL(this.src)"></img>
-        <br>
     </tal:block>
     <tal:block tal:condition="not preview_url or ext not in ['jpg','jpeg','png','bmp','gif']">
-        <img id="preview-${oid}" alt="" src="" style="width:100px;height:auto;"
+        <img id="preview-${oid}" alt="" src="" style="width:100px;height:auto;display:block;"
         onload="window.URL.revokeObjectURL(this.src)"></img>
-        <br>
     </tal:block>
     <a id="label-${oid}" tal:condition="preview_url" class="label label-default" href="${structure: preview_url}"
     target="_blank"><i class="fa fa-search"></i> View</a>
-    <button id="labeldelete-${oid}" type="button" tal:condition="delete" class="label label-danger" href="#"
-    target="_blank" 
-    onclick="var daft = document.getElementById('daftar_file_hapus').value.replace(/\[|\]/g,'').split(',');
-             daft.push('${fname}');
-             document.getElementById('daftar_file_hapus').value=daft;
-             document.getElementById('${oid}-close').click();">
-    <i class="fa fa-remove"></i> Delete</button>
     <input type="file" name="upload" id="${oid}"
              tal:attributes="style style;
                     accept accept|field.widget.accept;
