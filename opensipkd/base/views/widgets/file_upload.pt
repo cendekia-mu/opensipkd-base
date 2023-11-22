@@ -6,15 +6,9 @@
         fname str(cstruct.get('filename'))|'';
         delete cstruct.get('delete')|'';">
     ${field.start_mapping()}
-    <tal:block tal:condition="preview_url and ext in ['jpg','jpeg','png','bmp','gif']">
-        <img id="preview-${oid}" alt="" src="${structure: preview_url}" style="width:100px;height:auto;display:block;"
-        onload="window.URL.revokeObjectURL(this.src)"></img>
-    </tal:block>
-    <tal:block tal:condition="not preview_url or ext not in ['jpg','jpeg','png','bmp','gif']">
-        <img id="preview-${oid}" alt="" src="" style="width:100px;height:auto;display:block;"
-        onload="window.URL.revokeObjectURL(this.src)"></img>
-    </tal:block>
-    <a id="label-${oid}" tal:condition="preview_url" class="label label-default" href="${structure: preview_url}"
+    <img id="preview-${oid}" alt="" src="${preview_url}" style="width:100px;height:auto;display:block;"
+        onload="window.URL.revokeObjectURL(this.src);"></img>
+    <a id="label-${oid}" tal:condition="preview_url" class="label label-default" href="${preview_url}"
     target="_blank"><i class="fa fa-search"></i> View</a>
     <input type="file" name="upload" id="${oid}"
              tal:attributes="style style;
