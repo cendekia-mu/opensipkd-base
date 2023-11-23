@@ -326,8 +326,9 @@ class ChangePassword(colander.Schema):
 
 
 def change_password_validator(form, value):
-    exc = colander.Invalid(form, '')
-    user = form.request.user
+    pass
+    # exc = colander.Invalid(form, '')
+    # user = form.request.user
     # if not UserService.check_password(user, value["password"]):
         # exc["password"] = 'Login Failed'
         # raise exc
@@ -449,7 +450,7 @@ def send_email_security_code(
             or 'mail.username' not in settings:
         return
 
-    url = '{}password/{}?password={}'.format(
+    url = '{}/password/{}?password={}'.format(
         request.home, user.security_code, password)
 
     minutes = int(time_remain.seconds / 60)
