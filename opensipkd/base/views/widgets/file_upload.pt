@@ -1,10 +1,11 @@
 <tal:block tal:define="oid oid|field.oid;
         css_class css_class|field.widget.css_class;
         style style|field.widget.style;
-        preview_url cstruct.get('preview_url')|cstruct.get('base64')|'';
+        preview_url cstruct.get('preview_url')|'';
         ext str(cstruct.get('filename').split('.')[-1:][0]).lower()|[];
         fname str(cstruct.get('filename'))|'';
-        delete cstruct.get('delete')|'';">
+        delete cstruct.get('delete')|'';
+        maxsize field.widget.size|2097152;">
     ${field.start_mapping()}
     <img id="preview-${oid}" alt="" src="${preview_url}" style="width:100px;height:auto;display:block;"
         onload="window.URL.revokeObjectURL(this.src);"></img>
@@ -26,6 +27,11 @@
         deform.addCallback('${oid}', function (oid) {
             $('#' + oid).upload();
         });
-
+        document.getElementById("${oid}").onchange = function() {
+            if(this.files[0].size > ${maxsize}){
+            alert("File is too big!");
+            this.value = "";
+            }
+        };
     </script>
 </tal:block>
