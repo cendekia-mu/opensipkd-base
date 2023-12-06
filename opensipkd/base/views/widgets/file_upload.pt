@@ -5,7 +5,7 @@
         ext str(cstruct.get('filename').split('.')[-1:][0]).lower()|[];
         fname str(cstruct.get('filename'))|'';
         delete cstruct.get('delete')|'';
-        maxsize field.widget.size|2097152;">
+        maxsize field.widget.size|5242880;">
     ${field.start_mapping()}
     <img id="preview-${oid}" alt="" src="${preview_url}" style="width:100px;height:auto;display:block;"
         onload="window.URL.revokeObjectURL(this.src);"></img>
