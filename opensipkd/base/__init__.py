@@ -199,7 +199,7 @@ def get_id_card_folder(ext=None):
         if ext and os.sep != '/':
             ext = ext.replace('/','\\')
         if not os.path.exists(folder+ext):
-            os.mkdirs(folder+ext)
+            os.makedirs(folder+ext)
         return folder + ext
     return folder
 
