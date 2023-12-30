@@ -1,7 +1,7 @@
 import locale
 import logging
 import re
-
+import os
 import colander
 
 try:
@@ -196,6 +196,10 @@ def get_ini_params(request, params=None, alternate=None, settings=None):
 def get_id_card_folder(ext=None):
     folder = get_params("partner_idcard_folder", '/tmp/idcard')
     if ext:
+        if ext and os.sep != '/':
+            ext = ext.replace('/','\\')
+        if not os.path.exists(folder+ext):
+            os.makedirs(folder+ext)
         return folder + ext
     return folder
 
