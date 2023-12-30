@@ -398,7 +398,7 @@ class Registrasi(BaseView):
             DBSession.flush()
             remain = regenerate_security_code(user)
             send_email_security_code(
-                self.req, row, remain, 'Welcome new user', 'email-new-user',
+                self.req, user, remain, 'Welcome new user', 'email-new-user',
                 'email-new-user.tpl')
             ts = _(
                 'user-added',
@@ -422,5 +422,5 @@ class Registrasi(BaseView):
                             js=resources["js"])
             values = dict(c)
             row = self.save_request(values)
-            self.after_add(row, values)
+            self.after_add(row=row, values=values)
         return self.route_list()

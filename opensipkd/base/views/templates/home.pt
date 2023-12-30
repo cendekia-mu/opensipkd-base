@@ -57,7 +57,7 @@
                             <img alt="" class="icon-modul" src="${home}/static/icon/${modul.replace('/','_')}.png">
                             <span>${modules[modul]}</span>
                         </a>
-                        <a tal:condition="modul.find('://')>-1" target="_blank"
+                        <a tal:condition="modul.find('://')>-1"
                            href="${modul}" class="box">
                             <img alt="" class="icon-modul"
                                  src="${home}/static/icon/${modul.replace('://','').replace('https','').replace('http','')}.png">

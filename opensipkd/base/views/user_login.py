@@ -317,30 +317,33 @@ class Logout(BaseView):
 
 class ChangePassword(colander.Schema):
     new_password = colander.SchemaNode(
-        colander.String(), widget=widget.PasswordWidget())
-    retype_password = colander.SchemaNode(
-        colander.String(), widget=widget.PasswordWidget())
-    password = colander.SchemaNode(colander.String(),
-                                   widget=widget.PasswordWidget(),
-                                   title=_("Old Password"))
+        colander.String(), widget=widget.CheckedPasswordWidget())
+    # retype_password = colander.SchemaNode(
+        # colander.String(), widget=widget.PasswordWidget())
+    # password = colander.SchemaNode(colander.String(),
+                                   # widget=widget.PasswordWidget(),
+                                   # title=_("Old Password"))
 
 
 def change_password_validator(form, value):
     exc = colander.Invalid(form, '')
     user = form.request.user
-    if not UserService.check_password(user, value["password"]):
-        exc["password"] = 'Login Failed'
-        raise exc
+    # if not UserService.check_password(user, value["password"]):
+        # exc["password"] = 'Login Failed'
+        # raise exc
 
-    if value['new_password'] != value['retype_password']:
-        exc["new_password"] = 'Retype mismatch.'
-        exc["retype_password"] = 'Retype mismatch.'
-        raise exc
+    # if value['new_password'] != value['retype_password']:
+        # exc["new_password"] = 'Retype mismatch.'
+        # exc["retype_password"] = 'Retype mismatch.'
+        # raise exc
 
 
 @view_config(route_name='change-password',
              renderer='templates/change-password.pt')
 def view_change_password(request):
+    """
+    Digunakan untuk change password url dari email (register, reset password)
+    """
     if request.authenticated_userid:
         request.session.flash('Anda sudah login', 'error')
         return HTTPFound(location=get_urls(f"{request.route_url('home')}"))

@@ -40,7 +40,7 @@ from opensipkd.tools import (
 
 from deform import ZPTRendererFactory, Form
 from pkg_resources import resource_filename
-
+from deform.widget import default_resource_registry
 import os
 
 from opensipkd.models.handlers import LogDBSession
@@ -423,6 +423,8 @@ partner_idcard_url = 'partner/idcard'
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+    default_resource_registry.registry['jquery.maskMoney'] = {
+        None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
 
     engine = engine_from_config(
         settings, 'sqlalchemy.', client_encoding='utf8') #, convert_unicode=True

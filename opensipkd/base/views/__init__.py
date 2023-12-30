@@ -63,6 +63,7 @@ class Home(BaseView):
         # session = request.session
         modules = request.menus
         modules_default = get_params('modules_default')
+        submodules_default = get_params('submenus')
         # request.session['modules'] = modules
         # request.session['modules_default'] = modules_default
         log.info(request.session.peek_flash())
@@ -78,10 +79,10 @@ class Home(BaseView):
         if home_tpl:
             return render_to_response(
                 home_tpl,
-                dict(modules=modules, logo=logo),
+                dict(modules=modules, logo=logo, submodules=[]),
                 request=request
             )
-        return dict(modules=modules, logo=logo)
+        return dict(modules=modules, logo=logo, submodules=[])
 
 
 @view_config(context=HTTPForbidden, renderer='templates/403.pt')
@@ -101,16 +102,16 @@ class Password(colander.Schema):
     old_password = colander.SchemaNode(
         colander.String(), widget=widget.PasswordWidget())
     new_password = colander.SchemaNode(
-        colander.String(), widget=widget.PasswordWidget())
-    retype_password = colander.SchemaNode(
-        colander.String(), widget=widget.PasswordWidget())
+        colander.String(), widget=widget.CheckedPasswordWidget())
+    # retype_password = colander.SchemaNode(
+        # colander.String(), widget=widget.PasswordWidget())
 
 
 def password_validator(form, value):
     if not UserService.check_password(form.request.user, value['old_password']):
         raise colander.Invalid(form, 'Invalid old password.')
-    if value['new_password'] != value['retype_password']:
-        raise colander.Invalid(form, 'Retype mismatch.')
+    # if value['new_password'] != value['retype_password']:
+        # raise colander.Invalid(form, 'Retype mismatch.')
 
 
 @view_config(

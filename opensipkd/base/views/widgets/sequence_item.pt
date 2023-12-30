@@ -20,12 +20,12 @@
   </div>
   <div class="col-xs-1" style="padding:0">
     <!-- sequence_item -->
-    <span class="deform-order-button close glyphicon glyphicon-resize-vertical"
+    <span class="deform-order-button close glyphicon glyphicon-resize-vertical ${field.widget.template=='file_upload' and 'hide' or ''}"
           id="${oid}-order"
           tal:condition="not hidden"
           title="Reorder (via drag and drop)"
           i18n:attributes="title"></span>
-    <a class="deform-close-button close"
+    <a class="deform-close-button close ${field.widget.template=='file_upload' and 'hide' or ''}"
        id="${oid}-close"
        tal:condition="not field.widget.hidden"
        title="Remove"

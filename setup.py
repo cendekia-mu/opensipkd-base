@@ -10,8 +10,9 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 line = CHANGES.splitlines()[0]
 version = line.split()[0]
 requires = [
+    'sqlalchemy==1.4.50',
     'wheel',
-    'colander',
+    'colander==1.8.3',
     'pyramid',
     'pyramid_tm',
     'SQLAlchemy',
