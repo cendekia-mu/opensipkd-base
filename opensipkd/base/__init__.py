@@ -1,8 +1,6 @@
 import locale
 import logging
 import re
-import os
-import colander
 
 try:
     from urllib import (urlencode, quote, quote_plus, )
@@ -21,6 +19,8 @@ from .security import (
     group_finder,
     get_user, MySecurityPolicy,
 )
+from pyramid.csrf import get_csrf_token
+
 from opensipkd.models import (
     DBSession,
     Base,
@@ -149,6 +149,7 @@ def add_global(event):
     event['change_unit'] = change_unit
     event['get_params'] = get_params
     event['get_urls'] = get_urls
+    event['get_csrf_token'] = get_csrf_token
 
 
 def get_params(params, alternate=None, settings=None):
@@ -180,6 +181,13 @@ def get_ini(request, var):
     return
 
 
+def get_password_strength(request):
+    settings = get_settings()
+    if 'password_strength' in settings and settings['password_strength']:
+        return settings['password_strength']
+    return True
+
+
 def get_ini_params(request, params=None, alternate=None, settings=None):
     """
     Digunakan untuk mengambil nilai dari konfigurasi sesuai params yang disebut
@@ -197,9 +205,9 @@ def get_id_card_folder(ext=None):
     folder = get_params("partner_idcard_folder", '/tmp/idcard')
     if ext:
         if ext and os.sep != '/':
-            ext = ext.replace('/','\\')
-        if not os.path.exists(folder+ext):
-            os.makedirs(folder+ext)
+            ext = ext.replace('/', '\\')
+        if not os.path.exists(folder + ext):
+            os.makedirs(folder + ext)
         return folder + ext
     return folder
 
@@ -431,7 +439,7 @@ def main(global_config, **settings):
         None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
 
     engine = engine_from_config(
-        settings, 'sqlalchemy.', client_encoding='utf8') #, convert_unicode=True
+        settings, 'sqlalchemy.', client_encoding='utf8')  # , convert_unicode=True
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     Base.metadata.bind = engine
@@ -448,6 +456,7 @@ def main(global_config, **settings):
     config = Configurator(settings=settings,
                           root_factory='opensipkd.models.RootFactory',
                           session_factory=session_factory)
+    config.set_default_csrf_options(require_csrf=True)
     modules = get_modules(settings)
     from importlib import import_module
     for module in modules:
@@ -488,6 +497,8 @@ def main(global_config, **settings):
     config.add_request_method(disable_responsive, 'disable_responsive',
                               reify=True)
     config.add_request_method(get_ini, 'get_ini', reify=True)
+    config.add_request_method(get_csrf_token, 'get_csrf_token', reify=True)
+
     config.add_translation_dirs('opensipkd.base:locale/')
 
     config.add_static_view('static', 'opensipkd.base:static',

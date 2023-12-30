@@ -16,7 +16,6 @@ psycopg2-binary
 alembic>=0.3.4
 pytz
 sqlalchemy-datatables
-z3c.rml
 py3o.template
 wheezy.captcha
 google-api-python-client
