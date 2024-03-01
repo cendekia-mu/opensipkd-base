@@ -5,14 +5,15 @@ from datetime import datetime
 
 import colander
 from deform import (widget, )
-from opensipkd.tools import (get_ext, get_random_string, get_settings)
 from pyramid.view import (view_config, )
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
+from opensipkd.models import DBSession, Departemen, Partner, PartnerDepartemen
+from opensipkd.tools import (get_ext, get_random_string, get_settings)
 from .company import company_widget
 from .upload import AddSchema as UploadSchema
-from opensipkd.models import DBSession, Departemen, Partner, PartnerDepartemen
+from .. import get_params
 from ..views import ColumnDT, DataTables, BaseView, get_urls
 
 SESS_ADD_FAILED = 'Tambah departemen gagal'
@@ -166,13 +167,12 @@ class ViewDepartemen(BaseView):
             if child.children:
                 self.update_children(child.children)
 
-    def save_request(self, values, row=None): #save(self, row, values):
+    def save_request(self, values, row=None):  # save(self, row, values):
         for k, v in values.items():
             if not v:
                 setattr(row, k, None)
         row = super().save_request(values, row)
         return row
-
 
     @view_config(route_name='departemen-view',
                  renderer='templates/form.pt', permission='departemen')
@@ -244,7 +244,7 @@ class ViewDepartemen(BaseView):
             # todo Check ulang untuk hon
             term = 'term' in params and params['term'] or ''
             settings = get_settings()
-            level_id = self.req.get_params('departemen_chg_id', 0)
+            level_id = get_params('departemen_chg_id', 0)
             q = DBSession.query(Departemen).filter(Departemen.status == 1,
                                                    Departemen.nama.ilike(
                                                        '%%%s%%' %
