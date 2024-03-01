@@ -197,8 +197,30 @@ Tambahkan blok berikut ini dibawah ini file
         proxy_set_header X-Forwarded-Host $host:$server_port;
         proxy_set_header X-Forwarded-Port $server_port;
         
+        client_max_body_size    10m;
+        client_body_buffer_size 128k;
+        proxy_connect_timeout   60s;
+        proxy_send_timeout      90s;
+        proxy_read_timeout      90s;
+        proxy_buffering         off;
+        proxy_temp_file_write_size 64k;
+        
         proxy_pass http://127.0.0.1:6543/;
+        proxy_redirect          off;
     }
 
 ```
 
+Other Configuration
+```
+[server:main]
+use = egg:waitress#main
+host = 0.0.0.0
+port = 6543
+;port = %(http_port)s digunakan jika port akan menggunakan parameter
+trusted_proxy = 10.8.50.23
+trusted_proxy_count = 1
+trusted_proxy_headers = x-forwarded-for x-forwarded-host x-forwarded-proto x-forwarded-port
+clear_untrusted_proxy_headers = yes
+url_scheme = https # HTTP or https
+```

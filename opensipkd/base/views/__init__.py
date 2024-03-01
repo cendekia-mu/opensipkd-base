@@ -22,9 +22,11 @@ from .base_views import BaseView
 from opensipkd.models import (
     DBSession, UserService, )
 from .common import DataTables, ColumnDT
+from pyramid.csrf import new_csrf_token
 
 _ = TranslationStringFactory('login')
 log = logging.getLogger(__name__)
+
 
 
 @view_config(context=HTTPNotFound, renderer='templates/404.pt')
@@ -150,3 +152,5 @@ two_minutes = timedelta(1.0 / 24 / 60)
 def deferred_jenis(node, kw):
     values = kw.get('daftar_jenis', [])
     return widget.RadioChoiceWidget(values=values)
+
+

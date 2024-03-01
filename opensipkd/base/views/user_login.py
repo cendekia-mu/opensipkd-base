@@ -42,11 +42,11 @@ from opensipkd.models import User, ExternalIdentity, Partner
 from opensipkd.tools import create_now, set_user_log, get_settings
 from opensipkd.tools.buttons import btn_cancel
 from .. import get_urls
-
+from .view_tools import CSRFSchema
 log = __import__("logging").getLogger(__name__)
 
 
-class Login(colander.Schema):
+class Login(CSRFSchema):
     username = colander.SchemaNode(
         colander.String(),
         widget=widget.TextInputWidget(
@@ -57,18 +57,14 @@ class Login(colander.Schema):
     password = colander.SchemaNode(
         colander.String(), widget=widget.PasswordWidget())
 
-    # csrf_token = colander.SchemaNode(
-    #     colander.String(),
-    # )
-
-    def after_bind(self, schema, kwargs):
-        request = kwargs["request"]
-        csrf_token = new_csrf_token(request)
-        log.error(csrf_token)
-        self["csrf_token"] = colander.SchemaNode(
-            colander.String(), widget=widget.HiddenWidget(),
-            default=csrf_token
-        )
+    # def after_bind(self, schema, kwargs):
+    #     request = kwargs["request"]
+    #     csrf_token = new_csrf_token(request)
+    #     log.error(csrf_token)
+    #     self["csrf_token"] = colander.SchemaNode(
+    #         colander.String(), widget=widget.HiddenWidget(),
+    #         default=csrf_token
+    #     )
 
 
 # http://deformdemo.repoze.org/interfield/
@@ -172,7 +168,7 @@ def oauth2_login(request, params=None):
 
 
 class ViewLogin(BaseView):
-    @view_config(route_name='login', renderer='templates/form.pt')
+    @view_config(route_name='login', renderer='templates/form.pt', require_csrf=True)
     def view_login(self):
         request = self.req
         request.session["login"] = True
@@ -247,7 +243,7 @@ class ViewLogin(BaseView):
                 request.session.flash(str(e), "error")
                 return render_to_response(
                     login_tpl, dict(
-                        form=form.render(),
+                        form=form,
                         message=message,
                         url=get_urls(request.route_url('login')),
                         next_url=next_url,
@@ -260,17 +256,17 @@ class ViewLogin(BaseView):
                 return redirect_login(request, user)
         # values = {"csrf_token": new_csrf_token(request)}
         login = ""
-        if login_tpl == 'templates/login.pt':
-            return dict(form=form.render(),
-                        message=message,
-                        url=get_urls(request.route_url('login')),
-                        next_url=next_url,
-                        login=login, )
+        # if login_tpl == 'templates/login.pt':
+        #     return dict(form=form.render(),
+        #                 message=message,
+        #                 url=get_urls(request.route_url('login')),
+        #                 next_url=next_url,
+        #                 login=login, )
 
         return render_to_response(
             renderer_name=login_tpl,
             request=request,
-            value=dict(form=form.render(),
+            value=dict(form=form,
                        message=message,
                        url=get_urls(request.route_url('login')),
                        next_url=next_url,

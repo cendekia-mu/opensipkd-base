@@ -456,7 +456,7 @@ def main(global_config, **settings):
     config = Configurator(settings=settings,
                           root_factory='opensipkd.models.RootFactory',
                           session_factory=session_factory)
-    config.set_default_csrf_options(require_csrf=True)
+    config.set_default_csrf_options(require_csrf=False)
     modules = get_modules(settings)
     from importlib import import_module
     for module in modules:
@@ -499,7 +499,7 @@ def main(global_config, **settings):
     config.add_request_method(get_ini, 'get_ini', reify=True)
     config.add_request_method(get_csrf_token, 'get_csrf_token', reify=True)
 
-    config.add_translation_dirs('opensipkd.base:locale/')
+    # config.add_translation_dirs('opensipkd.base:locale/')
 
     config.add_static_view('static', 'opensipkd.base:static',
                            cache_max_age=3600)
