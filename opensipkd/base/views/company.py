@@ -1,12 +1,19 @@
+import logging
+
 import colander
+from datatables import ColumnDT
 from deform import (widget, )
 from pyramid.view import (view_config, )
+from sqlalchemy.orm import aliased
 
-from opensipkd.models import ResProvinsi, ResDati2, ResDesa, User
-from .partner_base import PartnerSchema, NamaSchema
 from opensipkd.models import DBSession, ResCompany, ResKecamatan, Partner
+from opensipkd.models import ResProvinsi, ResDati2, ResDesa, User
+from . import DataTables
+from .partner_base import PartnerSchema
+from .. import get_urls
 from ..views import BaseView
 
+log = logging.getLogger(__name__)
 SESS_ADD_FAILED = 'Tambah pemda gagal'
 SESS_EDIT_FAILED = 'Edit pemda gagal'
 
@@ -20,14 +27,34 @@ def company_widget(node, kw):
 
 
 class AddSchema(PartnerSchema):
+    parent_id = colander.SchemaNode(
+        colander.Integer(),
+        widget=widget.HiddenWidget(), oid="parent_id", missing=colander.drop,
+    )
+
+    parent_nm = colander.SchemaNode(
+        colander.String(), missing=colander.drop,
+        widget=widget.AutocompleteInputWidget(
+            size=60, min_length=3,
+            requirements=(("typeahead", None), ("deform", None),
+                          {"js": "opensipkd.base:static/js/form/company.js"})
+        ),
+        oid="parent_nm", title="Induk")
+
     def after_bind(self, node, kw):
         self["email"].missing = colander.drop
+        request = kw["request"]
+        self["parent_nm"].widget = widget.AutocompleteInputWidget(
+            size=60, min_length=3,
+            requirements=(("typeahead", None), ("deform", None),
+                          {"js": "opensipkd.base:static/js/form/company.js"}),
+            values=get_urls(f"{request.route_url('company')}/hon/act"))
 
 
 class EditSchema(AddSchema):
     id = colander.SchemaNode(colander.String(), missing=colander.drop,
                              widget=widget.HiddenWidget(readonly=True),
-                             visible=False,)
+                             visible=False, )
     partner_id = colander.SchemaNode(colander.Integer(),
                                      widget=widget.HiddenWidget(),
                                      missing=colander.drop,
@@ -35,7 +62,7 @@ class EditSchema(AddSchema):
 
 
 class ListSchema(colander.Schema):
-    id = colander.SchemaNode(colander.String(),title="Action")
+    id = colander.SchemaNode(colander.String(), title="Action")
     kode = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=32),
@@ -46,6 +73,14 @@ class ListSchema(colander.Schema):
         colander.String(),
         validator=colander.Length(max=64),
         oid="nama")
+    parent_nm = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=64),
+        oid="parent_nm",
+        field="alias.nama"
+
+    )
+
     status = colander.SchemaNode(
         colander.Integer(),
         widget=widget.CheckboxWidget(),
@@ -116,16 +151,19 @@ class ViewCompany(BaseView):
             found = User.get_by_identity(value.get('email'))
             if found:
                 err_user()
-        value["status"]="status" in value and value["status"] and 1 or 0
-        value["is_vendor"]="is_vendor" in value and value["is_vendor"] and 1 or 0
-        value["is_customer"]="is_customer" in value and value["is_customer"] and 1 or 0
+        value["status"] = "status" in value and value["status"] and 1 or 0
+        value["is_vendor"] = "is_vendor" in value and value["is_vendor"] and 1 or 0
+        value["is_customer"] = "is_customer" in value and value["is_customer"] and 1 or 0
 
     def get_bindings(self, row=None):
         provinsi_list = ResProvinsi.get_list()
         partner = row and row.partner or None
-        dati2_list = partner and partner.provinsi_id and ResDati2.get_list(partner.provinsi_id) or []
-        kecamatan_list = partner and partner.dati2_id and ResKecamatan.get_list(partner.dati2_id) or []
-        desa_list = partner and partner.kecamatan_id and ResDesa.get_list(partner.kecamatan_id) or []
+        dati2_list = partner and partner.provinsi_id and ResDati2.get_list(
+            partner.provinsi_id) or []
+        kecamatan_list = partner and partner.dati2_id and ResKecamatan.get_list(
+            partner.dati2_id) or []
+        desa_list = partner and partner.kecamatan_id and ResDesa.get_list(
+            partner.kecamatan_id) or []
         return dict(provinsi_list=provinsi_list,
                     dati2_list=dati2_list,
                     kecamatan_list=kecamatan_list,
@@ -146,7 +184,37 @@ class ViewCompany(BaseView):
     @view_config(route_name='company-act', renderer='json',
                  permission='view')
     def view_act(self):
-        return super().view_act()
+        request = self.req
+        ses = request.session
+        params = request.params
+        url_dict = request.matchdict
+        alias = aliased(ResCompany)
+        if url_dict['act'] == 'grid':
+            columns = [ColumnDT(self.table.id, mData='id'),
+                       ColumnDT(self.table.kode, mData='kode'),
+                       ColumnDT(self.table.nama, mData='nama'),
+                       ColumnDT(alias.nama, mData='parent_nm'),
+                       ColumnDT(self.table.status, mData='status'),
+                       # ColumnDT(Departemen.level_id, mData='level_id'),
+                       ]
+            query = DBSession.query().select_from(ResCompany).outerjoin(
+                alias, ResCompany.parent_id == alias.id)
+            query = self.filter_company(query)
+            row_table = DataTables(request.GET, query, columns)
+            return row_table.output_result()
+        elif url_dict['act'] == 'hon':
+            term = 'term' in params and params['term'] or ''
+            q = DBSession.query(self.table) \
+                .filter(self.table.status == 1,
+                        self.table.nama.ilike('%%%s%%' % term)) \
+                .order_by(self.table.nama)
+            rows = q.all()
+            r = []
+            for k in rows:
+                d = dict(id=k.id, value=k.nama, kode=k.kode, nama=k.nama)
+                r.append(d)
+            log.error(r)
+            return r
 
     @view_config(route_name='company-add',
                  renderer='templates/form.pt', permission='company')
@@ -154,12 +222,17 @@ class ViewCompany(BaseView):
         return super(ViewCompany, self).view_add()
 
     def get_values(self, row, istime=False):
-        d = super().get_values(row,istime)
+        d = super().get_values(row, istime)
         partner = row.partner
-        if partner :
+        if partner:
             p = partner.to_dict()
             del p["id"]
             d.update(p)
+
+        if "parent_id" in d and d["parent_id"]:
+            parent = ResCompany.query_id(d["parent_id"]).first()
+            if parent:
+                d["parent_nm"] = parent.nama
         return d
 
     @view_config(route_name='company-edit',
@@ -173,6 +246,11 @@ class ViewCompany(BaseView):
         return super(ViewCompany, self).view_delete()
 
     def save_request(self, values, row=None):
+        # Save Partner First
+        parent_id = "parent_id" in values and values["parent_id"] or None
+        if parent_id:
+            del values["parent_id"]
+
         if 'partner_id' in values:
             part = Partner.query_id(values['partner_id']).first()
             values["id"] = part.id
@@ -185,8 +263,12 @@ class ViewCompany(BaseView):
         part.from_dict(values)
         DBSession.add(part)
         DBSession.flush()
+
+        # Save Company
         if part:
             values["partner_id"] = part.id
+        if parent_id:
+            values["parent_id"] = parent_id
 
         if "id" in self.req.matchdict:
             values["id"] = self.req.matchdict["id"]
@@ -197,4 +279,3 @@ class ViewCompany(BaseView):
             DBSession.add(part)
             DBSession.flush()
         return row
-

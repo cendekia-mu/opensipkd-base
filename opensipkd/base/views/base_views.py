@@ -161,13 +161,15 @@ class BaseView(object):
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
 
-    def route_list(self, msg=None, error="", **kwargs):
+    def route_list(self, **kwargs):
+        msg = kwargs.get("msg")
+        error = kwargs.get("error", "")
+        list_url = kwargs.get("list_url", None)
         if msg:
             self.ses.flash(msg, error)
-        list_url = kwargs.get("list_url", None)
         if not list_url:
             list_url = self.req.route_url(self.list_route)
-
+        log.error(list_url)
         if self.headers:
             return HTTPFound(location=get_urls(list_url),
                              headers=self.headers)
@@ -336,10 +338,10 @@ class BaseView(object):
     def cancel_act(self, **kwargs):
         return self.route_list(**kwargs)
 
-    def after_add(self, **kwargs):
+    def after_add(self, row=None, **kwargs):
         return self.route_list(**kwargs)
 
-    def after_edit(self, **kwargs):
+    def after_edit(self, row=None, **kwargs):
         return self.route_list(**kwargs)
 
     def after_view(self, **kwargs):

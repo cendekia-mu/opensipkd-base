@@ -1,15 +1,16 @@
 import json
 import logging
 
-from colander import SchemaNode, null, Mapping, Invalid #, string_types
-from deform.widget import Widget, _StrippedString, Select2Widget, default_resources, \
-    ResourceRegistry, default_resource_registry
-from deform.widget import string_types
-from deform.form import Button
-from iso8601.iso8601 import ISO8601_REGEX
-from deform.i18n import _
+from colander import SchemaNode, null, Mapping, Invalid  # , string_types
 from colander import compat
 from deform import widget
+from deform.form import Button
+from deform.i18n import _
+from deform.widget import Widget, _StrippedString, Select2Widget, \
+    DateInputWidget as WidgetDateInputWidget
+from deform.widget import string_types
+from iso8601.iso8601 import ISO8601_REGEX
+
 _logging = logging.getLogger(__name__)
 
 
@@ -383,7 +384,7 @@ class MapWidget(Widget):
                     {
                         "js": "opensipkd.base:static/js/gmap.js",
                         "css": "deform:static/select2/select2.css",
-    },)
+                    },)
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -704,3 +705,7 @@ class TextInputWidget(widget.TextInputWidget):
 
         if isinstance(self.button, compat.string_types):
             self.button = Button(self.button, type="button")
+
+
+class DateInputWidget(WidgetDateInputWidget):
+    type_name = "text"

@@ -1,10 +1,10 @@
 from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, backref
-from .users import User
 
-from .meta import Base
 from .base import NamaModel, DefaultModel, DBSession, KodeModel
+from .meta import Base
 from .partner import Partner
+from .users import User
 
 
 class Route(Base, NamaModel):
@@ -42,7 +42,14 @@ class UserDeviceModel(Base, KodeModel):
     expired = Column(DateTime(timezone=True))
     user = relationship(User, backref=backref("devices"))
 
+
 class ResCompany(Base, NamaModel):
     __tablename__ = 'company'
+    id = Column(Integer, primary_key=True)
     partner_id = Column(Integer, ForeignKey(Partner.id))
-    partner = relationship(Partner, backref=backref("company"))
+    partner = relationship("Partner", backref=backref("company"))
+    parent_id = Column(Integer, ForeignKey("company.id"))
+    children = relationship("ResCompany")
+    parent = relationship(
+        "ResCompany", remote_side=[id], primaryjoin="ResCompany.parent_id==ResCompany.id"
+        )
