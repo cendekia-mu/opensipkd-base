@@ -181,6 +181,12 @@ class ViewCompany(BaseView):
     def view_list(self):
         return super().view_list()
 
+    def filter_company(self, query):
+        if self.req.user.company_id:
+            return query.filter(
+                self.table.id == self.req.user.company_id)
+        return query
+
     @view_config(route_name='company-act', renderer='json',
                  permission='view')
     def view_act(self):
