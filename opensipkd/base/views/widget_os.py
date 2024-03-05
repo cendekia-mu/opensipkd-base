@@ -169,9 +169,15 @@ class BlokKavNoWidget(Widget):
 
             result = "|".join([blok_kav_no, rt, rw])
 
-            if not blok_kav_no or not rt or not rw:
-                raise Invalid(field.schema, "Blok Kav No RT/RW tidak lengkap",
-                              result)
+            if not rt:
+                raise Invalid(field.schema, "RT harus diisi. Minimal 000", result)
+
+            if not rw:
+                raise Invalid(field.schema, "RW harus diisi. Minimal 00", result)
+
+            # if not blok_kav_no or not rt or not rw:
+            #     raise Invalid(field.schema, "Blok Kav No RT/RW tidak lengkap",
+            #                   result)
 
             return result
 

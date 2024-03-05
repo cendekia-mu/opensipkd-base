@@ -1,0 +1,5 @@
+<div>
+  <span  class="form-control-static" id="${oid|field.oid}">
+          ${blok_kav_no}</span> <span class="form-control-static">RT: ${rt}</span>
+    <span class="form-control-static">RW: ${rw}</span>
+</div>
