@@ -30,11 +30,13 @@ SESS_EDIT_FAILED = 'Edit partner gagal'
 
 class AddSchema(PartnerSchema):
     is_vendor = colander.SchemaNode(
-        colander.Boolean(),
+        colander.Integer(),
+        widget=widget.CheckboxWidget(true_val="1", false_val="0"),
         oid="is_vendor",
         title="Vendor")
     is_customer = colander.SchemaNode(
-        colander.Boolean(),
+        colander.Integer(),
+        widget=widget.CheckboxWidget(true_val="1", false_val="0"),
         oid="is_customer",
         title="Customer")
     company_id = colander.SchemaNode(

@@ -1,38 +1,21 @@
 <tal:block tal:define="oid oid|field.oid;
         css_class css_class|field.widget.css_class;
         style style|field.widget.style;
-        preview_url cstruct.get('preview_url')|cstruct.get('base64')|'';
+        preview_url cstruct.get('preview_url')|'';
         ext str(cstruct.get('filename').split('.')[-1:][0]).lower()|[];
         fname str(cstruct.get('filename'))|'';
-        delete cstruct.get('delete')|'';">
+        delete cstruct.get('delete')|'';
+        maxsize field.widget.size|5242880;">
     ${field.start_mapping()}
-    <tal:block tal:condition="preview_url and ext in ['jpg','jpeg','png','bmp','gif']">
-        <img id="preview-${oid}" alt="" src="${structure: preview_url}" style="width:100px;height:auto;"
-        onload="window.URL.revokeObjectURL(this.src)"></img>
-        <br>
-    </tal:block>
-    <tal:block tal:condition="not preview_url or ext not in ['jpg','jpeg','png','bmp','gif']">
-        <img id="preview-${oid}" alt="" src="" style="width:100px;height:auto;"
-        onload="window.URL.revokeObjectURL(this.src)"></img>
-        <br>
-    </tal:block>
-    <a id="label-${oid}" tal:condition="preview_url" class="label label-default" href="${structure: preview_url}"
+    <img id="preview-${oid}" alt="" src="${preview_url}" style="width:100px;height:auto;display:block;"
+        onload="window.URL.revokeObjectURL(this.src);"></img>
+    <a id="label-${oid}" tal:condition="preview_url" class="label label-default" href="${preview_url}"
     target="_blank"><i class="fa fa-search"></i> View</a>
-    <button id="labeldelete-${oid}" type="button" tal:condition="delete" class="label label-danger" href="#"
-    target="_blank" 
-    onclick="var daft = document.getElementById('daftar_file_hapus').value.replace(/\[|\]/g,'').split(',');
-             daft.push('${fname}');
-             document.getElementById('daftar_file_hapus').value=daft;
-             document.getElementById('${oid}-close').click();">
-    <i class="fa fa-remove"></i> Delete</button>
     <input type="file" name="upload" id="${oid}"
              tal:attributes="style style;
                     accept accept|field.widget.accept;
                     data-filename fname;
-                    attributes|field.widget.attributes|{};"
-                    onchange="document.getElementById('preview-'+this.id).src = window.URL.createObjectURL(this.files[0]);
-                              document.getElementById('labeldelete-'+this.id).remove();
-                              document.getElementById('label-'+this.id).remove();"/>
+                    attributes|field.widget.attributes|{};"/>
     <input tal:define="uid cstruct.get('uid')"
              tal:condition="uid"
             type="hidden" name="uid" value="${uid}"/>
@@ -41,6 +24,15 @@
         deform.addCallback('${oid}', function (oid) {
             $('#' + oid).upload();
         });
-
+        document.getElementById("${oid}").onchange = function() {
+            if(this.files[0].size > ${maxsize}){
+                alert("File is too big!");
+                this.value = "";
+                document.getElementById('preview-'+this.id).src = '';
+            }
+            document.getElementById('preview-'+this.id).src = window.URL.createObjectURL(this.files[0]);
+            document.getElementById('labeldelete-'+this.id).remove();
+            document.getElementById('label-'+this.id).remove();
+        };
     </script>
 </tal:block>

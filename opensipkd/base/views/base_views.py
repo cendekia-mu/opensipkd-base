@@ -2,31 +2,25 @@ import logging
 import os
 import re
 from datetime import datetime
-
-from datatables import ColumnDT
-from dateutil.relativedelta import relativedelta
-from opensipkd.base.views.upload import tmpstore
-
-from opensipkd.tools.captcha import get_captcha
-from opensipkd.tools.report import csv_response, file_response
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
-
-from .common import DataTables
-from .. import DBSession, get_params, get_urls
-from opensipkd.tools import dmy, date_from_str, get_settings, get_ext, \
-    date_from_str, get_random_string
-import colander
-from deform import (widget, Form, ValidationFailure, Button, FileData, )
 from email.utils import parseaddr
 
+import colander
+from datatables import ColumnDT
+from dateutil.relativedelta import relativedelta
+from deform import (widget, Form, ValidationFailure, FileData, )
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+
+from opensipkd.base.views.upload import tmpstore
+from opensipkd.tools import dmy, get_settings, get_ext, \
+    date_from_str, get_random_string
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
-    btn_view, btn_add, btn_edit, btn_csv, \
+    btn_add, btn_csv, \
     btn_pdf
-
-from opensipkd.models import User, Menus
-
+from opensipkd.tools.captcha import get_captcha
+from opensipkd.tools.report import csv_response, file_response
+from .common import DataTables
+from .. import DBSession, get_params, get_urls
 from ..scripts.initializedb import append_csv
-from ..tools.api import auth_from_rpc
 from ...detable import DeTable
 
 log = logging.getLogger(__name__)
@@ -71,7 +65,7 @@ class BaseView(object):
             dt_awal = date_from_str(
                 '{d}-{m}-{y}'.format(y=self.tahun, m=self.bulan, d='01'))
             dt_akhir = dt_awal + \
-                relativedelta(months=1) - relativedelta(days=1)
+                       relativedelta(months=1) - relativedelta(days=1)
 
             self.ses['awal'] = dmy(dt_awal)
             self.ses['akhir'] = dmy(dt_akhir)
@@ -82,7 +76,7 @@ class BaseView(object):
         if 'posted' in self.params and self.params['posted']:
             posted = self.params['posted']
             self.posted = ((posted == 'true' or posted == '1') and 1) or (
-                (posted == 'false' or posted == '0') and 0) or 0
+                    (posted == 'false' or posted == '0') and 0) or 0
         self.ses['posted'] = self.posted
 
         self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
@@ -167,13 +161,15 @@ class BaseView(object):
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
 
-    def route_list(self, msg=None, error="", **kwargs):
+    def route_list(self, **kwargs):
+        msg = kwargs.get("msg")
+        error = kwargs.get("error", "")
+        list_url = kwargs.get("list_url", None)
         if msg:
             self.ses.flash(msg, error)
-        list_url = kwargs.get("list_url", None)
         if not list_url:
             list_url = self.req.route_url(self.list_route)
-
+        log.error(list_url)
         if self.headers:
             return HTTPFound(location=get_urls(list_url),
                              headers=self.headers)
@@ -342,10 +338,10 @@ class BaseView(object):
     def cancel_act(self, **kwargs):
         return self.route_list(**kwargs)
 
-    def after_add(self, **kwargs):
+    def after_add(self, row=None, **kwargs):
         return self.route_list(**kwargs)
 
-    def after_edit(self, **kwargs):
+    def after_edit(self, row=None, **kwargs):
         return self.route_list(**kwargs)
 
     def after_view(self, **kwargs):

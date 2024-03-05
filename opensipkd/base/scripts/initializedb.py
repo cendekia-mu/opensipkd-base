@@ -243,7 +243,9 @@ def reset_sequence_(cls, seq):
     q = DBSession.query(cls)
     if not q.first():
         sql = "SELECT setval('{}', 1, false)".format(seq)
-        DBSession.bind.execute(sql)
+        # DBSession.bind.execute(sql)
+        #sqlalchemy 2
+        DBSession.execute(text(sql))
 
 
 def reset_sequences():

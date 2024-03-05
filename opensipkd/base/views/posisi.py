@@ -1,7 +1,5 @@
 import colander
-import json
-from deform import (Form, widget, ValidationFailure, )
-from pyramid.httpexceptions import (HTTPFound, )
+from deform import (widget, )
 from pyramid.view import (view_config, )
 from sqlalchemy import or_
 from sqlalchemy.orm import aliased
@@ -11,7 +9,7 @@ from opensipkd.models import DBSession as PartnerDBSession, DBSession, \
 from opensipkd.models import Departemen, Jabatan
 from opensipkd.models import Partner, PartnerDepartemen
 from opensipkd.tools import dmy, date_from_str
-from opensipkd.tools.buttons import btn_cancel, btn_save, btn_delete, btn_close
+from . import widget_os
 from ..views import ColumnDT, DataTables, BaseView
 
 SESS_ADD_FAILED = 'Tambah posisi partner gagal'
@@ -19,20 +17,26 @@ SESS_EDIT_FAILED = 'Edit posisi partner gagal'
 
 
 class AddSchema(colander.Schema):
-    departemen_widget = widget.AutocompleteInputWidget(
-        size=60,
-        values='/departemen/hon/act',
-        min_length=1)
-
     nama_widget = widget.AutocompleteInputWidget(
         size=60,
         values='/partner/hon/act',
-        min_length=1)
+        min_length=2,
+        style="z-index: 100000 !important;")
+
+    departemen_widget = widget.AutocompleteInputWidget(
+        size=60,
+        values='/departemen/hon/act',
+        min_length=2,
+
+        style="z-index: 100001 !important;")
+
 
     jabatan_widget = widget.AutocompleteInputWidget(
         size=60,
         values='/jabatan/hon/act',
-        min_length=1)
+        min_length=2,
+
+        style="z-index: 99999 !important;")
 
     partner_id = colander.SchemaNode(
         colander.Integer(),
@@ -66,11 +70,12 @@ class AddSchema(colander.Schema):
     mulai = colander.SchemaNode(
         colander.String(),
         oid="mulai",
-        widget=widget.DateInputWidget(format="dd-mm-yyyy"))
+        widget=widget_os.DateInputWidget(css_class="date", format="dd-mm-yyyy"))
     selesai = colander.SchemaNode(
         colander.String(),
         oid="selesai",
-        widget=widget.DateInputWidget(format="dd-mm-yyyy"))
+        widget=widget_os.DateInputWidget(css_class="date", format="dd-mm-yyyy",
+                                         style="z-index: 9999 !important;"))
 
 
 class EditSchema(AddSchema):

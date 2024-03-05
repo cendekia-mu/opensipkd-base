@@ -22,9 +22,11 @@ from .base_views import BaseView
 from opensipkd.models import (
     DBSession, UserService, )
 from .common import DataTables, ColumnDT
+from pyramid.csrf import new_csrf_token
 
 _ = TranslationStringFactory('login')
 log = logging.getLogger(__name__)
+
 
 
 @view_config(context=HTTPNotFound, renderer='templates/404.pt')
@@ -63,6 +65,7 @@ class Home(BaseView):
         # session = request.session
         modules = request.menus
         modules_default = get_params('modules_default')
+        submodules_default = get_params('submenus')
         # request.session['modules'] = modules
         # request.session['modules_default'] = modules_default
         log.info(request.session.peek_flash())
@@ -78,10 +81,10 @@ class Home(BaseView):
         if home_tpl:
             return render_to_response(
                 home_tpl,
-                dict(modules=modules, logo=logo),
+                dict(modules=modules, logo=logo, submodules=[]),
                 request=request
             )
-        return dict(modules=modules, logo=logo)
+        return dict(modules=modules, logo=logo, submodules=[])
 
 
 @view_config(context=HTTPForbidden, renderer='templates/403.pt')
@@ -149,3 +152,5 @@ two_minutes = timedelta(1.0 / 24 / 60)
 def deferred_jenis(node, kw):
     values = kw.get('daftar_jenis', [])
     return widget.RadioChoiceWidget(values=values)
+
+

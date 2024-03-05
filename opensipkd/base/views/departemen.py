@@ -5,14 +5,15 @@ from datetime import datetime
 
 import colander
 from deform import (widget, )
-from opensipkd.tools import (get_ext, get_random_string, get_settings)
 from pyramid.view import (view_config, )
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
+from opensipkd.models import DBSession, Departemen, Partner, PartnerDepartemen, ResCompany
+from opensipkd.tools import (get_ext, get_random_string, get_settings)
 from .company import company_widget
 from .upload import AddSchema as UploadSchema
-from opensipkd.models import DBSession, Departemen, Partner, PartnerDepartemen
+from .. import get_params
 from ..views import ColumnDT, DataTables, BaseView, get_urls
 
 SESS_ADD_FAILED = 'Tambah departemen gagal'
@@ -45,10 +46,11 @@ class AddSchema(colander.Schema):
         widget=widget.AutocompleteInputWidget(
             size=60, min_length=3,
             requirements=(("typeahead", None), ("deform", None),
-                          {"js": "opensipkd.base:static/js/form/departemen.js"})
+                          {"js": "opensipkd.base:static/js/form/departemen.js"}),
+            # options={"allowClear": True}
         ),
-
         oid="parent_nm", title="Induk")
+
     parent_kd = colander.SchemaNode(colander.String(),
                                     widget=widget.TextInputWidget(css_class="readonly"),
                                     missing=colander.drop, oid="parent_kd", title="Kode Induk")
@@ -75,19 +77,13 @@ class AddSchema(colander.Schema):
 
     def after_bind(self, schema, kwargs):
         request = kwargs["request"]
-        # self["parent_nm"] = colander.SchemaNode(
-        #     colander.String(),
-        #     missing=colander.drop,
-        #     widget=AutocompleteInputWidget(
-        #         size=60, min_length=3,
-        #         values=f"{request.route_url('departemen')}/hon/act"),
-        #     oid="parent_nm",
-        #     title="Induk", )
         self["parent_nm"].widget = widget.AutocompleteInputWidget(
             size=60, min_length=3,
             requirements=(("typeahead", None), ("deform", None),
                           {"js": "opensipkd.base:static/js/form/departemen.js"}),
-            values=get_urls(f"{request.route_url('departemen')}/hon/act"))
+            values=get_urls(f"{request.route_url('departemen')}/hon/act"),
+        )
+
         if request.user.company_id:
             self["company_id"].widget = widget.HiddenWidget()
         self["company_id"].default = request.user.company_id
@@ -100,12 +96,13 @@ class EditSchema(AddSchema):
 
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.String(), title="Action", visible=False)
-    kode = colander.SchemaNode(colander.String(), title="Kode", width='100pt')
+    kode = colander.SchemaNode(colander.String(), title="Kode")
     nama = colander.SchemaNode(colander.String(), title="Nama")
     status = colander.SchemaNode(colander.Boolean(), title="Status", width='50pt',
                                  widget=widget.CheckboxWidget())
-    level_id = colander.SchemaNode(colander.Integer(), title="Level", width='50pt')
-    parent = colander.SchemaNode(colander.String(), title="Induk", width='200pt')
+    level_id = colander.SchemaNode(colander.Integer(), title="Level", width='40pt')
+    parent = colander.SchemaNode(colander.String(), title="Induk")
+    company_nm = colander.SchemaNode(colander.String(), title="Company")
 
 
 class ViewDepartemen(BaseView):
@@ -166,13 +163,21 @@ class ViewDepartemen(BaseView):
             if child.children:
                 self.update_children(child.children)
 
-    def save_request(self, values, row=None): #save(self, row, values):
+    def save_request(self, values, row=None):  # save(self, row, values):
         for k, v in values.items():
             if not v:
                 setattr(row, k, None)
+
+        values["level_id"] = 1
+        if "parent_id" in values and values["parent_id"]:
+            qry_parent = self.table.query_id(values["parent_id"])
+            parent = qry_parent.first()
+            if parent and parent.level_id:
+                values["level_id"] = parent.level_id + 1
+        if "parent_id" not in values:
+            values["parent_id"] = None
         row = super().save_request(values, row)
         return row
-
 
     @view_config(route_name='departemen-view',
                  renderer='templates/form.pt', permission='departemen')
@@ -199,9 +204,12 @@ class ViewDepartemen(BaseView):
                        ColumnDT(Departemen.nama, mData='nama'),
                        ColumnDT(dep_alias.nama, mData='parent'),
                        ColumnDT(Departemen.status, mData='status'),
-                       ColumnDT(Departemen.level_id, mData='level_id'), ]
+                       ColumnDT(Departemen.level_id, mData='level_id'),
+                       ColumnDT(ResCompany.nama, mData='company_nm'), ]
             query = DBSession.query().select_from(Departemen).outerjoin(
-                dep_alias, Departemen.parent_id == dep_alias.id)
+                dep_alias, Departemen.parent_id == dep_alias.id).outerjoin(
+                ResCompany, self.table.company_id == ResCompany.id
+            )
             query = self.filter_company(query)
             row_table = DataTables(request.GET, query, columns)
             return row_table.output_result()
@@ -244,7 +252,7 @@ class ViewDepartemen(BaseView):
             # todo Check ulang untuk hon
             term = 'term' in params and params['term'] or ''
             settings = get_settings()
-            level_id = self.req.get_params('departemen_chg_id', 0)
+            level_id = get_params('departemen_chg_id', 0)
             q = DBSession.query(Departemen).filter(Departemen.status == 1,
                                                    Departemen.nama.ilike(
                                                        '%%%s%%' %
@@ -299,6 +307,9 @@ class ViewDepartemen(BaseView):
                          level_id=k.level_id)
                 r.append(d)
             return r
+
+    def get_bindings(self, row=None):
+        return {"company_list": ResCompany.get_list()}
 
     @view_config(route_name='departemen-add', renderer='templates/form.pt',
                  permission='departemen')

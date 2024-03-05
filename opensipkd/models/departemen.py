@@ -10,6 +10,7 @@ from sqlalchemy.orm import (
     backref
 )
 
+from . import ResCompany
 from ..models import DBSession, Base
 from ..models import (NamaModel,
                       TABLE_ARGS)
@@ -26,7 +27,7 @@ class Departemen(Base, NamaModel):
     level_id = Column(SmallInteger)
     children = relationship(
         "Departemen", backref=backref('parent', remote_side=[id]))
-    company_id = Column(Integer)
+    company_id = Column(Integer, ForeignKey(ResCompany.id))
 
     def get_parents(self, start=False):
         allparents = []

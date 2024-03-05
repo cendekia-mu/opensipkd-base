@@ -18,9 +18,11 @@
     '${oid}',
      function deform_cb(oid) {
        if (!Modernizr.inputtypes['date'] ||"${type_name}" != "date" || window.forceDateTimePolyfill){
+         console.log(${options_json});
          $('#' + oid).pickadate(${options_json});
        }
      }
    );
   </script>
+
 </div>

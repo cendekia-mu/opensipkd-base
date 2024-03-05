@@ -25,7 +25,7 @@ class AddSchema(colander.Schema):
     cur_departemen_nm = colander.SchemaNode(
         colander.String(),
         widget=widget.TextInputWidget(readonly=True),
-        title="Departemen Kini",
+        title="Departemen Aktif",
         missing=colander.drop)
     departemen_id = colander.SchemaNode(
         colander.Integer(),
@@ -44,6 +44,7 @@ class AddSchema(colander.Schema):
     level_id = colander.SchemaNode(
         colander.String(),
         # widget = widget.HiddenWidget(),
+        missing=colander.drop,
         oid="level_id",
         title="Level")
     callback = colander.SchemaNode(
@@ -57,7 +58,7 @@ class ChangeDepartemen(BaseView):
     ########
     # List #
     ########
-    @view_config(route_name='departemen-chg', renderer='templates/departemen/chg.pt')
+    @view_config(route_name='departemen-chg', renderer='templates/departemen_chg.pt')
     def view_departemen_chg(self):
         request = self.req
         ses = request.session

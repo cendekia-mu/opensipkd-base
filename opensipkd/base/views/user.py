@@ -124,9 +124,11 @@ class Views(BaseView):
         values["email"] = values['email'].lower()
         values["user_name"] = re.sub(' ', '', values['user_name'])  # .lower()
         values["security_code_date"] = create_now()
-        company_id = request.user and request.user.company_id or "company_id" in values and \
-                     values["company_id"] or None
-        values["company_id"] = company_id
+        # company_id = request.user and request.user.company_id or "company_id" in values and \
+        #              values["company_id"] or None
+        # values["company_id"] = company_id
+        if "company_id" not in values:
+            values["company_id"]=None
         if 'is_api_key' in values:
             values["api_key"] = generate_api_key()
         insert = not row
