@@ -35,6 +35,14 @@ def departemen_widget(node, kw):
     return widget.Select2Widget(values=values)
 
 
+def departemen_widget_form():
+    return widget.AutocompleteInputWidget(
+        size=60, min_length=3,
+        requirements=(("typeahead", None), ("deform", None),
+                      {"js": "opensipkd.base:static/js/form/departemen_form.js"}),
+    )
+
+
 class AddSchema(colander.Schema):
     parent_id = colander.SchemaNode(
         colander.Integer(),

@@ -19,6 +19,8 @@
     allow_edit allow_edit|field.allow_edit;
     allow_delete allow_delete|field.allow_delete;
     allow_view allow_view|field.allow_view;
+    allow_post allow_post|field.allow_post;
+    allow_unpost allow_unpost|field.allow_unpost;
     state_save state_save|field.state_save;
     "
      tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};"
@@ -97,13 +99,19 @@
             ${tableid}Columns[co].render = function (id) {
               let result = ""
               if (${allow_view}) {
-                result = '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true"></i></a>&nbsp;';
+                result = '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
               }
               if (${allow_edit}) {
-                result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true"></i></a>&nbsp;'
+                result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true" title="Edit"></i></a>&nbsp;'
               }
               if (${allow_delete}) {
-                result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true"></i></a>';
+                result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true" title="Delete"></i></a>';
+              }
+              if (${allow_post}) {
+                result += '<a href="${url}/' + id + '/post"><i class="fas fa-signs-post" aria-hidden="true" title="Post"></i></a>';
+              }
+              if (${allow_unpost}) {
+                result += '<a href="${url}/' + id + '/unpost"><i class="fas fa-delete-left" aria-hidden="true" title="Unpost"></i></a>';
               }
               return result;
             }

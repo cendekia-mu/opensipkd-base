@@ -114,6 +114,8 @@ class DeTable(field.Field):
             allow_edit=True,
             allow_delete=True,
             allow_view=True,
+            allow_post=False,
+            allow_unpost=False,
             **kw
     ):
         # field.Field.__init__(self, schema, **kw)
@@ -165,6 +167,8 @@ class DeTable(field.Field):
         self.allow_edit = json.dumps(allow_edit)
         self.allow_delete = json.dumps(allow_delete)
         self.allow_view = json.dumps(allow_view)
+        self.allow_post = json.dumps(allow_post)
+        self.allow_unpost = json.dumps(allow_unpost)
         table_widget = getattr(schema, "widget", None)
         if table_widget is None:
             table_widget = widget.TableWidget()
