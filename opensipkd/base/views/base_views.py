@@ -156,7 +156,9 @@ class BaseView(object):
         self.action_suffix = "/grid/act"
         self.upload_keys = ["kode"]
         self.report_file = ""
-        self.query_register = ""
+
+    def query_register(self, **kwargs):
+        pass
 
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
