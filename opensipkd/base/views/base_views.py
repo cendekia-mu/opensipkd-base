@@ -417,23 +417,23 @@ class BaseView(object):
                                  global_search=global_search))
                 if hasattr(d, "url"):
                     url.append(d.name)
-            else:
-                columns = self.columns
+        else:
+            columns = self.columns
 
-            query = self.db_session.query().select_from(self.table)
-            query = self.list_join(query)
-            if self.req.user and self.req.user.company_id and hasattr(
-                    self.table, "company_id"):
-                query = query.filter(
-                    self.table.company_id == self.req.user.company_id)
-            query = self.list_filter(query)
-            row_table = DataTables(self.req.GET, query, columns)
-            result = row_table.output_result()
-            #     for k, v in d.items():
-            #         if k in url and v:
-            #             link = "/".join([self.home, nik_url, v])
-            #             d[k] =f'<a href="{link}" target="_blank">View</a>'
-            return result
+        query = self.db_session.query().select_from(self.table)
+        query = self.list_join(query)
+        if self.req.user and self.req.user.company_id and hasattr(
+                self.table, "company_id"):
+            query = query.filter(
+                self.table.company_id == self.req.user.company_id)
+        query = self.list_filter(query)
+        row_table = DataTables(self.req.GET, query, columns)
+        result = row_table.output_result()
+        #     for k, v in d.items():
+        #         if k in url and v:
+        #             link = "/".join([self.home, nik_url, v])
+        #             d[k] =f'<a href="{link}" target="_blank">View</a>'
+        return result
 
     def view_act(self, **kwargs):
         url_dict = self.req.matchdict
