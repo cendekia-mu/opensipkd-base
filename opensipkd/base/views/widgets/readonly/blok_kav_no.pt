@@ -1,5 +1,11 @@
-<div>
-  <span  class="form-control-static" id="${oid|field.oid}">
-          ${blok_kav_no}</span> <span class="form-control-static">RT: ${rt}</span>
-    <span class="form-control-static">RW: ${rw}</span>
+<div class="form-control-static" id="${oid|field.oid}"
+    tal:define="
+    has_blok blok_kav_no and True or False;
+    has_rt rt and True or False;
+    has_rw rt and True or False;
+    "
+>
+    <span tal:condition="has_blok" style="margin-right:0.25rem;">${blok_kav_no}</span>
+    <span tal:condition="has_rt" style="margin-right:0.25rem;">RT ${rt}</span>
+    <span tal:condition="has_rw" style="margin-right:0.25rem;">RW ${rw}</span>
 </div>
