@@ -166,7 +166,8 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
 
 
 class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
-    user = relationship(User, backref=backref("external"))
+    user = relationship(User, backref=backref("external"),
+                        overlaps="external_identities,owner")
 
     @classmethod
     def query(cls):

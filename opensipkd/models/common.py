@@ -51,5 +51,6 @@ class ResCompany(Base, NamaModel):
     parent_id = Column(Integer, ForeignKey("company.id"))
     children = relationship("ResCompany")
     parent = relationship(
-        "ResCompany", remote_side=[id], primaryjoin="ResCompany.parent_id==ResCompany.id"
+        "ResCompany", remote_side=[id], primaryjoin="ResCompany.parent_id==ResCompany.id",
+        overlaps="children"
         )

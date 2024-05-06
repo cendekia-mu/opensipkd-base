@@ -15,7 +15,7 @@ from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
     btn_add, btn_csv, \
-    btn_pdf
+    btn_pdf, btn_unpost, btn_post
 from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
 from .common import DataTables
@@ -211,6 +211,7 @@ class BaseView(object):
         schema.request = self.req
         if row:
             schema.deserialize(row)
+
         return Form(schema, buttons=buttons, autocomplete=self.autocomplete)
 
     def session_failed(self, session_name):
@@ -222,8 +223,8 @@ class BaseView(object):
         if self.list_schema:
             allow_edit = kwargs.get("allow_edit", True)
             allow_delete = kwargs.get("allow_delete", True)
-            allow_post = kwargs.get("allow_delete", False)
-            allow_unpost = kwargs.get("allow_delete", False)
+            allow_post = kwargs.get("allow_post", False)
+            allow_unpost = kwargs.get("allow_unpost", False)
             state_save = kwargs.get("state_save", False)
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
@@ -266,7 +267,8 @@ class BaseView(object):
         if not row:
             return self.id_not_found()
         bindings = self.get_bindings(row)
-        form = self.get_form(self.edit_schema, buttons=(btn_close,),
+        buttons = kwargs.get("buttons", (btn_close,))
+        form = self.get_form(self.edit_schema, buttons=buttons,
                              bindings=bindings)
         if request.POST:
             result = self.next_view(form, row=row)
@@ -297,6 +299,22 @@ class BaseView(object):
                     js=resources["js"],
                     **kwargs
                     )
+
+    def set_post(self, **kwargs):
+        pass
+    def set_unpost(self, **kwargs):
+        pass
+
+    def view_post(self, post_field="status", **kwargs):
+        request = self.req
+        row = self.query_id().first()
+        if not row:
+            return self.id_not_found()
+        if getattr(row, post_field):
+            buttons = (btn_unpost, btn_close)
+        else:
+            buttons = (btn_post, btn_close)
+        return self.view_view(buttons=buttons)
 
     def view_upload(self, exts=('.png', '.ico')):
         bindings = self.get_bindings()

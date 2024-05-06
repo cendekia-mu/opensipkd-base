@@ -1,19 +1,20 @@
 from datetime import datetime
 
-from opensipkd.tools import as_timezone
-from sqlalchemy.ext.hybrid import hybrid_property
 import ziggurat_foundations.models
-from sqlalchemy.orm import (scoped_session, sessionmaker, Session)
-from zope.sqlalchemy import register
 from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, func
 from sqlalchemy import inspect as sa_inspect
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import (scoped_session, sessionmaker, Session)
+from zope.sqlalchemy import register
+
+from opensipkd.tools import as_timezone
 
 
 class MySession(Session):
     def execute(self, clause, params=None, mapper=None, **kw):
         # Your magic with clause here
-        print("Session:", clause, params, mapper, kw)
-        return Session.execute(self, clause, params) #, mapper
+        # print("Session:", clause, params, mapper, kw)
+        return Session.execute(self, clause, params)  # , mapper
 
 
 session_factory = sessionmaker(class_=MySession)
@@ -60,10 +61,14 @@ class CommonModel(object):
                 values[column.name] = value
         return values
 
-    def from_dict(self, values):
+    def from_dict(self, values, date_format="%d-%m-%Y"):
         for column in self.__table__.columns:
             if column.name in values:
-                setattr(self, column.name, values[column.name])
+                if type(column.type) == DateTime and date_format:
+                    if values[column.name]:
+                        setattr(self, column.name, datetime.strptime(values[column.name], date_format))
+                else:
+                    setattr(self, column.name, values[column.name])
 
     def as_timezone(self, fieldname):
         date_ = getattr(self, fieldname)
@@ -104,7 +109,7 @@ class DefaultModel(CommonModel):
         for c in columns:
             query = query.add_columns(c)
         return query
-    
+
     @classmethod
     def query_id(cls, row_id, db_session=DBSession):
         return cls.query(db_session).filter_by(id=row_id)
@@ -117,7 +122,7 @@ class DefaultModel(CommonModel):
     def flush(cls, row, db_session=DBSession):
         db_session.add(row)
         db_session.flush()
-    
+
 
 class StandarModel(DefaultModel):
     status = Column(SmallInteger, nullable=False, default=0)
