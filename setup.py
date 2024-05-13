@@ -1,4 +1,5 @@
 import os
+
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -15,6 +16,8 @@ requires = [
     'colander==1.8.3',
     'pyramid',
     'pyramid_tm',
+    "pyramid_beaker",
+    "pyramid_mailer",
     'SQLAlchemy',
     'transaction',
     'waitress',
@@ -74,7 +77,7 @@ setup(
         'base/alembic/versions/*.*',
         'base/views/*.tpl',
         'base/locale/*.*',
-        
+
     ], },
     data_files=[('etc', ['etc/live_opensipkd.tpl',
                          'etc/test_opensipkd.tpl', ])],

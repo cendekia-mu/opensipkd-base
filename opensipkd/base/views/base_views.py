@@ -15,7 +15,7 @@ from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
     btn_add, btn_csv, \
-    btn_pdf
+    btn_pdf, btn_unpost, btn_post
 from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
 from .common import DataTables
@@ -156,7 +156,9 @@ class BaseView(object):
         self.action_suffix = "/grid/act"
         self.upload_keys = ["kode"]
         self.report_file = ""
-        self.query_register = ""
+
+    def query_register(self, **kwargs):
+        pass
 
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
@@ -209,6 +211,7 @@ class BaseView(object):
         schema.request = self.req
         if row:
             schema.deserialize(row)
+
         return Form(schema, buttons=buttons, autocomplete=self.autocomplete)
 
     def session_failed(self, session_name):
@@ -220,6 +223,8 @@ class BaseView(object):
         if self.list_schema:
             allow_edit = kwargs.get("allow_edit", True)
             allow_delete = kwargs.get("allow_delete", True)
+            allow_post = kwargs.get("allow_post", False)
+            allow_unpost = kwargs.get("allow_unpost", False)
             state_save = kwargs.get("state_save", False)
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
@@ -233,7 +238,10 @@ class BaseView(object):
                             request=self.req,
                             allow_edit=allow_edit,
                             allow_delete=allow_delete,
-                            state_save=state_save)
+                            allow_post=allow_post,
+                            allow_unpost=allow_unpost,
+                            state_save=state_save,
+                            )
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")
             return dict(form=table.render(), scripts="", css=resources["css"],
@@ -251,15 +259,16 @@ class BaseView(object):
         return self.route_list()
 
     def next_edit(self, form, **kwargs):
-        return self.route_list()
+        return self.route_list(**kwargs)
 
-    def view_view(self):  # row = query_id(request).first()
+    def view_view(self, **kwargs):  # row = query_id(request).first()
         request = self.req
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
         bindings = self.get_bindings(row)
-        form = self.get_form(self.edit_schema, buttons=(btn_close,),
+        buttons = kwargs.get("buttons", (btn_close,))
+        form = self.get_form(self.edit_schema, buttons=buttons,
                              bindings=bindings)
         if request.POST:
             result = self.next_view(form, row=row)
@@ -273,12 +282,39 @@ class BaseView(object):
         form.set_appstruct(values)
         table = self.get_item_table(row)
         resources = form.get_widget_resources()
+        is_object = kwargs.get("is_object", False)
+        if is_object:
+            return dict(form=form,
+                        readonly=True,
+                        table=table and table.render() or None,
+                        scripts=self.form_scripts,
+                        css=resources["css"],
+                        js=resources["js"],
+                        **kwargs
+                        )
         return dict(form=form.render(readonly=True),
                     table=table and table.render() or None,
                     scripts=self.form_scripts,
                     css=resources["css"],
-                    js=resources["js"]
+                    js=resources["js"],
+                    **kwargs
                     )
+
+    def set_post(self, **kwargs):
+        pass
+    def set_unpost(self, **kwargs):
+        pass
+
+    def view_post(self, post_field="status", **kwargs):
+        request = self.req
+        row = self.query_id().first()
+        if not row:
+            return self.id_not_found()
+        if getattr(row, post_field):
+            buttons = (btn_unpost, btn_close)
+        else:
+            buttons = (btn_post, btn_close)
+        return self.view_view(buttons=buttons)
 
     def view_upload(self, exts=('.png', '.ico')):
         bindings = self.get_bindings()
@@ -349,10 +385,9 @@ class BaseView(object):
 
     def next_act(self):
         url_dict = self.req.matchdict
-
         raise HTTPNotFound
 
-    def jasper_response(self, **kwargs):
+    def pdf_response(self, **kwargs):
         from opensipkd.base.tools.report import jasper_export
         filename = jasper_export(self.report_file)
         return file_response(self.req, filename=filename[0])
@@ -375,59 +410,61 @@ class BaseView(object):
     def list_filter(self, query):
         return query
 
+    def get_list(self):
+        url = []
+        if not self.columns:
+            columns = []
+            for d in self.list_schema():
+                global_search = True
+                if hasattr(d, "searchable"):
+                    if d.searchable == False:
+                        global_search = False
+
+                if hasattr(d, "field"):
+                    if type(d.field) == str:
+                        columns.append(
+                            ColumnDT(getattr(self.table, d.field),
+                                     mData=d.name,
+                                     global_search=global_search))
+                    else:
+                        columns.append(
+                            ColumnDT(d.field, mData=d.name,
+                                     global_search=global_search
+                                     ))
+                else:
+                    columns.append(
+                        ColumnDT(getattr(self.table, d.name), mData=d.name,
+                                 global_search=global_search))
+                if hasattr(d, "url"):
+                    url.append(d.name)
+        else:
+            columns = self.columns
+
+        query = self.db_session.query().select_from(self.table)
+        query = self.list_join(query)
+        if self.req.user and self.req.user.company_id and hasattr(
+                self.table, "company_id"):
+            query = query.filter(
+                self.table.company_id == self.req.user.company_id)
+        query = self.list_filter(query)
+        row_table = DataTables(self.req.GET, query, columns)
+        result = row_table.output_result()
+        #     for k, v in d.items():
+        #         if k in url and v:
+        #             link = "/".join([self.home, nik_url, v])
+        #             d[k] =f'<a href="{link}" target="_blank">View</a>'
+        return result
+
     def view_act(self, **kwargs):
         url_dict = self.req.matchdict
         if url_dict['act'] == 'grid':
-            url = []
-            if not self.columns:
-                columns = []
-                for d in self.list_schema():
-                    global_search = True
-                    if hasattr(d, "searchable"):
-                        if d.searchable == False:
-                            global_search = False
-
-                    if hasattr(d, "field"):
-                        if type(d.field) == str:
-                            columns.append(
-                                ColumnDT(getattr(self.table, d.field),
-                                         mData=d.name,
-                                         global_search=global_search))
-                        else:
-                            columns.append(
-                                ColumnDT(d.field, mData=d.name,
-                                         global_search=global_search
-                                         ))
-                    else:
-                        columns.append(
-                            ColumnDT(getattr(self.table, d.name), mData=d.name,
-                                     global_search=global_search))
-                    if hasattr(d, "url"):
-                        url.append(d.name)
-            else:
-                columns = self.columns
-
-            query = self.db_session.query().select_from(self.table)
-            query = self.list_join(query)
-            if self.req.user and self.req.user.company_id and hasattr(
-                    self.table, "company_id"):
-                query = query.filter(
-                    self.table.company_id == self.req.user.company_id)
-            query = self.list_filter(query)
-            row_table = DataTables(self.req.GET, query, columns)
-            result = row_table.output_result()
-            # for d in result["data"]:
-            #     for k, v in d.items():
-            #         if k in url and v:
-            #             link = "/".join([self.home, nik_url, v])
-            #             d[k] =f'<a href="{link}" target="_blank">View</a>'
-            return result
+            return self.get_list()
 
         elif url_dict['act'] == 'csv':
             return self.csv_response()
 
         elif url_dict['act'] == 'pdf':
-            return self.jasper_response()
+            return self.pdf_response()
 
         else:
             return self.next_act()
@@ -437,6 +474,7 @@ class BaseView(object):
         form = self.get_form(self.add_schema, **kwargs)
         table = self.get_item_table(**kwargs)
         resources = form.get_widget_resources()
+        is_object = kwargs.get("is_object", False)
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
@@ -458,11 +496,21 @@ class BaseView(object):
                     #     log.debug(hasattr(e.field, k))
                     # if isinstance(f, colander.Date):
                     #     e.cstruct[f] = date_from_str(e.cstruct[f])
+                    if is_object:
+                        return dict(form=form,
+                                    table=table and table.render() or None,
+                                    scripts=self.form_scripts,
+                                    css=resources["css"],
+                                    js=resources["js"],
+                                    **kwargs
+                                    )
 
                     return dict(form=form.render(e.cstruct),
                                 table=table and table.render() or None,
                                 scripts=self.form_scripts, css=resources["css"],
-                                js=resources["js"])
+                                js=resources["js"],
+                                **kwargs
+                                )
                 values = dict(c)
                 row = self.save_request(values)
                 return self.after_add(row=row, **kwargs)
@@ -474,12 +522,21 @@ class BaseView(object):
             return self.route_list(**kwargs)
         values = self.before_add()
         form.set_appstruct(values)
+        if is_object:
+            return dict(form=form,
+                        table=table and table.render() or None,
+                        scripts=self.form_scripts,
+                        css=resources["css"],
+                        js=resources["js"],
+                        **kwargs
+                        )
+
         return dict(form=form.render(), table=table and table.render() or None,
                     scripts=self.form_scripts, css=resources["css"],
                     js=resources["js"])
 
     def save(self, values, user, row=None):
-        log.debug("Save")
+        log.info("Save")
         log.debug(values)
         values.pop("id", None)
         self.ses["old_email"] = user and user.email or None
@@ -534,6 +591,8 @@ class BaseView(object):
     def view_edit(self, **kwargs):
         request = self.req
         row = self.query_id().first()
+        is_object = kwargs.get("is_object", False)
+
         if not row:
             return self.id_not_found(**kwargs)
         if not self.bindings:
@@ -553,9 +612,17 @@ class BaseView(object):
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
-                    # log.debug(f"Edit Error: {str(e.error)}")
+                    log.error(f"Edit Error: {str(e.error)}")
                     # log.debug(f"Edit Data: {e.cstruct}")
                     form.set_appstruct(e.cstruct)
+                    if is_object:
+                        return dict(form=form,
+                                    table=table and table.render() or None,
+                                    scripts=self.form_scripts,
+                                    css=resources["css"],
+                                    js=resources["js"],
+                                    **kwargs
+                                    )
                     return dict(form=form.render(),
                                 table=table and table.render() or None,
                                 scripts=self.form_scripts, css=resources["css"],
@@ -569,6 +636,14 @@ class BaseView(object):
         values = self.get_values(row)
         form.set_appstruct(values)
         form = self.before_edit(form)
+        if is_object:
+            return dict(form=form,
+                        table=table and table.render() or None,
+                        scripts=self.form_scripts,
+                        css=resources["css"],
+                        js=resources["js"],
+                        **kwargs
+                        )
         return dict(form=form.render(), table=table and table.render() or None,
                     scripts=self.form_scripts, css=resources["css"],
                     js=resources["js"])
@@ -576,10 +651,12 @@ class BaseView(object):
     def before_delete(self, row):
         pass
 
-    def view_delete(self):
+    def view_delete(self, **kwargs):
         request = self.req
         q = self.query_id()
         row = q.first()
+        is_object = kwargs.get("is_object", False)
+
         if not row:
             return self.id_not_found()
         if not self.bindings:
@@ -587,7 +664,12 @@ class BaseView(object):
         if request.POST:
             if 'delete' in request.POST:
                 msg = self.delete_msg(row)
-                self.before_delete(row)
+                try:
+                    self.before_delete(row)
+                except Exception as e:
+                    self.ses.flash(e, "error")
+                    return self.route_list()
+
                 q.delete()
                 self.db_session.flush()
                 request.session.flash(msg)
@@ -597,6 +679,15 @@ class BaseView(object):
         table = self.get_item_table(row)
         resources = form.get_widget_resources()
         form.set_appstruct(self.get_values(row))
+        if is_object:
+            return dict(form=form,
+                        readonly=True,
+                        table=table and table.render() or None,
+                        scripts=self.form_scripts,
+                        css=resources["css"],
+                        js=resources["js"],
+                        **kwargs
+                        )
         return dict(form=form.render(readonly=True),
                     table=table and table.render() or None,
                     scripts=self.form_scripts, css=resources["css"],

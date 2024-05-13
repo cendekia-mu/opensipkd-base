@@ -150,6 +150,11 @@ def add_global(event):
     event['get_params'] = get_params
     event['get_urls'] = get_urls
     event['get_csrf_token'] = get_csrf_token
+    event['get_params'] = get_params
+
+
+def get_params(request, params, alternate=None, settings=None):
+    return get_params(params, alternate, settings)
 
 
 def get_params(params, alternate=None, settings=None):
@@ -162,7 +167,6 @@ def get_params(params, alternate=None, settings=None):
     contoh penggunaan:
         get_params('devel', False)
     """
-
     if not settings:
         settings = get_settings()
     result = settings and params in settings and \
@@ -175,6 +179,10 @@ def get_params(params, alternate=None, settings=None):
 
 
 def get_ini(request, var):
+    return get_ini(var)
+
+
+def get_ini(var):
     settings = get_settings()
     if var in settings and settings[var]:
         return settings[var]
@@ -497,6 +505,7 @@ def main(global_config, **settings):
     config.add_request_method(disable_responsive, 'disable_responsive',
                               reify=True)
     config.add_request_method(get_ini, 'get_ini', reify=True)
+    config.add_request_method(get_params, 'get_params', reify=True)
     config.add_request_method(get_csrf_token, 'get_csrf_token', reify=True)
 
     # config.add_translation_dirs('opensipkd.base:locale/')
