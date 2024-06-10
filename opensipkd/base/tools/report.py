@@ -67,11 +67,13 @@ def jasper_export(input_file, output_file=None, schema=None,
         'password': db_password,
         'host': db_host,
         'database': db_name,
+        'db_sid': db_name, # for oracle: added by Tatang
         'schema': db_schema,
         'port': db_port,
         'jdbc_dir': jdbc_dir,
         'jdbc_driver': jdbc_driver,
     }
+
     pyreportjasper = PyReportJasper()
     # log.info(input_file)
     # log.info(output_file)
@@ -86,6 +88,7 @@ def jasper_export(input_file, output_file=None, schema=None,
         parameters=parameters,
         locale='en_US'
     )
+
     # pyreportjasper.compile(write_jasper=True)
     pyreportjasper.process_report()
     output_files = [".".join([output_file, f]) for f in output_formats]
