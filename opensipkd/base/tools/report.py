@@ -28,7 +28,7 @@ def jasper_compile(input_file):
 
 def jasper_export(input_file, output_file=None, schema=None,
                   output_formats=["pdf"], dburl="sqlalchemy.url",
-                  parameters={}, db_schema=None):
+                  parameters={}, db_schema=None, report_locale="en_US"):
     db = get_params(dburl).split("@")
     db_driver, db_user, db_password = db[0].split(':')
     db_servers, db_name = db[1].split('/')
@@ -86,7 +86,7 @@ def jasper_export(input_file, output_file=None, schema=None,
         db_connection=conn,
         output_formats=output_formats,
         parameters=parameters,
-        locale='en_US'
+        locale=report_locale
     )
 
     # pyreportjasper.compile(write_jasper=True)
