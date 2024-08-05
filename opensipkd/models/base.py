@@ -64,11 +64,13 @@ class CommonModel(object):
     def from_dict(self, values, date_format="%d-%m-%Y"):
         for column in self.__table__.columns:
             if column.name in values:
-                if type(column.type) == DateTime and date_format:
-                    if values[column.name]:
-                        setattr(self, column.name, datetime.strptime(values[column.name], date_format))
-                else:
-                    setattr(self, column.name, values[column.name])
+                if type(column.type) is DateTime and date_format:
+
+                    if values[column.name] and type(values[column.name]) is String:
+                        setattr(self, column.name,
+                                datetime.strptime(values[column.name], date_format))
+                        continue
+                setattr(self, column.name, values[column.name])
 
     def as_timezone(self, fieldname):
         date_ = getattr(self, fieldname)
