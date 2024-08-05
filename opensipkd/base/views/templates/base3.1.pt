@@ -281,8 +281,6 @@
 
 <metal:js define-slot="js_files"></metal:js>
 
-<!-- Define Script-->
-<script metal:define-slot="scripts"></script>
 <!-- End isi Script-->
 <!-- MAIN PANEL -->
 <div id="main" role="main">
@@ -325,5 +323,8 @@
     <!-- END MAIN CONTENT -->
 </div>
 <!-- END MAIN PANEL -->
+
+<!-- Define Script-->
+<script metal:define-slot="scripts"></script>
 </body>
 </html>
