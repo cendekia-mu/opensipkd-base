@@ -1,24 +1,20 @@
-import os
-
 import colander
-from opensipkd.base import get_params, get_id_card_folder
 from deform import (
-    widget,
+    widget, Button,
 )
 from pyramid.i18n import TranslationStringFactory
 from pyramid.view import (
     view_config,
 )
 
+from opensipkd.base import get_id_card_folder
+from opensipkd.models import DBSession, Partner
 from opensipkd.models import (
     ResProvinsi, ResDati2, ResKecamatan, ResDesa)
 from opensipkd.models.common import ResCompany
-
 from opensipkd.tools import Upload, img_exts
 from .company import company_widget
-from .partner_base import PartnerSchema, NamaSchema
-from opensipkd.models import DBSession, Partner
-
+from .partner_base import PartnerSchema
 # from .. import partner_idcard_url
 from ..views import BaseView
 
@@ -113,7 +109,22 @@ class ViewPartner(BaseView):
     @view_config(route_name='partner', renderer='templates/table.pt',
                  permission='user-view')
     def view_list(self):
-        return super().view_list()
+        new_buttons = {"kta":
+                           {"obj": "kta",
+                            "js": """if (m{tableid}ID!=null)  
+                                     window.location=o{tableid}Uri+'/'+m{tableid}ID+'/kta?{params}';
+                                     else displayEmptyID();
+                                     """
+                            },
+                       "ktp":
+                           {"obj": Button("ktp", title=_('KTP'), css_class="btn-danger"),
+                            "js": """if (m{tableid}ID!=null)  
+                                             window.location=o{tableid}Uri+'/'+m{tableid}ID+'/ktp?{params}';
+                                             else displayEmptyID();
+                                             """
+                            }
+                       }
+        return super().view_list(new_buttons=new_buttons)
 
     @view_config(route_name='partner-act', renderer='json',
                  permission='user-view')

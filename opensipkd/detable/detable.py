@@ -1,14 +1,14 @@
 """Form."""
 # Standard Library
 import json
-import re
 import logging
+import re
 
 import colander
 import deform
-from chameleon.utils import Markup
 from deform import compat
 from deform import field
+
 from . import widget
 
 # from deform import widget
@@ -122,23 +122,29 @@ class DeTable(field.Field):
         super().__init__(schema, **kw)
         self.request = kw.get("request")
         self.rows = kw.get("rows")
+        new_buttons = kw.get("new_buttons") or ()
 
         params = params and f"?{params}" or ""
-        btn_close_js = "{window.location = '/'; return false;}"
-        btn_add_js = "{window.location = o%sUri+'/add%s';}" % (tableid, params)
-        btn_edit_js = """{
+        dict_buttons = {
+            "close": "{window.location = '/'; return false;}",
+            "add": "{window.location = o%sUri+'/add%s';}" % (tableid, params),
+            "edit": """{
                 if (m%sID) window.location = o%sUri+'/'+m%sID+'/edit%s';
                 else alert('Pilih Baris');
-                }""" % (tableid, tableid, tableid, params)
-        btn_view_js = "{window.location = o%sUri+'/'+m%sID+'/view%s';}" % (
-            tableid, tableid, params)
-        btn_delete_js = "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (
-            tableid, tableid, params)
-        btn_csv_js = "{window.location = o%sUri+'/csv/act%s';}" % (
-            tableid, params)
-        btn_pdf_js = "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params)
-        btn_upload_js = "{window.location = o%sUri+'/upload%s';}" % (
-        tableid, params)
+                }""" % (tableid, tableid, tableid, params),
+            "view": "{window.location = o%sUri+'/'+m%sID+'/view%s';}" % (
+                tableid, tableid, params),
+            "delete": "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (
+                tableid, tableid, params),
+            "csv": "{window.location = o%sUri+'/csv/act%s';}" % (
+                tableid, params),
+            "pdf": "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params),
+            "upload": "{window.location = o%sUri+'/upload%s';}" % (
+                tableid, params),
+        }
+        for k in new_buttons:
+            buttons += (new_buttons[k]["obj"],)
+            dict_buttons[k] = '{' + new_buttons[k]["js"].format(tableid=tableid, params=params) + '}'
 
         action_suffix = f"{action_suffix}{params}"
         _buttons = []
@@ -159,7 +165,7 @@ class DeTable(field.Field):
                         {button.title} </button>\n
                     """)
             _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
-                            eval('btn_' + button.name + '_js') + ');')
+                            dict_buttons[button.name] + ');')
         self.buttons = "','".join(_buttons).replace('\n', ""). \
             replace(';', ';\n')
         self.tableid = tableid
@@ -172,6 +178,7 @@ class DeTable(field.Field):
         table_widget = getattr(schema, "widget", None)
         if table_widget is None:
             table_widget = widget.TableWidget()
+
         self.widget = table_widget
         self.server_side = server_side
         self.data = data

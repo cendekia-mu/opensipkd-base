@@ -1,0 +1,32 @@
+2024-08-05
+Penambahan fungsi Tombol
+
+kwargs = new_buttons
+value = {"btn_name":
+            {"obj": objBtn or btn name,
+             "js": "jsScript{tableid} {params}"
+            }
+         }
+
+contoh pada file partner
+def view_list(self):
+        ktp = Button("ktp", "KTP", )
+        new_buttons = {"kta":
+                           {"obj": "kta",
+                            "js": """if (m{tableid}ID!=null)
+                                     window.location=o{tableid}Uri+'/'+m{tableid}ID+'/kta?{params}';
+                                     else displayEmptyID();
+                                     """
+                            },
+                       "ktp":
+                           {"obj": Button("ktp", title=_('KTP'), css_class="btn-danger"),
+                            "js": """if (m{tableid}ID!=null)
+                                             window.location=o{tableid}Uri+'/'+m{tableid}ID+'/ktp?{params}';
+                                             else displayEmptyID();
+                                             """
+                            }
+                       }
+        return super().view_list(new_buttons=new_buttons)
+
+new_buttons ini bisa di pasang pada init ataua saat memanggil view_list(new_buttons=new_buttons)
+kalau pada init gunakan self.new_buttons

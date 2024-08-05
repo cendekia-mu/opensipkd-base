@@ -156,6 +156,7 @@ class BaseView(object):
         self.action_suffix = "/grid/act"
         self.upload_keys = ["kode"]
         self.report_file = ""
+        self.new_buttons = {}
 
     def query_register(self, **kwargs):
         pass
@@ -229,6 +230,10 @@ class BaseView(object):
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
             list_url = kwargs.get("list_url", None)
+            new_buttons = kwargs.get("new_buttons")
+            if not new_buttons:
+                new_buttons = self.new_buttons
+
             if not list_url:
                 list_url = self.req.route_url(self.list_route)
             table = DeTable(schema,
@@ -241,6 +246,7 @@ class BaseView(object):
                             allow_post=allow_post,
                             allow_unpost=allow_unpost,
                             state_save=state_save,
+                            new_buttons=new_buttons
                             )
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")
@@ -302,6 +308,7 @@ class BaseView(object):
 
     def set_post(self, **kwargs):
         pass
+
     def set_unpost(self, **kwargs):
         pass
 

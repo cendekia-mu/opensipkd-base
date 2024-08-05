@@ -28,6 +28,12 @@
 >
   <header role="heading" class="txt-color-grayDark">
     <h2 tal:condition="title"><i class="fa fa-fw fa-table"></i>${title}</h2>
+    <div class="alert alert-danger " role="alert" id="emptyID" style="opacity:0.7;display: none;">
+      <strong>Pilih data terlebih dahulu!!</strong>
+      <!--?      <button type="button" class="close" data-dismiss="alert" aria-label="Close">-->
+      <!--?        <span aria-hidden="true">&times;</span>-->
+      <!--?      </button>-->
+    </div>
     <div role="content">
       <div class="widget-body">
         <table
@@ -51,10 +57,21 @@
     var o${tableid};
     var o${tableid}Uri = "${url}";
     var o${tableid}Url = o${tableid}Uri + "${url_suffix}";
+    var m${tableid}ID;
     deform.addCallback
     ('${tableid}', function (oid) {
       // $(document).ready(function () {
 
+      function displayEmptyID() {
+        $("#emptyID").show();
+        $('#emptyID').animate({ opacity: 0.8 }, 2000);
+        setTimeout(function () {
+          $("#emptyID").fadeTo(500, 0).slideUp(500, function () {
+            $("#emptyID").hide();
+          });
+        }
+        , 4000);
+      }
 
       let tb_array = [
         '<div class="btn-group pull-left">',
@@ -84,13 +101,13 @@
           ${tableid}Columns[co].className = "text-center";
           ${tableid}Columns[co].width = "30pt";
           ${tableid}Columns[co].render = function (value) {
-            if (typeof value === "string" && value.length>0) {
+            if (typeof value === "string" && value.length > 0) {
               return render_checkbox(value)
             }
             if (["", false, 0].indexOf(value) === -1) {
               return render_checkbox(true);
             }
-            return  render_checkbox(false);
+            return render_checkbox(false);
           }
         } else if (${tableid}Columns[co].hasOwnProperty("url")) {
           let url = ${tableid}Columns[co].url;
@@ -173,6 +190,7 @@
       $('#${tableid} tbody').on('click', 'tr', function () {
         if ($(this).hasClass('selected')) {
           $(this).removeClass('selected');
+          m${tableid}ID = null;
         } else {
           let aData = o${tableid}.row(this).data();
           o${tableid}.$('tr.selected').removeClass('selected');
