@@ -180,6 +180,7 @@ class DeTable(field.Field):
             table_widget = widget.TableWidget()
 
         self.widget = table_widget
+
         self.server_side = server_side
         self.data = data
         columns = []

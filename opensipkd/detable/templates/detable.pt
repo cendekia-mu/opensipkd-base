@@ -51,7 +51,14 @@
       <!-- widget-body -->
     </div>
   </header>
-
+ <style>
+.fa-minus-square {
+  color: red;
+}
+.fa-check-square {
+  color: forestgreen;
+}
+ </style>
   <script type="text/javascript">
     var m${tableid}ID;
     var o${tableid};
@@ -86,7 +93,8 @@
           return '<i class="fas fa-check-square" aria-hidden="true">';
         }
         if (value === false) {
-          return 'Archived';
+          return '<i class="fas fa-minus-square" aria-hidden="true">';
+          //'Archived';
         }
         return value;
       }
