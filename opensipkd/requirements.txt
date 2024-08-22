@@ -1,0 +1,14 @@
+setuptools
+pyramid
+colander
+deform
+SQLAlchemy
+alembic
+transaction
+pyreportjasper
+iso8601
+python-dateutil
+google
+pytz
+translationstring
+icecream

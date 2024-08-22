@@ -42,14 +42,14 @@ class Jabatan(Base, NamaModel):
         pass
 
 
-# class Pangkat(Base, NamaModel):
-#     __tablename__ = 'pangkat'
-#     pangkat = Column(String(32))
-#     ruang = Column(String(1))
-#     __table_args__ = TABLE_ARGS
-#
-#     def __init__(self):
-#         pass
+class Pangkat(Base, NamaModel):
+    __tablename__ = 'pangkat'
+    pangkat = Column(String(32))
+    ruang = Column(String(1))
+    __table_args__ = TABLE_ARGS
+
+    def __init__(self):
+        pass
 
 
 class PartnerDepartemen(Base, DefaultModel):

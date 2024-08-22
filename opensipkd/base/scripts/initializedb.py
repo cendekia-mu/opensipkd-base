@@ -16,10 +16,11 @@ from opensipkd.models.handlers import LogDBSession
 from opensipkd.models import (
     init_model, DBSession, Base, Group, UserGroup, Permission, GroupPermission,
     User, Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa,
-    Menus)
+    Menus, Pangkat)
 
 from sqlalchemy.dialects import oracle
 from sqlalchemy import text
+
 
 log = logging.getLogger(__name__)
 # , mssql
@@ -290,7 +291,7 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
-    alembic_run(config_uri)  # alembicnya ziggurat
+    # alembic_run(config_uri)  # alembicnya ziggurat
     Base.metadata.create_all(engine)
     alembic_run(config_uri, "alembic_base")
     # base_alembic_run(config_uri)
@@ -314,6 +315,7 @@ def main(argv=sys.argv):
         append_csv(Menus, 'menus.csv', ['kode'])
         append_csv(Eselon, 'eselon.csv', ['kode'])
         append_csv(Jabatan, 'jabatan.csv', ['kode'])
+        restore_csv(Pangkat, 'pangkat.csv')
         restore_csv(ResProvinsi, 'provinsi.csv')
         transaction.commit()
         restore_csv(ResDati2, 'dati2.csv')
