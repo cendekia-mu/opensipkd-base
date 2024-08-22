@@ -139,9 +139,9 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
 # masih memungkinkan update yg sudah ada dgn syarat is value dari keys masih sama
 # sperti salah route url asalkan kode msh sama
 def append_csv(table, filename, keys, get_file_func=get_file,
-               db_session=DBSession, update_exist=False):
+               db_session=DBSession, update_exist=False, delimiter=","):
     with get_file_func(filename) as f:
-        reader = csv.DictReader(f)
+        reader = csv.DictReader(f, delimiter=delimiter)
         filter_ = dict()
         foreigns = dict()
         is_first = True
@@ -186,10 +186,13 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     foreign_table, foreign_field = foreigns[fname]
                     value = cf[fname]
                     sql = select([foreign_table]).where(foreign_field == value)
+                    # connection = DBSession.connection()
                     q = Base.metadata.bind.execute(sql)
+                    # q = connection.execute(sql)
                     row = q.fetchone()
                     value = row and row.id or None
-
+                    q.close()
+                    # connection.close()
                 else:
                     value = cf[fname]
                 fname_orig = fmap[fname]

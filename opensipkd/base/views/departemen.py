@@ -1,18 +1,15 @@
-import csv
-import os
-import shutil
 from datetime import datetime
 
 import colander
 from deform import (widget, )
+from opensipkd.models import DBSession, Departemen, Partner, PartnerDepartemen, ResCompany
+from opensipkd.tools import (get_settings)
+from opensipkd.tools.buttons import btn_upload
 from pyramid.view import (view_config, )
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
-from opensipkd.models import DBSession, Departemen, Partner, PartnerDepartemen, ResCompany
-from opensipkd.tools import (get_ext, get_random_string, get_settings)
 from .company import company_widget
-from .upload import AddSchema as UploadSchema
 from .. import get_params
 from ..views import ColumnDT, DataTables, BaseView, get_urls
 
@@ -123,6 +120,7 @@ class ViewDepartemen(BaseView):
         # self.list_url = 'departemen'
         self.list_route = 'departemen'
         self.form_scripts = ""
+        self.list_buttons = self.list_buttons + (btn_upload,)
 
     def form_validator(self, form, value):
         def err_kode():
@@ -338,48 +336,50 @@ class ViewDepartemen(BaseView):
                  renderer='templates/departemen/upload.pt',
                  permission='departemen')
     def view_upload(self):
-        request = self.req
-        form = self.get_form(UploadSchema)
-        if request.POST:
-            if 'save' in request.POST:
-                input_file = request.POST['upload'].file
-                filename = request.POST['upload'].filename
-                ext = get_ext(filename)
-                if ext.lower() != '.csv':
-                    request.session.flash('File harus format csv', 'error')
-                    return dict(form=form.render())
-                if not input_file:
-                    return dict(form=form.render())
-                input_file.seek(0)
-                temp_file_path = '/tmp/' + get_random_string(10) + '.csv'
+        return super().view_upload(exts=('.csv',), delimiter="\t")
 
-                with open(temp_file_path, 'wb') as output_file:
-                    shutil.copyfileobj(input_file, output_file)
-
-                with open(temp_file_path) as f:
-                    c = csv.DictReader(f)
-                    for csv_row in c:
-                        kode = csv_row['kode']
-                        if kode:
-                            xcode = kode.split(".")
-                            for r in range(len(xcode)):
-                                xc = xcode[r] and int(xcode[r])
-                                if not xc and type(xc) == int:
-                                    code = ""
-                                    for t in range(r):
-                                        code += xcode[t] + '.'
-
-                                    if code:
-                                        code = code[:-1]
-                                        self.save_upload(code, csv_row)
-
-                            self.save_upload(kode, csv_row)
-
-                    DBSession.flush()
-                os.remove(temp_file_path)
-
-            return self.route_list()
-        return dict(form=form.render())
+        # request = self.req
+        # form = self.get_form(UploadSchema)
+        # if request.POST:
+        #     if 'save' in request.POST:
+        #         input_file = request.POST['upload'].file
+        #         filename = request.POST['upload'].filename
+        #         ext = get_ext(filename)
+        #         if ext.lower() != '.csv':
+        #             request.session.flash('File harus format csv', 'error')
+        #             return dict(form=form.render())
+        #         if not input_file:
+        #             return dict(form=form.render())
+        #         input_file.seek(0)
+        #         temp_file_path = '/tmp/' + get_random_string(10) + '.csv'
+        #
+        #         with open(temp_file_path, 'wb') as output_file:
+        #             shutil.copyfileobj(input_file, output_file)
+        #
+        #         with open(temp_file_path) as f:
+        #             c = csv.DictReader(f)
+        #             for csv_row in c:
+        #                 kode = csv_row['kode']
+        #                 if kode:
+        #                     xcode = kode.split(".")
+        #                     for r in range(len(xcode)):
+        #                         xc = xcode[r] and int(xcode[r])
+        #                         if not xc and type(xc) == int:
+        #                             code = ""
+        #                             for t in range(r):
+        #                                 code += xcode[t] + '.'
+        #
+        #                             if code:
+        #                                 code = code[:-1]
+        #                                 self.save_upload(code, csv_row)
+        #
+        #                     self.save_upload(kode, csv_row)
+        #
+        #             DBSession.flush()
+        #         os.remove(temp_file_path)
+        #
+        #     return self.route_list()
+        # return dict(form=form.render())
 
     def get_values(self, row, values=None):
         if not values:
@@ -390,18 +390,18 @@ class ViewDepartemen(BaseView):
             values["parent_kd"] = parent.kode
         return values
 
-    def save_upload(self, kode, csv_row):
-        row = Departemen.query_kode(kode).first()
-        if not row:
-            row = Departemen()
-            row.created = datetime.now()
-            row.create_uid = self.req.user.id
-            row.level_id = kode.count('.') + 1
-            row.status = 1
-        else:
-            row.updated = datetime.now()
-            row.update_uid = self.req.user.id
-        row.kode = kode
-        row.nama = csv_row['nama']
-        DBSession.add(row)
-        return row
+    # def save_upload(self, kode, csv_row):
+    #     row = Departemen.query_kode(kode).first()
+    #     if not row:
+    #         row = Departemen()
+    #         row.created = datetime.now()
+    #         row.create_uid = self.req.user.id
+    #         row.level_id = kode.count('.') + 1
+    #         row.status = 1
+    #     else:
+    #         row.updated = datetime.now()
+    #         row.update_uid = self.req.user.id
+    #     row.kode = kode
+    #     row.nama = csv_row['nama']
+    #     DBSession.add(row)
+    #     return row

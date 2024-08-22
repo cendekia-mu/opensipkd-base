@@ -323,7 +323,7 @@ class BaseView(object):
             buttons = (btn_post, btn_close)
         return self.view_view(buttons=buttons)
 
-    def view_upload(self, exts=('.png', '.ico')):
+    def view_upload(self, exts=('.png', '.ico'), delimiter=","):
         bindings = self.get_bindings()
         form = self.get_form(self.upload_schema, bindings=bindings)
         resources = form.get_widget_resources()
@@ -353,7 +353,7 @@ class BaseView(object):
                         break
                     output_file.write(data)
                 output_file.close()
-                self.save_upload(fullpath)
+                self.save_upload(fullpath, delimiter=delimiter)
 
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
@@ -368,9 +368,9 @@ class BaseView(object):
     def get_file(self, filename):
         return open(filename)
 
-    def save_upload(self, file_name):
+    def save_upload(self, file_name, delimiter=","):
         return append_csv(self.table, file_name, self.upload_keys,
-                          get_file_func=self.get_file, update_exist=True)
+                          get_file_func=self.get_file, update_exist=True, delimiter=delimiter)
 
     def before_add(self):
         return {}
