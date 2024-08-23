@@ -1,28 +1,27 @@
+import csv
 import logging
 import os
+import subprocess
 import sys
-import csv
-from collections import defaultdict
+from getpass import getpass
 
 import transaction
-import subprocess
-from getpass import getpass
-from sqlalchemy import (engine_from_config, select, Table, )
-from sqlalchemy.schema import CreateSchema
-from ziggurat_foundations.models.services.user import UserService
-from pyramid.paster import (get_appsettings, setup_logging, )
-
-from opensipkd.models.handlers import LogDBSession
 from opensipkd.models import (
     init_model, DBSession, Base, Group, UserGroup, Permission, GroupPermission,
     User, Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa,
     Menus, Pangkat)
-
-from sqlalchemy.dialects import oracle
+from opensipkd.models.handlers import LogDBSession
+from pyramid.paster import (get_appsettings, setup_logging, )
+from sqlalchemy import (engine_from_config, select, Table, inspect)
+from sqlalchemy.sql.sqltypes import BOOLEAN
 from sqlalchemy import text
-
+from sqlalchemy.dialects import oracle
+from sqlalchemy.schema import CreateSchema
+from ziggurat_foundations.models.services.user import UserService
 
 log = logging.getLogger(__name__)
+
+
 # , mssql
 # from .tools import mkdir
 
@@ -140,6 +139,14 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
 # sperti salah route url asalkan kode msh sama
 def append_csv(table, filename, keys, get_file_func=get_file,
                db_session=DBSession, update_exist=False, delimiter=","):
+    insp = inspect(DBSession.connection())
+
+    columns_table = insp.get_columns(table.__tablename__)
+
+    fields = {}
+    for c in columns_table:
+        fields[c["name"]] = c["type"]
+
     with get_file_func(filename) as f:
         reader = csv.DictReader(f, delimiter=delimiter)
         filter_ = dict()
@@ -156,7 +163,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     try:
                         t = fname.split('/')
                     except Exception as e:
-                        print(fname, cf.keys())
+                        log.debug(fname, cf.keys())
                         raise e
 
                     fname_orig = t[0]
@@ -218,6 +225,8 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     user = True
                     password = val
                 else:
+                    if fname_orig in fields and type(fields[fname_orig]) is BOOLEAN:
+                        val = (val == 'true' or val == '1' or val == 1) and True or False
                     setattr(row, fname_orig, val)
 
             db_session.add(row)
@@ -248,7 +257,7 @@ def reset_sequence_(cls, seq):
     if not q.first():
         sql = "SELECT setval('{}', 1, false)".format(seq)
         # DBSession.bind.execute(sql)
-        #sqlalchemy 2
+        # sqlalchemy 2
         DBSession.execute(text(sql))
 
 
@@ -262,8 +271,8 @@ def alembic_run(ini_file, name=None):
     alembic_bin = os.path.join(bin_path, 'alembic')
     if not name:
         command = (
-        alembic_bin, '-c', ini_file, '-n', 'alembic_ziggurat', 'upgrade',
-        'head')
+            alembic_bin, '-c', ini_file, '-n', 'alembic_ziggurat', 'upgrade',
+            'head')
         if subprocess.call(command) != 0:
             sys.exit()
     else:
