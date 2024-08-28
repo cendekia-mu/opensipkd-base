@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import traceback
 from datetime import datetime
 from email.utils import parseaddr
 
@@ -353,7 +354,13 @@ class BaseView(object):
                         break
                     output_file.write(data)
                 output_file.close()
-                self.save_upload(fullpath, delimiter=delimiter)
+                try:
+                    self.save_upload(fullpath, delimiter=delimiter)
+                except Exception as e:
+                    self.req.session.flash(str(e), 'error')
+                    return dict(form=form.render(),
+                                scripts=self.form_scripts, css=resources["css"],
+                                js=resources["js"])
 
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
@@ -580,8 +587,8 @@ class BaseView(object):
         self.req.session.flash(msg, 'error')
         return self.route_list(**kwargs)
 
-    def get_values(self, row, istime=False):
-        d = row.to_dict()
+    def get_values(self, row, istime=False, null=False):
+        d = row.to_dict(null=null)
         # if 'tanggal' in d and d['tanggal']:
         #     d["tanggal"] = dmy(row.tanggal)
         for f in d:
