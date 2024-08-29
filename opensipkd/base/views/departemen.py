@@ -18,7 +18,7 @@ SESS_EDIT_FAILED = 'Edit departemen gagal'
 
 
 def get_departemen_list():
-    r = []
+    r = [("","--Pilih Departemen--")]
     q = DBSession.query(Departemen).order_by(Departemen.nama)
     for row in q:
         g = (str(row.id), (f"{row.kode}/ {row.nama}"))

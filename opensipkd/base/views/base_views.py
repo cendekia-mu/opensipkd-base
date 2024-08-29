@@ -324,7 +324,7 @@ class BaseView(object):
             buttons = (btn_post, btn_close)
         return self.view_view(buttons=buttons)
 
-    def view_upload(self, exts=('.png', '.ico'), delimiter=","):
+    def view_upload(self, exts=('.png', '.ico'), delimiter=",", **args):
         bindings = self.get_bindings()
         form = self.get_form(self.upload_schema, bindings=bindings)
         resources = form.get_widget_resources()
@@ -355,7 +355,7 @@ class BaseView(object):
                     output_file.write(data)
                 output_file.close()
                 try:
-                    self.save_upload(fullpath, delimiter=delimiter)
+                    self.save_upload(fullpath, delimiter=delimiter, **args)
                 except Exception as e:
                     self.req.session.flash(str(e), 'error')
                     return dict(form=form.render(),
@@ -364,8 +364,6 @@ class BaseView(object):
 
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
-            else:
-                return self.next_add(form, resources=resources)
 
             return self.route_list()
         return dict(form=form.render(),
@@ -375,9 +373,9 @@ class BaseView(object):
     def get_file(self, filename):
         return open(filename)
 
-    def save_upload(self, file_name, delimiter=","):
+    def save_upload(self, file_name, delimiter=",", **args):
         return append_csv(self.table, file_name, self.upload_keys,
-                          get_file_func=self.get_file, update_exist=True, delimiter=delimiter)
+                          get_file_func=self.get_file, update_exist=True, delimiter=delimiter, **args)
 
     def before_add(self):
         return {}
@@ -531,7 +529,7 @@ class BaseView(object):
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
             else:
-                return self.next_add(form, table=table, resources=resources)
+                return self.next_add(form, table=table, resources=resources, **kwargs)
 
             return self.route_list(**kwargs)
         values = self.before_add()

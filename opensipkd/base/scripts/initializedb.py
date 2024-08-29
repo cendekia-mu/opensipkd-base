@@ -13,10 +13,10 @@ from opensipkd.models import (
 from opensipkd.models.handlers import LogDBSession
 from pyramid.paster import (get_appsettings, setup_logging, )
 from sqlalchemy import (engine_from_config, select, Table, inspect)
-from sqlalchemy.sql.sqltypes import BOOLEAN
 from sqlalchemy import text
 from sqlalchemy.dialects import oracle
 from sqlalchemy.schema import CreateSchema
+from sqlalchemy.sql.sqltypes import BOOLEAN
 from ziggurat_foundations.models.services.user import UserService
 
 log = logging.getLogger(__name__)
@@ -138,9 +138,9 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
 # masih memungkinkan update yg sudah ada dgn syarat is value dari keys masih sama
 # sperti salah route url asalkan kode msh sama
 def append_csv(table, filename, keys, get_file_func=get_file,
-               db_session=DBSession, update_exist=False, delimiter=","):
+               db_session=DBSession, update_exist=False, delimiter=",", **args):
     insp = inspect(DBSession.connection())
-
+    callback = args.get("callback")
     columns_table = insp.get_columns(table.__tablename__)
 
     fields = {}
@@ -192,7 +192,12 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                 if fname in foreigns:
                     foreign_table, foreign_field = foreigns[fname]
                     value = cf[fname]
+                    if callback:
+                        value = callback("mapping", table=foreign_table, field=foreign_field,
+                                         value=value)
+
                     sql = select([foreign_table]).where(foreign_field == value)
+                    log.debug(f"Query Foreignkey: {str(sql)}")
                     # connection = DBSession.connection()
                     q = Base.metadata.bind.execute(sql)
                     # q = connection.execute(sql)

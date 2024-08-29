@@ -1,13 +1,13 @@
+import logging
 from datetime import datetime
 
 import ziggurat_foundations.models
-from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, func
+from opensipkd.tools import as_timezone
+from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, func, Numeric
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import (scoped_session, sessionmaker, Session)
 from zope.sqlalchemy import register
-
-from opensipkd.tools import as_timezone
 
 
 class MySession(Session):
@@ -33,7 +33,7 @@ class CommonModel(object):
     def to_dict_hybrid(self):
         values = {}
         for item in sa_inspect(self.__class__).all_orm_descriptors:
-            if type(item) == hybrid_property:
+            if hybrid_property == type(item):
                 value = getattr(self, item.__name__)
                 print(item.__name__, value)
                 if value:
@@ -44,13 +44,15 @@ class CommonModel(object):
         values = {}
         for column in self.__table__.columns:
             value = getattr(self, column.name)
-            if value or null:
+            if value:
                 if type(column.type) is DateTime and date_format:
                     if value:
                         values[column.name] = value.strftime(date_format)
                 else:
                     values[column.name] = value
-
+            else:
+                if Integer in type(column.type).__mro__ or Numeric in type(column.type).__mro__:
+                    values[column.name] = 0
         return values
 
     def to_dict_without_none(self):
