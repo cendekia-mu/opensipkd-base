@@ -52,7 +52,8 @@ class CommonModel(object):
                     values[column.name] = value
             else:
                 if Integer in type(column.type).__mro__ or Numeric in type(column.type).__mro__:
-                    values[column.name] = 0
+                    if value == 0:
+                        values[column.name] = 0
         return values
 
     def to_dict_without_none(self):

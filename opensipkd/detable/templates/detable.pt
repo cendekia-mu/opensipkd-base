@@ -112,7 +112,7 @@
             if (typeof value === "string" && value.length > 0) {
               return render_checkbox(value)
             }
-            if (["", false, 0].indexOf(value) === -1) {
+            if (["", false, 0, null].indexOf(value) === -1) {
               return render_checkbox(true);
             }
             return render_checkbox(false);

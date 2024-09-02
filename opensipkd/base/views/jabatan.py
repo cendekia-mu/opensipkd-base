@@ -2,17 +2,16 @@ import os
 
 import colander
 from deform import (widget, )
-from opensipkd.tools.report import csv_response, open_rml_pdf, open_rml_row, \
-    pdf_response
-from pyramid.i18n import TranslationStringFactory
-from pyramid.view import (view_config, )
-
 from opensipkd.models import (
     DBSession,
     Jabatan,
     Eselon, Departemen
 )
-from .partner_base import NamaSchema
+from opensipkd.tools.report import csv_response, open_rml_pdf, open_rml_row, \
+    pdf_response
+from pyramid.i18n import TranslationStringFactory
+from pyramid.view import (view_config, )
+
 from ..views import BaseView, deferred_jenis
 
 _ = TranslationStringFactory("opensipkd")
@@ -260,8 +259,8 @@ class ViewJabatan(BaseView):
         else:
             jabatan = None
 
-        q = Jabatan.query_kode(value[
-                                   'kode'])  # DBSession.query(Jabatan).filter_by(kode=value['kode'])
+        q = Jabatan.query_kode(value['kode'])
+        # DBSession.query(Jabatan).filter_by(kode=value['kode'])
         found = q.first()
         if jabatan:
             if found and found.id != jabatan.id:

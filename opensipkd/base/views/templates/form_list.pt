@@ -5,10 +5,12 @@
       <h3 class="panel-title"><i class="fa fa-fw fa-plus"></i>&nbsp;${request.title}</h3>
     </div>
     <div class="panel-body">
-      <div tal:content="structure form"></div>
-      <div class="container">
-        <div tal:content="structure table"></div>
+      <div class="deform">
+        <div tal:content="structure form"></div>
       </div>
+<!--?      <div class="container">-->
+        <div tal:content="structure table"></div>
+<!--?      </div>-->
     </div>
   </div>
 </div>

@@ -97,7 +97,7 @@ def add_cors_headers_response_callback(event):
             'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
             'Access-Control-Max-Age': '1728000',
         }
-        log.info(f"{origin} {request.is_xhr}")
+        # log.info(f"{origin} {request.is_xhr}")
         # response.headers.update(
         #     {'Access-Control-Allow-Credential': 'true',
         #      'Access-Control-Allow-Origin': "*"}
@@ -109,7 +109,7 @@ def add_cors_headers_response_callback(event):
         if 'Access-Control-Allow-Credentials' not in headers:
             headers['Access-Control-Allow-Credentials'] = 'true'
 
-        log.info(f"Headers: {headers}")
+        # log.info(f"Headers: {headers}")
         response.headers.update(headers)
 
     event.request.add_response_callback(cors_headers)

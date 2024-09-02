@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import traceback
 from datetime import datetime
 from email.utils import parseaddr
 
@@ -9,8 +8,6 @@ import colander
 from datatables import ColumnDT
 from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
-
 from opensipkd.base.views.upload import tmpstore
 from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string
@@ -19,6 +16,8 @@ from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete,
     btn_pdf, btn_unpost, btn_post
 from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+
 from .common import DataTables
 from .. import DBSession, get_params, get_urls
 from ..scripts.initializedb import append_csv
@@ -121,7 +120,12 @@ class BaseView(object):
         self.ses['departemen_kd'] = self.departemen_kd
         self.ses['departemen_nm'] = self.departemen_nm
         self.ses['departemen_id'] = self.departemen_id
+        if 'departemen_id' in self.params:
+            self.departemen_id = self.params['departemen_id']
+            if not self.departemen_id:
+                self.departemen_id = 0
 
+        self.ses["departemen_id"] = self.departemen_id
         self.jenis = 'jenis' in self.ses and self.ses['jenis'] or 0
         self.jenis = 'jenis' in self.params and self.params[
             'jenis'] or self.jenis
@@ -268,6 +272,26 @@ class BaseView(object):
     def next_edit(self, form, **kwargs):
         return self.route_list(**kwargs)
 
+    def returned_form(self, form, table, **kwargs):
+        resources = form.get_widget_resources()
+        readonly = "readonly" in kwargs and kwargs["readonly"]
+        is_object = kwargs.get("is_object")
+        if is_object:
+            return dict(form=form,
+                        table=table and table.render() or None,
+                        scripts=self.form_scripts,
+                        css=resources["css"],
+                        js=resources["js"],
+                        **kwargs
+                        )
+
+        return dict(form=form.render(readonly=readonly),
+                    table=table and table.render() or None,
+                    scripts=self.form_scripts, css=resources["css"],
+                    js=resources["js"],
+                    **kwargs
+                    )
+
     def view_view(self, **kwargs):  # row = query_id(request).first()
         request = self.req
         row = self.query_id().first()
@@ -288,24 +312,8 @@ class BaseView(object):
             return self.route_list("Nilai Data tidak ditemukan", "error")
         form.set_appstruct(values)
         table = self.get_item_table(row)
-        resources = form.get_widget_resources()
-        is_object = kwargs.get("is_object", False)
-        if is_object:
-            return dict(form=form,
-                        readonly=True,
-                        table=table and table.render() or None,
-                        scripts=self.form_scripts,
-                        css=resources["css"],
-                        js=resources["js"],
-                        **kwargs
-                        )
-        return dict(form=form.render(readonly=True),
-                    table=table and table.render() or None,
-                    scripts=self.form_scripts,
-                    css=resources["css"],
-                    js=resources["js"],
-                    **kwargs
-                    )
+        kwargs["readonly"] = True
+        return self.returned_form(form, table, **kwargs)
 
     def set_post(self, **kwargs):
         pass
@@ -375,7 +383,8 @@ class BaseView(object):
 
     def save_upload(self, file_name, delimiter=",", **args):
         return append_csv(self.table, file_name, self.upload_keys,
-                          get_file_func=self.get_file, update_exist=True, delimiter=delimiter, **args)
+                          get_file_func=self.get_file, update_exist=True, delimiter=delimiter,
+                          **args)
 
     def before_add(self):
         return {}
@@ -503,26 +512,9 @@ class BaseView(object):
                         if isinstance(f.typ, colander.Date):
                             e.cstruct[f.name] = date_from_str(
                                 e.cstruct[f.name])
+                    form.set_appstruct(e.cstruct)
+                    return self.returned_form(form, table, **kwargs)
 
-                    # for k, v in e.cstruct.items():
-                    #     log.debug(hasattr(e.field, k))
-                    # if isinstance(f, colander.Date):
-                    #     e.cstruct[f] = date_from_str(e.cstruct[f])
-                    if is_object:
-                        return dict(form=form,
-                                    table=table and table.render() or None,
-                                    scripts=self.form_scripts,
-                                    css=resources["css"],
-                                    js=resources["js"],
-                                    **kwargs
-                                    )
-
-                    return dict(form=form.render(e.cstruct),
-                                table=table and table.render() or None,
-                                scripts=self.form_scripts, css=resources["css"],
-                                js=resources["js"],
-                                **kwargs
-                                )
                 values = dict(c)
                 row = self.save_request(values)
                 return self.after_add(row=row, **kwargs)
@@ -534,18 +526,7 @@ class BaseView(object):
             return self.route_list(**kwargs)
         values = self.before_add()
         form.set_appstruct(values)
-        if is_object:
-            return dict(form=form,
-                        table=table and table.render() or None,
-                        scripts=self.form_scripts,
-                        css=resources["css"],
-                        js=resources["js"],
-                        **kwargs
-                        )
-
-        return dict(form=form.render(), table=table and table.render() or None,
-                    scripts=self.form_scripts, css=resources["css"],
-                    js=resources["js"])
+        return self.returned_form(form, table, **kwargs)
 
     def save(self, values, user, row=None):
         log.info("Save")
@@ -595,7 +576,7 @@ class BaseView(object):
         return d
 
     def get_item_table(self, row=None, **kwargs):
-        return
+        return None
 
     def before_edit(self, form):
         return form
@@ -627,18 +608,8 @@ class BaseView(object):
                     log.error(f"Edit Error: {str(e.error)}")
                     # log.debug(f"Edit Data: {e.cstruct}")
                     form.set_appstruct(e.cstruct)
-                    if is_object:
-                        return dict(form=form,
-                                    table=table and table.render() or None,
-                                    scripts=self.form_scripts,
-                                    css=resources["css"],
-                                    js=resources["js"],
-                                    **kwargs
-                                    )
-                    return dict(form=form.render(),
-                                table=table and table.render() or None,
-                                scripts=self.form_scripts, css=resources["css"],
-                                js=resources["js"])
+                    return self.returned_form(form, table, **kwargs)
+
                 c = dict(controls)
                 self.save_request(c, row)
                 return self.after_edit(row=row, **kwargs)
@@ -648,17 +619,8 @@ class BaseView(object):
         values = self.get_values(row)
         form.set_appstruct(values)
         form = self.before_edit(form)
-        if is_object:
-            return dict(form=form,
-                        table=table and table.render() or None,
-                        scripts=self.form_scripts,
-                        css=resources["css"],
-                        js=resources["js"],
-                        **kwargs
-                        )
-        return dict(form=form.render(), table=table and table.render() or None,
-                    scripts=self.form_scripts, css=resources["css"],
-                    js=resources["js"])
+
+        return self.returned_form(form, table, **kwargs)
 
     def before_delete(self, row):
         pass
@@ -668,7 +630,6 @@ class BaseView(object):
         q = self.query_id()
         row = q.first()
         is_object = kwargs.get("is_object", False)
-
         if not row:
             return self.id_not_found()
         if not self.bindings:
@@ -691,19 +652,8 @@ class BaseView(object):
         table = self.get_item_table(row)
         resources = form.get_widget_resources()
         form.set_appstruct(self.get_values(row))
-        if is_object:
-            return dict(form=form,
-                        readonly=True,
-                        table=table and table.render() or None,
-                        scripts=self.form_scripts,
-                        css=resources["css"],
-                        js=resources["js"],
-                        **kwargs
-                        )
-        return dict(form=form.render(readonly=True),
-                    table=table and table.render() or None,
-                    scripts=self.form_scripts, css=resources["css"],
-                    js=resources["js"])
+        kwargs["readonly"] = True
+        return self.returned_form(form, table, **kwargs)
 
     def query_id(self):
         q = self.db_session.query(self.table).filter_by(
