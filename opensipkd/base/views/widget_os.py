@@ -715,3 +715,33 @@ class TextInputWidget(widget.TextInputWidget):
 
 class DateInputWidget(WidgetDateInputWidget):
     type_name = "text"
+
+
+# class AutocompleteInputWidget(widget.AutocompleteInputWidget):
+#     targets = None
+    # def serialize(self, field, cstruct, **kw):
+    #     item_id = kw.get("item_id", None)
+    #     super().serialize(field, cstruct, **kw)
+    #     if "delay" in kw or getattr(self, "delay", None):
+    #         raise ValueError(
+    #             "AutocompleteWidget does not support *delay* parameter "
+    #             "any longer."
+    #         )
+    #     if cstruct in (null, None):
+    #         cstruct = ""
+    #     self.values = self.values or []
+    #     readonly = kw.get("readonly", self.readonly)
+    #
+    #     options = {}
+    #     if isinstance(self.values, string_types):
+    #         options["remote"] = "%s?term=%%QUERY" % self.values
+    #     else:
+    #         options["local"] = self.values
+    #
+    #     options["minLength"] = kw.pop("min_length", self.min_length)
+    #     options["limit"] = kw.pop("items", self.items)
+    #     kw["options"] = json.dumps(options)
+    #     tmpl_values = self.get_template_values(field, cstruct, kw)
+    #     template = readonly and self.readonly_template or self.template
+    #     return field.renderer(template, **tmpl_values)
+    #

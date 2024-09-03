@@ -8,6 +8,7 @@ import colander
 from datatables import ColumnDT
 from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
+from deform.widget import SelectWidget
 from opensipkd.base.views.upload import tmpstore
 from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string
@@ -274,7 +275,8 @@ class BaseView(object):
 
     def returned_form(self, form, table, **kwargs):
         resources = form.get_widget_resources()
-        readonly = "readonly" in kwargs and kwargs["readonly"]
+        readonly = "readonly" in kwargs and kwargs["readonly"] or False
+        kwargs["readonly"]=readonly
         is_object = kwargs.get("is_object")
         if is_object:
             return dict(form=form,
@@ -433,6 +435,7 @@ class BaseView(object):
 
     def get_list(self):
         url = []
+        select_list = {}
         if not self.columns:
             columns = []
             for d in self.list_schema():
@@ -456,6 +459,12 @@ class BaseView(object):
                     columns.append(
                         ColumnDT(getattr(self.table, d.name), mData=d.name,
                                  global_search=global_search))
+                if hasattr(d, "widget"):
+                    if d.widget:
+                        log.debug(d.widget)
+                        if type(d.widget) is SelectWidget:
+                            select_list[d.name] = d.widget.values
+
                 if hasattr(d, "url"):
                     url.append(d.name)
         else:
@@ -470,6 +479,15 @@ class BaseView(object):
         query = self.list_filter(query)
         row_table = DataTables(self.req.GET, query, columns)
         result = row_table.output_result()
+        data = result and "data" in result and result["data"] or {}
+        for res in data:
+            for k in res:
+                if k in select_list.keys():
+                    vals = select_list[k]
+                    for r in vals:
+                        if r[0] == res[k]:
+                            res[k] = r[1]
+                            ""
         #     for k, v in d.items():
         #         if k in url and v:
         #             link = "/".join([self.home, nik_url, v])
