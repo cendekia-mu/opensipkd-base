@@ -1,12 +1,12 @@
-kode,nama,jenis
-01,Kepala,1
-02,Sekretaris,1
-03,Staf,1
-04,Bendahara Umum Daerah,3
-05,Kuasa Bendahara Umum Daerah,3
-06,Pejabat Pelaksana Keuangan,3
-07,Bendahara Penerimaan,3
-08,Bendahara Pengeluaran,3
-09,Pengurus Barang,3
-10,PPTK,3
-10,Pejabat PEmbuat Komitmen,3
+kode,nama,jenis,status
+01,Kepala,1,1
+02,Sekretaris,1,1
+03,Staf,1,1
+04,Bendahara Umum Daerah,3,1
+05,Kuasa Bendahara Umum Daerah,3,1
+06,Pejabat Pelaksana Keuangan,3,1
+07,Bendahara Penerimaan,3,1
+08,Bendahara Pengeluaran,3,1
+09,Pengurus Barang,3,1
+10,PPTK,3,1
+10,Pejabat PEmbuat Komitmen,3,1
