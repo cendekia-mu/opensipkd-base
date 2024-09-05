@@ -175,7 +175,7 @@ class StandarModel(DefaultModel):
 
 
 class KodeModel(StandarModel):
-    kode = Column(String(32))
+    kode = Column(String(32), nullable=False)
 
     @classmethod
     def query_kode(cls, kode, db_session=DBSession):
@@ -203,7 +203,7 @@ class UraianModel(StandarModel):
 
 
 class NamaModel(KodeModel):
-    nama = Column(String(128))
+    nama = Column(String(128), nullable=False)
 
     @classmethod
     def query_nama(cls, nama, db_session=DBSession):

@@ -1,5 +1,6 @@
 import colander
 from deform import (widget, )
+from opensipkd.models import DBSession, ResDesa, kategori_desa, ResKecamatan, ResProvinsi, ResDati2
 from opensipkd.tools.buttons import btn_upload, btn_close, btn_add
 from pyramid.i18n import TranslationStringFactory
 from pyramid.view import (view_config, )
@@ -7,8 +8,8 @@ from pyramid.view import (view_config, )
 from .dati2 import dati2_widget
 from .kecamatan import kecamatan_widget
 from .provinsi import provinsi_widget
-from opensipkd.models import DBSession, ResDesa, kategori_desa, ResKecamatan, ResProvinsi, ResDati2
 from ..views import BaseView
+
 _ = TranslationStringFactory("opensipkd")
 
 SESS_ADD_FAILED = 'Tambah desa gagal'
@@ -179,4 +180,4 @@ class ViewDesa(BaseView):
     @view_config(route_name='desa-upload',
                  renderer='templates/form.pt', permission='wilayah')
     def view_upload(self):
-        return super(ViewDesa, self).view_upload(exts=('.csv',))
+        return super(ViewDesa, self).view_upload(exts=('.csv', ".tsv"))

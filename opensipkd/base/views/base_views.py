@@ -334,7 +334,8 @@ class BaseView(object):
             buttons = (btn_post, btn_close)
         return self.view_view(buttons=buttons)
 
-    def view_upload(self, exts=('.png', '.ico'), delimiter=",", **args):
+    def view_upload(self, exts=('.png', '.ico'), **args):
+        delimiter = args.get("delimiter")
         bindings = self.get_bindings()
         form = self.get_form(self.upload_schema, bindings=bindings)
         resources = form.get_widget_resources()

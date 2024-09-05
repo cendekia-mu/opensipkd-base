@@ -1,10 +1,9 @@
 import colander
 from deform import (widget, )
-from opensipkd.tools.buttons import btn_upload, btn_close, btn_add
-from pyramid.i18n import TranslationStringFactory
-
 from opensipkd.base.views.provinsi import provinsi_widget
 from opensipkd.models import DBSession, ResKecamatan, ResDati2, ResProvinsi
+from opensipkd.tools.buttons import btn_upload, btn_close, btn_add
+from pyramid.i18n import TranslationStringFactory
 from pyramid.view import (view_config, )
 
 from . import widget_os
@@ -172,4 +171,4 @@ class Views(BaseView):
     @view_config(route_name='kecamatan-upload',
                  renderer='templates/form.pt', permission='wilayah')
     def view_upload(self):
-        return super(Views, self).view_upload(exts=(".csv",))
+        return super(Views, self).view_upload(exts=(".csv", ".tsv"))

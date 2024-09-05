@@ -18,7 +18,7 @@ SESS_EDIT_FAILED = 'Edit departemen gagal'
 
 
 def get_departemen_list():
-    r = [("","--Pilih Departemen--")]
+    r = [("", "--Pilih Departemen--")]
     q = DBSession.query(Departemen).order_by(Departemen.nama)
     for row in q:
         g = (str(row.id), (f"{row.kode}/ {row.nama}"))
@@ -333,10 +333,10 @@ class ViewDepartemen(BaseView):
         return super(ViewDepartemen, self).view_delete()
 
     @view_config(route_name='departemen-upload',
-                 renderer='templates/departemen/upload.pt',
+                 renderer='templates/form.pt',
                  permission='departemen')
     def view_upload(self):
-        return super().view_upload(exts=('.csv',), delimiter="\t")
+        return super().view_upload(exts=('.csv', '.tsv'), delimiter="\t")
 
         # request = self.req
         # form = self.get_form(UploadSchema)

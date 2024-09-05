@@ -11,6 +11,7 @@ from opensipkd.models import (
     User, Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa,
     Menus, Pangkat)
 from opensipkd.models.handlers import LogDBSession
+from opensipkd.tools import get_ext
 from pyramid.paster import (get_appsettings, setup_logging, )
 from sqlalchemy import (engine_from_config, select, Table, inspect)
 from sqlalchemy import text
@@ -138,14 +139,25 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
 # masih memungkinkan update yg sudah ada dgn syarat is value dari keys masih sama
 # sperti salah route url asalkan kode msh sama
 def append_csv(table, filename, keys, get_file_func=get_file,
-               db_session=DBSession, update_exist=False, delimiter=",", **args):
-    insp = inspect(DBSession.connection())
+               db_session=DBSession, **args):
+    update_exist = args.get("update_exist")
     callback = args.get("callback")
-    columns_table = insp.get_columns(table.__tablename__)
+    delimiter = args.get("delimiter")
+    ext = get_ext(filename).lower()
+    log.debug(f"Extension: {ext.strip()}")
+    log.debug(f"Extension: {ext.strip()=='.tsv'}")
+    if not delimiter:
+        delimiter = ","
+        if ext.strip() == '.tsv':
+            delimiter = "\t"
 
+    log.debug(f"Delimiter: {delimiter}")
+    insp = inspect(DBSession.connection())
+    columns_table = insp.get_columns(table.__tablename__)
     fields = {}
     for c in columns_table:
         fields[c["name"]] = c["type"]
+    # raise Exception(columns_table)
 
     with get_file_func(filename) as f:
         reader = csv.DictReader(f, delimiter=delimiter)
@@ -154,7 +166,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
         is_first = True
         fmap = dict()
         for cf in reader:
-            log.info(cf)
+            log.debug(f"Column Field: {cf}")
             if is_first:
                 is_first = False
                 for fname in cf.keys():
@@ -185,10 +197,11 @@ def append_csv(table, filename, keys, get_file_func=get_file,
 
                     fmap[fname] = fname_orig
             data = dict()
+
             for fname in cf:
                 if not fname:
                     continue
-
+                # Buka Tabel Foreign
                 if fname in foreigns:
                     foreign_table, foreign_field = foreigns[fname]
                     value = cf[fname]
@@ -207,10 +220,15 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     # connection.close()
                 else:
                     value = cf[fname]
+
                 fname_orig = fmap[fname]
                 data[fname_orig] = value
+
             for key in keys:
+                if key not in data or not data[key]:
+                    raise Exception(f"Field '{key}' wajib ada")
                 filter_[key] = data[key]
+
             q = db_session.query(table).filter_by(**filter_)
             row = q.first()
             if row:
@@ -233,6 +251,12 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     if fname_orig in fields and type(fields[fname_orig]) is BOOLEAN:
                         val = (val == 'true' or val == '1' or val == 1) and True or False
                     setattr(row, fname_orig, val)
+
+            # Penambahan checking field nullable false wajib ada datanya 2024-09-05
+            for c in columns_table:
+                if (not c["nullable"] and (c["name"] not in data or not data[c["name"]])
+                        and c["name"] != "id"):
+                    raise Exception(f"Field '{c['name']}' wajib ada {data}")
 
             db_session.add(row)
             db_session.flush()
