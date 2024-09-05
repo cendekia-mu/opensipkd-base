@@ -30,6 +30,7 @@ class GroupPermission(GroupPermissionMixin, Base):
     pass
 
 
+
 class UserGroup(UserGroupMixin, Base, CommonModel):
     @classmethod
     def _get_by_user(cls, user):
@@ -204,6 +205,7 @@ class Permission(Base, CommonModel):
 
 
 class Group(GroupMixin, Base, DefaultModel):
+    member_count = Column(Integer, nullable=True, default=0)
     @classmethod
     def query_group_name(cls, group_name):
         return DBSession.query(cls).filter_by(group_name=group_name)

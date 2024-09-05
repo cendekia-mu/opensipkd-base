@@ -1,5 +1,5 @@
-group_name,description
-"Superuser","Superuser"
-"Web Service","Webservice"
-"Pindah Departemen","Pindah Departemen"
-"Guest","Guest"
+group_name,description,member_count
+"Superuser","Superuser",0
+"Web Service","Webservice",0
+"Pindah Departemen","Pindah Departemen",0
+"Guest","Guest",0

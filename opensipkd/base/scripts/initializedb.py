@@ -254,9 +254,8 @@ def append_csv(table, filename, keys, get_file_func=get_file,
 
             # Penambahan checking field nullable false wajib ada datanya 2024-09-05
             for c in columns_table:
-                if (not c["nullable"] and (c["name"] not in data or not data[c["name"]])
-                        and c["name"] != "id"):
-                    raise Exception(f"Field '{c['name']}' wajib ada {data}")
+                if (not c["nullable"] and c["name"] not in data  and c["name"] != "id"):
+                    raise Exception(f"Field '{c['name']}' wajib ada {c} ")
 
             db_session.add(row)
             db_session.flush()

@@ -366,7 +366,7 @@ class BaseView(object):
                     output_file.write(data)
                 output_file.close()
                 try:
-                    self.save_upload(fullpath, delimiter=delimiter, **args)
+                    self.save_upload(fullpath, **args)
                 except Exception as e:
                     self.req.session.flash(str(e), 'error')
                     return dict(form=form.render(),
@@ -384,9 +384,9 @@ class BaseView(object):
     def get_file(self, filename):
         return open(filename)
 
-    def save_upload(self, file_name, delimiter=",", **args):
+    def save_upload(self, file_name, **args):
         return append_csv(self.table, file_name, self.upload_keys,
-                          get_file_func=self.get_file, update_exist=True, delimiter=delimiter,
+                          get_file_func=self.get_file, update_exist=True,
                           **args)
 
     def before_add(self):

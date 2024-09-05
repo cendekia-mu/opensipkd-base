@@ -29,7 +29,7 @@ def get_departemen_list():
 @colander.deferred
 def departemen_widget(node, kw):
     values = kw.get('departemen_list', [])
-    return widget.Select2Widget(values=values)
+    return widget.Select2Widget(values=values, placeholder="Pilih Departemen")
 
 
 def departemen_widget_form():
