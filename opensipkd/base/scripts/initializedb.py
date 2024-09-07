@@ -11,7 +11,6 @@ from opensipkd.models import (
     User, Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa,
     Menus, Pangkat)
 from opensipkd.models.handlers import LogDBSession
-from opensipkd.tools import get_ext
 from pyramid.paster import (get_appsettings, setup_logging, )
 from sqlalchemy import (engine_from_config, select, Table, inspect)
 from sqlalchemy import text
@@ -19,6 +18,8 @@ from sqlalchemy.dialects import oracle
 from sqlalchemy.schema import CreateSchema
 from sqlalchemy.sql.sqltypes import BOOLEAN
 from ziggurat_foundations.models.services.user import UserService
+
+from opensipkd.tools import get_ext
 
 log = logging.getLogger(__name__)
 
@@ -61,6 +62,7 @@ def get_file(filename):
 
 
 def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
+    eng = db_session.get_bind()
     q = db_session.query(table)
     if q.first():
         return
@@ -96,7 +98,9 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
 
                         # foreign_table, foreign_field = t[1].split('.')
                         foreign_table = Table(foreign_table, Base.metadata,
-                                              autoload=True, schema=schema)
+                                              # autoload=True,
+                                              autoload_with=eng,
+                                              schema=schema)
                         foreign_field = getattr(foreign_table.c, foreign_field)
                         foreigns[fieldname] = (foreign_table, foreign_field)
                     fmap[fieldname] = fname_orig
@@ -106,8 +110,14 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
                 if fieldname in foreigns:
                     foreign_table, foreign_field = foreigns[fieldname]
                     value = cf[fieldname]
-                    sql = select([foreign_table]).where(foreign_field == value)
-                    q = Base.metadata.bind.execute(sql)
+                    # merubah v1.4 ke v.2
+                    # sql = select([foreign_table]).where(foreign_field == value)
+                    sql = select(foreign_table).where(foreign_field == value)
+
+                    # merubah v1.4 ke v.2
+                    # q = Base.metadata.bind.execute(sql)
+                    with eng.connect() as conn:
+                        q = conn.execute(sql)
                     ft = q.fetchone()
                     val = ft and ft.id or None
                     fieldname = fmap[fieldname]
@@ -140,12 +150,14 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
 # sperti salah route url asalkan kode msh sama
 def append_csv(table, filename, keys, get_file_func=get_file,
                db_session=DBSession, **args):
+    eng = db_session.get_bind()
+
     update_exist = args.get("update_exist")
     callback = args.get("callback")
     delimiter = args.get("delimiter")
     ext = get_ext(filename).lower()
     log.debug(f"Extension: {ext.strip()}")
-    log.debug(f"Extension: {ext.strip()=='.tsv'}")
+    log.debug(f"Extension: {ext.strip() == '.tsv'}")
     if not delimiter:
         delimiter = ","
         if ext.strip() == '.tsv':
@@ -191,7 +203,9 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                             foreign_field = t_array[2]
 
                         foreign_table = Table(foreign_table, Base.metadata,
-                                              autoload=True, schema=schema)
+                                              # autoload=True, # merubah v1.4 ke v.2
+                                              autoload_with=eng,
+                                              schema=schema)
                         foreign_field = getattr(foreign_table.c, foreign_field)
                         foreigns[fname] = (foreign_table, foreign_field)
 
@@ -209,11 +223,14 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                         value = callback("mapping", table=foreign_table, field=foreign_field,
                                          value=value)
 
-                    sql = select([foreign_table]).where(foreign_field == value)
+                    # merubah v1.4 ke v.2
+                    # sql = select([foreign_table]).where(foreign_field == value)
+                    sql = select(foreign_table).where(foreign_field == value)
                     log.debug(f"Query Foreignkey: {str(sql)}")
-                    # connection = DBSession.connection()
-                    q = Base.metadata.bind.execute(sql)
-                    # q = connection.execute(sql)
+                    # merubah v1.4 ke v.2
+                    # q = Base.metadata.bind.execute(sql)
+                    with eng.connect() as conn:
+                        q = conn.execute(sql)
                     row = q.fetchone()
                     value = row and row.id or None
                     q.close()
@@ -254,8 +271,9 @@ def append_csv(table, filename, keys, get_file_func=get_file,
 
             # Penambahan checking field nullable false wajib ada datanya 2024-09-05
             for c in columns_table:
-                if (not c["nullable"] and c["name"] not in data  and c["name"] != "id"):
-                    raise Exception(f"Table {str(table.__name__)} Field '{c['name']}' wajib ada {c['type']} ")
+                if (not c["nullable"] and c["name"] not in data and c["name"] != "id"):
+                    raise Exception(
+                        f"Table {str(table.__name__)} Field '{c['name']}' wajib ada {c['type']} ")
 
             db_session.add(row)
             db_session.flush()

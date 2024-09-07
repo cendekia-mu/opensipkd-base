@@ -13,7 +13,7 @@ version = line.split()[0]
 requires = [
     'sqlalchemy',
     'wheel',
-    'colander==1.8.3',
+    'colander',
     'pyramid',
     'pyramid_tm',
     "pyramid_beaker",
