@@ -2,7 +2,7 @@ import json
 import logging
 
 from colander import SchemaNode, null, Mapping, Invalid  # , string_types
-from colander import compat
+# from colander import compat # tidak ada di colander 2.0
 from deform import widget
 from deform.form import Button
 from deform.i18n import _
@@ -709,7 +709,8 @@ class TextInputWidget(widget.TextInputWidget):
     def __init__(self, **kw):
         super(TextInputWidget, self).__init__(**kw)
 
-        if isinstance(self.button, compat.string_types):
+        # if isinstance(self.button, compat.string_types):
+        if isinstance(self.button, str):
             self.button = Button(self.button, type="button")
 
 

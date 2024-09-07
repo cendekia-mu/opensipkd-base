@@ -1,7 +1,14 @@
+4.0.0 09-07-2024
+Perubahan Colander>2.0
+Perubahan SQLAlchemy>2.0
+beaker>=1.12.1
+
 3.0.2 13-07-2023
 Perubahan Colander>2.0
 Perubahan SQLAlchemy>2.0
 beaker>=1.12.1
+Ini sepertinya gak jadi
+
 3.0.1 25-04-2022
 Penambahan Feature ```detable```
 
