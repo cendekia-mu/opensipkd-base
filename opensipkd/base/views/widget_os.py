@@ -172,10 +172,12 @@ class BlokKavNoWidget(Widget):
             result = "|".join([blok_kav_no, rt, rw])
 
             if not rt:
-                raise Invalid(field.schema, "RT harus diisi. Minimal 000", result)
+                raise Invalid(
+                    field.schema, "RT harus diisi. Minimal 000", result)
 
             if not rw:
-                raise Invalid(field.schema, "RW harus diisi. Minimal 00", result)
+                raise Invalid(
+                    field.schema, "RW harus diisi. Minimal 00", result)
 
             # if not blok_kav_no or not rt or not rw:
             #     raise Invalid(field.schema, "Blok Kav No RT/RW tidak lengkap",
@@ -390,7 +392,7 @@ class MapWidget(Widget):
                     {
                         "js": "opensipkd.base:static/js/gmap.js",
                         "css": "deform:static/select2/select2.css",
-                    },)
+    },)
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -716,6 +718,10 @@ class TextInputWidget(widget.TextInputWidget):
 
 class DateInputWidget(WidgetDateInputWidget):
     type_name = "text"
+
+
+class MoneyInputWidget(widget.MoneyInputWidget):
+    readonly_template = "readonly/money_input"
 
 
 # class AutocompleteInputWidget(widget.AutocompleteInputWidget):
