@@ -6,3 +6,4 @@ from .partner import *
 from .departemen import *
 from .pegawai import *
 from .wilayah import *
+from .targets import *
