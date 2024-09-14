@@ -52,22 +52,15 @@ class BaseView(object):
         # self.akhir = dmy(self.dt_akhir)
         # self.ses["dt_awal"] = self.dt_awal
         # self.ses["dt_akhir"] = self.dt_akhir
-        self.tahun = 'tahun' in self.ses and self.ses['tahun'] or now.strftime(
-            '%Y')
-        self.tahun = 'tahun' in self.params and self.params[
-            'tahun'] or self.tahun
+        self.tahun = 'tahun' in self.ses and self.ses['tahun'] or now.strftime('%Y')
+        self.tahun = 'tahun' in self.params and self.params['tahun'] or self.tahun
         self.ses['tahun'] = self.tahun
 
-        self.bulan = 'bulan' in self.ses and self.ses['bulan'] or now.strftime(
-            '%m')
-
+        self.bulan = 'bulan' in self.ses and self.ses['bulan'] or now.strftime('%m')
         if 'bulan' in self.params and self.params['bulan']:
             self.bulan = self.params['bulan'].strip().zfill(2)
-            dt_awal = date_from_str(
-                '{d}-{m}-{y}'.format(y=self.tahun, m=self.bulan, d='01'))
-            dt_akhir = dt_awal + \
-                       relativedelta(months=1) - relativedelta(days=1)
-
+            dt_awal = date_from_str('{d}-{m}-{y}'.format(y=self.tahun, m=self.bulan, d='01'))
+            dt_akhir = dt_awal + relativedelta(months=1) - relativedelta(days=1)
             self.ses['awal'] = dmy(dt_awal)
             self.ses['akhir'] = dmy(dt_akhir)
 
@@ -99,9 +92,10 @@ class BaseView(object):
             self.akhir = akhir
         except:
             self.dt_akhir = date_from_str(self.akhir)
+        self.ses['akhir'] = self.akhir
+        self.ses['dt_akhir'] = self.dt_akhir
 
-        self.tahun_awal = 'tahun_awal' in self.ses and self.ses[
-            'tahun_awal'] or self.tahun
+        self.tahun_awal = 'tahun_awal' in self.ses and self.ses['tahun_awal'] or self.tahun
         self.tahun_awal = 'tahun_awal' in self.params and self.params[
             'tahun_awal'] or self.tahun_awal
         self.ses['tahun_awal'] = self.tahun_awal
@@ -276,7 +270,7 @@ class BaseView(object):
     def returned_form(self, form, table, **kwargs):
         resources = form.get_widget_resources()
         readonly = "readonly" in kwargs and kwargs["readonly"] or False
-        kwargs["readonly"]=readonly
+        kwargs["readonly"] = readonly
         is_object = kwargs.get("is_object")
         if is_object:
             return dict(form=form,
@@ -677,7 +671,7 @@ class BaseView(object):
     def query_id(self):
         q = self.db_session.query(self.table).filter_by(
             id=self.req.matchdict['id'])
-        if hasattr(self.table, 'compnay_id') and self.req.user.company_id:
+        if hasattr(self.table, 'company_id') and self.req.user.company_id:
             q = q.filter_by(company_id=self.req.user.company_id)
         return q
 
