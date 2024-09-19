@@ -10,6 +10,8 @@ from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
 from opensipkd.base.views.upload import tmpstore
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+
 from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
@@ -17,8 +19,6 @@ from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete,
     btn_pdf, btn_unpost, btn_post
 from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
-
 from .common import DataTables
 from .. import DBSession, get_params, get_urls
 from ..scripts.initializedb import append_csv
@@ -144,6 +144,8 @@ class BaseView(object):
               $('#parent_kd').val(datum.kode);
 
         });"""
+        self.form_widget = None
+
         self.edit_schema = ""
         self.add_schema = ""
         self.upload_schema = UploadSchema
@@ -205,6 +207,8 @@ class BaseView(object):
         if "after_bind" in kwargs and kwargs["after_bind"]:
             form_params["after_bind"] = kwargs["after_bind"]
             # schema = class_form(validator=kwargs["validator"])
+        if self.form_widget:
+            form_params["widget"] = self.form_widget
 
         schema = class_form(**form_params)
 
@@ -401,7 +405,7 @@ class BaseView(object):
     def after_view(self, **kwargs):
         return self.route_list(**kwargs)
 
-    def next_act(self):
+    def next_act(self, **kwargs):
         url_dict = self.req.matchdict
         raise HTTPNotFound
 
@@ -410,7 +414,7 @@ class BaseView(object):
         filename = jasper_export(self.report_file)
         return file_response(self.req, filename=filename[0])
 
-    def csv_response(self):
+    def csv_response(self, **kwargs):
         query = self.table.query_register()
         row = query.first()
         header = row.keys()
@@ -428,7 +432,7 @@ class BaseView(object):
     def list_filter(self, query):
         return query
 
-    def get_list(self):
+    def get_list(self, **kwargs):
         url = []
         select_list = {}
         if not self.columns:
@@ -492,16 +496,16 @@ class BaseView(object):
     def view_act(self, **kwargs):
         url_dict = self.req.matchdict
         if url_dict['act'] == 'grid':
-            return self.get_list()
+            return self.get_list(**kwargs)
 
         elif url_dict['act'] == 'csv':
-            return self.csv_response()
+            return self.csv_response(**kwargs)
 
         elif url_dict['act'] == 'pdf':
-            return self.pdf_response()
+            return self.pdf_response(**kwargs)
 
         else:
-            return self.next_act()
+            return self.next_act(**kwargs)
 
     def view_add(self, **kwargs):
         # bindings = self.get_bindings()
@@ -557,10 +561,13 @@ class BaseView(object):
         row.from_dict(values)
         if hasattr(row, "status"):
             status = "status" in values and values["status"] or 0
+            log.debug(status)
             try:
                 status = int(status)
             except:
                 status = status and 1 or 0
+
+            log.debug(status)
             row.status = status
         self.db_session.add(row)
         self.db_session.flush()
@@ -571,6 +578,7 @@ class BaseView(object):
             if k not in values:
                 if v:
                     values[k] = v
+        log.debug(values)
         return self.save(values, self.req.user, row)
 
     def id_not_found(self, **kwargs):
