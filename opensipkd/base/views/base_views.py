@@ -426,10 +426,10 @@ class BaseView(object):
         }
         return csv_response(self.req, value, filename)
 
-    def list_join(self, query):
+    def list_join(self, query, **kwargs):
         return query
 
-    def list_filter(self, query):
+    def list_filter(self, query, **kwargs):
         return query
 
     def get_list(self, **kwargs):
@@ -470,12 +470,12 @@ class BaseView(object):
             columns = self.columns
 
         query = self.db_session.query().select_from(self.table)
-        query = self.list_join(query)
+        query = self.list_join(query, **kwargs)
         if self.req.user and self.req.user.company_id and hasattr(
                 self.table, "company_id"):
             query = query.filter(
                 self.table.company_id == self.req.user.company_id)
-        query = self.list_filter(query)
+        query = self.list_filter(query, **kwargs)
         row_table = DataTables(self.req.GET, query, columns)
         result = row_table.output_result()
         data = result and "data" in result and result["data"] or {}
