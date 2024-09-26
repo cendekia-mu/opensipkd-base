@@ -2,6 +2,8 @@ import locale
 import logging
 import re
 
+from .routes import routes
+
 try:
     from urllib import (urlencode, quote, quote_plus, )
 except ImportError:
@@ -527,6 +529,16 @@ def main(global_config, **settings):
     config.add_renderer('json', json_renderer())
     config.add_renderer('json_rpc', json_rpc())
     set_routes(config)
+
+    # New Routes By Array
+    for route in routes:
+        if len(route) > 4 and str(route[4]) == '1':
+            config.add_jsonrpc_endpoint(
+                route[0], route[1], default_renderer="json_rpc")
+        else:
+            config.add_route(route[0], route[1])
+        titles[route[0]] = route[2]
+
     config.registry['mailer'] = mailer_factory_from_settings(settings)
     config.scan()
     for m in modules:

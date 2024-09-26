@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytz
 import sqlalchemy as sa
+from opensipkd.tools import as_timezone
 from pyramid.authorization import (Allow, Authenticated, ALL_PERMISSIONS)
 from sqlalchemy import (
     Column, Integer, DateTime, String)
@@ -21,14 +22,12 @@ from ziggurat_foundations.models.user_permission import UserPermissionMixin
 from ziggurat_foundations.models.user_resource_permission import \
     UserResourcePermissionMixin
 
-from opensipkd.tools import as_timezone
 from .base import CommonModel, DBSession, DefaultModel
 from .meta import Base
 
 
 class GroupPermission(GroupPermissionMixin, Base):
     pass
-
 
 
 class UserGroup(UserGroupMixin, Base, CommonModel):
@@ -135,6 +134,14 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
         return cls.query_from(columns=[cls.email, cls.user_name, cls.registered_date,
                                        cls.last_login_date])
 
+    @classmethod
+    def query_list(cls):
+        return DBSession.query(cls.id, cls.user_name).order_by(cls.user_name)
+
+    @classmethod
+    def get_list(cls):
+        qry = cls.query_list()
+        return qry.all()
 
     # @classmethod
     # def get_departemen_id(cls, user_id):
@@ -179,12 +186,9 @@ class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
         return cls.query().filter_by(local_user_id=user.id)
 
     @classmethod
-
-
     @classmethod
     def external(cls, user):
-        return cls.query_user(user).count()>0
-
+        return cls.query_user(user).count() > 0
 
 
 # class GroupRoutePermission(Base, CommonModel):
@@ -206,6 +210,7 @@ class Permission(Base, CommonModel):
 
 class Group(GroupMixin, Base, DefaultModel):
     member_count = Column(Integer, nullable=True, default=0)
+
     @classmethod
     def query_group_name(cls, group_name):
         return DBSession.query(cls).filter_by(group_name=group_name)

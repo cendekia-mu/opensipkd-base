@@ -7,3 +7,4 @@ from .departemen import *
 from .pegawai import *
 from .wilayah import *
 from .targets import *
+from .user_area import *
