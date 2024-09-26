@@ -29,7 +29,7 @@ class AddSchema(colander.Schema):
         colander.Integer(),
         widget=widget.SelectWidget(values=User.get_list()),
         oid="user_id",
-        title="Kab/Kota",
+        title="User",
     )
     desa_id = colander.SchemaNode(
         colander.Integer(),
@@ -57,7 +57,7 @@ class Views(BaseView):
         return query.outerjoin(ResDesa, ResDesa.id == self.table.desa_id) \
             .outerjoin(User, User.id == self.table.user_id)
 
-    @view_config(route_name='user-area', renderer='templates/form.pt',
+    @view_config(route_name='user-area', renderer='templates/table.pt',
                  permission='user-view')
     def view_list(self, **kwargs):
         return super().view_list(**kwargs)
