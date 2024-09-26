@@ -10,7 +10,7 @@ class UserArea(DefaultModel, Base):
     user_id = Column(Integer, ForeignKey(User.id))
     desa_id = Column(Integer, ForeignKey(ResDesa.id))
     desa = relationship(ResDesa, backref=backref("user_area"))
-
+    user = relationship(User, backref=backref("user_area"))
     def validator(self, values):
         pass
 
