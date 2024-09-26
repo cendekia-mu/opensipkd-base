@@ -417,7 +417,7 @@ class BaseView(object):
     def csv_response(self, **kwargs):
         query = self.table.query_register()
         row = query.first()
-        header = row.keys()
+        header = row._mapping.keys()
         rows = [list(item) for item in query.all()]
         filename = f"{get_random_string(16)}.csv"
         value = {
@@ -471,8 +471,7 @@ class BaseView(object):
 
         query = self.db_session.query().select_from(self.table)
         query = self.list_join(query, **kwargs)
-        if self.req.user and self.req.user.company_id and hasattr(
-                self.table, "company_id"):
+        if self.req.user and self.req.user.company_id and hasattr(self.table, "company_id"):
             query = query.filter(
                 self.table.company_id == self.req.user.company_id)
         query = self.list_filter(query, **kwargs)

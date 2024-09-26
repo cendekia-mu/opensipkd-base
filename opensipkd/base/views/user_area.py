@@ -59,8 +59,8 @@ class Views(BaseView):
 
     @view_config(route_name='user-area', renderer='templates/form.pt',
                  permission='user-view')
-    def view_list(self):
-        return super().view_list()
+    def view_list(self, **kwargs):
+        return super().view_list(**kwargs)
 
     @view_config(route_name='user-area-act', renderer='json',
                  permission='user-view')
