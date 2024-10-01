@@ -23,6 +23,9 @@ class UserArea(DefaultModel, Base):
         if user and user.user_id:
             return True
 
+        if not desa_id and not desa_kd:
+            raise Exception("parameter desa_id atau desa_kd wajib dikirim")
+
         if desa_id:
             rs = cls.query().filter(cls.user_id == user_id, cls.desa_id == desa_id)
             if rs and rs.id:
