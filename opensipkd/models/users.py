@@ -24,7 +24,7 @@ from ziggurat_foundations.models.user_resource_permission import \
 
 from .base import CommonModel, DBSession, DefaultModel
 from .meta import Base
-
+from .base import TABLE_ARGS
 
 class GroupPermission(GroupPermissionMixin, Base):
     pass
