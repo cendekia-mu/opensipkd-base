@@ -17,10 +17,10 @@ class UserArea(DefaultModel, Base):
     @classmethod
     def allow_area(cls, user_id, desa_id=None, desa_kd=None,
                    group_names=("Superuser", "pbbm-admin"), ):
-        user = UserGroup.query().filter_by(user_id == user_id).outerjoin(
+        user = UserGroup.query().filter(user_id == user_id).outerjoin(
             Group, Group.id == UserGroup.group_id).filter(
-            UserGroup.group_name._in(*group_names)).first()
-        if user and user.id:
+            Group.group_name.in_(group_names)).first()
+        if user and user.user_id:
             return True
 
         if desa_id:
