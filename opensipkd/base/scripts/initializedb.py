@@ -271,7 +271,11 @@ def append_csv(table, filename, keys, get_file_func=get_file,
 
             # Penambahan checking field nullable false wajib ada datanya 2024-09-05
             for c in columns_table:
-                if (not c["nullable"] and c["name"] not in data and c["name"] != "id"):
+                # if (not c["nullable"] and c["name"] not in data and c["name"] != "id"):
+                if (not c["nullable"] and c["name"] not in data and c["name"] != "id") and c["default"] is None:
+                    # update: tambah periksa nilai default.
+                    # Jika default=None berarti wajib ada nilainya
+                    # by tatang 2024-10-12
                     raise Exception(
                         f"Table {str(table.__name__)} Field '{c['name']}' wajib ada {c['type']} ")
 
