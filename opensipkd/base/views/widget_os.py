@@ -555,6 +555,8 @@ class BootStrapDateInputWidget(Widget):
     )
     default_options = (
         ("format", "yyyy-mm-dd"),
+        ("zIndexOffset", "910"),
+
     )
     # ("selectMonths", True),
     # ("selectYears", True),

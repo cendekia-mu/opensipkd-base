@@ -5,9 +5,9 @@
   <p class="deform-readonly-true" 
        id="${oid}"
        tal:condition="cstruct == true_val"
-       i18n:translate=""><i class="fas fa-check-square" aria-hidden="true"></i></p>
+       i18n:translate=""><i class="fas fa-check-square" aria-hidden="true" style="color:green;"></i></p>
   <p class="deform-readonly-false" 
        id="${oid}"
        tal:condition="cstruct != true_val"
-       i18n:translate=""><i class="fas fa-window-close" aria-hidden="true"></i></p>
+       i18n:translate=""><i class="fas fa-window-close" aria-hidden="true" style="color:red;"></i></p>
 </div>

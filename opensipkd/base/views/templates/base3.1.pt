@@ -4,6 +4,7 @@
         home request._host;
         user_path  ['user', 'user-add', 'user-edit', 'user-view', 'user-delete'];
         user_area_path  ['user-area', 'user-area-add', 'user-area-edit', 'user-area-view', 'user-area-delete'];
+        user_dep_path  ['user-departemen', 'user-departemen-add', 'user-departemen-edit', 'user-departemen-view', 'user-departemen-delete'];
         user_ext_path  ['user-ext', 'user-ext-view', 'user-ext-delete'];
         group_path  ['group', 'group-add', 'group-edit', 'group-view', 'group-delete'];
         param_path  ['parameter', 'parameter-add', 'parameter-edit', 'parameter-view', 'parameter-delete'];
@@ -164,6 +165,10 @@
                     <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
                              tal:attributes="class  request.matched_route.name in user_area_path and 'active'">
                         <a href="${home}/user/area">User Area</a>
+                    </li>
+                  <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
+                             tal:attributes="class  request.matched_route.name in user_dep_path and 'active'">
+                        <a href="${home}/user/departemen">User Departemen</a>
                     </li>
                     <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
                              tal:attributes="class  request.matched_route.name in user_ext_path and 'active'">

@@ -58,7 +58,9 @@ renderer = ZPTRendererFactory(search_path)
 Form.set_zpt_renderer(search_path)
 main_title = 'openSIPKD'
 titles = {}
+static_route = [
 
+]
 
 # http://stackoverflow.com/questions/9845669/pyramid-inverse-to-add-notfound-viewappend-slash-true
 # class RemoveSlashNotFoundViewFactory(object):

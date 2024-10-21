@@ -558,16 +558,16 @@ class BaseView(object):
             row.update_uid = user and user.id or None
 
         row.from_dict(values)
-        if hasattr(row, "status"):
-            status = "status" in values and values["status"] or 0
-            log.debug(status)
-            try:
-                status = int(status)
-            except:
-                status = status and 1 or 0
-
-            log.debug(status)
-            row.status = status
+        # if hasattr(row, "status"):
+        #     status = "status" in values and values["status"] or 0
+        #     log.debug(status)
+        #     try:
+        #         status = int(status)
+        #     except:
+        #         status = status and 1 or 0
+        #
+        #     log.debug(status)
+        #     row.status = status
         self.db_session.add(row)
         self.db_session.flush()
         return row
@@ -577,7 +577,7 @@ class BaseView(object):
             if k not in values:
                 if v:
                     values[k] = v
-        log.debug(values)
+        log.debug(f"Base save_request: {values}")
         return self.save(values, self.req.user, row)
 
     def id_not_found(self, **kwargs):
@@ -599,17 +599,23 @@ class BaseView(object):
         return None
 
     def before_edit(self, form):
+        """
+        Digunakan saat form edit ditampilkan
+        :param form:
+        :return: form
+        """
         return form
 
     def view_edit(self, **kwargs):
         request = self.req
         row = self.query_id().first()
         is_object = kwargs.get("is_object", False)
-
         if not row:
             return self.id_not_found(**kwargs)
+
         if not self.bindings:
             self.bindings = self.get_bindings(row)
+
         form = self.get_form(self.edit_schema, **kwargs)
         table = self.get_item_table(row)
         resources = form.get_widget_resources()
