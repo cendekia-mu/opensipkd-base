@@ -34,6 +34,10 @@ class UserGroup(UserGroupMixin, Base, CommonModel):
     @classmethod
     def _get_by_user(cls, user):
         return DBSession.query(cls).filter_by(user_id=user.id).all()
+    
+    @classmethod
+    def query(cls):
+        return DBSession.query(cls)
 
     @classmethod
     def get_by_user(cls, user):
