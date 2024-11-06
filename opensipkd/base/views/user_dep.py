@@ -4,7 +4,7 @@ from pyramid.view import view_config
 
 from . import BaseView
 from ...models import User, DepartemenUser, Departemen
-
+from .departemen import departemen_widget, get_departemen_list
 
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(
@@ -30,7 +30,7 @@ class AddSchema(colander.Schema):
     )
     departemen_id = colander.SchemaNode(
         colander.Integer(),
-        widget=widget.SelectWidget(values=Departemen.get_list()),
+        widget=departemen_widget,
         oid="departemen_id",
         title="Departemen", )
 
@@ -63,6 +63,9 @@ class Views(BaseView):
                  permission='user-view')
     def view_act(self):
         return super().view_act()
+
+    def get_bindings(self, row=None):
+        return {"departemen_list": get_departemen_list()}
 
     @view_config(route_name='user-departemen-add', renderer='templates/form.pt',
                  permission='user-edit')

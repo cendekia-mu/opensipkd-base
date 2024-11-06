@@ -475,6 +475,9 @@ class BaseView(object):
             query = query.filter(
                 self.table.company_id == self.req.user.company_id)
         query = self.list_filter(query, **kwargs)
+        # log.debug(str(columns))
+        # qry = query.add_columns(*[c.sqla_expr for c in columns])
+        # log.debug(str(qry))
         row_table = DataTables(self.req.GET, query, columns)
         result = row_table.output_result()
         data = result and "data" in result and result["data"] or {}

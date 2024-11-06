@@ -451,7 +451,7 @@ def main(global_config, **settings):
         None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
 
     engine = engine_from_config(
-        settings, 'sqlalchemy.', client_encoding='utf8')  # , convert_unicode=True
+        settings, 'sqlalchemy.', client_encoding='utf8', max_identifier_length=30)  # , convert_unicode=True
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     Base.metadata.bind = engine

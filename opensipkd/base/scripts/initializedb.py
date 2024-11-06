@@ -36,16 +36,17 @@ def usage(argv):
 
 
 def create_schema(engine, schema):
-    sql = select([text('schema_name')]).select_from(
+    sql = select(text('schema_name')).select_from(
         text('information_schema.schemata')).where(
-        text("schema_name = '%s'" % schema))
+        text("schema_name = '%s'" %     schema))
     if isinstance(engine.dialect, oracle.dialect):
         sql = select(['owner']).select_from('dba_segments').where(
             "owner = '%s'" % schema.upper())
     print(sql)
-    q = engine.execute(sql)
-    if not q.fetchone():
-        engine.execute(CreateSchema(schema))
+    with engine.connect() as conn:
+        q = conn.execute(sql)
+        if not q.fetchone():
+            conn.execute(CreateSchema(schema))
 
 
 def read_file(filename):
@@ -165,7 +166,10 @@ def append_csv(table, filename, keys, get_file_func=get_file,
 
     log.debug(f"Delimiter: {delimiter}")
     insp = inspect(DBSession.connection())
-    columns_table = insp.get_columns(table.__tablename__)
+    print(dir(table.__table__))
+    print("____")
+    schema = hasattr(table.__table__, "schema") and table.__table__.schema or "public"
+    columns_table = insp.get_columns(table.__tablename__, schema)
     fields = {}
     for c in columns_table:
         fields[c["name"]] = c["type"]

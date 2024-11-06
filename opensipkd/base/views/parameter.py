@@ -2,10 +2,10 @@ import colander
 from deform import (widget, )
 from pyramid.view import (view_config, )
 
-from . import BaseView
 from opensipkd.models import (
     DBSession,
     Parameter)
+from . import BaseView
 
 
 class AddSchema(colander.Schema):
@@ -26,7 +26,8 @@ class AddSchema(colander.Schema):
         title="Nilai")
 
     status = colander.SchemaNode(
-        colander.Boolean())
+        colander.Integer(),
+        widget=widget.CheckboxWidget(true_val=1, false_val=0))
 
 
 class EditSchema(AddSchema):
