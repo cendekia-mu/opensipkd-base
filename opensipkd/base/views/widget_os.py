@@ -585,6 +585,7 @@ class BootStrapDateInputWidget(Widget):
         if pstruct in ("", null):
             return null
         try:
+            _logging.debug(f"Date:{self._pstruct_schema}")
             validated = self._pstruct_schema.deserialize(pstruct)
         except Invalid as exc:
             raise Invalid(field.schema, "Invalid pstruct: %s" % exc)

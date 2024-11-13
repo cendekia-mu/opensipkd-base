@@ -10,8 +10,6 @@ from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
 from opensipkd.base.views.upload import tmpstore
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
-
 from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
@@ -19,6 +17,8 @@ from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete,
     btn_pdf, btn_unpost, btn_post
 from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+
 from .common import DataTables
 from .. import DBSession, get_params, get_urls
 from ..scripts.initializedb import append_csv
@@ -266,7 +266,7 @@ class BaseView(object):
         return {}
 
     def next_view(self, form, **kwargs):
-        return self.route_list()
+        return
 
     def next_edit(self, form, **kwargs):
         return self.route_list(**kwargs)
@@ -292,13 +292,20 @@ class BaseView(object):
                     **kwargs
                     )
 
+    def view_buttons(self, row):
+        result = (btn_close,)
+        return result
+
     def view_view(self, **kwargs):  # row = query_id(request).first()
         request = self.req
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
         bindings = self.get_bindings(row)
-        buttons = kwargs.get("buttons", (btn_close,))
+        buttons = kwargs.get("buttons", None)
+        if not buttons:
+            buttons = self.view_buttons(row)
+
         form = self.get_form(self.edit_schema, buttons=buttons,
                              bindings=bindings)
         if request.POST:
@@ -609,12 +616,18 @@ class BaseView(object):
         """
         return form
 
+    def edit_restrict(self, row):
+        return False
+
     def view_edit(self, **kwargs):
         request = self.req
         row = self.query_id().first()
         is_object = kwargs.get("is_object", False)
         if not row:
             return self.id_not_found(**kwargs)
+
+        if self.edit_restrict(row):
+            return self.route_list(**kwargs)
 
         if not self.bindings:
             self.bindings = self.get_bindings(row)
