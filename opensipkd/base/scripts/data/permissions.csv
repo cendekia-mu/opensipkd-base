@@ -1,5 +1,6 @@
 perm_name,description
 admin,Administrator
+guest,Guest
 user-edit,User management
 user-view,User view
 user-group,User Group

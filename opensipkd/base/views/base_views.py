@@ -163,8 +163,7 @@ class BaseView(object):
     def query_register(self, **kwargs):
         pass
 
-    def delete_msg(self, row):
-        return f'Data ID {row.id} sudah dihapus.'
+
 
     def route_list(self, **kwargs):
         msg = kwargs.get("msg")
@@ -663,6 +662,9 @@ class BaseView(object):
         form = self.before_edit(form)
 
         return self.returned_form(form, table, **kwargs)
+
+    def delete_msg(self, row):
+        return f'Data ID {row.id} sudah dihapus.'
 
     def before_delete(self, row):
         pass

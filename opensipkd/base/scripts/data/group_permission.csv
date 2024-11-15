@@ -10,3 +10,4 @@ group_id/groups.group_name,perm_name
 "Superuser","permission"
 "Web Service","web-service"
 "Pindah Departemen","departemen-all"
+"Guest", "guest"

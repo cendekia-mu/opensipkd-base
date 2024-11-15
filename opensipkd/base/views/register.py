@@ -290,6 +290,7 @@ class Registrasi(BaseView):
 
             else:
                 value.pop("idcard")
+        value["groups"]="Guest"
 
     def before_add(self):
         result = {}
@@ -381,21 +382,24 @@ class Registrasi(BaseView):
             values["is_vendor"] = 0
             values["is_customer"] = 1
         row = super().save_request(values, row)
+
         if not self.req.user:  # User Baru
-            if 'groups' in values and values['groups']:
-                gr = Group.query_group_name(values['groups']).first()
-                ug = UserGroup()
-                ug.user_id = row.id
-                ug.group_id = gr.id
-                DBSession.add(ug)
-                add_member_count(gr.id)
-                DBSession.flush()
+
             user = User()
             user.email = row.email
             user.user_name = row.email
             user.registered_date = datetime.now()
             DBSession.add(user)
             DBSession.flush()
+            if 'groups' in values and values['groups']:
+                gr = Group.query_group_name(values['groups']).first()
+                ug = UserGroup()
+                ug.user_id = user.id
+                ug.group_id = gr.id
+                DBSession.add(ug)
+                add_member_count(gr.id)
+                DBSession.flush()
+
             remain = regenerate_security_code(user)
             send_email_security_code(
                 self.req, user, remain, 'Welcome new user', 'email-new-user',
