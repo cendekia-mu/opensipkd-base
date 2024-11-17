@@ -42,7 +42,6 @@ def create_schema(engine, schema):
     if isinstance(engine.dialect, oracle.dialect):
         sql = select(['owner']).select_from('dba_segments').where(
             "owner = '%s'" % schema.upper())
-    print(sql)
     with engine.connect() as conn:
         q = conn.execute(sql)
         if not q.fetchone():

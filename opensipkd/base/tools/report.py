@@ -49,13 +49,46 @@ def jasper_export(input_file, output_file=None, schema=None,
     db_driver = db_driver_port[db_driver][0]
     log.info(jdbc_dir)
     input_file = input_file.split(":")
+    # if os.name == 'nt' and len(input_file)>1:
+    #     input_file=[input_file[0]]
+    # if len(input_file) > 1:
+    #     path = __import__()
+    #     path = os.path.dirname(path.__file__)
+    #     input_file = os.path.join(path, input_file[1])
+    # else:
+    #     input_file=input_file[0]
+    module_file = None
     if len(input_file) > 1:
-        path = __import__(input_file[0])
-        path = os.path.dirname(path.__file__)
-        input_file = os.path.join(path, input_file[1])
-    else:
-        input_file=input_file[0]
+        if os.name == 'nt':
+            if len(input_file) > 2:
+                module_file = input_file[0]
+                input_file = ":".join([input_file[1], input_file[2]])
+            else:
+                input_file = ":".join([input_file[0], input_file[1]])
+        else:
+            module_file = input_file[0]
+            input_file = input_file[1]
 
+        if module_file:
+            path = __import__(module_file)
+            path = os.path.dirname(path.__file__)
+            input_file = os.path.join(path, input_file)
+
+    else:
+        input_file = input_file[0]
+
+    log.debug(f"Input File: {input_file}" )
+
+    # if len(input_file) > 1:
+    #     path = __import__()
+    #     path = os.path.dirname(path.__file__)
+    #     input_file = os.path.join(path, input_file[1])
+    # else:
+    #     input_file = os.path.join(path, input_file[0])
+    # if not output_file:
+    #     output_file = get_params("tmp_report", "/tmp")
+    # output_file = os.path.join(output_file, get_random_string(32))
+    #
     if not output_file:
         output_file = get_params("tmp_report", "/tmp")
     output_file = os.path.join(output_file, get_random_string(32))
