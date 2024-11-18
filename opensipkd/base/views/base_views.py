@@ -159,11 +159,10 @@ class BaseView(object):
         self.upload_keys = ["kode"]
         self.report_file = ""
         self.new_buttons = {}
+        self.is_object = False
 
     def query_register(self, **kwargs):
         pass
-
-
 
     def route_list(self, **kwargs):
         msg = kwargs.get("msg")
@@ -274,7 +273,7 @@ class BaseView(object):
         resources = form.get_widget_resources()
         readonly = "readonly" in kwargs and kwargs["readonly"] or False
         kwargs["readonly"] = readonly
-        is_object = kwargs.get("is_object")
+        is_object = kwargs.get("is_object", self.is_object)
         if is_object:
             return dict(form=form,
                         table=table and table.render() or None,
@@ -520,7 +519,7 @@ class BaseView(object):
         form = self.get_form(self.add_schema, **kwargs)
         table = self.get_item_table(**kwargs)
         resources = form.get_widget_resources()
-        is_object = kwargs.get("is_object", False)
+        is_object = kwargs.get("is_object", self.is_object)
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
@@ -621,7 +620,7 @@ class BaseView(object):
     def view_edit(self, **kwargs):
         request = self.req
         row = self.query_id().first()
-        is_object = kwargs.get("is_object", False)
+        is_object = kwargs.get("is_object", self.is_object)
         if not row:
             return self.id_not_found(**kwargs)
 
@@ -673,7 +672,7 @@ class BaseView(object):
         request = self.req
         q = self.query_id()
         row = q.first()
-        is_object = kwargs.get("is_object", False)
+        is_object = kwargs.get("is_object", self.is_object)
         if not row:
             return self.id_not_found()
         if not self.bindings:

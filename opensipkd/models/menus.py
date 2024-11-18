@@ -3,7 +3,7 @@ from sqlalchemy import (
     Integer,
     ForeignKey,
     String,
-    SmallInteger, Boolean,
+    SmallInteger, Boolean,Text
 )
 from sqlalchemy.orm import (
     relationship,
@@ -19,9 +19,9 @@ class Menus(Base, NamaModel):
     __tablename__ = 'menus'
     __table_args__ = (TABLE_ARGS,)
     id = Column(Integer, primary_key=True)
+    order_id = Column(SmallInteger)
     parent_id = Column(Integer, ForeignKey('public.menus.id'))
     level_id = Column(SmallInteger)
-    order_id = Column(SmallInteger)
     valu = Column(String(256))  # value/action
     meth = Column(String(256))  # new method
     page_typ = Column(String(256))  # PageType

@@ -156,7 +156,18 @@ Contoh::
         </Proxy>
     </VirtualHost>
 ```
-
+# Migrasi
+Karena ada penambahan dari fungsi table route berfungsi sebagai menu 
+generator, maka diperlukan upgrade khusus bagi aplikasi lama
+```
+alembic -c config_file -n alembic_models upgrade head 
+```
+Tambahkan Konfigurasi berikut ini
+```
+    [alembic_models]
+    sqlalchemy.url = postgresql://user:password@localhost:5432/db
+    script_location = opensipkd.models:alembic
+```
 # Virtual Directory
 
 ## Setting Ini File

@@ -62,6 +62,7 @@ static_route = [
 
 ]
 
+
 # http://stackoverflow.com/questions/9845669/pyramid-inverse-to-add-notfound-viewappend-slash-true
 # class RemoveSlashNotFoundViewFactory(object):
 #     diganti menggunakan @view_config(context=HTTPNotFound, renderer='templates/404.pt') pada base.views
@@ -155,6 +156,8 @@ def add_global(event):
     event['get_urls'] = get_urls
     event['get_csrf_token'] = get_csrf_token
     event['get_params'] = get_params
+    event['get_module_menus'] = get_module_menus
+    event['get_module_submenus'] = get_module_submenus
 
 
 def get_params(request, params, alternate=None, settings=None):
@@ -424,8 +427,8 @@ def get_home(request):
     return request.route_url('home')[:-1]
 
 
-def set_routes(config, app_id=None):
-    q = DBSession.query(Route)
+def _set_routes1(config, app_id):
+    q = DBSession.query(Route).filter(Route.path != None, Route.module == None, Route.status==1)
     if not app_id:
         q.filter(or_(Route.app_id == 0, None == Route.app_id))
     else:
@@ -441,6 +444,58 @@ def set_routes(config, app_id=None):
                                         default_renderer="json_rpc")
 
 
+def _set_routes2(config, module="base"):
+    q = DBSession.query(Route).filter(Route.module == module, Route.status==1)
+    for route in q:
+        if route.type == 0:
+            config.add_route(route.kode, route.path)
+            if route.nama:
+                titles[route.kode] = route.nama
+        elif route.type == 1:
+            config.add_jsonrpc_endpoint(route.kode, route.path,
+                                        default_renderer="json_rpc")
+    return q
+
+
+def set_routes(config, app_id=None):
+    if app_id and type(app_id) == str:
+        return _set_routes2(config, app_id)
+    else:
+        return _set_routes1(config, app_id)
+
+
+def get_route_names(rows):
+    return [r.kode for r in rows if not r.is_menu]
+
+
+def get_children(rows):
+    return [{"id": r.id, "path": r.path, "nama": r.nama, "is_menu": r.is_menu,
+             "icon": r.icon,
+             "route_names": [r.kode] + get_route_names(r.children),
+             "children": get_children(r.children),
+             "has_sub": r.path.find("/") == -1
+             }
+            for r in rows if r.is_menu and r.status==1]
+
+
+def get_module_menus(module):
+    query = DBSession.query(Route) \
+        .filter(Route.module == module,
+                Route.is_menu == 1,
+                Route.parent_id == None)
+
+    result = get_children(query.order_by(Route.order_id))
+    log.debug(result)
+    return result
+
+
+def get_module_submenus(parent_id):
+    q = DBSession.query(Route) \
+        .filter(Route.parent_id == parent_id) \
+        .order_bY(Route.order_id)
+    return [r.kode for r in query.all()]
+
+
 partner_idcard_url = 'partner/idcard'
 
 
@@ -451,7 +506,8 @@ def main(global_config, **settings):
         None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
 
     engine = engine_from_config(
-        settings, 'sqlalchemy.', client_encoding='utf8', max_identifier_length=30)  # , convert_unicode=True
+        settings, 'sqlalchemy.', client_encoding='utf8',
+        max_identifier_length=30)  # , convert_unicode=True
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     Base.metadata.bind = engine
@@ -511,6 +567,10 @@ def main(global_config, **settings):
     config.add_request_method(get_ini, 'get_ini', reify=True)
     config.add_request_method(get_params, 'get_params', reify=True)
     config.add_request_method(get_csrf_token, 'get_csrf_token', reify=True)
+
+    # Penambahan Module Auto Generate Menu
+    # config.add_request_method(get_module_menus, 'get_module_menus', reify=True)
+    # config.add_request_method(get_module_submenus, 'get_module_submenus', reify=True)
 
     # config.add_translation_dirs('opensipkd.base:locale/')
 

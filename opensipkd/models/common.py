@@ -10,11 +10,23 @@ from .users import User
 class Route(Base, NamaModel):
     __tablename__ = 'routes'
     __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True)
     kode = Column(String(128), unique=True)
     path = Column(String(256), nullable=False, unique=True)
     status = Column(Integer, nullable=False, server_default='1')
     type = Column(SmallInteger, nullable=False, server_default='0')
     app_id = Column(SmallInteger, nullable=False, server_default='0')
+    module = Column(String(256))
+    is_menu = Column(SmallInteger)
+    parent_id = Column(Integer, ForeignKey("routes.id"))
+    order_id = Column(Integer)
+    permission = Column(String(256))
+    class_view = Column(String(256))
+    def_func = Column(String(256))
+    template = Column(String(256))
+    icon = Column(String(256))
+    children = relationship(
+        "Route", backref=backref('parent', remote_side=[id]))
 
 
 class Parameter(Base, NamaModel):
@@ -53,4 +65,4 @@ class ResCompany(Base, NamaModel):
     parent = relationship(
         "ResCompany", remote_side=[id], primaryjoin="ResCompany.parent_id==ResCompany.id",
         overlaps="children"
-        )
+    )

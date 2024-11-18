@@ -20,6 +20,7 @@
         desa_path ['desa', 'desa-add', 'desa-edit', 'desa-view', 'desa-delete'];
         css css|[];
         js js|[];
+        route_name route_name|request.matched_route.name;
         ">
 <head>
 
@@ -159,64 +160,64 @@
                 <a href="#"><i class="fa fa-lg fa-fw fa-shield"></i><span class="menu-item-parent">Admin</span></a>
                 <ul>
                     <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                             tal:attributes="class  request.matched_route.name in user_path and 'active'">
+                             tal:attributes="class  route_name in user_path and 'active'">
                         <a href="${home}/user">User</a>
                     </li>
                     <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                             tal:attributes="class  request.matched_route.name in user_area_path and 'active'">
+                             tal:attributes="class  route_name in user_area_path and 'active'">
                         <a href="${home}/user/area">User Area</a>
                     </li>
                   <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                             tal:attributes="class  request.matched_route.name in user_dep_path and 'active'">
+                             tal:attributes="class  route_name in user_dep_path and 'active'">
                         <a href="${home}/user/departemen">User Departemen</a>
                     </li>
                     <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                             tal:attributes="class  request.matched_route.name in user_ext_path and 'active'">
+                             tal:attributes="class  route_name in user_ext_path and 'active'">
                         <a href="${home}/user/ext">External User</a>
                     </li>
                     <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                             tal:attributes="class request.matched_route.name in group_path and 'active'">
+                             tal:attributes="class route_name in group_path and 'active'">
                         <a href="${home}/group">Group</a>
                     </li>
                     <li tal:condition="has_permission(request, 'upload-logo')"
-                             tal:attributes="class request.matched_route.name in ['upload-logo'] and 'active'">
+                             tal:attributes="class route_name in ['upload-logo'] and 'active'">
                         <a href="${home}/upload/logo">Upload Logo</a></li>
                     <li tal:condition="has_permission(request, 'parameter')"
-                             tal:attributes="class request.matched_route.name in param_path and 'active'">
+                             tal:attributes="class route_name in param_path and 'active'">
                         <a href="${home}/parameter">Parameter</a></li>
                     <li tal:condition="has_permission(request, 'company')"
-                             tal:attributes="class request.matched_route.name in company_path  and 'active'">
+                             tal:attributes="class route_name in company_path  and 'active'">
                         <a href="${home}/company">Pemerintah</a></li>
                     <li tal:condition="has_permission(request, 'eselon')"
-                             tal:attributes="class request.matched_route.name in eselon_path and 'active'">
+                             tal:attributes="class route_name in eselon_path and 'active'">
                         <a href="${home}/eselon">Eselon</a></li>
                     <li tal:condition="has_permission(request, 'jabatan')"
-                             tal:attributes="class  request.matched_route.name in jabatan_path and 'active'">
+                             tal:attributes="class  route_name in jabatan_path and 'active'">
                         <a href="${home}/jabatan">Jabatan</a></li>
 
                     <li tal:condition="has_permission(request, 'departemen')"
-                             tal:attributes="class request.matched_route.name in dep_path  and 'active'">
+                             tal:attributes="class route_name in dep_path  and 'active'">
                         <a href="${home}/departemen">Departemen</a></li>
                     <li tal:condition="has_permission(request, 'partner')"
-                             tal:attributes="class request.matched_route.name in partner_path  and 'active'">
+                             tal:attributes="class route_name in partner_path  and 'active'">
                         <a href="${home}/partner">Partner</a></li>
                     <li tal:condition="has_permission(request, 'partner-departemen')"
-                             tal:attributes="class request.matched_route.name in part_dep_path and 'active'">
+                             tal:attributes="class route_name in part_dep_path and 'active'">
                         <a href="${home}/partner/departemen">Partner Departemen</a></li>
                     <li tal:condition="has_permission(request, 'provinsi')"
-                             tal:attributes="class request.matched_route.name in provinsi_path and 'active'">
+                             tal:attributes="class route_name in provinsi_path and 'active'">
                         <a href="${home}/provinsi">Provinsi</a></li>
                     <li tal:condition="has_permission(request, 'dati2')"
-                             tal:attributes="class  request.matched_route.name in dati2_path and 'active'">
+                             tal:attributes="class  route_name in dati2_path and 'active'">
                         <a href="${home}/dati2">Kabupaten/Kota</a></li>
                     <li tal:condition="has_permission(request, 'kecamatan')"
-                             tal:attributes="class  request.matched_route.name in kecamatan_path and 'active'">
+                             tal:attributes="class  route_name in kecamatan_path and 'active'">
                         <a href="${home}/kecamatan">Kecamatan</a></li>
                     <li tal:condition="has_permission(request, 'desa')"
-                             tal:attributes="class  request.matched_route.name in desa_path and 'active'">
+                             tal:attributes="class  route_name in desa_path and 'active'">
                         <a href="${home}/desa">Desa/Kelurahan</a></li>
                     <li tal:condition="has_permission(request, 'log')"
-                             tal:attributes="class request.matched_route.name in ['log'] and 'active'">
+                             tal:attributes="class route_name in ['log'] and 'active'">
                         <a href="${home}/log">Log</a></li>
 
                 </ul>

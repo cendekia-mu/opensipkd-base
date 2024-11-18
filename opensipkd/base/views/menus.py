@@ -96,8 +96,10 @@ class EditSchema(AddSchema):
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.Integer(),
                              title=_("action", default="Action"))
+    module= colander.SchemaNode(colander.String(), title="Kode", width='100pt')
     kode = colander.SchemaNode(colander.String(), title="Kode", width='100pt')
     nama = colander.SchemaNode(colander.String(), title="Nama")
+    permission = colander.SchemaNode(colander.String(), title="Permission")
     status = colander.SchemaNode(colander.Boolean(), title="Status",
                                  width='50pt')
     need_login = colander.SchemaNode(colander.Integer(), title="Login",

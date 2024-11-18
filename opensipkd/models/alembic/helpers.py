@@ -24,7 +24,7 @@ def table_has_column(table, column, schema=None):
     return has_column
 
 
-def fields_update(table, field, typ, schema="pad"):
+def fields_update(table, field, typ, schema="public"):
     context = op.get_context()
     helpers = context.opts['helpers']
     if not helpers.table_has_column(table, field, schema):

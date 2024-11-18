@@ -242,6 +242,8 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     value = cf[fname]
 
                 fname_orig = fmap[fname]
+                if not value and callback:
+                    value = callback("value", data=cf, field=fname_orig)
                 data[fname_orig] = value
 
             for key in keys:
@@ -279,6 +281,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     # update: tambah periksa nilai default.
                     # Jika default=None berarti wajib ada nilainya
                     # by tatang 2024-10-12
+                    log.debug(data)
                     raise Exception(
                         f"Table {str(table.__name__)} Field '{c['name']}' wajib ada {c['type']} ")
 
