@@ -476,6 +476,7 @@ def get_children(rows):
         id=r.id,
         path=r.path, nama=r.nama, is_menu=r.is_menu,
         icon=r.icon,
+        permission=r.permission,
         route_names=[r.kode] + get_route_names(r.children),
         children=get_children(r.children),
         has_sub=r.path.find("/") == -1
