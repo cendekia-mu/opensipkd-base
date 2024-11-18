@@ -8,6 +8,7 @@ try:
     from urllib import (urlencode, quote, quote_plus, )
 except ImportError:
     from urllib.parse import (urlencode, quote, quote_plus, )
+from collections import OrderedDict
 from pyramid.events import NewRequest
 from pyramid.config import Configurator
 from pyramid_beaker import session_factory_from_settings
@@ -428,7 +429,7 @@ def get_home(request):
 
 
 def _set_routes1(config, app_id):
-    q = DBSession.query(Route).filter(Route.path != None, Route.module == None, Route.status==1)
+    q = DBSession.query(Route).filter(Route.path != None, Route.module == None, Route.status == 1)
     if not app_id:
         q.filter(or_(Route.app_id == 0, None == Route.app_id))
     else:
@@ -445,7 +446,7 @@ def _set_routes1(config, app_id):
 
 
 def _set_routes2(config, module="base"):
-    q = DBSession.query(Route).filter(Route.module == module, Route.status==1)
+    q = DBSession.query(Route).filter(Route.module == module, Route.status == 1)
     for route in q:
         if route.type == 0:
             config.add_route(route.kode, route.path)
@@ -469,13 +470,16 @@ def get_route_names(rows):
 
 
 def get_children(rows):
-    return [{"id": r.id, "path": r.path, "nama": r.nama, "is_menu": r.is_menu,
-             "icon": r.icon,
-             "route_names": [r.kode] + get_route_names(r.children),
-             "children": get_children(r.children),
-             "has_sub": r.path.find("/") == -1
-             }
-            for r in rows if r.is_menu and r.status==1]
+    log.debug(f"Children: {rows}")
+    return [dict(
+        order_id=r.order_id,
+        id=r.id,
+        path=r.path, nama=r.nama, is_menu=r.is_menu,
+        icon=r.icon,
+        route_names=[r.kode] + get_route_names(r.children),
+        children=get_children(r.children),
+        has_sub=r.path.find("/") == -1
+    ) for r in rows if r.is_menu and r.status == 1]
 
 
 def get_module_menus(module):

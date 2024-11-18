@@ -26,7 +26,8 @@ class Route(Base, NamaModel):
     template = Column(String(256))
     icon = Column(String(256))
     children = relationship(
-        "Route", backref=backref('parent', remote_side=[id]))
+        "Route", backref=backref('parent', remote_side=[id]),
+        order_by="Route.order_id")
 
 
 class Parameter(Base, NamaModel):
