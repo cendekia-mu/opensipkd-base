@@ -206,7 +206,7 @@ class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
 
 class Permission(Base, CommonModel):
     __tablename__ = 'permissions'
-    __table_args__ = {'extend_existing': True, }
+    __table_args__ = (TABLE_ARGS)
     id = Column(Integer, primary_key=True)
     perm_name = Column(String(64), nullable=False, unique=True)
     description = Column(String(64), nullable=False, unique=True)
