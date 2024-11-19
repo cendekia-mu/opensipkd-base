@@ -470,7 +470,7 @@ def get_route_names(rows):
 
 
 def get_children(rows):
-    log.debug(f"Children: {rows}")
+    # log.debug(f"Children: {rows}")
     return [dict(
         order_id=r.order_id,
         id=r.id,
@@ -490,7 +490,7 @@ def get_module_menus(module):
                 Route.parent_id == None)
 
     result = get_children(query.order_by(Route.order_id))
-    log.debug(result)
+    # log.debug(result)
     return result
 
 

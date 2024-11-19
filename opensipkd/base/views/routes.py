@@ -207,11 +207,11 @@ class Views(BaseView):
             term = 'term' in params and params['term'] or ''
             q = Route.query(). \
                 filter(Route.status == 1,
-                       Route.nama.ilike('%%%s%%' % term)) \
-                .order_by(Route.nama)
+                       Route.kode.ilike('%%%s%%' % term)) \
+                .order_by(Route.kode)
             r = []
             for k in q.all():
-                d = dict(id=k.id, value=k.nama, kode=k.kode, nama=k.nama)
+                d = dict(id=k.id, value=k.kode, kode=k.kode, nama=k.nama)
                 r.append(d)
             return r
 
@@ -222,7 +222,7 @@ class Views(BaseView):
         values = super().get_values(row, istime, null)
         if row.parent_id:
             route = Route.query_id(row.parent_id).first()
-            values["parent_nm"] = route and route.nama or ""
+            values["parent_nm"] = route and route.kode or ""
         _logging.debug(values)
         return values
 
