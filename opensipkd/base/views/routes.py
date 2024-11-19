@@ -28,6 +28,8 @@ def route_widget_form():
 class EditSchema(colander.Schema):
     id = colander.SchemaNode(
         colander.Integer(), widget=widget.HiddenWidget())
+    kode = colander.SchemaNode(
+        colander.String(), title='kode')
     path = colander.SchemaNode(
         colander.String(), title='Path')
     nama = colander.SchemaNode(
