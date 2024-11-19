@@ -224,6 +224,7 @@ class BaseView(object):
 
     def view_list(self, **kwargs):
         if self.list_schema:
+            allow_view = kwargs.get("allow_view", True)
             allow_edit = kwargs.get("allow_edit", True)
             allow_delete = kwargs.get("allow_delete", True)
             allow_post = kwargs.get("allow_post", False)
@@ -243,6 +244,7 @@ class BaseView(object):
                             action_suffix="/grid/act",
                             buttons=self.list_buttons,
                             request=self.req,
+                            allow_view=allow_view,
                             allow_edit=allow_edit,
                             allow_delete=allow_delete,
                             allow_post=allow_post,

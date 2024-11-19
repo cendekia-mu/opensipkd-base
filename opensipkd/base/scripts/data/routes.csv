@@ -1,27 +1,27 @@
 kode,path,nama,status,type,app_id
 home,/,Home,1,0,
 home-auth,/home,Home Auth,1,
-home-about,/home/{id}/about,Home About,
+home-about,/home/{id}/about,Home About,1
 login,/login,Login,1,0,
 logout,/logout,Logout,1,0,
 rpc,/rpc,RPC,1,1,
-change-password,/password/{code},Ubah password,0,
-password,/password,Ubah password,0,
-reset-password,/reset-password,0,
-reset-password-sent,/reset-password-sent,0,
-menu,/menu,Menus,0,
-menu-act,/menu/{act}/act,Menus Act,0,
-menu-add,/menu/add,Menus Add,0,
-menu-edit,/menu/{id}/edit,Menus Edit,0,
-menu-delete,/menu/{id}/delete,Menus Delete,0,
-menu-view,/menu/{id}/view,Menus View,0,
-user,/user,Daftar User,
-user-add,/user/add,Tambah User,
-user-edit,/user/{id}/edit,Edit User,
-user-view,/user/{id}/view,View User,
-user-delete,/user/{id}/delete,Hapus User,
-user-act,/user/{act}/act,Act User,
-user-ext,/user/ext,Daftar User Ext,
+change-password,/password/{code},Ubah password,1,
+password,/password,Ubah password,1,
+reset-password,/reset-password,0,1
+reset-password-sent,/reset-password-sent,0,1
+menu,/menu,Menus,1,
+menu-act,/menu/{act}/act,Menus Act,1,
+menu-add,/menu/add,Menus Add,1,
+menu-edit,/menu/{id}/edit,Menus Edit,1,
+menu-delete,/menu/{id}/delete,Menus Delete,1,
+menu-view,/menu/{id}/view,Menus View,1,
+user,/user,Daftar User,1
+user-add,/user/add,Tambah User,1
+user-edit,/user/{id}/edit,Edit User,1
+user-view,/user/{id}/view,View User,1
+user-delete,/user/{id}/delete,Hapus User,1
+user-act,/user/{act}/act,Act User,1
+user-ext,/user/ext,Daftar User Ext,1
 user-ext-add,/user/ext/add,Tambah User Ext,
 user-ext-edit,/user/ext/{id}/edit,Edit User Ext,
 user-ext-view,/user/ext/{id}/view,View User Ext,
@@ -94,19 +94,19 @@ departemen-user-edt,/departemen/user/{id}/edt,User Organisasi Edit,1,0,
 departemen-user-view,/departemen/user/{id}/view,User Organisasi view,1,0,
 departemen-user-del,/departemen/user/{id}/del,User Organisasi Hapus,1,0,
 departemen-user-rpt,/departemen/user/{rpt}/rpt,User Organisasi Report,1,0,
-rpc-user,/rpc/user,WebService User Management,,1,
-recreate-api-key,/recreate-api-key,Buat ulang API Key,0,
-googleOauth2,/googleOauth2,'Google OAuth2',
-googleOauth2,/googleOauth2,'Google OAuth2',
-googlesignin,/googlesignin, "Google SignIn",
-permission,/permission,Daftar Permission,
-permission-add,/permission/add,Tambah Permission,
-permission-edit,/permission/{id}/edit,Edit Permission,
-permission-view,/permission/{id}/view,Permission view,
-permission-delete,/permission/{id}/delete,Hapus Permission,
-permission-act,/permission/{act}/act,Act Permission,
-eselon,/eselon,Daftar Eselon,
-eselon-add,/eselon/add,Tambah Eselon,
+rpc-user,/rpc/user,WebService User Management,1,1,
+recreate-api-key,/recreate-api-key,Buat ulang API Key,1,
+googleOauth2,/googleOauth2,'Google OAuth2',1
+googleOauth2,/googleOauth2,'Google OAuth2',1
+googlesignin,/googlesignin, "Google SignIn",1
+permission,/permission,Daftar Permission,1
+permission-add,/permission/add,Tambah Permission,1
+permission-edit,/permission/{id}/edit,Edit Permission,1
+permission-view,/permission/{id}/view,Permission view,1
+permission-delete,/permission/{id}/delete,Hapus Permission,1
+permission-act,/permission/{act}/act,Act Permission,1
+eselon,/eselon,Daftar Eselon,1
+eselon-add,/eselon/add,Tambah Eselon,1
 eselon-edit,/eselon/{id}/edit,Edit Eselon,
 eselon-view,/eselon/{id}/view,View Eselon,
 eselon-delete,/eselon/{id}/delete,Hapus Eselon,
