@@ -29,8 +29,7 @@ class EditSchema(colander.Schema):
     id = colander.SchemaNode(
         colander.Integer(), widget=widget.HiddenWidget())
     kode = colander.SchemaNode(
-        colander.String(),)
-
+        colander.String(), title='Kode')
     path = colander.SchemaNode(
         colander.String(), title='Path')
     nama = colander.SchemaNode(
