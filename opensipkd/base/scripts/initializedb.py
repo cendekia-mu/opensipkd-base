@@ -28,6 +28,55 @@ log = logging.getLogger(__name__)
 # from .tools import mkdir
 
 
+def routes_callback(typ, **kwargs):
+    if typ == "mapping":
+        return kwargs.get("value")
+    if typ == "value":
+        data = kwargs.get("data")
+        field = kwargs.get("field")
+        splited = data["kode"].split("-")
+        value = None
+        splited_last = splited[len(splited) - 1]
+        if field == "module":
+            value = splited[0]
+        elif field == "def_func":
+            if data["def_func"]:
+                return data["def_func"]
+            elif splited_last == 'menu':
+                return None
+            value = splited_last
+        elif field == "class_view":
+            if data["def_func"] == "list" and not data["class_view"]:
+                return "_".join(splited[1:])
+
+            if splited_last == "menu":
+                return None
+            value = "_".join(splited[1:-1])
+
+        elif field == "path":
+            if splited_last == "menu":
+                return "-".join(splited)
+            elif splited_last in ["act", "report"]:
+                return "/" + "/".join(splited[:-1]) + "/{act}/" + splited_last
+            elif splited_last == "report":
+                return "/" + "/".join(splited[:-1]) + "/{act}/act"
+            elif splited_last in ["edit", "view", "delete"]:
+                return "/" + "/".join(splited[:-1]) + "/{id}/" + splited_last
+            else:
+                return "/" + "/".join(splited)
+        elif field == "template":
+            if splited_last == "act":
+                return "json"
+            elif data["template"]:
+                return data["template"]
+
+            elif data["def_func"] == "list":
+                return "list.pt"
+            else:
+                return "form.pt"
+
+        return value
+
 def usage(argv):
     cmd = os.path.basename(argv[0])
     print('usage: %s <config_uri>\n'
@@ -81,7 +130,7 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
                     try:
                         t = fieldname.split('/')
                     except Exception as e:
-                        print(fieldname, cf.keys())
+                        # print(fieldname, cf.keys())
                         raise e
 
                     fname_orig = t[0]
@@ -156,17 +205,17 @@ def append_csv(table, filename, keys, get_file_func=get_file,
     callback = args.get("callback")
     delimiter = args.get("delimiter")
     ext = get_ext(filename).lower()
-    log.debug(f"Extension: {ext.strip()}")
-    log.debug(f"Extension: {ext.strip() == '.tsv'}")
+    # log.debug(f"Extension: {ext.strip()}")
+    # log.debug(f"Extension: {ext.strip() == '.tsv'}")
     if not delimiter:
         delimiter = ","
         if ext.strip() == '.tsv':
             delimiter = "\t"
 
-    log.debug(f"Delimiter: {delimiter}")
+    # log.debug(f"Delimiter: {delimiter}")
     insp = inspect(DBSession.connection())
-    print(dir(table.__table__))
-    print("____")
+    # print(dir(table.__table__))
+    # print("____")
     schema = hasattr(table.__table__, "schema") and table.__table__.schema or "public"
     columns_table = insp.get_columns(table.__tablename__, schema)
     fields = {}
@@ -181,7 +230,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
         is_first = True
         fmap = dict()
         for cf in reader:
-            log.debug(f"Column Field: {cf}")
+            # log.debug(f"Column Field: {cf}")
             if is_first:
                 is_first = False
                 for fname in cf.keys():
@@ -190,7 +239,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     try:
                         t = fname.split('/')
                     except Exception as e:
-                        log.debug(fname, cf.keys())
+                        # log.debug(fname, cf.keys())
                         raise e
 
                     fname_orig = t[0]
@@ -229,7 +278,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     # merubah v1.4 ke v.2
                     # sql = select([foreign_table]).where(foreign_field == value)
                     sql = select(foreign_table).where(foreign_field == value)
-                    log.debug(f"Query Foreignkey: {str(sql)}")
+                    # log.debug(f"Query Foreignkey: {str(sql)}")
                     # merubah v1.4 ke v.2
                     # q = Base.metadata.bind.execute(sql)
                     with eng.connect() as conn:
@@ -250,7 +299,6 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                 if key not in data or not data[key]:
                     raise Exception(f"Key Field '{key}' wajib ada")
                 filter_[key] = data[key]
-
             q = db_session.query(table).filter_by(**filter_)
             row = q.first()
             if row:
@@ -281,13 +329,15 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     # update: tambah periksa nilai default.
                     # Jika default=None berarti wajib ada nilainya
                     # by tatang 2024-10-12
-                    log.debug(data)
+                    # log.debug(data)
                     raise Exception(
                         f"Table {str(table.__name__)} Field '{c['name']}' wajib ada {c['type']} ")
 
             db_session.add(row)
             db_session.flush()
             if user:
+                print("Table: ", table.__name__, filter_)
+
                 row = db_session.query(User).filter_by(id=row.id).first()
                 init_model()
                 UserService.set_password(row, password)

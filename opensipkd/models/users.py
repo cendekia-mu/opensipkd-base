@@ -178,8 +178,9 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
 
 
 class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
-    user = relationship(User, backref=backref("external"),
-                        overlaps="external_identities,owner")
+    user = relationship(User, backref=backref("external"))
+    # ,
+    # overlaps = "external_identities,owner"
 
     @classmethod
     def query(cls):
@@ -189,7 +190,6 @@ class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
     def query_user(cls, user):
         return cls.query().filter_by(local_user_id=user.id)
 
-    @classmethod
     @classmethod
     def external(cls, user):
         return cls.query_user(user).count() > 0
