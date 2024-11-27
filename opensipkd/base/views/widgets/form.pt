@@ -41,6 +41,7 @@
             <div tal:repeat="child field"
                      tal:replace="structure child.render_template(item_template)"/>
         </div>
+
         <div class="row">
             <div class="form-group deform-form-buttons">
                 <tal:loop tal:repeat="button buttons">

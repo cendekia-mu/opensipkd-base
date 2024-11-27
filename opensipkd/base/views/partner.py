@@ -2,17 +2,17 @@ import colander
 from deform import (
     widget, Button,
 )
-from pyramid.i18n import TranslationStringFactory
-from pyramid.view import (
-    view_config,
-)
-
 from opensipkd.base import get_id_card_folder
 from opensipkd.models import DBSession, Partner
 from opensipkd.models import (
     ResProvinsi, ResDati2, ResKecamatan, ResDesa)
 from opensipkd.models.common import ResCompany
 from opensipkd.tools import Upload, img_exts
+from pyramid.i18n import TranslationStringFactory
+from pyramid.view import (
+    view_config,
+)
+
 from .company import company_widget
 from .partner_base import PartnerSchema
 # from .. import partner_idcard_url
@@ -243,6 +243,7 @@ class ViewPartner(BaseView):
         value["status"] = 'status' in value and value['status'] and 1 or 0
 
     def get_bindings(self, row=None):
+        result = super().get_bindings(row)
         provinsi_list = ResProvinsi.get_list()
         dati2_list = row and row.provinsi_id and ResDati2.get_list(
             row.provinsi_id) or []
@@ -250,17 +251,19 @@ class ViewPartner(BaseView):
             row.dati2_id) or []
         desa_list = row and row.kecamatan_id and ResDesa.get_list(
             row.kecamatan_id) or []
-        return dict(
+        result.update(dict(
             provinsi_list=provinsi_list,
             dati2_list=dati2_list,
             kecamatan_list=kecamatan_list,
             desa_list=desa_list,
             company_list=ResCompany.get_list()
-        )
+        ))
+
+        return result
 
     def save_request(self, values, row=None):
         if "idcard" in values and values["idcard"]:
-            if str(self.req.POST['upload'].decode('utf-8')) != "":
+            if str(self.req.POST['upload']) != "":
                 folder = self.get_params("idcard_folder", '/tmp/idcard')
                 upload = Upload(folder)
                 file_name = upload.save(self.req, 'upload', img_exts)

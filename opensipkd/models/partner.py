@@ -5,11 +5,12 @@ from sqlalchemy import (
     SmallInteger,
     DateTime, ForeignKey
 )
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import backref
 
-from .common import NamaModel
-from .wilayah import ResProvinsi, ResDesa, ResKecamatan, ResDati2
+from .base import NamaModel, StandarModel
 from .meta import (Base)
-from sqlalchemy.orm import relationship, backref
+from .wilayah import ResProvinsi, ResDesa, ResKecamatan, ResDati2
 
 
 class PartnerModel(NamaModel):
@@ -76,6 +77,7 @@ class Partner(Base, PartnerModel):
         "ResKecamatan", backref=backref('partner'))
     res_desa = relationship(
         "ResDesa", backref=backref('partner'))
+    partner_files: Mapped["PartnerFiles"] = relationship(back_populates="partner")
 
     # npwp        = Column(String(16))
     # npwpd       = Column(String(16))
@@ -96,6 +98,14 @@ class Partner(Base, PartnerModel):
         if not row:
             row = cls.query().filter_by(mobile=ident).first()
         return row
+
+
+class PartnerFiles(Base, StandarModel):
+    __tablename__ = 'partner_files'
+    partner_id: Mapped[int] = mapped_column(ForeignKey(Partner.id))
+    file_name: Mapped[str] = mapped_column(String(256))
+    description: Mapped[str] = mapped_column(String(256), nullable=True)
+    partner: Mapped["Partner"] = relationship(back_populates="partner_files")
 
 # class PartnerUserModel(Base, DefaultModel):
 #     __tablename__ = 'partner_user'

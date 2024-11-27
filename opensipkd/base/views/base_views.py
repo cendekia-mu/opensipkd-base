@@ -9,7 +9,6 @@ from datatables import ColumnDT
 from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
-from opensipkd.base.views.upload import tmpstore
 from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
@@ -19,6 +18,7 @@ from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
+from opensipkd.base.views.upload import tmpstore
 from .common import DataTables
 from .. import DBSession, get_params, get_urls
 from ..scripts.initializedb import append_csv
@@ -149,6 +149,9 @@ class BaseView(object):
         self.edit_schema = ""
         self.add_schema = ""
         self.upload_schema = UploadSchema
+        self.upload_exts = (".csv", ".tsv")
+        self.upload_keys = ["kode"]
+
         self.table = ""
         self.home = self.req._host
         self.buttons = None
@@ -156,7 +159,6 @@ class BaseView(object):
         self.bindings = {}
         self.autocomplete = 'on'
         self.action_suffix = "/grid/act"
-        self.upload_keys = ["kode"]
         self.report_file = ""
         self.new_buttons = {}
         self.is_object = False
@@ -263,7 +265,7 @@ class BaseView(object):
         return arg
 
     def get_bindings(self, row=None):
-        return {}
+        return {"row": row}
 
     def next_view(self, form, **kwargs):
         return
@@ -296,11 +298,20 @@ class BaseView(object):
         result = (btn_close,)
         return result
 
+    def before_view(self, **kw):
+        return False
+
     def view_view(self, **kwargs):  # row = query_id(request).first()
+
+
         request = self.req
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
+        before_view = self.before_view(row=row)
+        if before_view:
+            return before_view
+
         bindings = self.get_bindings(row)
         buttons = kwargs.get("buttons", None)
         if not buttons:
@@ -339,7 +350,11 @@ class BaseView(object):
             buttons = (btn_post, btn_close)
         return self.view_view(buttons=buttons)
 
-    def view_upload(self, exts=('.png', '.ico'), **args):
+    def view_upload(self, **kw):
+        exts = kw.get("exts")
+        if not exts:
+            exts = self.upload_exts
+
         delimiter = args.get("delimiter")
         bindings = self.get_bindings()
         form = self.get_form(self.upload_schema, bindings=bindings)
@@ -516,6 +531,9 @@ class BaseView(object):
         else:
             return self.next_act(**kwargs)
 
+    def get_captcha_url(self):
+        return get_urls("/captcha/") + get_captcha(self.req)
+
     def view_add(self, **kwargs):
         # bindings = self.get_bindings()
         form = self.get_form(self.add_schema, **kwargs)
@@ -538,6 +556,8 @@ class BaseView(object):
                         if isinstance(f.typ, colander.Date):
                             e.cstruct[f.name] = date_from_str(
                                 e.cstruct[f.name])
+                        if f.name == "captcha":
+                            e.cstruct[f.name] = self.get_captcha_url()
                     form.set_appstruct(e.cstruct)
                     return self.returned_form(form, table, **kwargs)
 
@@ -703,8 +723,9 @@ class BaseView(object):
     def query_id(self):
         q = self.db_session.query(self.table).filter_by(
             id=self.req.matchdict['id'])
-        if hasattr(self.table, 'company_id') and self.req.user.company_id:
-            q = q.filter_by(company_id=self.req.user.company_id)
+        if self.req.user:
+            if hasattr(self.table, 'company_id') and self.req.user.company_id:
+                q = q.filter_by(company_id=self.req.user.company_id)
         return q
 
     def filter_company(self, query):

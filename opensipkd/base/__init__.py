@@ -2,13 +2,14 @@ import locale
 import logging
 import re
 
+# from opensipkd.tools.captcha import get_captcha_url
+
 from .routes import routes
 
 try:
     from urllib import (urlencode, quote, quote_plus, )
 except ImportError:
     from urllib.parse import (urlencode, quote, quote_plus, )
-from collections import OrderedDict
 from pyramid.events import NewRequest
 from pyramid.config import Configurator
 from pyramid_beaker import session_factory_from_settings
@@ -498,7 +499,7 @@ def get_module_submenus(parent_id):
     q = DBSession.query(Route) \
         .filter(Route.parent_id == parent_id) \
         .order_bY(Route.order_id)
-    return [r.kode for r in query.all()]
+    return [r.kode for r in q.all()]
 
 
 partner_idcard_url = 'partner/idcard'
@@ -561,6 +562,7 @@ def main(global_config, **settings):
     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(get_host, '_host', reify=True)
     config.add_request_method(get_host, 'home', reify=True)
+    # config.add_request_method(get_captcha_url, 'captcha', reify=True)
     # config.add_request_method(get_urls, 'route_urls', reify=True)
     config.add_request_method(google_signin_client_id,
                               'google_signin_client_id', reify=True)
@@ -592,6 +594,10 @@ def main(global_config, **settings):
         os.makedirs(captcha_files)
 
     config.add_static_view('captcha', captcha_files)
+    config.add_static_view('partner/files',
+                           get_params("partner_files", settings=settings,
+                                      alternate="/tmp/partner"))
+
     config.add_renderer('csv', 'opensipkd.tools.CSVRenderer')
     config.add_renderer('json', json_renderer())
     config.add_renderer('json_rpc', json_rpc())

@@ -5,15 +5,70 @@ from opensipkd.base.views.dati2 import dati2_widget
 from opensipkd.base.views.desa import desa_widget
 from opensipkd.base.views.kecamatan import kecamatan_widget
 from opensipkd.base.views.provinsi import provinsi_widget
-
+from opensipkd.models import Partner
 from opensipkd.tools import mem_tmp_store
+from translationstring import TranslationStringFactory
 from .. import get_urls
+from . import Validator
+_ = TranslationStringFactory('partner')
 
+class PartnerEmailValidator(colander.Email, Validator):
+    def __init__(self, row):
+        Validator.__init__(self, row)
+        colander.Email.__init__(self)
+
+    def __call__(self, node, value):
+        def email_found():
+            data = dict(email=email, rid=found.id, rname=found.nama)
+            ts = _(
+                'email-already-used',
+                default='Email ${email} already used by Partner ID ${rid}: ${rname}',
+                mapping=data)
+            raise colander.Invalid(node, ts)
+
+        if self.match_object.match(value) is None:
+            raise colander.Invalid(node, _('Invalid email format'))
+
+        email = value.lower()
+        q = Partner.query().filter_by(email=email)
+        found = q.first()
+        if found and (not self.row or self.row.email != found.email):
+            email_found()
+
+
+@colander.deferred
+def partner_email_validator(node, kw):
+    return PartnerEmailValidator(kw['row'])
+
+
+class PartnerKodeValidator(Validator):
+    def __init__(self, row):
+        Validator.__init__(self, row)
+
+    def __call__(self, node, value):
+        def err_found():
+            data = dict(kode=val, rid=found.id, rnama=found.nama)
+            ts = _(
+                'kode-already-used',
+                default='Kode ${kode} already used by Partner ID ${rid}: ${rnama}',
+                mapping=data)
+            raise colander.Invalid(node, ts)
+
+        val = value
+        q = Partner.query().filter_by(kode=val)
+        found = q.first()
+        if found and (not self.row or self.row.kode != found.kode):
+            err_found()
+
+
+@colander.deferred
+def partner_kode_validator(node, kw):
+    return PartnerKodeValidator(kw['row'])
 
 class NamaSchema(colander.Schema):
     kode = colander.SchemaNode(
         colander.String(),
-        validator=colander.Length(max=32),
+        validator=partner_kode_validator,
         oid="kode",
         title="Kode",
         width="100pt")
@@ -21,7 +76,10 @@ class NamaSchema(colander.Schema):
         colander.String(),
         validator=colander.Length(max=64),
         oid="nama")
-
+    email = colander.SchemaNode(
+        colander.String(),
+        validator=partner_email_validator,
+        oid="email")
 
 class PartnerSchema(NamaSchema):
     nip = colander.SchemaNode(
@@ -103,10 +161,7 @@ class PartnerSchema(NamaSchema):
         missing=colander.drop,
         title="Desa/Kelurahan",
         oid="desa_id")
-    email = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Length(max=128),
-        oid="email")
+
     phone = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=16),

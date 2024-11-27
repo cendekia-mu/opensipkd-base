@@ -3,30 +3,23 @@ from datetime import timedelta
 
 import colander
 from deform import (
-    Form, ValidationFailure, widget, Button, )
-from opensipkd.tools.api import JsonRpcInvalidLoginError
+    Form, ValidationFailure, widget, Button, FileData)
+from opensipkd.base import get_params, get_urls
+from opensipkd.models import (
+    DBSession, UserService, )
+from opensipkd.tools import mem_tmp_store
 from pyramid.httpexceptions import (
     HTTPFound, HTTPForbidden, HTTPNotFound, HTTPInternalServerError,
     HTTPSeeOther)
 from pyramid.i18n import TranslationStringFactory
 from pyramid.interfaces import IRoutesMapper
 from pyramid.renderers import render_to_response
-from pyramid.response import Response
-from pyramid.security import remember
 from pyramid.view import view_config
 
-from opensipkd.base import get_params, get_urls
-
-from opensipkd.base.tools.api import rpc_auth
-from .base_views import BaseView
-from opensipkd.models import (
-    DBSession, UserService, )
-from .common import DataTables, ColumnDT
-from pyramid.csrf import new_csrf_token
+from .base_views import BaseView, DataTables, ColumnDT
 
 _ = TranslationStringFactory('login')
 log = logging.getLogger(__name__)
-
 
 
 @view_config(context=HTTPNotFound, renderer='templates/404.pt')
@@ -53,6 +46,33 @@ def internal_server_error(request):
     # response = Response('Terjadi kesahala')
     # response.status_int = 500
     # return response
+
+
+class Validator(object):
+    def __init__(self, row):
+        self.row = row
+
+
+class FileSchema(colander.Schema):
+    file_name = colander.SchemaNode(
+        FileData(),
+        widget=widget.FileUploadWidget(mem_tmp_store, size=104857600),
+        missing=colander.drop,
+        title="File"
+    )
+    description = colander.SchemaNode(
+        colander.String(),
+        missing=colander.drop,
+        validator=colander.Length(max=256),
+    )
+
+
+class FilesSchema(colander.SequenceSchema):
+    file_name = FileSchema()
+
+    def after_bin(self, node, kw):
+        self["file_name"].title = ""
+
 
 
 ########
@@ -106,14 +126,14 @@ class Password(colander.Schema):
     new_password = colander.SchemaNode(
         colander.String(), widget=widget.CheckedPasswordWidget())
     # retype_password = colander.SchemaNode(
-        # colander.String(), widget=widget.PasswordWidget())
+    # colander.String(), widget=widget.PasswordWidget())
 
 
 def password_validator(form, value):
     if not UserService.check_password(form.request.user, value['old_password']):
         raise colander.Invalid(form, 'Invalid old password.')
     # if value['new_password'] != value['retype_password']:
-        # raise colander.Invalid(form, 'Retype mismatch.')
+    # raise colander.Invalid(form, 'Retype mismatch.')
 
 
 @view_config(
@@ -152,5 +172,3 @@ two_minutes = timedelta(1.0 / 24 / 60)
 def deferred_jenis(node, kw):
     values = kw.get('daftar_jenis', [])
     return widget.RadioChoiceWidget(values=values)
-
-
