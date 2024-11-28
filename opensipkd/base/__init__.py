@@ -2,9 +2,9 @@ import locale
 import logging
 import re
 
-# from opensipkd.tools.captcha import get_captcha_url
-
 from .routes import routes
+
+# from opensipkd.tools.captcha import get_captcha_url
 
 try:
     from urllib import (urlencode, quote, quote_plus, )
@@ -417,8 +417,11 @@ def get_urls(url):
     if home:
         urls = url.split(":")
         homes = home.split(":")
-        if urls[0] != homes[0]:
-            return ":".join([homes[0], ":".join(urls[1:])])
+        if len(urls) > 0:
+            if urls[0] != homes[0]:
+                return ":".join([homes[0], ":".join(urls[1:])])
+        else:
+            return home + url
     return url
 
 
