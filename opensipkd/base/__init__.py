@@ -124,6 +124,8 @@ def add_cors_headers_response_callback(event):
 
 # https://groups.google.com/forum/#!topic/pylons-discuss/QIj4G82j04c
 def has_permission_(request, perm_names, context=None):
+    if not perm_names:
+        return False
     if isinstance(perm_names, str):
         perm_names = [perm_names]
     for perm_name in perm_names:

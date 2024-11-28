@@ -3,7 +3,7 @@ from deform import (
     widget, Button,
 )
 from opensipkd.base import get_id_card_folder
-from opensipkd.models import DBSession, Partner
+from opensipkd.models import DBSession, Partner, PartnerFiles
 from opensipkd.models import (
     ResProvinsi, ResDati2, ResKecamatan, ResDesa)
 from opensipkd.models.common import ResCompany
@@ -287,7 +287,8 @@ class ViewPartner(BaseView):
                            }
         return d
 
-
+    def before_delete(self, row):
+        PartnerFiles.query().filter_by(partner_id=row.id).delete()
 @colander.deferred
 def partner_widget(node, kw):
     values = kw.get('partner_list', [])

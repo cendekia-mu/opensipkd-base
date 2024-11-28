@@ -1,16 +1,18 @@
 import colander
 from deform import FileData, widget
+from opensipkd.tools import mem_tmp_store
+from translationstring import TranslationStringFactory
 
 from opensipkd.base.views.dati2 import dati2_widget
 from opensipkd.base.views.desa import desa_widget
 from opensipkd.base.views.kecamatan import kecamatan_widget
 from opensipkd.base.views.provinsi import provinsi_widget
 from opensipkd.models import Partner
-from opensipkd.tools import mem_tmp_store
-from translationstring import TranslationStringFactory
-from .. import get_urls
 from . import Validator
+from .. import get_urls
+
 _ = TranslationStringFactory('partner')
+
 
 class PartnerEmailValidator(colander.Email, Validator):
     def __init__(self, row):
@@ -65,6 +67,7 @@ class PartnerKodeValidator(Validator):
 def partner_kode_validator(node, kw):
     return PartnerKodeValidator(kw['row'])
 
+
 class NamaSchema(colander.Schema):
     kode = colander.SchemaNode(
         colander.String(),
@@ -76,10 +79,16 @@ class NamaSchema(colander.Schema):
         colander.String(),
         validator=colander.Length(max=64),
         oid="nama")
+    mobile = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=16),
+        oid="mobile")
+
     email = colander.SchemaNode(
         colander.String(),
         validator=partner_email_validator,
         oid="email")
+
 
 class PartnerSchema(NamaSchema):
     nip = colander.SchemaNode(

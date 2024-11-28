@@ -10,7 +10,7 @@ from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
 from opensipkd.tools import dmy, get_settings, get_ext, \
-    date_from_str, get_random_string
+    date_from_str, get_random_string, Upload, InvalidExtension
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
     btn_add, btn_csv, \
     btn_pdf, btn_unpost, btn_post
@@ -302,8 +302,6 @@ class BaseView(object):
         return False
 
     def view_view(self, **kwargs):  # row = query_id(request).first()
-
-
         request = self.req
         row = self.query_id().first()
         if not row:
@@ -355,7 +353,7 @@ class BaseView(object):
         if not exts:
             exts = self.upload_exts
 
-        delimiter = args.get("delimiter")
+        delimiter = kw.get("delimiter")
         bindings = self.get_bindings()
         form = self.get_form(self.upload_schema, bindings=bindings)
         resources = form.get_widget_resources()
@@ -386,7 +384,7 @@ class BaseView(object):
                     output_file.write(data)
                 output_file.close()
                 try:
-                    self.save_upload(fullpath, **args)
+                    self.save_upload(fullpath, **kw)
                 except Exception as e:
                     self.req.session.flash(str(e), 'error')
                     return dict(form=form.render(),
@@ -741,6 +739,50 @@ class BaseView(object):
         :return:
         """
         return self.route_list()
+
+    def convert_avi_to_mp4(self, input_name):
+        output = os.path.splitext(input_name)[0] + ".mp4"
+        command = "ffmpeg -y -i {input}  -c:v mpeg4 {output}".format(
+            input=input_name, output=output)
+        log.debug(f"Convert: {command}")
+        os.popen(command)
+        # os.remove(input_name)
+        # "ffmpeg -i {input} -ac 2 -b:v 2000k -c:a aac -c:v libx264 -b:a 160k -vprofile high -bf 0 -strict experimental -f mp4 {output}.mp4"
+        return output
+
+    def form_error(self, form, error=None):
+        if error is None:
+            error = []
+
+        if not error:
+            return
+
+        err = colander.Invalid(form, "")
+        for e in error:
+            err[e[0]] = e[1]
+        raise err
+
+    def save_upload_file(self, form, value, folder, field):
+        file_dict = value[field]["file_name"]
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        upload = Upload(folder)
+        error = []
+        if file_dict:
+            input_file = file_dict["fp"]
+            if input_file:
+                filename = file_dict["filename"].lower()
+                ext = get_ext(filename)
+                if ext not in self.upload_exts:
+                    error.append((field, InvalidExtension(self.upload_exts).error))
+                else:
+                    full_file_name = upload.save_to_file(input_file, ext, filename)
+                    if ext == ".avi":
+                        full_file_name = self.convert_avi_to_mp4(full_file_name)
+                    file_name = os.path.split(full_file_name)[1]
+                    return file_name
+
+        self.form_error(form, error)
 
 
 @colander.deferred
