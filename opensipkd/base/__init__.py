@@ -417,7 +417,7 @@ def get_urls(url):
     if home:
         urls = url.split(":")
         homes = home.split(":")
-        if len(urls) > 0:
+        if len(urls) > 1:
             if urls[0] != homes[0]:
                 return ":".join([homes[0], ":".join(urls[1:])])
         else:

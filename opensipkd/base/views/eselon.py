@@ -6,7 +6,6 @@ from pyramid.view import (
     view_config,
 )
 
-from .partner_base import NamaSchema
 from opensipkd.models import (
     DBSession,
     Eselon
@@ -27,6 +26,7 @@ class AddSchema(colander.Schema):
         oid="nama")
     status = colander.SchemaNode(
         colander.Boolean(),
+        widget=widget.CheckboxWidget(true_val=1, false_val=0),
         oid="status")
 
 
@@ -35,8 +35,9 @@ class EditSchema(AddSchema):
                              missing=colander.drop,
                              widget=widget.HiddenWidget())
 
+
 class ListSchema(colander.Schema):
-    id = colander.SchemaNode(colander.String(),title="Action")
+    id = colander.SchemaNode(colander.String(), title="Action")
     kode = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=32),
@@ -48,9 +49,10 @@ class ListSchema(colander.Schema):
         validator=colander.Length(max=64),
         oid="nama")
     status = colander.SchemaNode(
-        colander.Integer(),
+        colander.Boolean(),
         widget=widget.CheckboxWidget(),
         oid="status")
+
 
 class Views(BaseView):
     def __init__(self, request):
@@ -112,6 +114,7 @@ class Views(BaseView):
                  permission='eselon')
     def view_add(self):
         return super().view_add()
+
     @view_config(route_name='eselon-edit', renderer='templates/form.pt',
                  permission='eselon')
     def view_edit(self):
