@@ -1,3 +1,4 @@
+import importlib
 import locale
 import logging
 import re
@@ -462,6 +463,41 @@ def _set_routes2(config, module="base"):
             config.add_jsonrpc_endpoint(route.kode, route.path,
                                         default_renderer="json_rpc")
     return q
+
+
+def add_view_config(config, module, view_name):
+    """
+    Digunakan untuk mengenerate view_config berdasarkan tabel Routes
+    config: config
+    module: application module
+    views: class or file tobe imported
+    """
+    q = DBSession.query(Route).filter(Route.module == module, Route.status == 1)
+    for row in q.all():
+        if row.type == 0:
+            config.add_route(row.kode, row.path)
+            if row.nama:
+                titles[row.kode] = row.nama
+        elif row.type == 1:
+            config.add_jsonrpc_endpoint(row.kode, row.path,
+                                        default_renderer="json_rpc")
+        if not row.def_func:
+            continue
+
+        class_view = row.class_view and f".{row.class_view}" or ""
+        class_name = f"{view_name}{class_view}"
+        attr = f"view_{row.def_func}"
+        log.debug(f"Class: {class_name} Attr: {attr}")
+        _views = importlib.import_module(class_name)
+        views = _views
+        if row.template == "json":
+            renderer = row.template
+        else:
+            renderer = "views/templates/" + row.template
+        config.add_view(views.Views, attr=f"{attr}",
+                        route_name=row.kode, permission=row.permission,
+                        renderer=renderer)
+    config.scan('.')
 
 
 def set_routes(config, app_id=None):

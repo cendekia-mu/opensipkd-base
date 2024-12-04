@@ -108,10 +108,6 @@ def jasper_export(input_file, output_file=None, schema=None,
     }
 
     pyreportjasper = PyReportJasper()
-    # log.info(input_file)
-    # log.info(output_file)
-    # log.info(conn)
-    # log.info(output_formats)
     parameters.update({'python_version': python_version()})
     pyreportjasper.config(
         input_file,
@@ -122,8 +118,17 @@ def jasper_export(input_file, output_file=None, schema=None,
         locale=report_locale
     )
 
-    # pyreportjasper.compile(write_jasper=True)
-    pyreportjasper.process_report()
+    try:
+        log.info(input_file)
+        # log.info(output_file)
+        # log.info(conn)
+        # log.info(output_formats)
+
+        pyreportjasper.compile(write_jasper=True)
+        pyreportjasper.process_report()
+    except Exception as e:
+        log.debug(e)
+        raise
     output_files = [".".join([output_file, f]) for f in output_formats]
     log.info(output_files)
     return output_files

@@ -137,7 +137,7 @@ class BaseView(object):
         self.form_params = dict(scripts="")
         self.list_url = ''
         self.list_route = ''
-        self.list_schema = ""
+        self.list_schema = colander.Schema
         self.form_scripts = """
          $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
               $('#parent_id').val(datum.id);
@@ -146,8 +146,8 @@ class BaseView(object):
         });"""
         self.form_widget = None
 
-        self.edit_schema = ""
-        self.add_schema = ""
+        self.edit_schema =  colander.Schema()
+        self.add_schema =  colander.Schema()
         self.upload_schema = UploadSchema
         self.upload_exts = (".csv", ".tsv")
         self.upload_keys = ["kode"]

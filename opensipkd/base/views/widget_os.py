@@ -710,13 +710,15 @@ class BootStrapDateTimeInputWidget(Widget):
 class TextInputWidget(widget.TextInputWidget):
     template = "textinput_btn"
     button = None
+    js = None
 
     def __init__(self, **kw):
         super(TextInputWidget, self).__init__(**kw)
 
         # if isinstance(self.button, compat.string_types):
-        if isinstance(self.button, str):
-            self.button = Button(self.button, type="button")
+        if self.button:
+            if isinstance(self.button, str):
+                self.button = Button(self.button, type="button")
 
 
 class DateInputWidget(WidgetDateInputWidget):

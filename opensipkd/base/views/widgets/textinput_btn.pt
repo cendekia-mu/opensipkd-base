@@ -5,6 +5,7 @@
                   button button|field.widget.button;
                   mask_placeholder mask_placeholder|field.widget.mask_placeholder;
                   style style|field.widget.style;
+                  js js|field.widget.js;
         " tal:omit-tag="">
     <input type="text" tal:attributes="class string: form-control ${css_class or ''};
                            style style;
@@ -30,6 +31,14 @@
                 ${button.title}
             </a>
         </span>
+        <script tal:condition="js" type="text/javascript">
+            deform.addCallback(
+                '${oid+button.name}',
+                function (oid) {
+                    ${structure:js}
+                });
+
+        </script>
     </div><!-- /input-group -->
 
     <script tal:condition="mask" type="text/javascript">

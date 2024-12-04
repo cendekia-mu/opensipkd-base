@@ -2,10 +2,11 @@ import logging
 
 import colander
 from deform import (widget, )
-from opensipkd.models import (DBSession, Route, )
-from opensipkd.tools.buttons import btn_view, btn_edit, btn_delete
 from pyramid.view import view_config
 from sqlalchemy.orm import aliased
+
+from opensipkd.models import (DBSession, Route, )
+from opensipkd.tools.buttons import btn_view, btn_edit, btn_delete
 from . import BaseView, get_urls
 
 _logging = logging.getLogger(__name__)
@@ -93,7 +94,10 @@ class EditSchema(colander.Schema):
         colander.String(),
         widget=widget.CheckboxWidget(false_val="0", true_val="1"))
 
+
 alias = aliased(Route)
+
+
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(
         colander.Integer(), widget=widget.HiddenWidget(), visible=False)
@@ -102,11 +106,22 @@ class ListSchema(colander.Schema):
     parent = colander.SchemaNode(
         colander.String(),
         field=alias.kode)
+    order_id = colander.SchemaNode(
+        colander.String(),
+        title="Order"
+    )
+    is_menu = colander.SchemaNode(
+        colander.Boolean(),
+        widget=widget.CheckboxWidget(false_val="0", true_val="1"),
+        title="Menu"
+    )
+
     nama = colander.SchemaNode(
         colander.String(), title='Nama')
     path = colander.SchemaNode(
         colander.String(), title='Path')
-
+    template = colander.SchemaNode(
+        colander.String())
     type = colander.SchemaNode(
         colander.String(), width="50pt")
     status = colander.SchemaNode(
@@ -147,7 +162,8 @@ class Views(BaseView):
         permission='edit-title')
     def view_list(self):
         kwargs = {"allow_view": False,
-                  "allow_delete": False}
+                  "allow_delete": False,
+                  "state_save": True}
         return super().view_list(**kwargs)
 
     def form_validator(self, form, values):
