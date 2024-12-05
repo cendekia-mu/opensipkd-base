@@ -9,6 +9,9 @@ from datatables import ColumnDT
 from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+
+from opensipkd.base.views.upload import tmpstore
 from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string, Upload, InvalidExtension
 from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
@@ -16,9 +19,6 @@ from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete,
     btn_pdf, btn_unpost, btn_post
 from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
-
-from opensipkd.base.views.upload import tmpstore
 from .common import DataTables
 from .. import DBSession, get_params, get_urls
 from ..scripts.initializedb import append_csv
@@ -138,6 +138,14 @@ class BaseView(object):
         self.list_url = ''
         self.list_route = ''
         self.list_schema = colander.Schema
+        self.allow_view =  True
+        self.allow_edit =  True
+        self.allow_delete =  True
+        self.allow_post =  False
+        self.allow_unpost =  False
+        self.state_save =  False
+
+
         self.form_scripts = """
          $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
               $('#parent_id').val(datum.id);
@@ -146,8 +154,8 @@ class BaseView(object):
         });"""
         self.form_widget = None
 
-        self.edit_schema =  colander.Schema()
-        self.add_schema =  colander.Schema()
+        self.edit_schema = colander.Schema()
+        self.add_schema = colander.Schema()
         self.upload_schema = UploadSchema
         self.upload_exts = (".csv", ".tsv")
         self.upload_keys = ["kode"]
@@ -226,12 +234,12 @@ class BaseView(object):
 
     def view_list(self, **kwargs):
         if self.list_schema:
-            allow_view = kwargs.get("allow_view", True)
-            allow_edit = kwargs.get("allow_edit", True)
-            allow_delete = kwargs.get("allow_delete", True)
-            allow_post = kwargs.get("allow_post", False)
-            allow_unpost = kwargs.get("allow_unpost", False)
-            state_save = kwargs.get("state_save", False)
+            allow_view = kwargs.get("allow_view", self.allow_view)
+            allow_edit = kwargs.get("allow_edit", self.allow_edit)
+            allow_delete = kwargs.get("allow_delete", self.allow_delete)
+            allow_post = kwargs.get("allow_post", self.allow_post)
+            allow_unpost = kwargs.get("allow_unpost", self.allow_unpost)
+            state_save = kwargs.get("state_save", self.state_save)
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
             list_url = kwargs.get("list_url", None)
@@ -306,6 +314,8 @@ class BaseView(object):
         row = self.query_id().first()
         if not row:
             return self.id_not_found()
+        is_object = kwargs.get("is_object", self.is_object)
+        kwargs["is_object"] = is_object
         before_view = self.before_view(row=row)
         if before_view:
             return before_view
@@ -425,10 +435,6 @@ class BaseView(object):
     def after_view(self, **kwargs):
         return self.route_list(**kwargs)
 
-    def next_act(self, **kwargs):
-        url_dict = self.req.matchdict
-        raise HTTPNotFound
-
     def pdf_response(self, **kwargs):
         from opensipkd.base.tools.report import jasper_export
         filename = jasper_export(self.report_file)
@@ -515,6 +521,10 @@ class BaseView(object):
         #             d[k] =f'<a href="{link}" target="_blank">View</a>'
         return result
 
+    def next_act(self, **kwargs):
+        url_dict = self.req.matchdict
+        raise HTTPNotFound
+
     def view_act(self, **kwargs):
         url_dict = self.req.matchdict
         if url_dict['act'] == 'grid':
@@ -538,6 +548,7 @@ class BaseView(object):
         table = self.get_item_table(**kwargs)
         resources = form.get_widget_resources()
         is_object = kwargs.get("is_object", self.is_object)
+        kwargs["is_object"] = is_object
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
@@ -641,6 +652,7 @@ class BaseView(object):
         request = self.req
         row = self.query_id().first()
         is_object = kwargs.get("is_object", self.is_object)
+        kwargs["is_object"] = is_object
         if not row:
             return self.id_not_found(**kwargs)
 
@@ -693,6 +705,7 @@ class BaseView(object):
         q = self.query_id()
         row = q.first()
         is_object = kwargs.get("is_object", self.is_object)
+        kwargs["is_object"] = is_object
         if not row:
             return self.id_not_found()
         if not self.bindings:
