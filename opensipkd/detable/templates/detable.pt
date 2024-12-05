@@ -51,14 +51,15 @@
       <!-- widget-body -->
     </div>
   </header>
- <style>
-.fa-minus-square {
-  color: red;
-}
-.fa-check-square {
-  color: forestgreen;
-}
- </style>
+  <style>
+    .fa-minus-square {
+      color: red;
+    }
+
+    .fa-check-square {
+      color: forestgreen;
+    }
+  </style>
   <script type="text/javascript">
     var m${tableid}ID;
     var o${tableid};
@@ -71,13 +72,13 @@
 
       function displayEmptyID() {
         $("#emptyID").show();
-        $('#emptyID').animate({ opacity: 0.8 }, 2000);
+        $('#emptyID').animate({opacity: 0.8}, 2000);
         setTimeout(function () {
-          $("#emptyID").fadeTo(500, 0).slideUp(500, function () {
-            $("#emptyID").hide();
-          });
-        }
-        , 4000);
+              $("#emptyID").fadeTo(500, 0).slideUp(500, function () {
+                $("#emptyID").hide();
+              });
+            }
+            , 4000);
       }
 
       let tb_array = [
@@ -182,6 +183,7 @@
           [10, 25, 50, 100],
           [10, 25, 50, 100]
         ],
+        "pageLength": 25,
         columns: ${tableid}Columns,
         "language": ${tableid}Language,
 
