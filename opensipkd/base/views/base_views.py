@@ -10,6 +10,7 @@ from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+from sqlalchemy import Table
 
 from opensipkd.base.views.upload import tmpstore
 from opensipkd.tools import dmy, get_settings, get_ext, \
@@ -160,7 +161,7 @@ class BaseView(object):
         self.upload_exts = (".csv", ".tsv")
         self.upload_keys = ["kode"]
 
-        self.table = ""
+        self.table = Table
         self.home = self.req._host
         self.buttons = None
         self.headers = None
@@ -249,9 +250,10 @@ class BaseView(object):
 
             if not list_url:
                 list_url = self.req.route_url(self.list_route)
+            action_suffix = kwargs.get("action_suffix", "/grid/act")
             table = DeTable(schema,
                             action=list_url,
-                            action_suffix="/grid/act",
+                            action_suffix=action_suffix,
                             buttons=self.list_buttons,
                             request=self.req,
                             allow_view=allow_view,
@@ -496,11 +498,21 @@ class BaseView(object):
             columns = self.columns
 
         query = self.db_session.query().select_from(self.table)
-        query = self.list_join(query, **kwargs)
+        table_join = kwargs.get('table_join')
+        if table_join is not None:
+            query = table_join(query, **kwargs)
+        else:
+            query = self.list_join(query, **kwargs)
         if self.req.user and self.req.user.company_id and hasattr(self.table, "company_id"):
             query = query.filter(
                 self.table.company_id == self.req.user.company_id)
-        query = self.list_filter(query, **kwargs)
+
+        table_filter = kwargs.get('table_filter')
+        if table_filter is not None:
+            query = table_filter(query, **kwargs)
+        else:
+            query = self.list_filter(query, **kwargs)
+
         # log.debug(str(columns))
         # qry = query.add_columns(*[c.sqla_expr for c in columns])
         # log.debug(str(qry))
@@ -609,6 +621,7 @@ class BaseView(object):
         #     row.status = status
         self.db_session.add(row)
         self.db_session.flush()
+
         return row
 
     def save_request(self, values, row=None):
