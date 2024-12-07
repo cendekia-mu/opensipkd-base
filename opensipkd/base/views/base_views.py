@@ -139,13 +139,13 @@ class BaseView(object):
         self.list_url = ''
         self.list_route = ''
         self.list_schema = colander.Schema
-        self.allow_view =  True
-        self.allow_edit =  True
-        self.allow_delete =  True
-        self.allow_post =  False
-        self.allow_unpost =  False
-        self.state_save =  False
-
+        self.allow_view = True
+        self.allow_edit = True
+        self.allow_delete = True
+        self.allow_post = False
+        self.allow_unpost = False
+        self.state_save = False
+        self.list_form = None
 
         self.form_scripts = """
          $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
@@ -262,7 +262,8 @@ class BaseView(object):
                             allow_post=allow_post,
                             allow_unpost=allow_unpost,
                             state_save=state_save,
-                            new_buttons=new_buttons
+                            new_buttons=new_buttons,
+                            form=self.list_form,
                             )
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")

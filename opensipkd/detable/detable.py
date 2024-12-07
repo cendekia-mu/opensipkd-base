@@ -6,7 +6,7 @@ import re
 
 import colander
 import deform
-from deform import compat
+from deform import compat, Form
 from deform import field
 
 from . import widget
@@ -116,6 +116,8 @@ class DeTable(field.Field):
             allow_view=True,
             allow_post=False,
             allow_unpost=False,
+            form=None,
+            form_object=False,
             **kw
     ):
         # field.Field.__init__(self, schema, **kw)
@@ -144,7 +146,8 @@ class DeTable(field.Field):
         }
         for k in new_buttons:
             buttons += (new_buttons[k]["obj"],)
-            dict_buttons[k] = '{' + new_buttons[k]["js"].format(tableid=tableid, params=params) + '}'
+            dict_buttons[k] = '{' + new_buttons[k]["js"].format(tableid=tableid,
+                                                                params=params) + '}'
 
         action_suffix = f"{action_suffix}{params}"
         _buttons = []
@@ -243,11 +246,10 @@ class DeTable(field.Field):
             headers.append(f.title)
             cols2.append(data)
 
-        # for t in d:
-        #     if "title" in t:
-        #         headers.append(t["title"])
-        #     else:
-        #         headers.append(t)
+        if form:
+            form = Form(form())
+            if not form_object:
+                form = form.render()
 
         self.headers = headers
         self.head = headers
@@ -260,6 +262,7 @@ class DeTable(field.Field):
         self.paginates = paginates
         self.filters = filters
         self.state_save = json.dumps(state_save)
+        self.form = form
 
 
 class Button(object):

@@ -4,10 +4,11 @@ import logging
 from colander import SchemaNode, null, Mapping, Invalid  # , string_types
 # from colander import compat # tidak ada di colander 2.0
 from deform import widget
+from deform.compat import sequence_types, text_type
 from deform.form import Button
 from deform.i18n import _
 from deform.widget import Widget, _StrippedString, Select2Widget, \
-    DateInputWidget as WidgetDateInputWidget
+    DateInputWidget as WidgetDateInputWidget, _normalize_choices, OptGroup
 from deform.widget import string_types
 from iso8601.iso8601 import ISO8601_REGEX
 
@@ -392,7 +393,7 @@ class MapWidget(Widget):
                     {
                         "js": "opensipkd.base:static/js/gmap.js",
                         "css": "deform:static/select2/select2.css",
-    },)
+                    },)
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -729,31 +730,123 @@ class MoneyInputWidget(widget.MoneyInputWidget):
     readonly_template = "readonly/money_input"
 
 
+class FilterWidget(Widget):
+    template = "opensipkd.base:/views/widgets/filters.pt"
+    readonly_template = "opensipkd.base:/views/widgets/readonly/filters.pt"
+    null_value = ""
+    values = ()
+    size = None
+    multiple = False
+    optgroup_class = OptGroup
+    long_label_generator = None
+    selectize_options = None
+    default_selectize_options = (("allowEmptyOption", True),)
+
+    _pstruct_schema = SchemaNode(
+        Mapping(),
+        SchemaNode(_StrippedString(), name="fields"),
+        SchemaNode(_StrippedString(), name="equality"),
+        SchemaNode(_StrippedString(), name="nilai"),
+        SchemaNode(_StrippedString(), name="condition"),
+    )
+
+    def get_select_value(self, cstruct, value):
+        """Choose whether <opt> is selected or not.
+
+        Incoming value is always string, as it has been passed through HTML.
+        However, our values might be given as integer, UUID.
+        """
+
+        if self.multiple:
+            if value in map(text_type, cstruct):
+                return "selected"
+        else:
+            if value == text_type(cstruct):
+                return "selected"
+        return None
+
+    def serialize(self, field, cstruct, **kw):
+        if cstruct in (null, None):
+            condition = ""
+            fields = ""
+            equality = ""
+            nilai = ""
+        else:
+            fields, equality, nilai, condition = cstruct.split(".", 4)
+        # if cstruct in (null, None):
+        #     cstruct = self.null_value
+        kw.setdefault("condition", condition)
+        kw.setdefault("fields", fields)
+        kw.setdefault("equality", equality)
+        kw.setdefault("nilai", nilai)
+
+        readonly = kw.get("readonly", self.readonly)
+        values = kw.get("values", self.values)
+        if not isinstance(values, sequence_types):
+            e = "Values must be a sequence type (list, tuple, or range)."
+            raise TypeError(e)
+
+        template = readonly and self.readonly_template or self.template
+        kw["values"] = _normalize_choices(values)
+        selectize_options = dict(
+            kw.get("selectize_options")
+            or self.selectize_options
+            or self.default_selectize_options
+        )
+        kw["selectize_options_json"] = json.dumps(selectize_options)
+        tmpl_values = self.get_template_values(field, cstruct, kw)
+        return field.renderer(template, **tmpl_values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct is null:
+            return null
+        else:
+            try:
+                validated = self._pstruct_schema.deserialize(pstruct)
+            except Invalid as exc:
+                raise Invalid(field.schema, f"Invalid pstruct: {exc}")
+            condition = validated["condition"]
+            fields = validated["fields"]
+            equality = validated["equality"]
+            nilai = validated["nilai"]
+
+            # if not year and not bundle and not seq:
+            #     return null
+            #
+            # if self.assume_y2k and len(year) == 2:
+            #     year = "20" + year
+            result = ".".join([fields, equality, nilai, condition])
+            #
+            # if not year or not bundle or not seq:
+            #     raise Invalid(field.schema, "No Dokumen tidak lengkap", result)
+
+            return result
+
 # class AutocompleteInputWidget(widget.AutocompleteInputWidget):
 #     targets = None
-    # def serialize(self, field, cstruct, **kw):
-    #     item_id = kw.get("item_id", None)
-    #     super().serialize(field, cstruct, **kw)
-    #     if "delay" in kw or getattr(self, "delay", None):
-    #         raise ValueError(
-    #             "AutocompleteWidget does not support *delay* parameter "
-    #             "any longer."
-    #         )
-    #     if cstruct in (null, None):
-    #         cstruct = ""
-    #     self.values = self.values or []
-    #     readonly = kw.get("readonly", self.readonly)
-    #
-    #     options = {}
-    #     if isinstance(self.values, string_types):
-    #         options["remote"] = "%s?term=%%QUERY" % self.values
-    #     else:
-    #         options["local"] = self.values
-    #
-    #     options["minLength"] = kw.pop("min_length", self.min_length)
-    #     options["limit"] = kw.pop("items", self.items)
-    #     kw["options"] = json.dumps(options)
-    #     tmpl_values = self.get_template_values(field, cstruct, kw)
-    #     template = readonly and self.readonly_template or self.template
-    #     return field.renderer(template, **tmpl_values)
-    #
+# def serialize(self, field, cstruct, **kw):
+#     item_id = kw.get("item_id", None)
+#     super().serialize(field, cstruct, **kw)
+#     if "delay" in kw or getattr(self, "delay", None):
+#         raise ValueError(
+#             "AutocompleteWidget does not support *delay* parameter "
+#             "any longer."
+#         )
+#     if cstruct in (null, None):
+#         cstruct = ""
+#     self.values = self.values or []
+#     readonly = kw.get("readonly", self.readonly)
+#
+#     options = {}
+#     if isinstance(self.values, string_types):
+#         options["remote"] = "%s?term=%%QUERY" % self.values
+#     else:
+#         options["local"] = self.values
+#
+#     options["minLength"] = kw.pop("min_length", self.min_length)
+#     options["limit"] = kw.pop("items", self.items)
+#     kw["options"] = json.dumps(options)
+#     tmpl_values = self.get_template_values(field, cstruct, kw)
+#     template = readonly and self.readonly_template or self.template
+#     return field.renderer(template, **tmpl_values)
+#

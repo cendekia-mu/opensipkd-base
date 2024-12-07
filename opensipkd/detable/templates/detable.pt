@@ -22,6 +22,7 @@
     allow_post allow_post|field.allow_post;
     allow_unpost allow_unpost|field.allow_unpost;
     state_save state_save|field.state_save;
+    form form|field.form;
     "
      tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};"
      i18n:domain="detable"
@@ -38,9 +39,11 @@
       <div class="widget-body">
         <table
             id="${tableid}"
-            class="table table-bordered table-hover table-condensed dataTable no-footer"
-        >
+            class="table table-bordered table-hover table-condensed dataTable no-footer">
           <thead>
+          <tr>
+            <th colspan="${next(field.counter)-1}" tal:condition="form">${structure: form}</th>
+          </tr>
           <tr>
             <th tal:repeat="child field">${child.title}</th>
           </tr>
