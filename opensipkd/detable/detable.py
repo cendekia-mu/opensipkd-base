@@ -116,8 +116,7 @@ class DeTable(field.Field):
             allow_view=True,
             allow_post=False,
             allow_unpost=False,
-            form=None,
-            form_object=False,
+            filter_columns=False,
             **kw
     ):
         # field.Field.__init__(self, schema, **kw)
@@ -178,6 +177,7 @@ class DeTable(field.Field):
         self.allow_view = json.dumps(allow_view)
         self.allow_post = json.dumps(allow_post)
         self.allow_unpost = json.dumps(allow_unpost)
+        self.filter_columns = json.dumps(filter_columns)
         table_widget = getattr(schema, "widget", None)
         if table_widget is None:
             table_widget = widget.TableWidget()
@@ -246,11 +246,6 @@ class DeTable(field.Field):
             headers.append(f.title)
             cols2.append(data)
 
-        if form:
-            form = Form(form())
-            if not form_object:
-                form = form.render()
-
         self.headers = headers
         self.head = headers
         self.columns = json.dumps(columns)
@@ -262,7 +257,6 @@ class DeTable(field.Field):
         self.paginates = paginates
         self.filters = filters
         self.state_save = json.dumps(state_save)
-        self.form = form
 
 
 class Button(object):

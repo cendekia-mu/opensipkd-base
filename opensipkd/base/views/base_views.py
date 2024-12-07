@@ -146,6 +146,7 @@ class BaseView(object):
         self.allow_unpost = False
         self.state_save = False
         self.list_form = None
+        self.filter_columns = False
 
         self.form_scripts = """
          $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
@@ -241,6 +242,7 @@ class BaseView(object):
             allow_post = kwargs.get("allow_post", self.allow_post)
             allow_unpost = kwargs.get("allow_unpost", self.allow_unpost)
             state_save = kwargs.get("state_save", self.state_save)
+            filter_columns = kwargs.get("filter_columns", self.filter_columns)
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
             list_url = kwargs.get("list_url", None)
@@ -263,7 +265,7 @@ class BaseView(object):
                             allow_unpost=allow_unpost,
                             state_save=state_save,
                             new_buttons=new_buttons,
-                            form=self.list_form,
+                            filter_columns=filter_columns,
                             )
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")

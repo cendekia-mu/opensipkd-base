@@ -22,7 +22,7 @@
     allow_post allow_post|field.allow_post;
     allow_unpost allow_unpost|field.allow_unpost;
     state_save state_save|field.state_save;
-    form form|field.form;
+    filter_columns filter_columns|field.filter_columns;
     "
      tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};"
      i18n:domain="detable"
@@ -37,18 +37,26 @@
     </div>
     <div role="content">
       <div class="widget-body">
-        <table
-            id="${tableid}"
-            class="table table-bordered table-hover table-condensed dataTable no-footer">
+        <table tal:condition="filter_columns" id="${tableid}-form-filter">
           <thead>
-          <tr>
-            <th colspan="${next(field.counter)-1}" tal:condition="form">${structure: form}</th>
+          <tr tal:repeat="child field">
+            <th>${child.title}</th>
           </tr>
+          </thead>
+        </table>
+
+        <table id="${tableid}"
+               class="table table-bordered table-hover table-condensed dataTable no-footer">
+          <thead>
           <tr>
             <th tal:repeat="child field">${child.title}</th>
           </tr>
+
           </thead>
           <tbody></tbody>
+          <tfoot>
+          <th tal:repeat="child field">${child.title}</th>
+          </tfoot>
         </table>
       </div>
       <!-- widget-body -->
@@ -69,10 +77,7 @@
     var o${tableid}Uri = "${url}";
     var o${tableid}Url = o${tableid}Uri + "${url_suffix}";
     var m${tableid}ID;
-    deform.addCallback
-    ('${tableid}', function (oid) {
-      // $(document).ready(function () {
-
+    deform.addCallback('${tableid}', function (oid) {
       function displayEmptyID() {
         $("#emptyID").show();
         $('#emptyID').animate({opacity: 0.8}, 2000);
@@ -90,6 +95,7 @@
         '	&nbsp;',
         '</div>',
       ]
+
       let ${tableid}Columns = ${structure: columns};
 
       function render_checkbox(value) {
@@ -169,6 +175,7 @@
         },
         "lengthMenu": " _MENU_ baris "
       };
+
       let ${tableid}Params = {
         dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
         processing: true,
@@ -186,16 +193,49 @@
           [10, 25, 50, 100],
           [10, 25, 50, 100]
         ],
-        "pageLength": 25,
+        pageLength: 25,
         columns: ${tableid}Columns,
-        "language": ${tableid}Language,
-
+        language: ${tableid}Language,
+        initComplete: function () {
+          $('.dataTables_filter input').unbind()
+              .bind('keyup', function (e) {
+                var code = e.keyCode || e.which;
+                if (code === 13) {
+                  o${tableid}.search(this.value).draw();
+                }
+              });
+        }
       }
+
       if (!${server_side}) {
         ${tableid}Params.data = ${data};
       } else {
         ${tableid}Params.ajax = o${tableid}Url;
       }
+
+      <tal:block tal:condition="filter_columns">
+        $('#${tableid}-form-filter thead th').each(function (i) {
+          console.log($(this).index());
+          var title = $(this).text();
+          // var title = $('#${tableid}-form-filter thead th')
+          // .eq($(this).index())
+          // .text();
+          $(this).html(
+          '<input type="text" placeholder="' + title + '" data-index="' + i + '" />'
+          );
+        });
+
+        $("#${tableid}-form-filter").on('keyup', 'th input', function (e) {
+          var code = e.keyCode || e.which;
+          if (code === 13) {
+            o${tableid}
+            .column($(this).data('index'))
+            .search(this.value)
+            .draw();
+          }
+       });
+      </tal:block>
+
       o${tableid} = $('#${tableid}').DataTable(${tableid}Params);
       let tb = tb_array.join(' ');
       $("div.toolbar").html(tb);
