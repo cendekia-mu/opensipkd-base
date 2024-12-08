@@ -6,7 +6,7 @@ import re
 
 import colander
 import deform
-from deform import compat, Form
+from deform import compat
 from deform import field
 
 from . import widget
@@ -190,7 +190,7 @@ class DeTable(field.Field):
         headers = []
         cols2 = []
         for f in schema:
-            d = {'data': f.name}
+            d = {'data': f.name, 'title': f.title}
             data = []
             if hasattr(f, 'width'):
                 d["width"] = f.width
@@ -208,12 +208,13 @@ class DeTable(field.Field):
             if hasattr(f, 'orderable'):
                 d["orderable"] = f.orderable
                 data.append(f"orderable: {f.orderable}")
+
             if hasattr(f, "url"):
                 d["url"] = f.url
-                # request = kw.get("request")
-                # if request:
-                #     d["url"] = request.static_url(f.url)
-                #     log.debug(d["url"])
+            #     # request = kw.get("request")
+            #     # if request:
+            #     #     d["url"] = request.static_url(f.url)
+            #     #     log.debug(d["url"])
 
             if hasattr(f, "action"):
                 d["action"] = f.action
@@ -224,8 +225,17 @@ class DeTable(field.Field):
                 d["visible"] = False
             if isinstance(f.widget, deform.widget.CheckboxWidget):
                 d["checkbox"] = True
+                d["check_val"] = [f.widget.true_val, f.widget.false_val]
             else:
                 d["checkbox"] = False
+            # if type(f.typ) == colander.Integer:
+            #     d["field_typ"] = f"int"
+            # elif type(f.typ) == colander.Boolean:
+            #     d["field_typ"] = f"bool"
+            # elif type(f.typ) in (colander.Float, colander.Money):
+            #     d["field_typ"] = f"float"
+            # else:
+            #     d["field_typ"] = f"str"
 
             thousand = hasattr(f, 'thousand') and f.thousand or None
             separator = thousand and "separator" in thousand and thousand[
@@ -244,7 +254,7 @@ class DeTable(field.Field):
                     d["className"] = "text-right"
             columns.append(d)
             headers.append(f.title)
-            cols2.append(data)
+            # cols2.append(data)
 
         self.headers = headers
         self.head = headers

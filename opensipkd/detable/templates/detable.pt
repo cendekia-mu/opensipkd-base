@@ -37,13 +37,12 @@
     </div>
     <div role="content">
       <div class="widget-body">
-        <table tal:condition="filter_columns" id="${tableid}-form-filter">
-          <thead>
-          <tr tal:repeat="child field">
-            <th>${child.title}</th>
-          </tr>
-          </thead>
-        </table>
+        <div class="row" tal:condition="filter_columns" >
+          <div id="${tableid}-form-filter-container" class="col-md-6">
+            <div id="${tableid}-form-filter" class="collapse">
+            </div>
+          </div>
+        </div>
 
         <table id="${tableid}"
                class="table table-bordered table-hover table-condensed dataTable no-footer">
@@ -54,9 +53,9 @@
 
           </thead>
           <tbody></tbody>
-          <tfoot>
-          <th tal:repeat="child field">${child.title}</th>
-          </tfoot>
+          <!--?          <tfoot>-->
+          <!--?          <th talrepeat="child field">${child.title}</th>-->
+          <!--?          </tfoot>-->
         </table>
       </div>
       <!-- widget-body -->
@@ -89,8 +88,15 @@
             , 4000);
       }
 
+      var $btnFilter = $("<a/>", {
+        "href": "#${tableid}-form-filter",
+        "data-toggle": "collapse",
+        "class": "btn btn-warning dropdown"
+      }).html("Filters");
+
       let tb_array = [
         '<div class="btn-group pull-left">',
+        $btnFilter.get(0).outerHTML,
         '${structure:buttons}',
         '	&nbsp;',
         '</div>',
@@ -213,28 +219,69 @@
         ${tableid}Params.ajax = o${tableid}Url;
       }
 
-      <tal:block tal:condition="filter_columns">
-        $('#${tableid}-form-filter thead th').each(function (i) {
-          console.log($(this).index());
-          var title = $(this).text();
-          // var title = $('#${tableid}-form-filter thead th')
-          // .eq($(this).index())
-          // .text();
-          $(this).html(
-          '<input type="text" placeholder="' + title + '" data-index="' + i + '" />'
-          );
-        });
-
-        $("#${tableid}-form-filter").on('keyup', 'th input', function (e) {
-          var code = e.keyCode || e.which;
-          if (code === 13) {
-            o${tableid}
-            .column($(this).data('index'))
-            .search(this.value)
-            .draw();
+      //<talblock talcondition="filter_columns">
+      //console.log(${tableid}Columns);
+      var html = "";
+      for (let co in ${tableid}Columns) {
+        var col = ${tableid}Columns[co];
+        if (col.searchable === true) {
+          var col_id = "${tableid}-" + col.data;
+          var col_val = localStorage.getItem(col_id);
+          if (col_val === null || col_val === undefined) {
+            col_val = "";
           }
-       });
-      </tal:block>
+          var txt = 'id="' + col_id + '" data-index="' + co + '" value="' + col_val + '"';
+
+          html += '<div class="form-group">';
+          if (col.checkbox === true) {
+            var radioVal = [["", 'Semua'], [col.check_val[0], 'Aktif'], [col.check_val[1], 'Pasif']];
+            html += '<label class="" for="' + col_id + '">' + col.title + '</label>';
+            html += '<div class="input-group" id="' + col_id + '">';
+            for (var rdo = 0; rdo < radioVal.length; rdo++) {
+              var selected = (col_val === radioVal[rdo][0]) ? "checked" : "";
+              txt = 'id="' + col_id + '-' + radioVal[rdo][0] + '" ' +
+                  'class="${tableid}-control-filter" data-index="' + co + '"' +
+                  'name="' + col_id + '" value="' + radioVal[rdo][0] + '" '+selected;
+
+              html += '<label class="radio-inline">';
+              html += '<input type="radio" ' + txt + '/>';
+              html += '<label for="' + col_id + '-' + radioVal[rdo][0] + '">' + radioVal[rdo][1] + '</label>';
+              html += '</label>';
+            }
+            html += '</div>';
+          } else
+            html += '<input type="text" class="form-control ' + "${tableid}" + '-control-filter" placeholder="' + col.title + '" ' + txt + '/>';
+          html += '</div>';
+        }
+      }
+      $("#${tableid}-form-filter").html(html);
+
+      $(".${tableid}-control-filter").on('keyup', function (e) {
+        var code = e.keyCode || e.which;
+        if (code === 13) {
+          o${tableid}
+              .column($(this).data('index'))
+              .search(this.value)
+              .draw();
+          localStorage.setItem($(this).attr('id'), $(this).val());
+        }
+      });
+
+      $(".${tableid}-control-filter").on('click', function (e) {
+        var code = e.keyCode || e.which;
+        if ($(this).attr("type") === 'radio') {
+          var col_id=$(this).attr('id').split("-");
+          col_id.length=2;
+          col_id=col_id.join("-");
+          o${tableid}
+              .column($(this).data('index'))
+              .search(this.value)
+              .draw();
+          localStorage.setItem(col_id, $(this).val());
+        }
+      });
+
+      //</talblock>
 
       o${tableid} = $('#${tableid}').DataTable(${tableid}Params);
       let tb = tb_array.join(' ');

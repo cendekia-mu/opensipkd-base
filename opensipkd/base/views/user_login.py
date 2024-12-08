@@ -57,6 +57,9 @@ class Login(CSRFSchema):
     password = colander.SchemaNode(
         colander.String(), widget=widget.PasswordWidget())
 
+
+
+
     # def after_bind(self, schema, kwargs):
     #     request = kwargs["request"]
     #     csrf_token = new_csrf_token(request)

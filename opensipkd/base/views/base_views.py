@@ -277,6 +277,126 @@ class BaseView(object):
                    cols=self.list_cols, buttons=self.list_buttons)
         return arg
 
+    def view_act(self, **kwargs):
+        url_dict = self.req.matchdict
+        if url_dict['act'] == 'grid':
+            return self.get_list(**kwargs)
+
+        elif url_dict['act'] == 'csv':
+            return self.csv_response(**kwargs)
+
+        elif url_dict['act'] == 'pdf':
+            return self.pdf_response(**kwargs)
+
+        else:
+            return self.next_act(**kwargs)
+
+    def get_list(self, **kwargs):
+        url = []
+        select_list = {}
+        if not self.columns:
+            columns = []
+            for d in self.list_schema():
+                global_search = True
+                search_method = hasattr(d, "search_method") \
+                                and getattr(d, "search_method") or "string_contains"
+                if hasattr(d, "global_search"):
+                    if d.global_search == False:
+                        global_search = False
+
+                if hasattr(d, "field"):
+                    if type(d.field) == str:
+                        columns.append(
+                            ColumnDT(getattr(self.table, d.field),
+                                     mData=d.name,
+                                     global_search=global_search,
+                                     search_method=search_method))
+                    else:
+                        columns.append(
+                            ColumnDT(d.field, mData=d.name,
+                                     global_search=global_search,
+                                     search_method=search_method
+                                     ))
+                else:
+                    columns.append(
+                        ColumnDT(getattr(self.table, d.name),
+                                 mData=d.name,
+                                 global_search=global_search,
+                                 search_method=search_method))
+                if hasattr(d, "widget"):
+                    if d.widget:
+                        log.debug(d.widget)
+                        if type(d.widget) is SelectWidget:
+                            select_list[d.name] = d.widget.values
+
+                if hasattr(d, "url"):
+                    url.append(d.name)
+        else:
+            columns = self.columns
+
+        query = self.db_session.query().select_from(self.table)
+        table_join = kwargs.get('table_join')
+        if table_join is not None:
+            query = table_join(query, **kwargs)
+        else:
+            query = self.list_join(query, **kwargs)
+        if self.req.user and self.req.user.company_id and hasattr(self.table, "company_id"):
+            query = query.filter(
+                self.table.company_id == self.req.user.company_id)
+
+        table_filter = kwargs.get('table_filter')
+        if table_filter is not None:
+            query = table_filter(query, **kwargs)
+        else:
+            query = self.list_filter(query, **kwargs)
+
+        # log.debug(str(columns))
+        # qry = query.add_columns(*[c.sqla_expr for c in columns])
+        # log.debug(str(qry))
+        row_table = DataTables(self.req.GET, query, columns)
+        result = row_table.output_result()
+        data = result and "data" in result and result["data"] or {}
+        for res in data:
+            for k in res:
+                if k in select_list.keys():
+                    vals = select_list[k]
+                    for r in vals:
+                        if r[0] == res[k]:
+                            res[k] = r[1]
+                            ""
+        #     for k, v in d.items():
+        #         if k in url and v:
+        #             link = "/".join([self.home, nik_url, v])
+        #             d[k] =f'<a href="{link}" target="_blank">View</a>'
+        return result
+
+    def list_join(self, query, **kwargs):
+        return query
+
+    def list_filter(self, query, **kwargs):
+        return query
+
+    def next_act(self, **kwargs):
+        url_dict = self.req.matchdict
+        raise HTTPNotFound
+
+    def pdf_response(self, **kwargs):
+        from opensipkd.base.tools.report import jasper_export
+        filename = jasper_export(self.report_file)
+        return file_response(self.req, filename=filename[0])
+
+    def csv_response(self, **kwargs):
+        query = self.table.query_register()
+        row = query.first()
+        header = row._mapping.keys()
+        rows = [list(item) for item in query.all()]
+        filename = f"{get_random_string(16)}.csv"
+        value = {
+            'header': header,
+            'rows': rows,
+        }
+        return csv_response(self.req, value, filename)
+
     def get_bindings(self, row=None):
         return {"row": row}
 
@@ -439,120 +559,6 @@ class BaseView(object):
 
     def after_view(self, **kwargs):
         return self.route_list(**kwargs)
-
-    def pdf_response(self, **kwargs):
-        from opensipkd.base.tools.report import jasper_export
-        filename = jasper_export(self.report_file)
-        return file_response(self.req, filename=filename[0])
-
-    def csv_response(self, **kwargs):
-        query = self.table.query_register()
-        row = query.first()
-        header = row._mapping.keys()
-        rows = [list(item) for item in query.all()]
-        filename = f"{get_random_string(16)}.csv"
-        value = {
-            'header': header,
-            'rows': rows,
-        }
-        return csv_response(self.req, value, filename)
-
-    def list_join(self, query, **kwargs):
-        return query
-
-    def list_filter(self, query, **kwargs):
-        return query
-
-    def get_list(self, **kwargs):
-        url = []
-        select_list = {}
-        if not self.columns:
-            columns = []
-            for d in self.list_schema():
-                global_search = True
-                if hasattr(d, "searchable"):
-                    if d.searchable == False:
-                        global_search = False
-
-                if hasattr(d, "field"):
-                    if type(d.field) == str:
-                        columns.append(
-                            ColumnDT(getattr(self.table, d.field),
-                                     mData=d.name,
-                                     global_search=global_search))
-                    else:
-                        columns.append(
-                            ColumnDT(d.field, mData=d.name,
-                                     global_search=global_search
-                                     ))
-                else:
-                    columns.append(
-                        ColumnDT(getattr(self.table, d.name), mData=d.name,
-                                 global_search=global_search))
-                if hasattr(d, "widget"):
-                    if d.widget:
-                        log.debug(d.widget)
-                        if type(d.widget) is SelectWidget:
-                            select_list[d.name] = d.widget.values
-
-                if hasattr(d, "url"):
-                    url.append(d.name)
-        else:
-            columns = self.columns
-
-        query = self.db_session.query().select_from(self.table)
-        table_join = kwargs.get('table_join')
-        if table_join is not None:
-            query = table_join(query, **kwargs)
-        else:
-            query = self.list_join(query, **kwargs)
-        if self.req.user and self.req.user.company_id and hasattr(self.table, "company_id"):
-            query = query.filter(
-                self.table.company_id == self.req.user.company_id)
-
-        table_filter = kwargs.get('table_filter')
-        if table_filter is not None:
-            query = table_filter(query, **kwargs)
-        else:
-            query = self.list_filter(query, **kwargs)
-
-        # log.debug(str(columns))
-        # qry = query.add_columns(*[c.sqla_expr for c in columns])
-        # log.debug(str(qry))
-        row_table = DataTables(self.req.GET, query, columns)
-        result = row_table.output_result()
-        data = result and "data" in result and result["data"] or {}
-        for res in data:
-            for k in res:
-                if k in select_list.keys():
-                    vals = select_list[k]
-                    for r in vals:
-                        if r[0] == res[k]:
-                            res[k] = r[1]
-                            ""
-        #     for k, v in d.items():
-        #         if k in url and v:
-        #             link = "/".join([self.home, nik_url, v])
-        #             d[k] =f'<a href="{link}" target="_blank">View</a>'
-        return result
-
-    def next_act(self, **kwargs):
-        url_dict = self.req.matchdict
-        raise HTTPNotFound
-
-    def view_act(self, **kwargs):
-        url_dict = self.req.matchdict
-        if url_dict['act'] == 'grid':
-            return self.get_list(**kwargs)
-
-        elif url_dict['act'] == 'csv':
-            return self.csv_response(**kwargs)
-
-        elif url_dict['act'] == 'pdf':
-            return self.pdf_response(**kwargs)
-
-        else:
-            return self.next_act(**kwargs)
 
     def get_captcha_url(self):
         return get_urls("/captcha/") + get_captcha(self.req)

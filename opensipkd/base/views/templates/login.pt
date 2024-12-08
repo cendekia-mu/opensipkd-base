@@ -78,11 +78,19 @@
                 <input id="password" type="password" name="password" class="form-control">
                 <b class="tooltip tooltip-top-right"><i class="fa fa-lock txt-color-teal"></i> ISI
                   DENGAN PASSWORD ANDA</b> </label>
-              <div class="note">
-                <a id="lupa" name="lupa"
-                   href="${home}/reset-password">Lupa Password?</a>
-              </div>
             </section>
+            <section>
+              <div class="form-group">
+                <label class=" checkbox checkbox-inline">
+                  <input id="show_password" type="checkbox" style="left: 20px;">Show Password</label>
+                <div class="note">
+                  <a href="${home}/reset-password" id="lupa" >Lupa Password?</a>
+                </div>
+              </div>
+
+            </section>
+
+
             <section>
               <div tal:condition="'csrf_token' in form">
                 <div tal:define="field form['csrf_token']" style="display: none;">
@@ -183,6 +191,18 @@
       if (keycode == '13') {
         event.preventDefault();
         $("button#login-btn").click();
+      }
+    });
+  });
+</script>
+<script>
+  $(document).ready(function () {
+    $("#show_password").on("click", function () {
+      var x = $("#password");
+      if (x.attr("type") === "password") {
+        x.attr("type","text");
+      } else {
+        x.attr("type","password");
       }
     });
   });

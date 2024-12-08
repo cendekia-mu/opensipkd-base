@@ -488,15 +488,19 @@ def add_view_config(config, module, view_name):
         class_name = f"{view_name}{class_view}"
         attr = f"view_{row.def_func}"
         log.debug(f"Class: {class_name} Attr: {attr}")
-        _views = importlib.import_module(class_name)
-        views = _views
-        if row.template == "json":
-            renderer = row.template
-        else:
-            renderer = "views/templates/" + row.template
-        config.add_view(views.Views, attr=f"{attr}",
-                        route_name=row.kode, permission=row.permission,
-                        renderer=renderer)
+        try:
+            _views = importlib.import_module(class_name)
+            views = _views
+            if row.template == "json":
+                renderers = row.template
+            else:
+                renderers = "views/templates/" + row.template
+            config.add_view(views.Views, attr=f"{attr}",
+                            route_name=row.kode, permission=row.permission,
+                            renderer=renderers)
+        except Exception as e:
+            log.error(str(e))
+            
     config.scan('.')
 
 

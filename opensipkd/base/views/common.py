@@ -1,4 +1,5 @@
 from datatables.clean_regex import clean_regex
+from datatables.search_methods import SEARCH_METHODS
 from sqlalchemy import (
     String, Text,
     or_,
