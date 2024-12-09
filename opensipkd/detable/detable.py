@@ -11,7 +11,6 @@ from deform import field
 
 from . import widget
 
-# from deform import widget
 log = logging.getLogger(__name__)
 
 
@@ -119,10 +118,12 @@ class DeTable(field.Field):
             filter_columns=False,
             **kw
     ):
-        # field.Field.__init__(self, schema, **kw)
         super().__init__(schema, **kw)
         self.request = kw.get("request")
         self.rows = kw.get("rows")
+        self.action = action
+        self.tableid = tableid
+
         new_buttons = kw.get("new_buttons") or ()
 
         params = params and f"?{params}" or ""
@@ -157,6 +158,14 @@ class DeTable(field.Field):
         buttons = _buttons
         _buttons = []
         _scripts = []
+        if filter_columns:
+            button = f"""
+                <a href="#{tableid}-form-filter"
+                    data-toggle="collapse"
+                    class= "btn btn-warning dropdown">Filters</a>
+            """
+            _buttons.append(button)
+
         for button in buttons:
             _buttons.append(
                 f"""<button 
@@ -189,7 +198,11 @@ class DeTable(field.Field):
         columns = []
         headers = []
         cols2 = []
+
+        filter_form = ""
+        field_index = 0
         for f in schema:
+            field_index += 1
             d = {'data': f.name, 'title': f.title}
             data = []
             if hasattr(f, 'width'):
@@ -224,10 +237,33 @@ class DeTable(field.Field):
             if isinstance(f.widget, deform.widget.HiddenWidget):
                 d["visible"] = False
             if isinstance(f.widget, deform.widget.CheckboxWidget):
-                d["checkbox"] = True
-                d["check_val"] = [f.widget.true_val, f.widget.false_val]
+                d.update(self.widget_checkbox(f))
             else:
                 d["checkbox"] = False
+            if hasattr(f, "url"):
+                url = f.url
+                d["render"] = """
+                    function(data){
+                        let result = "No Data"
+                        if (data != null)
+                            result = '<a href="' + url + data + '" target="_blank">Link</a>&nbsp;';
+                        return result;
+                    }"""
+            if f.name == "id" and self.action:
+                d["width"] = "30pt"
+                d["orderable"] = False
+                d["className"] = "text-center"
+                d["visible"] = True
+                d["render"] = """
+                function (id) {
+                                        
+                    return %s;
+                    }
+                """ % self.action_url(f)
+
+            if filter_columns and hasattr(f, "searchable") and getattr(f, "searchable"):
+                filter_form += self.get_filter_form(f, field_index)
+
             # if type(f.typ) == colander.Integer:
             #     d["field_typ"] = f"int"
             # elif type(f.typ) == colander.Boolean:
@@ -238,13 +274,13 @@ class DeTable(field.Field):
             #     d["field_typ"] = f"str"
 
             thousand = hasattr(f, 'thousand') and f.thousand or None
-            separator = thousand and "separator" in thousand and thousand[
-                "separator"] or ','
+            separator = thousand and "separator" in thousand \
+                        and thousand["separator"] or ','
             decimal = thousand and "decimal" in thousand and thousand[
                 "decimal"] or '.'
             point = thousand and "point" in thousand and thousand["point"] or 0
-            currency = thousand and "currency" in thousand and thousand[
-                "currency"] or ""
+            currency = thousand and "currency" in thousand and \
+                       thousand["currency"] or ""
             if thousand or isinstance(f.typ, colander.Float) or \
                     isinstance(f.typ, colander.Integer):
                 d["render"] = \
@@ -252,9 +288,16 @@ class DeTable(field.Field):
                     f"'{decimal}', {point}, '{currency}' )</script>"
                 if 'className' not in d:
                     d["className"] = "text-right"
+
             columns.append(d)
             headers.append(f.title)
             # cols2.append(data)
+        filter_scripts = self.get_filter_scripts(f)
+
+
+        self.filter_scripts = filter_scripts
+
+        self.filter_form = filter_form
 
         self.headers = headers
         self.head = headers
@@ -267,6 +310,120 @@ class DeTable(field.Field):
         self.paginates = paginates
         self.filters = filters
         self.state_save = json.dumps(state_save)
+
+    def widget_checkbox(self, column):
+        d = {}
+        d["checkbox"] = True
+        d["check_val"] = [column.widget.true_val, column.widget.false_val]
+        d["className"] = "text-center"
+        d["width"] = "30pt"
+        # d["render"] = """
+        #   function(value){
+        #     if (typeof value == = "string" & & value.length > 0)
+        #         return render_checkbox(value)
+        #     if (["", false, 0, null].indexOf(value) === -1)
+        #         return render_checkbox(true);
+        #
+        #     return render_checkbox(false);
+        #   }"""
+
+        return d
+
+    def action_url(self, f):
+        act = ""
+        if self.allow_view:
+            act = f"""
+                                '<a href="{self.action}/' + id + '/view">'+
+                                '<i class="fas fa-eye" aria-hidden="true" title="View"></i></a>';\n
+                            """
+        if self.allow_edit:
+            act += f"""
+                                '<a href="{self.action}/' + id + '/edit">'+
+                                '<i class="fas fa-edit" aria-hidden="true" title="Edit"></i></a>';\n
+                            """
+        if self.allow_delete:
+            act += f"""
+                                '<a href="{self.action}/' + id + '/delete">'+
+                                '<i class="fas fa-trash" aria-hidden="true" title="Delete"></i></a>';\n
+                            """
+        if self.allow_post:
+            act += f"""
+                                '<a href="{self.action}/' + id + '/post">'+
+                                '<i class="fas fa-signs-post" aria-hidden="true" title="Post"></i></a>';\n
+                            """
+        if self.allow_unpost:
+            act += f"""
+                                '<a href="{self.action}/' + id + '/unpost">'+
+                                '<i class="fas fa-delete-left" aria-hidden="true" title="Unpost"></i></a>';\n
+                            """
+        return act
+
+    def get_filter_form(self, f, field_index):
+        field_index -= 1
+        html = ""
+        col_id = f"{self.tableid}-{f.name}"
+        txt = f'id="{col_id}" data-index={field_index} '
+        html += '<div class="form-group">'
+        if isinstance(f.widget, deform.widget.CheckboxWidget):
+            check_val = [f.widget.true_val, f.widget.false_val]
+            radio_val = [["", 'Semua'], [check_val[0], 'Aktif'], [check_val[1], 'Pasif']]
+            html += '<label class="" for="' + col_id + '">' + f.title + '</label>'
+            html += '<div class="input-group" id="' + col_id + '">'
+            for rdo in range(len(radio_val)):
+                # selected = (col_val == = radioVal[rdo][0]) ? "checked": "";
+                log.debug(f"{rdo}, {radio_val[rdo]}")
+                txt = f'id="{col_id}-{radio_val[rdo][0]}" value="{radio_val[rdo][0]}" '
+                txt += f'class="{self.tableid}-control-filter" data-index="{field_index}" '
+                txt += f'name="{col_id}" '
+                html += '<label class="radio-inline">'
+                html += f'<input type="radio" {txt}/>'
+                html += f'<label for="{col_id}-{radio_val[rdo][0]}">'
+                html += f'{radio_val[rdo][1]}</label>'
+                html += '</label>'
+            html += '</div>'
+
+        # elif isinstance(f.typ, colander.Date):
+        #     requirements = f.widget.requirements
+        #     for requirement in requirements:
+        #         if type(requirement) == dict and "js" in requirement:
+        #             for req in requirement:
+        #
+        #     html += f'<input type="text" class="form-control {self.tableid}-control-filter hasDatePicker"'
+        #     html += f'placeholder="{f.title}" {txt}/>'
+        #     html += """
+        #       <script type="text/javascript">
+        #            deform.addCallback(
+        #             '%s',
+        #              function deform_cb(oid) {
+        #                $('#'+oid).datepicker();
+        #              }
+        #            );
+        #           </script>
+        #     """ % self.tableid
+
+        else:
+            html += f'<input type="text" class="form-control {self.tableid}-control-filter"'
+            html += f'placeholder="{f.title}" {txt}/>'
+        html += '</div>'
+        return html
+
+    def get_filter_scripts(self, f):
+        return ""
+
+"""
+for (let co in ${tableid}Columns) {
+    if (${tableid}Columns[co].checkbox === true) {
+
+    } else if (${tableid}Columns[co].hasOwnProperty("url")) {
+
+    } else
+      ${tableid}Columns[co].width = "30pt";
+      ${tableid}Columns[co].orderable = false;
+      ${tableid}Columns[co].className = "text-center";
+      ${tableid}Columns[co].visible = true;
+      //columns[1].order = "order_asc";
+    }
+"""
 
 
 class Button(object):
@@ -341,9 +498,11 @@ class Button(object):
             attributes = {}
         if title is None:
             title = name.capitalize()
+
         name = re.sub(r"\s", "_", name)
         if oid is None:
             self.oid = f"detable_btn_{name}"
+
         self.name = name
         self.title = title
         self.type = type  # noQA

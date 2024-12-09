@@ -6,7 +6,7 @@ from pyramid.view import view_config
 from sqlalchemy.orm import aliased
 
 from opensipkd.models import (DBSession, Route, )
-from . import BaseView, get_urls
+from . import BaseView, get_urls, widget_os
 
 _logging = logging.getLogger(__name__)
 
@@ -104,6 +104,14 @@ class ListSchema(colander.Schema):
         searchable=False,
         global_search=False,
     )
+    # created = colander.SchemaNode(
+    #     colander.Date(),
+    #     widget=widget_os.BootStrapDateInputWidget(),
+    #     search_method="equal",
+    #     searchable=True,
+    #     global_search=False,
+    # )
+
     kode = colander.SchemaNode(
         colander.String(),
         searchable=True)
@@ -159,6 +167,7 @@ class Views(BaseView):
         self.form_params = dict(scripts="")
         self.list_url = 'routes'
         self.list_route = 'routes'
+        self.filter_columns = True
         # self.list_buttons = (btn_view, btn_edit, btn_delete)
         self.list_buttons = ()
         # self.add_schema = AddSchema
