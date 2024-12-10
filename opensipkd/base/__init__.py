@@ -500,6 +500,7 @@ def add_view_config(config, module, view_name):
                             renderer=renderers)
         except Exception as e:
             log.error(str(e))
+            log.error(dict(row.__dict__))
             
     config.scan('.')
 

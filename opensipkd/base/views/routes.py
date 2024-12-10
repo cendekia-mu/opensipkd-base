@@ -140,7 +140,12 @@ class ListSchema(colander.Schema):
     path = colander.SchemaNode(
         colander.String(), title='Path',
         searchable=True)
-    template = colander.SchemaNode(
+    class_view = colander.SchemaNode(
+        colander.String(),
+        searchable=False,
+        global_search=False,
+    )
+    def_func = colander.SchemaNode(
         colander.String(),
         searchable=False,
         global_search=False,

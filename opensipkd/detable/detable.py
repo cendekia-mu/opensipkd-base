@@ -107,7 +107,7 @@ class DeTable(field.Field):
             filters='true',
             paginates='true',
             params="",
-            server_side='true',
+            server_side=True,
             state_save=True,
             data=[],
             allow_edit=True,
@@ -123,6 +123,7 @@ class DeTable(field.Field):
         self.rows = kw.get("rows")
         self.action = action
         self.tableid = tableid
+        self.data = data
 
         new_buttons = kw.get("new_buttons") or ()
 
@@ -192,8 +193,7 @@ class DeTable(field.Field):
             table_widget = widget.TableWidget()
 
         self.widget = table_widget
-
-        self.server_side = server_side
+        self.server_side = json.dumps(server_side)
         self.data = data
         columns = []
         headers = []
@@ -236,10 +236,13 @@ class DeTable(field.Field):
 
             if isinstance(f.widget, deform.widget.HiddenWidget):
                 d["visible"] = False
-            if isinstance(f.widget, deform.widget.CheckboxWidget):
+            elif isinstance(f.widget, deform.widget.CheckboxWidget):
                 d.update(self.widget_checkbox(f))
+            elif isinstance(f.widget, deform.widget.SelectWidget):
+                d.update(self.widget_select(f))
             else:
-                d["checkbox"] = False
+                d["wg_checkbox"] = False
+                d["wg_select"] = False
             if hasattr(f, "url"):
                 url = f.url
                 d["render"] = """
@@ -294,7 +297,6 @@ class DeTable(field.Field):
             # cols2.append(data)
         filter_scripts = self.get_filter_scripts(f)
 
-
         self.filter_scripts = filter_scripts
 
         self.filter_form = filter_form
@@ -313,8 +315,8 @@ class DeTable(field.Field):
 
     def widget_checkbox(self, column):
         d = {}
-        d["checkbox"] = True
-        d["check_val"] = [column.widget.true_val, column.widget.false_val]
+        d["wg_checkbox"] = True
+        d["wg_checkbox_val"] = [column.widget.true_val, column.widget.false_val]
         d["className"] = "text-center"
         d["width"] = "30pt"
         # d["render"] = """
@@ -327,6 +329,16 @@ class DeTable(field.Field):
         #     return render_checkbox(false);
         #   }"""
 
+        return d
+
+    def widget_select(self, column):
+        d = {}
+        d["wg_select"] = True
+        d["wg_select_val"] = column.widget.values
+        if column.widget.values:
+            for val in column.widget.values:
+                if hasattr(column, f"color_{val}"):
+                    d[f"color_{val}"] = getattr(column, f"color_{val}")
         return d
 
     def action_url(self, f):
@@ -365,8 +377,8 @@ class DeTable(field.Field):
         txt = f'id="{col_id}" data-index={field_index} '
         html += '<div class="form-group">'
         if isinstance(f.widget, deform.widget.CheckboxWidget):
-            check_val = [f.widget.true_val, f.widget.false_val]
-            radio_val = [["", 'Semua'], [check_val[0], 'Aktif'], [check_val[1], 'Pasif']]
+            wg_check_val = [f.widget.true_val, f.widget.false_val]
+            radio_val = [["", 'Semua'], [wg_check_val[0], 'Aktif'], [wg_check_val[1], 'Pasif']]
             html += '<label class="" for="' + col_id + '">' + f.title + '</label>'
             html += '<div class="input-group" id="' + col_id + '">'
             for rdo in range(len(radio_val)):
@@ -381,26 +393,43 @@ class DeTable(field.Field):
                 html += f'{radio_val[rdo][1]}</label>'
                 html += '</label>'
             html += '</div>'
+        elif isinstance(f.widget, deform.widget.SelectWidget):
+            wg_select_val = f.widget.values
+            html += f'<select class="form-control {self.tableid}-control-filter"'
+            html += f'placeholder="{f.title}" {txt}/>'
+            html += '<option value="">Semua</option>'
+            for key in wg_select_val:
+                html += f'<option value="{key}">{wg_select_val[key]}</option>'
+            html += '</select>'
 
-        # elif isinstance(f.typ, colander.Date):
-        #     requirements = f.widget.requirements
-        #     for requirement in requirements:
-        #         if type(requirement) == dict and "js" in requirement:
-        #             for req in requirement:
-        #
-        #     html += f'<input type="text" class="form-control {self.tableid}-control-filter hasDatePicker"'
-        #     html += f'placeholder="{f.title}" {txt}/>'
-        #     html += """
-        #       <script type="text/javascript">
-        #            deform.addCallback(
-        #             '%s',
-        #              function deform_cb(oid) {
-        #                $('#'+oid).datepicker();
-        #              }
-        #            );
-        #           </script>
-        #     """ % self.tableid
+        elif isinstance(f.typ, colander.Date):
+            html += f'<div class="form-group" {txt}>'
+            html += f'<div class="input-group">'
+            html += f'<span class="input-group-addon">{f.title}</span>'
+            html += f'<span class="input-group-addon"><input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
+            html += f'data-index={field_index} placeholder="{f.title} Awal" '
+            html += f'name="{col_id}" id="{col_id}-min"/></span>'
+            html += f'<span class="input-group-addon"><input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
+            html += f'data-index={field_index} placeholder="{f.title} Akhir" '
+            html += f'name="{col_id}" id="{col_id}-max" /></span>'
+            html += f'</div>'
+            html += f'</div>'
 
+            # html += """
+            #   <script type="text/javascript">
+            #        deform.addCallback(
+            #         '%s',
+            #          function deform_cb(oid) {
+            #            $('#'+oid).datepicker();
+            #              }
+            #            );
+            #           </script>
+            #     """ % self.tableid
+            #     requirements = f.widget.requirements
+            #     for requirement in requirements:
+            #         if type(requirement) == dict and "js" in requirement:
+            #             for req in requirement:
+            #
         else:
             html += f'<input type="text" class="form-control {self.tableid}-control-filter"'
             html += f'placeholder="{f.title}" {txt}/>'
@@ -409,6 +438,7 @@ class DeTable(field.Field):
 
     def get_filter_scripts(self, f):
         return ""
+
 
 """
 for (let co in ${tableid}Columns) {

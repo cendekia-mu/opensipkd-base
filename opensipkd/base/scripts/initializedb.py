@@ -46,7 +46,10 @@ def routes_callback(typ, **kwargs):
                 return None
             value = splited_last
         elif field == "class_view":
-            if data["def_func"] == "list" and not data["class_view"]:
+            if data["def_func"] == "list" and not data["class_view"] \
+                    or splited_last not in ["add", "edit", "delete", "view", "act", "report"]:
+                log.debug(splited[-1:])
+                log.debug(data)
                 return "_".join(splited[1:])
 
             if splited_last == "menu":

@@ -136,7 +136,7 @@ class BaseView(object):
         self.list_buttons = (btn_add, btn_close)
         self.columns = None
         self.form_params = dict(scripts="")
-        self.list_url = ''
+        self.list_url = []
         self.list_route = ''
         self.list_schema = colander.Schema
         self.allow_view = True
@@ -145,7 +145,9 @@ class BaseView(object):
         self.allow_post = False
         self.allow_unpost = False
         self.state_save = False
+        self.server_side = True
         self.list_form = None
+        self.form_list = None
         self.filter_columns = False
 
         self.form_scripts = """
@@ -243,16 +245,18 @@ class BaseView(object):
             allow_unpost = kwargs.get("allow_unpost", self.allow_unpost)
             state_save = kwargs.get("state_save", self.state_save)
             filter_columns = kwargs.get("filter_columns", self.filter_columns)
+            server_side = kwargs.get("server_side", self.server_side)
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
-            list_url = kwargs.get("list_url", None)
             new_buttons = kwargs.get("new_buttons")
             if not new_buttons:
                 new_buttons = self.new_buttons
 
-            if not list_url:
+            list_url = kwargs.get("list_url", self.list_url)
+            if not list_url and self.list_route:
                 list_url = self.req.route_url(self.list_route)
-            action_suffix = kwargs.get("action_suffix", "/grid/act")
+            list_url = list_url and list_url[0:1] != "/" and "/" + list_url or list_url
+            action_suffix = list_url and kwargs.get("action_suffix", "/grid/act") or None
             table = DeTable(schema,
                             action=list_url,
                             action_suffix=action_suffix,
@@ -266,9 +270,14 @@ class BaseView(object):
                             state_save=state_save,
                             new_buttons=new_buttons,
                             filter_columns=filter_columns,
+                            server_side=server_side
                             )
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")
+            if kwargs.get("is_object"):
+                return dict(form=table, scripts="", css=resources["css"],
+                            js=resources["js"])
+
             return dict(form=table.render(), scripts="", css=resources["css"],
                         js=resources["js"])
 
@@ -294,9 +303,13 @@ class BaseView(object):
     def get_list(self, **kwargs):
         url = []
         select_list = {}
+        list_schema = kwargs.get("list_schema")
+        if not list_schema:
+            list_schema = self.list_schema and self.list_schema or self.form_list
+
         if not self.columns:
             columns = []
-            for d in self.list_schema():
+            for d in list_schema():
                 global_search = True
                 search_method = hasattr(d, "search_method") \
                                 and getattr(d, "search_method") or "string_contains"
@@ -406,11 +419,17 @@ class BaseView(object):
     def next_edit(self, form, **kwargs):
         return self.route_list(**kwargs)
 
-    def returned_form(self, form, table, **kwargs):
+    def returned_form(self, form, table=None, **kwargs):
         resources = form.get_widget_resources()
         readonly = "readonly" in kwargs and kwargs["readonly"] or False
         kwargs["readonly"] = readonly
         is_object = kwargs.get("is_object", self.is_object)
+        if dict == type(table):
+            resources["js"].extend(set(table["js"]) - set(resources["js"]))
+            resources["css"].extend(set(table["css"]) - set(resources["css"]))
+            table = table["form"]
+        # resources["js"] = list(resources["js"])
+        # resources["css"] = list(resources["css"])
         if is_object:
             return dict(form=form,
                         table=table and table.render() or None,
@@ -566,10 +585,10 @@ class BaseView(object):
     def view_add(self, **kwargs):
         # bindings = self.get_bindings()
         form = self.get_form(self.add_schema, **kwargs)
-        table = self.get_item_table(**kwargs)
         resources = form.get_widget_resources()
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
+        table = self.get_item_table(**kwargs)
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
@@ -657,7 +676,11 @@ class BaseView(object):
         return d
 
     def get_item_table(self, row=None, **kwargs):
-        return None
+        if not self.form_list:
+            return None
+        self.list_schema = self.form_list
+        kwargs["is_object"] = True
+        return self.view_list(**kwargs)
 
     def before_edit(self, form):
         """
@@ -748,6 +771,7 @@ class BaseView(object):
         form = self.get_form(
             self.edit_schema, buttons=(btn_delete, btn_cancel))
         table = self.get_item_table(row)
+
         resources = form.get_widget_resources()
         form.set_appstruct(self.get_values(row))
         kwargs["readonly"] = True
