@@ -343,6 +343,8 @@
         }
         console.log(col_id, $(this).attr('id'), value);
       });
+
+      ${structure: btnscripts}
     });
   </script>
 </div>

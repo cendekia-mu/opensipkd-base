@@ -125,7 +125,9 @@ class DeTable(field.Field):
         self.tableid = tableid
         self.data = data
 
+        # Button yang dikirim sebagai tambahan
         new_buttons = kw.get("new_buttons") or ()
+        action_suffix = f"{action_suffix}{params}"
 
         params = params and f"?{params}" or ""
         dict_buttons = {
@@ -145,30 +147,22 @@ class DeTable(field.Field):
             "upload": "{window.location = o%sUri+'/upload%s';}" % (
                 tableid, params),
         }
+
         for k in new_buttons:
             buttons += (new_buttons[k]["obj"],)
             dict_buttons[k] = '{' + new_buttons[k]["js"].format(tableid=tableid,
                                                                 params=params) + '}'
 
-        action_suffix = f"{action_suffix}{params}"
-        _buttons = []
+        obj_buttons = []  # Adalah Header Buttone
+        _scripts = []
+        # buttons = Params Buttons
         for button in buttons:
             if isinstance(button, compat.string_types):
                 button = Button(button)
-            _buttons.append(button)
-        buttons = _buttons
-        _buttons = []
-        _scripts = []
-        if filter_columns:
-            button = f"""
-                <a href="#{tableid}-form-filter"
-                    data-toggle="collapse"
-                    class= "btn btn-warning dropdown">Filters</a>
-            """
-            _buttons.append(button)
-
-        for button in buttons:
-            _buttons.append(
+            obj_buttons.append(button)
+        header_buttons = []
+        for button in obj_buttons:
+            header_buttons.append(
                 f"""<button 
                     id="{tableid}{button.name}" 
                     name="{button.name}" 
@@ -178,7 +172,16 @@ class DeTable(field.Field):
                     """)
             _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
                             dict_buttons[button.name] + ');')
-        self.buttons = "','".join(_buttons).replace('\n', ""). \
+
+        if filter_columns:
+            button = f"""
+                        <a href="#{tableid}-form-filter"
+                            data-toggle="collapse"
+                            class= "btn btn-warning dropdown">Filters</a>
+                    """
+            header_buttons.insert(0, button)
+
+        self.buttons = "','".join(header_buttons).replace('\n', ""). \
             replace(';', ';\n')
         self.tableid = tableid
         self.scripts = ''.join(_scripts).replace(';', ";\n")
