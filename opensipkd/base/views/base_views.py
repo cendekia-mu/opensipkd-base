@@ -256,6 +256,7 @@ class BaseView(object):
             if not list_url and self.list_route:
                 list_url = self.req.route_url(self.list_route)
             list_url = list_url and list_url[0:1] != "/" and "/" + list_url or list_url
+            list_url = self.home + list_url
             action_suffix = list_url and kwargs.get("action_suffix", "/grid/act") or None
             table = DeTable(schema,
                             action=list_url,
