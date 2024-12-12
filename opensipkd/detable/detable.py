@@ -413,6 +413,20 @@ class DeTable(field.Field):
 
         elif isinstance(f.typ, colander.Date):
             html += f'<div class="form-group" {txt}>'
+            html += f'<label class="form-label" style="font-size:12px">{f.title}</label>'
+            html += f'<div class="input-group input-daterange" style="padding: 3px 0px 7px !important;">'
+            html += f'<input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
+            html += f'data-index={field_index} placeholder="{f.title} Awal"'
+            html += f'name="{col_id}" id="{col_id}-min"/>'
+            html += f'<div class="input-group-addon">-</div>'
+            html += f'<input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
+            html += f'data-index={field_index} placeholder="{f.title} Akhir" '
+            html += f'name="{col_id}" id="{col_id}-max" /></span>'
+            html += f'</div>'
+            html += f'</div>'
+            """
+            awal
+            html += f'<div class="form-group" {txt}>'
             html += f'<div class="input-group">'
             html += f'<span class="input-group-addon">{f.title}</span>'
             html += f'<span class="input-group-addon"><input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
@@ -423,6 +437,8 @@ class DeTable(field.Field):
             html += f'name="{col_id}" id="{col_id}-max" /></span>'
             html += f'</div>'
             html += f'</div>'
+            
+            """
 
             # html += """
             #   <script type="text/javascript">
