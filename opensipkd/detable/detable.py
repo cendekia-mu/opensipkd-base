@@ -115,6 +115,7 @@ class DeTable(field.Field):
             allow_view=True,
             allow_post=False,
             allow_unpost=False,
+            allow_check=False,
             filter_columns=False,
             **kw
     ):
@@ -124,14 +125,24 @@ class DeTable(field.Field):
         self.action = action
         self.tableid = tableid
         self.data = data
+        self.allow_edit = json.dumps(allow_edit)
+        self.allow_delete = json.dumps(allow_delete)
+        self.allow_view = json.dumps(allow_view)
+        self.allow_post = json.dumps(allow_post)
+        self.allow_unpost = json.dumps(allow_unpost)
+        self.allow_check = json.dumps(allow_check)
+        self.filter_columns = json.dumps(filter_columns)
 
         # Button yang dikirim sebagai tambahan
         new_buttons = kw.get("new_buttons") or ()
         action_suffix = f"{action_suffix}{params}"
 
+        close_url = self.action.split("/")
+        close_url = "/".join(close_url[:-1])
+        close_url.replace(":/","://")
         params = params and f"?{params}" or ""
         dict_buttons = {
-            "close": "{window.location = '/'; return false;}",
+            "close": "{window.location = '"+close_url+"'; return false;}",
             "add": "{window.location = o%sUri+'/add%s';}" % (tableid, params),
             "edit": """{
                 if (m%sID) window.location = o%sUri+'/'+m%sID+'/edit%s';
@@ -185,12 +196,7 @@ class DeTable(field.Field):
             replace(';', ';\n')
         self.tableid = tableid
         self.scripts = ''.join(_scripts).replace(';', ";\n")
-        self.allow_edit = json.dumps(allow_edit)
-        self.allow_delete = json.dumps(allow_delete)
-        self.allow_view = json.dumps(allow_view)
-        self.allow_post = json.dumps(allow_post)
-        self.allow_unpost = json.dumps(allow_unpost)
-        self.filter_columns = json.dumps(filter_columns)
+
         table_widget = getattr(schema, "widget", None)
         if table_widget is None:
             table_widget = widget.TableWidget()

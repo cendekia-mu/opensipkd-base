@@ -487,7 +487,6 @@ def add_view_config(config, module, view_name):
         class_view = row.class_view and f".{row.class_view}" or ""
         class_name = f"{view_name}{class_view}"
         attr = f"view_{row.def_func}"
-        log.debug(f"Class: {class_name} Attr: {attr}")
         try:
             _views = importlib.import_module(class_name)
             views = _views
@@ -649,14 +648,7 @@ def main(global_config, **settings):
     config.add_renderer('json_rpc', json_rpc())
     set_routes(config)
 
-    # New Routes By Array
-    for route in routes:
-        if len(route) > 4 and str(route[4]) == '1':
-            config.add_jsonrpc_endpoint(
-                route[0], route[1], default_renderer="json_rpc")
-        else:
-            config.add_route(route[0], route[1])
-        titles[route[0]] = route[2]
+    routes_by_array(config)
 
     config.registry['mailer'] = mailer_factory_from_settings(settings)
     config.scan()
@@ -664,3 +656,14 @@ def main(global_config, **settings):
         config.scan(m)
 
     return config.make_wsgi_app()
+
+
+def routes_by_array(config, routs=routes):
+    # New Routes By Array
+    for route in routs:
+        if len(route) > 4 and str(route[4]) == '1':
+            config.add_jsonrpc_endpoint(
+                route[0], route[1], default_renderer="json_rpc")
+        else:
+            config.add_route(route[0], route[1])
+        titles[route[0]] = route[2]

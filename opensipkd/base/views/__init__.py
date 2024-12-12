@@ -1,13 +1,8 @@
 import logging
 from datetime import timedelta
-
 import colander
 from deform import (
     Form, ValidationFailure, widget, Button, FileData)
-from opensipkd.base import get_params, get_urls
-from opensipkd.models import (
-    DBSession, UserService, )
-from opensipkd.tools import mem_tmp_store
 from pyramid.httpexceptions import (
     HTTPFound, HTTPForbidden, HTTPNotFound, HTTPInternalServerError,
     HTTPSeeOther)
@@ -16,11 +11,19 @@ from pyramid.interfaces import IRoutesMapper
 from pyramid.renderers import render_to_response
 from pyramid.view import view_config
 
-from .base_views import BaseView, DataTables, ColumnDT
+from opensipkd.base import get_params, get_urls
+from opensipkd.models import (
+    DBSession, UserService, )
+from opensipkd.tools import mem_tmp_store
+from .base_views import BaseView, DataTables
 
 _ = TranslationStringFactory('login')
 log = logging.getLogger(__name__)
+from datatables import ColumnDT
+# , DataTables, get_urls)
 
+def no_action():
+    test = ColumnDT
 
 @view_config(context=HTTPNotFound, renderer='templates/404.pt')
 def not_found(request):
@@ -38,6 +41,13 @@ def not_found(request):
 
     request.response.status = 404
     return {}
+
+
+# @view_config(context=HTTPNotFound, renderer='json')
+# def not_found_json(request):
+#     pass
+    # request.response.status = 404
+    # return {"JSON"}
 
 
 @view_config(context=HTTPInternalServerError, renderer='templates/500.pt')
@@ -72,7 +82,6 @@ class FilesSchema(colander.SequenceSchema):
 
     def after_bin(self, node, kw):
         self["file_name"].title = ""
-
 
 
 ########

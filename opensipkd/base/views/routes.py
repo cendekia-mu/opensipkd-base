@@ -180,6 +180,7 @@ class Views(BaseView):
         self.table = Route
         self.list_schema = ListSchema
         self.allow_delete = True
+        self.allow_check = True
         self.form_scripts = """
           $('#parent_nm').bind('typeahead:selected', function (obj, datum, name) {
             $('#parent_id').val(datum.id);

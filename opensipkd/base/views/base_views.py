@@ -144,6 +144,7 @@ class BaseView(object):
         self.allow_delete = True
         self.allow_post = False
         self.allow_unpost = False
+        self.allow_check = False
         self.state_save = False
         self.server_side = True
         self.list_form = None
@@ -243,6 +244,7 @@ class BaseView(object):
             allow_delete = kwargs.get("allow_delete", self.allow_delete)
             allow_post = kwargs.get("allow_post", self.allow_post)
             allow_unpost = kwargs.get("allow_unpost", self.allow_unpost)
+            allow_check = kwargs.get("allow_check", self.allow_check)
             state_save = kwargs.get("state_save", self.state_save)
             filter_columns = kwargs.get("filter_columns", self.filter_columns)
             server_side = kwargs.get("server_side", self.server_side)
@@ -270,6 +272,7 @@ class BaseView(object):
                             allow_delete=allow_delete,
                             allow_post=allow_post,
                             allow_unpost=allow_unpost,
+                            allow_check=allow_check,
                             state_save=state_save,
                             new_buttons=new_buttons,
                             filter_columns=filter_columns,

@@ -21,6 +21,7 @@
     allow_view allow_view|field.allow_view;
     allow_post allow_post|field.allow_post;
     allow_unpost allow_unpost|field.allow_unpost;
+    allow_check allow_check|field.allow_check;
     state_save state_save|field.state_save;
     filter_columns filter_columns|field.filter_columns;
     filter_scripts filter_scripts|field.filter_scripts;
@@ -46,7 +47,49 @@
             </div>
           </div>
         </div>
+        <div tal:condition="allow_check">
+          <input type="checkbox" class="${tableid}checkAll">Pilih Semua
+          <script>
+            $(document).ready(function () {
+              $('.${tableid}checkAll').click(function () {
+                if (this.checked) {
+                  console.log("AAAAAAAAAAAA");
+                  $(".${tableid}_check").prop("checked", true);
+                } else {
+                  console.log("BBBBBBBBBBBB");
+                  $(".${tableid}_check").prop("checked", false);
+                }
 
+              });
+              $('.modal-inner-content td').click(function (event) {
+                if (!$(event.target).is('input')) {
+                  $('input:checkbox', this).prop('checked', function (i, value) {
+                    console.log(i, value);
+                    //return !value;
+                  });
+                  //$('.${tableid}_check').on("click", function (event) {
+                  //  console.log(event);
+                  //  if (this.checked) {
+                  //    m${tableid}ChekList.push($(this).val());
+                  //  } else {
+                  //    m${tableid}CheckList.splice(m${tableid}CheckList.indexOf($(this).val()), 1);
+                  //  }
+                  //});
+                }
+              });
+
+              $('.${tableid}_check').on("click", function (event) {
+                console.log(event);
+                if (this.checked) {
+                  m${tableid}ChekList.push($(this).val());
+                } else {
+                  m${tableid}CheckList.splice(m${tableid}CheckList.indexOf($(this).val()), 1);
+                }
+              })
+
+            });
+          </script>
+        </div>
         <table id="${tableid}"
                class="table table-bordered table-hover table-condensed dataTable no-footer">
           <thead>
@@ -76,7 +119,11 @@
     var o${tableid}Uri = "${url}";
     var o${tableid}Url = o${tableid}Uri + "${url_suffix}";
     var m${tableid}ID;
+    var m${tableid}ChekList = [];
     deform.addCallback('${tableid}', function (oid) {
+      // $(document).ready(function () {
+
+
       function displayEmptyID() {
         $("#emptyID").show();
         $('#emptyID').animate({opacity: 0.8}, 2000);
@@ -151,7 +198,7 @@
         } else if (${tableid}Columns[co].hasOwnProperty("url")) {
           let url = ${tableid}Columns[co].url;
           ${tableid}Columns[co].render = function (data) {
-            let result = "No Data"
+            let result = "No Data";
             if (data != null) {
               result = '<a href="' + url + data + '" target="_blank">Link</a>&nbsp;';
             }
@@ -159,22 +206,25 @@
           }
         } else if (${tableid}Columns[co].data === "id" && ${tableid}Columns[co].action === true) {
           ${tableid}Columns[co].render = function (id) {
-            let result = ""
-            if (${allow_view}) {
-              result = '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
+            let result = "";
+            if (${allow_check}) {
+              result = '<input type="checkbox" class="${tableid}_check" value="' + id + '" id="${tableid}check' + id + '">&nbsp;';
             }
-            if (${allow_edit}) {
+            if (${allow_view})
+              result += '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
+
+            if (${allow_edit})
               result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true" title="Edit"></i></a>&nbsp;'
-            }
-            if (${allow_delete}) {
+
+            if (${allow_delete})
               result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true" title="Delete"></i></a>';
-            }
-            if (${allow_post}) {
+
+            if (${allow_post})
               result += '<a href="${url}/' + id + '/post"><i class="fas fa-signs-post" aria-hidden="true" title="Post"></i></a>';
-            }
-            if (${allow_unpost}) {
+
+            if (${allow_unpost})
               result += '<a href="${url}/' + id + '/unpost"><i class="fas fa-delete-left" aria-hidden="true" title="Unpost"></i></a>';
-            }
+
             return result;
           }
           //columns[1].order = "order_asc";
@@ -219,10 +269,8 @@
         ${tableid}Params.ajax = o${tableid}Url;
       }
 
-        ${structure: filter_scripts}
 
       o${tableid} = $('#${tableid}').DataTable(${tableid}Params);
-
       let tb = tb_array.join(' ');
       $("div.toolbar").html(tb);
       $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
@@ -240,7 +288,6 @@
           $(this).addClass('row_selected');
         }
       });
-
       $(".${tableid}-control-filter").on('keyup', function (e) {
         var code = e.keyCode || e.which;
         if (code === 13) {
@@ -323,7 +370,6 @@
         }
 
       });
-
       console.log("Read Data");
       $(".${tableid}-control-filter").each(function (e) {
         var col_id = $(this).attr("id")
@@ -344,7 +390,10 @@
         console.log(col_id, $(this).attr('id'), value);
       });
 
-      ${structure: btnscripts}
+        ${structure: btnscripts}
+      filter_table();
+      // });
+        ${structure: filter_scripts}
     });
   </script>
 </div>
