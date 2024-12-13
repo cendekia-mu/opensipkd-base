@@ -263,7 +263,7 @@
 
 
       $('#${tableid} tbody').on('click', 'tr', function () {
-        alert("table clicked");
+        // alert("table clicked");
         if ($(this).hasClass('selected')) {
           $(this).removeClass('selected');
           m${tableid}ID = null;
