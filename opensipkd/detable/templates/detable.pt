@@ -229,8 +229,10 @@
       var param_data = "";
       if (!${server_side}) {
         param_data = ${data};
+        param_ajax = "";
       } else {
         param_ajax = o${tableid}Url;
+        param_data = [];
       }
 
 
@@ -239,9 +241,9 @@
             scrollY: ${field.scroll_y},
             dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
             processing: true,
+            serverSide: ${server_side},
             data: param_data,
             ajax: param_ajax,
-            serverSide: ${server_side},
             stateSave: ${state_save},
             scrollCollapse: true,
             sort: ${sorts},
@@ -394,9 +396,9 @@
         console.log(col_id, $(this).attr('id'), value);
       });
 
-          ${structure: btnscripts}
         filter_table();
       </tal:block>
+        ${structure: btnscripts}
         ${structure: filter_scripts}
     });
   </script>

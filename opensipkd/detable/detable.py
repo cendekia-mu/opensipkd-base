@@ -5,9 +5,8 @@ import logging
 import re
 
 import colander
-import deform
-from deform import compat
-from deform import field
+# import deform
+from deform import compat, widget as deform_widget, field
 
 from . import widget
 
@@ -138,17 +137,17 @@ class DeTable(field.Field):
         self.filter_columns = filter_columns
         self.scroll_x = json.dumps(scroll_x)
         self.scroll_y = json.dumps(scroll_y)
-
+        # self.widget = None
         # Button yang dikirim sebagai tambahan
-        new_buttons = kw.get("new_buttons") or ()
+        new_buttons = kw.get("new_buttons") or {}
         action_suffix = f"{action_suffix}{params}"
 
         close_url = self.action.split("/")
         close_url = "/".join(close_url[:-1])
-        close_url.replace(":/","://")
+        close_url.replace(":/", "://")
         params = params and f"?{params}" or ""
         dict_buttons = {
-            "close": "{window.location = '"+close_url+"'; return false;}",
+            "close": "{window.location = '" + close_url + "'; return false;}",
             "add": "{window.location = o%sUri+'/add%s';}" % (tableid, params),
             "edit": """{
                 if (m%sID) window.location = o%sUri+'/'+m%sID+'/edit%s';
@@ -216,6 +215,7 @@ class DeTable(field.Field):
 
         filter_form = ""
         field_index = 0
+        filter_scripts = ""
         for f in schema:
             field_index += 1
             d = {'data': f.name, 'title': f.title}
@@ -249,11 +249,11 @@ class DeTable(field.Field):
             else:
                 d["action"] = True
 
-            if isinstance(f.widget, deform.widget.HiddenWidget):
+            if isinstance(f.widget, deform_widget.HiddenWidget):
                 d["visible"] = False
-            elif isinstance(f.widget, deform.widget.CheckboxWidget):
+            elif isinstance(f.widget, deform_widget.CheckboxWidget):
                 d.update(self.widget_checkbox(f))
-            elif isinstance(f.widget, deform.widget.SelectWidget):
+            elif isinstance(f.widget, deform_widget.SelectWidget):
                 d.update(self.widget_select(f))
             else:
                 d["wg_checkbox"] = False
@@ -310,7 +310,7 @@ class DeTable(field.Field):
             columns.append(d)
             headers.append(f.title)
             # cols2.append(data)
-        filter_scripts = self.get_filter_scripts(f)
+            filter_scripts = self.get_filter_scripts(f)
 
         self.filter_scripts = filter_scripts
 
@@ -391,7 +391,7 @@ class DeTable(field.Field):
         col_id = f"{self.tableid}-{f.name}"
         txt = f'id="{col_id}" data-index={field_index} '
         html += '<div class="form-group">'
-        if isinstance(f.widget, deform.widget.CheckboxWidget):
+        if isinstance(f.widget, deform_widget.CheckboxWidget):
             wg_check_val = [f.widget.true_val, f.widget.false_val]
             radio_val = [["", 'Semua'], [wg_check_val[0], 'Aktif'], [wg_check_val[1], 'Pasif']]
             html += '<label class="" for="' + col_id + '">' + f.title + '</label>'
@@ -408,7 +408,7 @@ class DeTable(field.Field):
                 html += f'{radio_val[rdo][1]}</label>'
                 html += '</label>'
             html += '</div>'
-        elif isinstance(f.widget, deform.widget.SelectWidget):
+        elif isinstance(f.widget, deform_widget.SelectWidget):
             wg_select_val = f.widget.values
             html += f'<select class="form-control {self.tableid}-control-filter"'
             html += f'placeholder="{f.title}" {txt}/>'

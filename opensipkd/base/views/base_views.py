@@ -267,7 +267,10 @@ class BaseView(object):
 
         state_save = kwargs.get("state_save", self.state_save)
         filter_columns = kwargs.get("filter_columns", self.filter_columns)
-        server_side = kwargs.get("server_side", self.server_side)
+        if "server_side" in kwargs:
+            server_side = kwargs.get("server_side")
+        else:
+            server_side = self.server_side
         new_buttons = kwargs.get("new_buttons")
         is_object = kwargs.get("is_object")
         list_url = kwargs.get("list_url", self.list_url)
