@@ -59,33 +59,8 @@
                   console.log("BBBBBBBBBBBB");
                   $(".${tableid}_check").prop("checked", false);
                 }
-
-              });
-              $('.modal-inner-content td').click(function (event) {
-                if (!$(event.target).is('input')) {
-                  $('input:checkbox', this).prop('checked', function (i, value) {
-                    console.log(i, value);
-                    //return !value;
-                  });
-                  //$('.${tableid}_check').on("click", function (event) {
-                  //  console.log(event);
-                  //  if (this.checked) {
-                  //    m${tableid}ChekList.push($(this).val());
-                  //  } else {
-                  //    m${tableid}CheckList.splice(m${tableid}CheckList.indexOf($(this).val()), 1);
-                  //  }
-                  //});
-                }
               });
 
-              $('.${tableid}_check').on("click", function (event) {
-                console.log(event);
-                if (this.checked) {
-                  m${tableid}ChekList.push($(this).val());
-                } else {
-                  m${tableid}CheckList.splice(m${tableid}CheckList.indexOf($(this).val()), 1);
-                }
-              })
 
             });
           </script>
@@ -274,7 +249,21 @@
       let tb = tb_array.join(' ');
       $("div.toolbar").html(tb);
       $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
+
+
+      $('#${tableid} tbody tr td').on('click', ':checkbox', function (event) {
+        alert("checkbox clicked");
+        if (this.checked) {
+          m${tableid}ChekList.push($(this).val());
+        } else {
+          m${tableid}CheckList.splice(m${tableid}CheckList.indexOf($(this).val()), 1);
+        }
+        console.log(m${tableid}CheckList);
+      })
+
+
       $('#${tableid} tbody').on('click', 'tr', function () {
+        alert("table clicked");
         if ($(this).hasClass('selected')) {
           $(this).removeClass('selected');
           m${tableid}ID = null;
@@ -288,6 +277,8 @@
           $(this).addClass('row_selected');
         }
       });
+
+
       $(".${tableid}-control-filter").on('keyup', function (e) {
         var code = e.keyCode || e.which;
         if (code === 13) {
