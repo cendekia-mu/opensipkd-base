@@ -116,7 +116,10 @@ class DeTable(field.Field):
             allow_post=False,
             allow_unpost=False,
             allow_check=False,
+            check_field=False,
             filter_columns=False,
+            scroll_x=False,
+            scroll_y=False,
             **kw
     ):
         super().__init__(schema, **kw)
@@ -131,7 +134,10 @@ class DeTable(field.Field):
         self.allow_post = json.dumps(allow_post)
         self.allow_unpost = json.dumps(allow_unpost)
         self.allow_check = json.dumps(allow_check)
-        self.filter_columns = json.dumps(filter_columns)
+        self.check_field = json.dumps(check_field)
+        self.filter_columns = filter_columns
+        self.scroll_x = json.dumps(scroll_x)
+        self.scroll_y = json.dumps(scroll_y)
 
         # Button yang dikirim sebagai tambahan
         new_buttons = kw.get("new_buttons") or ()

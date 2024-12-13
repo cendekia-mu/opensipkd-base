@@ -136,7 +136,7 @@ class BaseView(object):
         self.list_buttons = (btn_add, btn_close)
         self.columns = None
         self.form_params = dict(scripts="")
-        self.list_url = []
+        self.list_url = ""
         self.list_route = ''
         self.list_schema = colander.Schema
         self.allow_view = True
@@ -145,8 +145,12 @@ class BaseView(object):
         self.allow_post = False
         self.allow_unpost = False
         self.allow_check = False
+        self.check_field = ""
         self.state_save = False
         self.server_side = True
+        self.scroll_y = False
+        self.scroll_x = False
+
         self.list_form = None
         self.form_list = None
         self.filter_columns = False
@@ -238,7 +242,8 @@ class BaseView(object):
         return r
 
     def view_list(self, **kwargs):
-        if self.list_schema:
+        """
+        custom:
             allow_view = kwargs.get("allow_view", self.allow_view)
             allow_edit = kwargs.get("allow_edit", self.allow_edit)
             allow_delete = kwargs.get("allow_delete", self.allow_delete)
@@ -248,20 +253,45 @@ class BaseView(object):
             state_save = kwargs.get("state_save", self.state_save)
             filter_columns = kwargs.get("filter_columns", self.filter_columns)
             server_side = kwargs.get("server_side", self.server_side)
+            new_buttons
+            list_url
+            action_suffix
+        """
+        allow_view = kwargs.get("allow_view", self.allow_view)
+        allow_edit = kwargs.get("allow_edit", self.allow_edit)
+        allow_delete = kwargs.get("allow_delete", self.allow_delete)
+        allow_post = kwargs.get("allow_post", self.allow_post)
+        allow_unpost = kwargs.get("allow_unpost", self.allow_unpost)
+        allow_check = kwargs.get("allow_check", self.allow_check)
+        check_field = kwargs.get("check_field", self.check_field)
+
+        state_save = kwargs.get("state_save", self.state_save)
+        filter_columns = kwargs.get("filter_columns", self.filter_columns)
+        server_side = kwargs.get("server_side", self.server_side)
+        new_buttons = kwargs.get("new_buttons")
+        is_object = kwargs.get("is_object")
+        list_url = kwargs.get("list_url", self.list_url)
+        action_suffix = kwargs.get("action_suffix", self.action_suffix)
+        list_schema = kwargs.get("list_schema", self.list_schema)
+        scroll_y = kwargs.get("scroll_y", self.scroll_y)
+        scroll_x = kwargs.get("scroll_x", self.scroll_x)
+        parent = kwargs.get("parent")
+        if list_schema:
+            if parent:
+                action_suffix += f'?parent_id={parent.id}'
+
             schema = self.list_schema()
             schema = schema.bind(request=self.req)
-            new_buttons = kwargs.get("new_buttons")
+
             if not new_buttons:
                 new_buttons = self.new_buttons
 
-            list_url = kwargs.get("list_url", self.list_url)
             if not list_url and self.list_route:
                 list_url = self.req.route_url(self.list_route)
             else:
                 list_url = list_url and list_url[0:1] != "/" and "/" + list_url or list_url
                 list_url = self.home + list_url
 
-            action_suffix = list_url and kwargs.get("action_suffix", "/grid/act") or None
             table = DeTable(schema,
                             action=list_url,
                             action_suffix=action_suffix,
@@ -273,14 +303,18 @@ class BaseView(object):
                             allow_post=allow_post,
                             allow_unpost=allow_unpost,
                             allow_check=allow_check,
+                            check_field=check_field,
                             state_save=state_save,
                             new_buttons=new_buttons,
                             filter_columns=filter_columns,
-                            server_side=server_side
+                            server_side=server_side,
+                            scroll_y=scroll_y,
+                            scroll_x=scroll_x
+
                             )
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")
-            if kwargs.get("is_object"):
+            if is_object:
                 return dict(form=table, scripts="", css=resources["css"],
                             js=resources["js"])
 
@@ -307,6 +341,12 @@ class BaseView(object):
             return self.next_act(**kwargs)
 
     def get_list(self, **kwargs):
+        """
+        parameter
+        list_schema optional
+        list_join callback
+        list_filter callback
+        """
         url = []
         select_list = {}
         list_schema = kwargs.get("list_schema")
@@ -354,18 +394,17 @@ class BaseView(object):
             columns = self.columns
 
         query = self.db_session.query().select_from(self.table)
-        table_join = kwargs.get('table_join')
-        if table_join is not None:
-            query = table_join(query, **kwargs)
+        list_join = kwargs.get('list_join')
+        if list_join is not None:
+            query = list_join(query, **kwargs)
         else:
             query = self.list_join(query, **kwargs)
         if self.req.user and self.req.user.company_id and hasattr(self.table, "company_id"):
             query = query.filter(
                 self.table.company_id == self.req.user.company_id)
-
-        table_filter = kwargs.get('table_filter')
-        if table_filter is not None:
-            query = table_filter(query, **kwargs)
+        list_filter = kwargs.get('list_filter')
+        if list_filter is not None:
+            query = list_filter(query, **kwargs)
         else:
             query = self.list_filter(query, **kwargs)
 
@@ -462,6 +501,7 @@ class BaseView(object):
     def view_view(self, **kwargs):  # row = query_id(request).first()
         request = self.req
         row = self.query_id().first()
+        self.ses["readonly"]=True
         if not row:
             return self.id_not_found()
         is_object = kwargs.get("is_object", self.is_object)
@@ -595,6 +635,7 @@ class BaseView(object):
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
         table = self.get_item_table(**kwargs)
+        self.ses["readonly"]=False
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
@@ -681,11 +722,12 @@ class BaseView(object):
                 d[f] = d[f].strip()
         return d
 
-    def get_item_table(self, row=None, **kwargs):
+    def get_item_table(self, parent=None, **kwargs):
         if not self.form_list:
             return None
         self.list_schema = self.form_list
         kwargs["is_object"] = True
+        kwargs["parent"] = parent
         return self.view_list(**kwargs)
 
     def before_edit(self, form):
@@ -701,6 +743,7 @@ class BaseView(object):
 
     def view_edit(self, **kwargs):
         request = self.req
+        self.ses["readonly"]=False
         row = self.query_id().first()
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
@@ -754,6 +797,7 @@ class BaseView(object):
     def view_delete(self, **kwargs):
         request = self.req
         q = self.query_id()
+        self.ses["readonly"]=True
         row = q.first()
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
