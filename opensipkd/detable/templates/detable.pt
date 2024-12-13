@@ -47,23 +47,28 @@
             </div>
           </div>
         </div>
-        <div tal:condition="allow_check">
-          <input type="checkbox" class="${tableid}checkAll">Pilih Semua
-          <script>
-            $(document).ready(function () {
-              $('.${tableid}checkAll').click(function () {
-                if (this.checked) {
-                  console.log("AAAAAAAAAAAA");
-                  $(".${tableid}_check").prop("checked", true);
-                } else {
-                  console.log("BBBBBBBBBBBB");
-                  $(".${tableid}_check").prop("checked", false);
-                }
+        <div class="row"  tal:condition="allow_check=='true'">
+          <div class="form-group col-md-3">
+            <div class="input-group">
+              <input type="checkbox" class="${tableid}checkAll"/>
+              <span
+                  class="input-group-addon">Pilih Semua
+              </span>
+            </div>
+            <script>
+              $(document).ready(function () {
+                $('.${tableid}checkAll').click(function () {
+                  if (this.checked) {
+                    console.log("AAAAAAAAAAAA");
+                    $(".${tableid}_check").prop("checked", true);
+                  } else {
+                    console.log("BBBBBBBBBBBB");
+                    $(".${tableid}_check").prop("checked", false);
+                  }
+                });
               });
-
-
-            });
-          </script>
+            </script>
+          </div>
         </div>
         <table id="${tableid}"
                class="table table-bordered table-hover table-condensed dataTable no-footer">
@@ -94,7 +99,7 @@
     var o${tableid}Uri = "${url}";
     var o${tableid}Url = o${tableid}Uri + "${url_suffix}";
     var m${tableid}ID;
-    var m${tableid}ChekList = [];
+    var m${tableid}CheckList = [];
     deform.addCallback('${tableid}', function (oid) {
       // $(document).ready(function () {
 
@@ -145,7 +150,7 @@
 
       function render_checklist(value) {
 
-        return '<input type="checkbox" checked="' + {value} + '"></input>';
+        return '<input type="checkbox" class="${tableid}_check" checked="' + {value} + '"></input>';
       }
 
 
@@ -183,7 +188,7 @@
           ${tableid}Columns[co].render = function (id) {
             let result = "";
             if (${allow_check}) {
-              result = '<input type="checkbox" class="${tableid}_check" value="' + id + '" id="${tableid}check' + id + '">&nbsp;';
+              result = '<input type="checkbox" class="${tableid}_check" value="' + id + '"/>&nbsp;';
             }
             if (${allow_view})
               result += '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
@@ -251,19 +256,11 @@
       $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
 
 
-      $('#${tableid} tbody tr td').on('click', ':checkbox', function (event) {
-        alert("checkbox clicked");
-        if (this.checked) {
-          m${tableid}ChekList.push($(this).val());
-        } else {
-          m${tableid}CheckList.splice(m${tableid}CheckList.indexOf($(this).val()), 1);
-        }
-        console.log(m${tableid}CheckList);
-      })
-
-
+      $('#${tableid} tbody').on('click', ':checkbox', function () {
+        if (this.checked) m${tableid}CheckList.push($(this).val());
+        else m${tableid}CheckList.splice(m${tableid}CheckList.indexOf($(this).val()), 1);
+      });
       $('#${tableid} tbody').on('click', 'tr', function () {
-        // alert("table clicked");
         if ($(this).hasClass('selected')) {
           $(this).removeClass('selected');
           m${tableid}ID = null;
@@ -272,7 +269,6 @@
           o${tableid}.$('tr.selected').removeClass('selected');
           $(this).addClass('selected');
           m${tableid}ID = aData.id;
-          //console.log("m${tableid}ID", m${tableid}ID);
           o${tableid}.$('tr.row_selected').removeClass('row_selected');
           $(this).addClass('row_selected');
         }
