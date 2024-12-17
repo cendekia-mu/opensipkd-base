@@ -14,7 +14,8 @@ ${field.start_mapping()}
                                   style="${style}"
                                   onload="window.URL.revokeObjectURL(this.src);"></img>
   <video tal:condition="ext in video" style="${style}" controls
-                                      src="${preview_url}" type="video/${ext}">
+                                      src="${preview_url}" type="video/${ext}"
+  id="preview-${oid}">
     Your browser does not support the video tag.
   </video>
 
@@ -23,14 +24,16 @@ ${field.start_mapping()}
       controls
       style="${style}"
       src="${preview_url}"
-      type="video/mp4">
+      type="video/mp4"
+  id="preview-${oid}">
     Your browser does not support the video tag.
   </video>
 
-  <embed tal:condition="ext=='pdf'" src="${preview_url}" style="${style}">
+  <embed tal:condition="ext=='pdf'" src="${preview_url}" style="${style}"
+  id="preview-${oid}">
 
-  <a id="label-${oid}" tal:condition="preview_url" class="label label-default" href="${preview_url}"
-     target="_blank"><i class="fa fa-search"></i> View</a>
+  <a class="label label-default" href="${preview_url}"
+     target="_blank" id="a-preview-${oid}"><i class="fa fa-search"></i> View</a>
 
   <input type="file" name="upload" id="${oid}"
        tal:attributes="style style;
