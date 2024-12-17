@@ -238,7 +238,7 @@
 
       o${tableid} = $('#${tableid}').DataTable({
             scrollX: ${field.scroll_x},
-            scrollY: ${field.scroll_y},
+            //scrollY: ${field.scroll_y},
             dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
             processing: true,
             serverSide: ${server_side},

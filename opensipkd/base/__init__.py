@@ -460,8 +460,7 @@ def _set_routes2(config, module="base"):
             if route.nama:
                 titles[route.kode] = route.nama
         elif route.type == 1:
-            config.add_jsonrpc_endpoint(route.kode, route.path,
-                                        default_renderer="json_rpc")
+            config.add_jsonrpc_endpoint(route.kode, route.path, default_renderer="json_rpc")
     return q
 
 
@@ -500,7 +499,7 @@ def add_view_config(config, module, view_name):
         except Exception as e:
             log.error(str(e))
             log.error(dict(row.__dict__))
-            
+
     config.scan('.')
 
 
