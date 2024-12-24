@@ -196,6 +196,13 @@ class DeTable(field.Field):
                             class= "btn btn-warning dropdown">Filters</a>
                     """
             header_buttons.insert(0, button)
+            
+        if allow_check:
+            button = f"""
+            <input type="checkbox" class="${tableid}checkAll">All</input>
+            """
+            header_buttons.insert(0, button)
+            
 
         self.buttons = "','".join(header_buttons).replace('\n', ""). \
             replace(';', ';\n')

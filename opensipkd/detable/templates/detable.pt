@@ -1,5 +1,4 @@
-<div
-     tal:define="style style|field.widget.style;
+<div tal:define="style style|field.widget.style;
     css_class css_class|string:${field.widget.css_class or field.css_class or 'jarviswidget jarviswidget-color-blueLight'};
     item_template item_template|field.widget.item_template;
     title title|field.title;
@@ -27,10 +26,7 @@
     filter_columns filter_columns|field.filter_columns;
     filter_scripts filter_scripts|field.filter_scripts;
     filter_form filter_form|field.filter_form;
-    "
-     tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};"
-     i18n:domain="detable"
->
+    " tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};" i18n:domain="detable">
   <header role="heading" class="txt-color-grayDark">
     <h2 tal:condition="title"><i class="fa fa-fw fa-table"></i>${title}</h2>
     <div class="alert alert-danger " role="alert" id="emptyID" style="opacity:0.7;display: none;">
@@ -41,22 +37,22 @@
     </div>
     <div role="content">
       <div class="widget-body">
-        <div class="row" tal:condition="filter_columns" >
+        <div class="row" tal:condition="filter_columns">
           <div id="${tableid}-form-filter-container" class="col-md-3">
             <div id="${tableid}-form-filter" class="collapse">
-                ${structure:filter_form}
+              ${structure:filter_form}
             </div>
           </div>
         </div>
         <div tal:condition="allow_check=='true'">
-          <div class="row">
+          <!-- <div class="row">
             <div class="input-group col-md-2">
               <span class="input-group-addon">
                 <input type="checkbox" class="${tableid}checkAll"/>
               </span>
               <label for="${tableid}checkAll">Pilih Semua</label>
             </div>
-          </div>
+          </div> -->
           <script>
             $(document).ready(function () {
               $('.${tableid}checkAll').click(function () {
@@ -69,14 +65,15 @@
             });
           </script>
         </div>
-        <table id="${tableid}"
-               class="table table-bordered table-hover table-condensed dataTable no-footer">
+        <table id="${tableid}" class="table table-bordered table-hover table-condensed dataTable no-footer">
           <thead>
-          <tr>
-            <tal:block tal:repeat="child field">
-              <th tal:condition="python:hasattr(child, 'action') and not getattr(child.condition)==False and False or True">${child.title}</th>
-            </tal:block>
-          </tr>
+            <tr>
+              <tal:block tal:repeat="child field">
+                <th
+                  tal:condition="python:hasattr(child, 'action') and not getattr(child.condition)==False and False or True">
+                  ${child.title}</th>
+              </tal:block>
+            </tr>
 
           </thead>
           <tbody></tbody>
@@ -101,20 +98,20 @@
     var o${tableid}Url = o${tableid}Uri + "${url_suffix}";
     var m${tableid}ID;
     var m${tableid}CheckList = [];
-    var check_field =${check_field};
+    var check_field = ${check_field};
     deform.addCallback('${tableid}', function (oid) {
       // $(document).ready(function () {
 
 
       function displayEmptyID() {
         $("#emptyID").show();
-        $('#emptyID').animate({opacity: 0.8}, 2000);
+        $('#emptyID').animate({ opacity: 0.8 }, 2000);
         setTimeout(function () {
-              $("#emptyID").fadeTo(500, 0).slideUp(500, function () {
-                $("#emptyID").hide();
-              });
-            }
-            , 4000);
+          $("#emptyID").fadeTo(500, 0).slideUp(500, function () {
+            $("#emptyID").hide();
+          });
+        }
+          , 4000);
       }
 
       let tb_array = [
@@ -152,156 +149,156 @@
 
       function render_checklist(value) {
 
-        return '<input type="checkbox" class="${tableid}_check" checked="' + {value} + '"></input>';
+        return '<input type="checkbox" class="${tableid}_check" checked="' + { value } + '"></input>';
       }
 
 
       for (let co in ${tableid}Columns) {
-        if (${tableid}Columns[co].wg_checkbox === true) {
+      if (${tableid}Columns[co].wg_checkbox === true) {
           ${tableid}Columns[co].render = function (value) {
-            if (typeof value === "string" && value.length > 0) {
-              return render_checkbox(value)
-            }
-            if (["", false, 0, null].indexOf(value) === -1) {
-              return render_checkbox(true);
-            }
-            return render_checkbox(false);
+          if (typeof value === "string" && value.length > 0) {
+            return render_checkbox(value)
           }
-        } else if (${tableid}Columns[co].wg_select === true) {
+          if (["", false, 0, null].indexOf(value) === -1) {
+            return render_checkbox(true);
+          }
+          return render_checkbox(false);
+        }
+      } else if (${tableid}Columns[co].wg_select === true) {
           ${tableid}Columns[co].render = function (value) {
-            // if (value === 0) {
-            //  o${tableid}.$('tr.selected').bgColor(${tableid}Columns[co].get("color_" + value));
-            // }
-            // if (${tableid}Columns[co].hasOwnProperty("color_" + value)) {
-            //
-            //              }
-            return ${tableid}Columns[co].wg_select_val[value];
-          }
-        } else if (${tableid}Columns[co].hasOwnProperty("url")) {
-          let url = ${tableid}Columns[co].url;
+          // if (value === 0) {
+          //  o${tableid}.$('tr.selected').bgColor(${tableid}Columns[co].get("color_" + value));
+          // }
+          // if (${tableid}Columns[co].hasOwnProperty("color_" + value)) {
+          //
+          //              }
+          return ${tableid}Columns[co].wg_select_val[value];
+        }
+      } else if (${tableid}Columns[co].hasOwnProperty("url")) {
+        let url = ${tableid}Columns[co].url;
           ${tableid}Columns[co].render = function (data) {
-            let result = "No Data";
-            if (data != null) {
-              result = '<a href="' + url + data + '" target="_blank">Link</a>&nbsp;';
-            }
-            return result;
+          let result = "No Data";
+          if (data != null) {
+            result = '<a href="' + url + data + '" target="_blank">Link</a>&nbsp;';
           }
-        } else if (${tableid}Columns[co].data === "id") {
+          return result;
+        }
+      } else if (${tableid}Columns[co].data === "id") {
           ${tableid}Columns[co].render = function (id, typ, data, setting) {
-            if (${tableid}Columns[co].action === false) return ""
+          if (${tableid}Columns[co].action === false) return ""
 
-            let result = "";
-            if (${allow_check}) {
-              var checked = "";
-              if (check_field !== "") {
-                checked = data[check_field] !== null ? "checked" : "";
+          let result = "";
+          if (${allow_check}) {
+            var checked = "";
+            if (check_field !== "") {
+              checked = data[check_field] !== null ? "checked" : "";
                 m${tableid}CheckList.push(id);
 
-              }
-              var mtableId = "${tableid}";
-              result = '<input type="checkbox" class="' + mtableId + '_check" value="' + id + '" ' + checked + ' name="' + mtableId + '_check"/>&nbsp;';
             }
-            if (${allow_view})
-              result += '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
-
-            if (${allow_edit})
-              result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true" title="Edit"></i></a>&nbsp;'
-
-            if (${allow_delete})
-              result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true" title="Delete"></i></a>';
-
-            if (${allow_post})
-              result += '<a href="${url}/' + id + '/post"><i class="fas fa-signs-post" aria-hidden="true" title="Post"></i></a>';
-
-            if (${allow_unpost})
-              result += '<a href="${url}/' + id + '/unpost"><i class="fas fa-delete-left" aria-hidden="true" title="Unpost"></i></a>';
-
-            return result;
+            var mtableId = "${tableid}";
+            result = '<input type="checkbox" class="' + mtableId + '_check" value="' + id + '" ' + checked + ' name="' + mtableId + '_check"/>&nbsp;';
           }
-          //columns[1].order = "order_asc";
+          if (${allow_view})
+          result += '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
+
+          if (${allow_edit})
+          result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true" title="Edit"></i></a>&nbsp;'
+
+          if (${allow_delete})
+          result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true" title="Delete"></i></a>';
+
+          if (${allow_post})
+          result += '<a href="${url}/' + id + '/post"><i class="fas fa-signs-post" aria-hidden="true" title="Post"></i></a>';
+
+          if (${allow_unpost})
+          result += '<a href="${url}/' + id + '/unpost"><i class="fas fa-delete-left" aria-hidden="true" title="Unpost"></i></a>';
+
+          return result;
         }
+        //columns[1].order = "order_asc";
       }
+    }
 
 
-      let ${tableid}Params = {}
+    let ${tableid}Params = {}
 
-      var param_ajax = "";
-      var param_data = "";
-      if (!${server_side}) {
-        param_data = ${data};
-        param_ajax = "";
-      } else {
-        param_ajax = o${tableid}Url;
-        param_data = [];
-      }
+    var param_ajax = "";
+    var param_data = "";
+    if (!${server_side}) {
+      param_data = ${data};
+      param_ajax = "";
+    } else {
+      param_ajax = o${tableid}Url;
+      param_data = [];
+    }
 
 
       o${tableid} = $('#${tableid}').DataTable({
-            scrollX: ${field.scroll_x},
-            //scrollY: ${field.scroll_y},
-            dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
-            processing: true,
-            serverSide: ${server_side},
-            data: param_data,
-            ajax: param_ajax,
-            stateSave: ${state_save},
-            scrollCollapse: true,
-            sort: ${sorts},
-            info: true,
-            filter: ${filters},
-            autoWidth: false,
-            paginate: ${paginates},
-            paginationType: "full_numbers",
-            order: [],
-            lengthMenu: [
-              [10, 25, 50, 100],
-              [10, 25, 50, 100]
-            ],
-            pageLength: 25,
-            columns: ${tableid}Columns,
-            language: ${tableid}Language,
-            initComplete: function () {
-              $('.dataTables_filter input').unbind()
-                  .bind('keyup', function (e) {
-                    var code = e.keyCode || e.which;
-                    if (code === 13) {
-                      o${tableid}.search(this.value).draw();
-                    }
-                  });
+      scrollX: ${field.scroll_x},
+      //scrollY: ${field.scroll_y},
+      dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
+      processing: true,
+      serverSide: ${server_side},
+      data: param_data,
+      ajax: param_ajax,
+      stateSave: ${state_save},
+      scrollCollapse: true,
+      sort: ${sorts},
+      info: true,
+      filter: ${filters},
+      autoWidth: false,
+      paginate: ${paginates},
+      paginationType: "full_numbers",
+      order: [],
+      lengthMenu: [
+      [10, 25, 50, 100],
+      [10, 25, 50, 100]
+    ],
+      pageLength: 25,
+      columns: ${tableid}Columns,
+      language: ${tableid}Language,
+      initComplete: function () {
+        $('.dataTables_filter input').unbind()
+          .bind('keyup', function (e) {
+            var code = e.keyCode || e.which;
+            if (code === 13) {
+              o${tableid}.search(this.value).draw();
             }
+          });
+      }
           }
-      );
-      let tb = tb_array.join(' ');
-      $("div.toolbar").html(tb);
-      $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
+    );
+    let tb = tb_array.join(' ');
+    $("div.toolbar").html(tb);
+    $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
 
 
-      $('#${tableid} tbody').on('click', ':checkbox', function () {
-        if (this.checked) m${tableid}CheckList.push($(this).val());
+    $('#${tableid} tbody').on('click', ':checkbox', function () {
+      if (this.checked) m${tableid}CheckList.push($(this).val());
         else m${tableid}CheckList.splice(m${tableid}CheckList.indexOf($(this).val()), 1);
-      });
-      $('#${tableid} tbody').on('click', 'tr', function () {
-        if ($(this).hasClass('selected')) {
-          $(this).removeClass('selected');
+    });
+    $('#${tableid} tbody').on('click', 'tr', function () {
+      if ($(this).hasClass('selected')) {
+        $(this).removeClass('selected');
           m${tableid}ID = null;
-        } else {
-          let aData = o${tableid}.row(this).data();
+      } else {
+        let aData = o${tableid}.row(this).data();
           o${tableid}.$('tr.selected').removeClass('selected');
-          $(this).addClass('selected');
+        $(this).addClass('selected');
           m${tableid}ID = aData.id;
           o${tableid}.$('tr.row_selected').removeClass('row_selected');
-          $(this).addClass('row_selected');
-        }
-      });
-      <tal:block tal:condition="filter_columns">
-        $(".${tableid}-control-filter").on('keyup', function (e) {
+        $(this).addClass('row_selected');
+      }
+    });
+    <tal:block tal:condition="filter_columns">
+      $(".${tableid}-control-filter").on('keyup', function (e) {
         var code = e.keyCode || e.which;
-        if (code === 13) {
+      if (code === 13) {
         filter_table()
       }
       });
 
-        function filter_table() {
+      function filter_table() {
         $(".${tableid}-control-filter").each(function (e) {
           var col_id = $(this).attr("id");
           var value;
@@ -315,89 +312,89 @@
               localStorage.setItem(col_id, value);
               o${tableid}
                   .column($(this).data('index'))
-                  .search(this.value)
+          .search(this.value)
             }
           } else if ($(this).attr("type") === 'date') {
-            value = this.value;
-            localStorage.setItem(col_id, value);
-            var splitted = col_id.split('-');
-            var min_val = undefined;
-            var max_val = undefined;
-            if (splitted[splitted.length - 1] === "min") {
-              min_val = this.value;
-              splitted.length = splitted.length - 1;
-              col_id = splitted.join("-");
-              max_val = $("#" + col_id + '-max').val()
+        value = this.value;
+      localStorage.setItem(col_id, value);
+      var splitted = col_id.split('-');
+      var min_val = undefined;
+      var max_val = undefined;
+      if (splitted[splitted.length - 1] === "min") {
+        min_val = this.value;
+      splitted.length = splitted.length - 1;
+      col_id = splitted.join("-");
+      max_val = $("#" + col_id + '-max').val()
             } else {
-              max_val = this.value;
-              splitted.length = splitted.length - 1;
-              col_id = splitted.join("-");
-              min_val = $("#" + col_id + '-min').val()
+        max_val = this.value;
+      splitted.length = splitted.length - 1;
+      col_id = splitted.join("-");
+      min_val = $("#" + col_id + '-min').val()
             }
-            if (min_val === undefined && max_val !== undefined)
-              min_val = max_val;
-            if (max_val === undefined && min_val !== undefined)
-              max_val = min_val;
-            if (max_val !== undefined && min_val !== undefined && min_val !== "" && max_val !== "" && min_val !== null && max_val !== null)
-              o${tableid}
-                  .column($(this).data('index'))
-                  .search(min_val + '-yadcf_delim-' + max_val, true)
+      if (min_val === undefined && max_val !== undefined)
+      min_val = max_val;
+      if (max_val === undefined && min_val !== undefined)
+      max_val = min_val;
+      if (max_val !== undefined && min_val !== undefined && min_val !== "" && max_val !== "" && min_val !== null && max_val !== null)
+      o${tableid}
+      .column($(this).data('index'))
+      .search(min_val + '-yadcf_delim-' + max_val, true)
           } else {
-            col_id = this.id;
-            value = this.value;
-            if (value === undefined || value === null) {
-              value = "";
+        col_id = this.id;
+      value = this.value;
+      if (value === undefined || value === null) {
+        value = "";
             }
-            console.log(col_id, $(this).attr('id'), value, $(this).data('index'));
-            localStorage.setItem(col_id, value);
-            o${tableid}
-                .column($(this).data('index'))
-                .search(value);
+      console.log(col_id, $(this).attr('id'), value, $(this).data('index'));
+      localStorage.setItem(col_id, value);
+      o${tableid}
+      .column($(this).data('index'))
+      .search(value);
           }
         });
-        o${tableid}.draw();
+      o${tableid}.draw();
       }
 
-        $(".${tableid}-control-filter").on('click', function (e) {
+      $(".${tableid}-control-filter").on('click', function (e) {
         console.log("Write Data Click");
-        var typ = $(this).attr("type");
-        if (typ === 'radio') {
+      var typ = $(this).attr("type");
+      if (typ === 'radio') {
         filter_table()
       }
       });
-        $(".${tableid}-control-filter").on('change', function (e) {
+      $(".${tableid}-control-filter").on('change', function (e) {
         var typ = $(this).prop("nodeName").toLowerCase();
-        if (typ === "select") {
+      if (typ === "select") {
         filter_table()
       }
-        var typ = $(this).attr("type").toLowerCase();
-        if (typ === "date") {
+      var typ = $(this).attr("type").toLowerCase();
+      if (typ === "date") {
         filter_table()
       }
 
       });
-        console.log("Read Data");
-        $(".${tableid}-control-filter").each(function (e) {
+      console.log("Read Data");
+      $(".${tableid}-control-filter").each(function (e) {
         var col_id = $(this).attr("id")
-        var value;
-        if ($(this).attr("type") === 'radio') {
+      var value;
+      if ($(this).attr("type") === 'radio') {
         col_id = $(this).attr('id').split("-");
-        col_id.length = 2;
-        col_id = col_id.join("-");
-        value = localStorage.getItem(col_id);
-        if (value !== undefined && value != null)
-        if ($(this).val() === value) $(this).attr("checked", true);
-        else $(this).attr("checked", false);
+      col_id.length = 2;
+      col_id = col_id.join("-");
+      value = localStorage.getItem(col_id);
+      if (value !== undefined && value != null)
+      if ($(this).val() === value) $(this).attr("checked", true);
+      else $(this).attr("checked", false);
       } else {
         value = localStorage.getItem(col_id);
-        if (value !== undefined && value !== null)
-        $(this).val(value);
+      if (value !== undefined && value !== null)
+      $(this).val(value);
       }
-        console.log(col_id, $(this).attr('id'), value);
+      console.log(col_id, $(this).attr('id'), value);
       });
 
-        filter_table();
-      </tal:block>
+      filter_table();
+    </tal:block>
         ${structure: btnscripts}
         ${structure: filter_scripts}
     });
