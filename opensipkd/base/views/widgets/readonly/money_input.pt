@@ -5,6 +5,9 @@
         '${oid|field.oid}',
         function (oid) {
             let val = parseInt('${cstruct}');
-            $("#" + oid).html(val.toLocaleString());
+            $("#" + oid).html(val.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }));
         });
 </script>
