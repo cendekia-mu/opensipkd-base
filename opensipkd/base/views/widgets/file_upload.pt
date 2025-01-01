@@ -9,47 +9,37 @@
     img ['jpg', 'jpeg', 'gif', 'png', 'svg', 'eps', 'psd'];
     video ['avi', 'mov', 'mpv']
     ">
-${field.start_mapping()}
-  <img tal:condition="ext in img" id="preview-${oid}" alt="" src="${preview_url}"
-                                  style="${style}"
-                                  onload="window.URL.revokeObjectURL(this.src);"></img>
-  <video tal:condition="ext in video" style="${style}" controls
-                                      src="${preview_url}" type="video/${ext}"
-  id="preview-${oid}">
-    Your browser does not support the video tag.
-  </video>
+  ${field.start_mapping()}
+  <div class="thumbnail">
+    <img tal:condition="ext in img" id="preview-${oid}" alt="" src="${preview_url}" style="${style}"
+      onload="window.URL.revokeObjectURL(this.src);"></img>
+    <video tal:condition="ext in video" style="${style}" controls src="${preview_url}" type="video/${ext}"
+      id="preview-${oid}">
+      Your browser does not support the video tag.
+    </video>
 
+    <video tal:condition="ext=='mp4'" controls style="${style}" src="${preview_url}" type="video/mp4"
+      id="preview-${oid}">
+      Your browser does not support the video tag.
+    </video>
 
-  <video tal:condition="ext=='mp4'"
-      controls
-      style="${style}"
-      src="${preview_url}"
-      type="video/mp4"
-  id="preview-${oid}">
-    Your browser does not support the video tag.
-  </video>
+    <embed tal:condition="ext=='pdf'" src="${preview_url}" style="${style}" id="preview-${oid}">
+  </div>
+  <a class="label label-default" href="${preview_url}" target="_blank" id="a-preview-${oid}"><i
+      class="fa fa-search"></i> View</a>
 
-  <embed tal:condition="ext=='pdf'" src="${preview_url}" style="${style}"
-  id="preview-${oid}">
-
-  <a class="label label-default" href="${preview_url}"
-     target="_blank" id="a-preview-${oid}"><i class="fa fa-search"></i> View</a>
-
-  <input type="file" name="upload" id="${oid}"
-       tal:attributes="style style;
+  <input type="file" name="upload" id="${oid}" tal:attributes="style style;
           accept accept|field.widget.accept;
           data-filename fname;
-          attributes|field.widget.attributes|{};"/>
-  <input tal:define="uid cstruct.get('uid')"
-       tal:condition="uid"
-      type="hidden" name="uid" value="${uid}"/>
-    ${field.end_mapping()}
+          attributes|field.widget.attributes|{};" />
+  <input tal:define="uid cstruct.get('uid')" tal:condition="uid" type="hidden" name="uid" value="${uid}" />
+  ${field.end_mapping()}
   <script type="text/javascript">
     deform.addCallback('${oid}', function (oid) {
       $('#' + oid).upload();
     });
     document.getElementById("${oid}").onchange = function () {
-      if (this.files[0].size > ${maxsize}) {
+      if (this.files[0].size > ${ maxsize }) {
         alert("File is too big!");
         this.value = "";
         document.getElementById('preview-' + this.id).src = '';

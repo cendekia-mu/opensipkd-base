@@ -393,7 +393,7 @@ class MapWidget(Widget):
                     {
                         "js": "opensipkd.base:static/js/gmap.js",
                         "css": "deform:static/select2/select2.css",
-                    },)
+    },)
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -727,7 +727,24 @@ class DateInputWidget(WidgetDateInputWidget):
 
 
 class MoneyInputWidget(widget.MoneyInputWidget):
-    readonly_template = "readonly/money_input"
+    readonly_template = "readonly/textinput"
+
+    def get_template_values(self, field, cstruct, kw):
+        options = json.loads(kw.get("mask_options", "{}"))
+        if options:
+            decimal = options.get("decimal", '.')
+            precision = options.get("precision", 2)
+            thousands = options.get("thousands", ',')
+            cstr = cstruct and float(cstruct) or 0
+            cstruct = f"{cstr:,.{precision}f}"\
+                .replace(".", "%")\
+                .replace(",", thousands)\
+                .replace("%", decimal)
+
+        values = {"cstruct": cstruct, "field": field}
+        values.update(kw)
+        values.pop("template", None)
+        return values
 
 
 class FilterWidget(Widget):

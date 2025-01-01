@@ -53,15 +53,19 @@ class BaseView(object):
         # self.akhir = dmy(self.dt_akhir)
         # self.ses["dt_awal"] = self.dt_awal
         # self.ses["dt_akhir"] = self.dt_akhir
-        self.tahun = 'tahun' in self.ses and self.ses['tahun'] or now.strftime('%Y')
+        self.tahun = 'tahun' in self.ses and self.ses['tahun'] or now.strftime(
+            '%Y')
         self.tahun = 'tahun' in self.params and self.params['tahun'] or self.tahun
         self.ses['tahun'] = self.tahun
 
-        self.bulan = 'bulan' in self.ses and self.ses['bulan'] or now.strftime('%m')
+        self.bulan = 'bulan' in self.ses and self.ses['bulan'] or now.strftime(
+            '%m')
         if 'bulan' in self.params and self.params['bulan']:
             self.bulan = self.params['bulan'].strip().zfill(2)
-            dt_awal = date_from_str('{d}-{m}-{y}'.format(y=self.tahun, m=self.bulan, d='01'))
-            dt_akhir = dt_awal + relativedelta(months=1) - relativedelta(days=1)
+            dt_awal = date_from_str(
+                '{d}-{m}-{y}'.format(y=self.tahun, m=self.bulan, d='01'))
+            dt_akhir = dt_awal + \
+                relativedelta(months=1) - relativedelta(days=1)
             self.ses['awal'] = dmy(dt_awal)
             self.ses['akhir'] = dmy(dt_akhir)
 
@@ -71,7 +75,7 @@ class BaseView(object):
         if 'posted' in self.params and self.params['posted']:
             posted = self.params['posted']
             self.posted = ((posted == 'true' or posted == '1') and 1) or (
-                    (posted == 'false' or posted == '0') and 0) or 0
+                (posted == 'false' or posted == '0') and 0) or 0
         self.ses['posted'] = self.posted
 
         self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
@@ -292,7 +296,8 @@ class BaseView(object):
             if not list_url and self.list_route:
                 list_url = self.req.route_url(self.list_route)
             else:
-                list_url = list_url and list_url[0:1] != "/" and "/" + list_url or list_url
+                list_url = list_url and list_url[0:1] != "/" and "/" + \
+                    list_url or list_url
                 list_url = self.home + list_url
 
             table = DeTable(schema,
@@ -361,7 +366,7 @@ class BaseView(object):
             for d in list_schema():
                 global_search = True
                 search_method = hasattr(d, "search_method") \
-                                and getattr(d, "search_method") or "string_contains"
+                    and getattr(d, "search_method") or "string_contains"
                 if hasattr(d, "global_search"):
                     if d.global_search == False:
                         global_search = False
@@ -504,7 +509,7 @@ class BaseView(object):
     def view_view(self, **kwargs):  # row = query_id(request).first()
         request = self.req
         row = self.query_id().first()
-        self.ses["readonly"]=True
+        self.ses["readonly"] = True
         if not row:
             return self.id_not_found()
         is_object = kwargs.get("is_object", self.is_object)
@@ -638,13 +643,14 @@ class BaseView(object):
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
         table = self.get_item_table(**kwargs)
-        self.ses["readonly"]=False
+        self.ses["readonly"] = False
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
                 try:
                     c = form.validate(controls)
                 except ValidationFailure as e:
+                    value = self.before_add()
                     # value = self.validation_failure(e.cstruct)
                     # value.update(self.before_add())
                     # form.render(appstruct=value)
@@ -657,6 +663,7 @@ class BaseView(object):
                                 e.cstruct[f.name])
                         if f.name == "captcha":
                             e.cstruct[f.name] = self.get_captcha_url()
+                    value.update(e.cstruct)
                     form.set_appstruct(e.cstruct)
                     return self.returned_form(form, table, **kwargs)
 
@@ -746,7 +753,7 @@ class BaseView(object):
 
     def view_edit(self, **kwargs):
         request = self.req
-        self.ses["readonly"]=False
+        self.ses["readonly"] = False
         row = self.query_id().first()
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
@@ -774,7 +781,7 @@ class BaseView(object):
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
-                    log.error(f"Edit Error: {str(e.error)}")
+                    log.error(f"Edit Error: {str(e.error.msg)}")
                     # log.debug(f"Edit Data: {e.cstruct}")
                     form.set_appstruct(e.cstruct)
                     return self.returned_form(form, table, **kwargs)
@@ -800,7 +807,7 @@ class BaseView(object):
     def view_delete(self, **kwargs):
         request = self.req
         q = self.query_id()
-        self.ses["readonly"]=True
+        self.ses["readonly"] = True
         row = q.first()
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
@@ -886,11 +893,14 @@ class BaseView(object):
                 filename = file_dict["filename"].lower()
                 ext = get_ext(filename)
                 if ext not in self.upload_exts:
-                    error.append((field, InvalidExtension(self.upload_exts).error))
+                    error.append(
+                        (field, InvalidExtension(self.upload_exts).error))
                 else:
-                    full_file_name = upload.save_to_file(input_file, ext, filename)
+                    full_file_name = upload.save_to_file(
+                        input_file, ext, filename)
                     if ext == ".avi":
-                        full_file_name = self.convert_avi_to_mp4(full_file_name)
+                        full_file_name = self.convert_avi_to_mp4(
+                            full_file_name)
                     file_name = os.path.split(full_file_name)[1]
                     return file_name
 
