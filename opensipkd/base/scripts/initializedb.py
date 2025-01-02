@@ -88,17 +88,10 @@ def usage(argv):
 
 
 def create_schema(engine, schema):
-    # sql = select(text('schema_name')).select_from(
-    #     text('information_schema.schemata')).where(
-    #     text("schema_name = '%s'" % schema))
-    # if isinstance(engine.dialect, oracle.dialect):
-    #     sql = select(['owner']).select_from('dba_segments').where(
-    #         "owner = '%s'" % schema.upper())
-    # log.debug(sql)
     with engine.connect() as conn:
         sql = CreateSchema(schema, if_not_exists=True)
-        log.debug(f"Execute: {sql}")
         conn.execute(sql)
+        conn.commit()
 
 
 def read_file(filename):
