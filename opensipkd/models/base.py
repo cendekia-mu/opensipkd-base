@@ -11,6 +11,7 @@ from zope.sqlalchemy import register
 
 _logging = logging.getLogger(__name__)
 
+
 class MySession(Session):
     def execute(self, clause, params=None, mapper=None, **kw):
         # Your magic with clause here
@@ -68,7 +69,8 @@ class CommonModel(object):
     def from_dict(self, values, date_format="%d-%m-%Y"):
         for column in self.__table__.columns:
             if column.name in values:
-                _logging.debug(f"{column.name}: {column.type}: {values[column.name]}")
+                _logging.debug(
+                    f"{column.name}: {column.type}: {values[column.name]}")
                 if type(column.type) is DateTime and date_format:
                     if values[column.name] and type(values[column.name]) is String:
                         setattr(self, column.name,
