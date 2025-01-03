@@ -48,3 +48,11 @@ Di paket lainnya pada file ``pyproject.toml`` section ``[project]`` baris ``depe
         ...
         'opensipkd-base @ git+https://git.opensipkd.com/aa.gusti/opensipkd-base.git#beta-4.2',
         ]
+
+
+Publikasi
+---------
+
+Saat dipublikasikan maka pastikan otomatis hidup saat komputer aktif. Silakan lihat
+`dokumentasi ini <https://wiki.opensipkd.com/doku.php?id=panduan:python:pyramid-sebagai-daemon>`_
+untuk penjelasan lebih lanjut, termasuk konfigurasi Nginx.
