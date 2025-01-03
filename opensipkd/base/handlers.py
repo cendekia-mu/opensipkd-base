@@ -2,8 +2,11 @@ import logging
 import traceback
 from datetime import datetime
 from hashlib import md5
-
-from opensipkd.models.handlers import (Log, LogDBSession, )
+import transaction
+from opensipkd.models.handlers import (
+    Log,
+    LogDBSession,
+    )
 
 
 class SQLAlchemyHandler(logging.Handler):
@@ -25,5 +28,5 @@ class SQLAlchemyHandler(logging.Handler):
         log = Log(
             line_id=line_id, logger=logger, level=level, trace=trace,
             msg=msg)
-        LogDBSession.add(log)
-        LogDBSession.flush()
+        with transaction.manager:
+            LogDBSession.add(log)

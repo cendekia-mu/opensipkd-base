@@ -1,10 +1,22 @@
-from sqlalchemy import (Column, Integer, String, DateTime, func, )
-from sqlalchemy.orm import (scoped_session, sessionmaker, )
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    func,
+    )
+from sqlalchemy.orm import (
+    scoped_session,
+    sessionmaker,
+    )
+from zope.sqlalchemy import register
 from opensipkd.base import Base
 from opensipkd.models import CommonModel
 
-factory = sessionmaker(autoflush=True, autocommit=True)
+
+factory = sessionmaker(autoflush=True)
 LogDBSession = scoped_session(factory)
+register(LogDBSession)
 
 
 class Log(Base, CommonModel):

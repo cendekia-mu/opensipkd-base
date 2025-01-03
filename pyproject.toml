@@ -1,0 +1,55 @@
+[build-system]
+requires = ['setuptools >= 64']
+
+[project]
+name = 'opensipkd-base'
+version = '4.2'
+dependencies = [
+    'sqlalchemy',
+    'colander',
+    'pyramid',
+    'pyramid_tm',
+    "pyramid_beaker",
+    "pyramid_mailer",
+    'SQLAlchemy',
+    'transaction',
+    'waitress',
+    'pyramid_beaker',
+    'pyramid_mailer',
+    'ziggurat-foundations',
+    'zope.sqlalchemy',
+    'pytz',
+    'deform',
+    'psycopg2-binary',
+    'pyramid_chameleon',
+    'pyramid_rpc',
+    'requests',
+    'sqlalchemy-datatables',
+    'py3o.template',
+    'wheezy.captcha',
+    'icecream',
+    'google-api-python-client',
+    'google',
+    'pyjwt',
+    ]
+requires-python = '>= 3.9'
+authors = [
+    {name='Agus Gustiana', email='aa.gustiana@gmail.com'},
+    ]
+description = 'Basis Aplikasi openSIPKD'
+readme = 'README.rst'
+license = {text='Apache Software License'}
+classifiers = [
+    'Programming Language :: Python :: 3',
+    'Operating System :: OS Independent',
+    'Framework :: Pylons',
+    'Topic :: Internet :: WWW/HTTP',
+    'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
+    ]
+
+[project.entry-points."paste.app_factory"]
+main = 'opensipkd.base:main'
+
+[project.scripts]
+initialize_opensipkd_db = 'opensipkd.base.scripts.initializedb:main'
+import_log = 'opensipkd.base.scripts.import_log:main'
