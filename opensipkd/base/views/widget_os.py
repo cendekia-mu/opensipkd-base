@@ -1,3 +1,5 @@
+from iso8601.iso8601 import ISO8601_REGEX
+from deform.widget import string_types
 import json
 import logging
 
@@ -7,10 +9,10 @@ from deform import widget
 from deform.compat import sequence_types, text_type
 from deform.form import Button
 from deform.i18n import _
-from deform.widget import Widget, _StrippedString, Select2Widget, \
-    DateInputWidget as WidgetDateInputWidget, _normalize_choices, OptGroup
-from deform.widget import string_types
-from iso8601.iso8601 import ISO8601_REGEX
+from deform.widget import (
+    Widget, _StrippedString, Select2Widget,  _normalize_choices, OptGroup,
+    DateInputWidget as WidgetDateInputWidget, AutocompleteInputWidget)
+
 
 _logging = logging.getLogger(__name__)
 
@@ -206,6 +208,87 @@ class Select2MsWidget(Select2Widget):
     url = ""
     slave = ""
     template = "select2_ms.pt"
+
+
+class AutocompleteMsInputWidget(AutocompleteInputWidget):
+    """
+    Renders ``<select>`` field based on a predefined set of values using
+    `select2 <https://select2.org/>`_ library.
+
+    **Attributes/Arguments**
+
+    Same as :func:`~deform.widget.Select2Widget`, with some extra options
+    listed here.
+    url: url for slave select
+    slave: id of slave  select
+    widget = widget_os.AutocompleteMsInputWidget(url="https://slave_item_url?item_key=selected_value,
+                                        slave="slave_id")
+
+    Saat ini untuk slave baru bisa ke select2ms atau select2 atau select
+
+    """
+
+    url = ""
+    slave = ""
+    template = "autocomplete_input_ms.pt"
+
+    _pstruct_schema = SchemaNode(
+        Mapping(),
+        SchemaNode(_StrippedString(), name="auto_id"),
+        SchemaNode(_StrippedString(), name="auto_value"),
+    )
+
+    def serialize(self, field, cstruct, **kw):
+        if "delay" in kw or getattr(self, "delay", None):
+            raise ValueError(
+                "AutocompleteWidget does not support *delay* parameter "
+                "any longer."
+            )
+
+        if cstruct is null:
+            auto_id = ""
+            auto_value = ""
+        else:
+            auto_id, auto_value = cstruct.split("|", 2)
+
+        kw.setdefault("auto_id", auto_id)
+        kw.setdefault("auto_value", auto_value)
+        self.values = self.values or []
+        readonly = kw.get("readonly", self.readonly)
+
+        options = {}
+        if isinstance(self.values, string_types):
+            options["remote"] = "%s?term=%%QUERY" % self.values
+        else:
+            options["local"] = self.values
+
+        options["minLength"] = kw.pop("min_length", self.min_length)
+        options["limit"] = kw.pop("items", self.items)
+        kw["options"] = json.dumps(options)
+
+        template = readonly and self.readonly_template or self.template
+        tmpl_values = self.get_template_values(field, cstruct, kw)
+        return field.renderer(template, **tmpl_values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct is null:
+            return null
+        else:
+            try:
+                validated = self._pstruct_schema.deserialize(pstruct)
+            except Invalid as exc:
+                raise Invalid(field.schema, text_("Invalid pstruct: %s" % exc))
+            auto_id = validated["auto_id"]
+            auto_value = validated["auto_value"]
+
+            if not auto_id and not auto_value:
+                return null
+
+            result = "|".join([auto_id, auto_value])
+            if not auto_id or not auto_value:
+                raise Invalid(field.schema, _("Incomplete Data"), result)
+
+            return result
 
 
 class QtyWidget(Widget):

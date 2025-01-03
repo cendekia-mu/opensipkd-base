@@ -11,7 +11,7 @@
       '${field.oid}',
       function (oid) {
         $('#' + oid).typeahead(${ options });
-              ${ structure: js }
+        ${ structure: js };
       }
     );
   </script>

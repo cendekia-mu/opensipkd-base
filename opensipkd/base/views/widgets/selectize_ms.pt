@@ -1,0 +1,131 @@
+<span tal:define="name name|field.name;
+                  css_class css_class|field.widget.css_class;
+                  oid oid|field.oid;
+                  style style|field.widget.style;
+                  autofocus autofocus|field.autofocus" tal:omit-tag="">
+  <input type="text" name="${name}" value="${cstruct}" data-provide="typeahead" tal:attributes="class string: form-control ${css_class or ''};
+                           style style;
+                           autofocus autofocus;
+                           attributes|field.widget.attributes|{};" id="${oid}" />
+  <script tal:condition="field.widget.values" type="text/javascript">
+    deform.addCallback(
+      '${field.oid}',
+      function (oid) {
+        $('#' + oid).typeahead(${ structure: options });
+        if ("${autofocus}" == "autofocus") {
+          $('#' + oid).focus();
+        }
+      }
+    );
+  </script>
+</span>
+
+
+<div tal:define="
+     name name|field.name;
+     style field.widget.style;
+     oid oid|field.oid;
+     css_class css_class|field.widget.css_class;
+     unicode unicode|str;
+     optgroup_class optgroup_class|field.widget.optgroup_class;
+     multiple multiple|field.widget.multiple;
+     autofocus autofocus|field.autofocus;
+     url url|field.widget.url;
+     slave slave|field.widget.slave;" tal:omit-tag="">
+
+  <style>
+    .select2-selection.form-control {
+      padding: 0px 0px;
+    }
+
+    .select2-container--default .select2-selection--multiple,
+    .select2-container--default .select2-selection--single {
+      border: 1px solid #ccc;
+    }
+  </style>
+  <input type="hidden" name="__start__" value="${name}:sequence" tal:condition="multiple" />
+
+  <select tal:attributes="
+          name name;
+          id oid;
+          class string: form-control ${css_class or ''};
+          data-placeholder field.widget.placeholder|None;
+          multiple multiple;
+          style style;
+          autofocus autofocus;
+          attributes|field.widget.attributes|{};">
+    <tal:loop tal:repeat="item values">
+      <optgroup tal:condition="isinstance(item, optgroup_class)" tal:attributes="label item.label">
+        <option tal:repeat="(value, description) item.options" tal:attributes="
+                selected python:field.widget.get_select_value(cstruct, value);
+                readonly 'readonly' in getattr(field.widget, 'attributes', {}) and field.widget.get_select_value(cstruct, item[0]);
+                disabled 'readonly' in getattr(field.widget, 'attributes', {}) and not field.widget.get_select_value(cstruct, item[0]);
+                class css_class;
+                label field.widget.long_label_generator and description;
+                value value"
+          tal:content="field.widget.long_label_generator and field.widget.long_label_generator(item.label, description) or description" />
+      </optgroup>
+      <option tal:condition="not isinstance(item, optgroup_class)" tal:attributes="
+              selected python:field.widget.get_select_value(cstruct, item[0]);
+              readonly 'readonly' in getattr(field.widget, 'attributes', {}) and field.widget.get_select_value(cstruct, item[0]);
+              disabled 'readonly' in getattr(field.widget, 'attributes', {}) and not field.widget.get_select_value(cstruct, item[0]);
+              class css_class;
+              value item[0]">${item[1]}</option>
+    </tal:loop>
+  </select>
+
+  <script type="text/javascript">
+    deform.addCallback(
+      "${field.oid}",
+      function (oid) {
+        $("#" + oid).selectize(${ selectize_options_json });
+        if ($("#" + oid).is("[readonly]")) {
+          $("#" + oid)[0].selectize.lock();
+        }
+        if ($("#" + oid).prop("autofocus")) {
+          $("#" + oid).selectize("focus");
+        }
+      }
+    );
+  </script>
+  <script type="text/javascript" tal:condition="url and slave">
+    deform.addCallback(
+      '${field.oid}',
+      function (oid) {
+        $('#' + oid).change(function () {
+          $("#${slave}").val("");
+          $("#${slave}").empty();
+          $("#${slave}").append('<option value="" selected disabled>Pilih Data...</option>');
+          let value = $(this).val();
+          if (value) {
+            $.ajax({
+              type: "GET",
+              url: "${url}" + value,
+              success: function (res) {
+                if (res) {
+                  var def_value = null;
+                  if (res.hasOwnProperty("default")) {
+                    values = res.values;
+                    def_value = res.default;
+                  }
+                  else
+                    values = res;
+
+                  $.each(values, function (key, value) {
+                    if (key === def_value)
+                      $("#${slave}").append('<option value="' + key + '" selected>' + value + '</option>');
+                    else
+                      $("#${slave}").append('<option value="' + key + '">' + value + '</option>');
+                  });
+                } else {
+                  $("#${slave}").empty();
+                }
+              }
+            });
+          }
+          $("#${slave}").change();
+        });
+      });
+  </script>
+  <input type="hidden" name="__end__" value="${name}:sequence" tal:condition="multiple" />
+</div>

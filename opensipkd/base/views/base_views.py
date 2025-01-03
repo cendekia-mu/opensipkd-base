@@ -625,6 +625,7 @@ class BaseView(object):
         return self.route_list(**kwargs)
 
     def after_add(self, row=None, **kwargs):
+        """Digunakan untuk memproses setelah data tersimpan ke database"""
         return self.route_list(**kwargs)
 
     def after_edit(self, row=None, **kwargs):
