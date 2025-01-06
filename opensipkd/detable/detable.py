@@ -137,8 +137,10 @@ class DeTable(field.Field):
         self.filter_columns = filter_columns
         self.scroll_x = json.dumps(scroll_x)
         self.scroll_y = json.dumps(scroll_y)
+
         # self.widget = None
         # Button yang dikirim sebagai tambahan
+        html_buttons = kw.get("html_buttons", None)
         new_buttons = kw.get("new_buttons") or {}
         action_suffix = f"{action_suffix}{params}"
 
@@ -189,6 +191,11 @@ class DeTable(field.Field):
             _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
                             dict_buttons[button.name] + ');')
 
+        if html_buttons:
+            for html in html_buttons:
+                header_buttons.append(html["obj"])
+                _scripts.append(html["js"])
+
         if filter_columns:
             button = f"""
                         <a href="#{tableid}-form-filter"
@@ -196,13 +203,12 @@ class DeTable(field.Field):
                             class= "btn btn-warning dropdown">Filters</a>
                     """
             header_buttons.insert(0, button)
-            
+
         if allow_check:
             button = f"""
             <input type="checkbox" class="${tableid}checkAll">All</input>
             """
             header_buttons.insert(0, button)
-            
 
         self.buttons = "','".join(header_buttons).replace('\n', ""). \
             replace(';', ';\n')
@@ -300,12 +306,12 @@ class DeTable(field.Field):
 
             thousand = hasattr(f, 'thousand') and f.thousand or None
             separator = thousand and "separator" in thousand \
-                        and thousand["separator"] or ','
+                and thousand["separator"] or ','
             decimal = thousand and "decimal" in thousand and thousand[
                 "decimal"] or '.'
             point = thousand and "point" in thousand and thousand["point"] or 0
             currency = thousand and "currency" in thousand and \
-                       thousand["currency"] or ""
+                thousand["currency"] or ""
             if thousand or isinstance(f.typ, colander.Float) or \
                     isinstance(f.typ, colander.Integer):
                 d["render"] = \
@@ -400,7 +406,8 @@ class DeTable(field.Field):
         html += '<div class="form-group">'
         if isinstance(f.widget, deform_widget.CheckboxWidget):
             wg_check_val = [f.widget.true_val, f.widget.false_val]
-            radio_val = [["", 'Semua'], [wg_check_val[0], 'Aktif'], [wg_check_val[1], 'Pasif']]
+            radio_val = [["", 'Semua'], [wg_check_val[0],
+                                         'Aktif'], [wg_check_val[1], 'Pasif']]
             html += '<label class="" for="' + col_id + '">' + f.title + '</label>'
             html += '<div class="input-group" id="' + col_id + '">'
             for rdo in range(len(radio_val)):
@@ -420,6 +427,9 @@ class DeTable(field.Field):
             html += f'<select class="form-control {self.tableid}-control-filter"'
             html += f'placeholder="{f.title}" {txt}/>'
             html += '<option value="">Semua</option>'
+            if type(wg_select_val) == list:
+                wg_select_val = dict(list)
+
             for key in wg_select_val:
                 html += f'<option value="{key}">{wg_select_val[key]}</option>'
             html += '</select>'

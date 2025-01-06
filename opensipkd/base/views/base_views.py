@@ -183,6 +183,7 @@ class BaseView(object):
         self.report_file = ""
         self.new_buttons = {}
         self.is_object = False
+        self.html_buttons = {}
 
     def query_register(self, **kwargs):
         pass
@@ -260,6 +261,7 @@ class BaseView(object):
             new_buttons
             list_url
             action_suffix
+            html_buttons
         """
         allow_view = kwargs.get("allow_view", self.allow_view)
         allow_edit = kwargs.get("allow_edit", self.allow_edit)
@@ -282,6 +284,7 @@ class BaseView(object):
         list_schema = kwargs.get("list_schema", self.list_schema)
         scroll_y = kwargs.get("scroll_y", self.scroll_y)
         scroll_x = kwargs.get("scroll_x", self.scroll_x)
+        html_buttons = kwargs.get("html_buttons", self.html_buttons)
         parent = kwargs.get("parent")
         if list_schema:
             if parent:
@@ -317,8 +320,8 @@ class BaseView(object):
                             filter_columns=filter_columns,
                             server_side=server_side,
                             scroll_y=scroll_y,
-                            scroll_x=scroll_x
-
+                            scroll_x=scroll_x,
+                            html_buttons=html_buttons
                             )
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")

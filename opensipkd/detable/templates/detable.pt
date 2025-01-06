@@ -65,13 +65,18 @@
             });
           </script>
         </div>
-        <table id="${tableid}" class="table table-bordered table-hover table-condensed dataTable no-footer">
+		<table id="${tableid}" class="table table-bordered table-hover table-condensed dataTable no-footer">
           <thead>
+		  <tr>
             <tr>
               <tal:block tal:repeat="child field">
-                <th
-                  tal:condition="python:hasattr(child, 'action') and not getattr(child.condition)==False and False or True">
-                  ${child.title}</th>
+
+				<tal:block tal:condition="python:not hasattr(child, 'visible') or getattr(child, 'visible')==True">
+					<th
+					  tal:condition="python:hasattr(child, 'action') and not getattr(child.condition)==False and False or True">
+					  ${child.title}  </th>
+			
+				</tal:block>
               </tal:block>
             </tr>
 
@@ -166,14 +171,10 @@
         }
       } else if (${tableid}Columns[co].wg_select === true) {
           ${tableid}Columns[co].render = function (value) {
-          // if (value === 0) {
-          //  o${tableid}.$('tr.selected').bgColor(${tableid}Columns[co].get("color_" + value));
-          // }
-          // if (${tableid}Columns[co].hasOwnProperty("color_" + value)) {
-          //
-          //              }
-          return ${tableid}Columns[co].wg_select_val[value];
-        }
+		    if (value!=null)
+		       return ${tableid}Columns[co].wg_select_val[value];
+			return "";
+		  }
       } else if (${tableid}Columns[co].hasOwnProperty("url")) {
         let url = ${tableid}Columns[co].url;
           ${tableid}Columns[co].render = function (data) {
