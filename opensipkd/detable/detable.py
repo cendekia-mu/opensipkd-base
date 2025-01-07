@@ -428,7 +428,7 @@ class DeTable(field.Field):
             html += f'placeholder="{f.title}" {txt}/>'
             html += '<option value="">Semua</option>'
             if type(wg_select_val) == list:
-                wg_select_val = dict(list)
+                wg_select_val = dict(wg_select_val)
 
             for key in wg_select_val:
                 html += f'<option value="{key}">{wg_select_val[key]}</option>'

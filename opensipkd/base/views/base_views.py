@@ -430,9 +430,8 @@ class BaseView(object):
                 if k in select_list.keys():
                     vals = select_list[k]
                     for r in vals:
-                        if r[0] == res[k]:
-                            res[k] = r[1]
-                            ""
+                        if r and str(r) == str(res[k]):
+                            res[k] = vals[r]
         #     for k, v in d.items():
         #         if k in url and v:
         #             link = "/".join([self.home, nik_url, v])
