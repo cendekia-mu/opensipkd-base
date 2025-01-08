@@ -112,7 +112,7 @@ class DefaultModel(CommonModel):
         return query
 
     @classmethod
-    def query_from(cls, db_session=DBSession, columns=None, filters=None):
+    def query_from(cls, columns=None, filters=None, db_session=DBSession):
         query = db_session.query().select_from(cls)
         for c in columns:
             query = query.add_columns(c)

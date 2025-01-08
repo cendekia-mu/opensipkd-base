@@ -535,7 +535,7 @@ class BaseView(object):
 
         values = self.get_values(row)
         if not values:
-            return self.route_list("Nilai Data tidak ditemukan", "error")
+            return self.route_list(msg="Nilai Data tidak ditemukan", error="error")
         form.set_appstruct(values)
         table = self.get_item_table(row)
         kwargs["readonly"] = True
