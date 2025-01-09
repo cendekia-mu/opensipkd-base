@@ -26,6 +26,7 @@
     filter_columns filter_columns|field.filter_columns;
     filter_scripts filter_scripts|field.filter_scripts;
     filter_form filter_form|field.filter_form;
+    edit_buttons edit_buttons|field.edit_buttons;
     " tal:attributes="style style; class css_class; attributes|field.widget.attributes|{};" i18n:domain="detable">
   <header role="heading" class="txt-color-grayDark">
     <h2 tal:condition="title"><i class="fa fa-fw fa-table"></i>${title}</h2>
@@ -54,8 +55,9 @@
             </div>
           </div> -->
           <script>
+
             $(document).ready(function () {
-              $('.${tableid}checkAll').click(function () {
+              $(document).on("click",'.${tableid}checkAll',function () {
                 if (this.checked) {
                   $(".${tableid}_check").prop("checked", true);
                 } else {
@@ -134,8 +136,14 @@
           "previous": '<span class="glyphicon glyphicon-backward"></span> ',
           "next": '<span class="glyphicon glyphicon-forward"></span> ',
         },
+        "infoEmpty": "Menampilkan 0 sampai 0 dari 0",
         "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_",
-        "lengthMenu": " _MENU_ baris "
+        "infoFiltered": "(disaring dari _MAX_ total keseluruhan)",
+        "lengthMenu": " _MENU_ baris ",
+        "loadingRecords": "Sedang memuat...",
+        "processing": "Sedang memproses...",
+        "emptyTable": "Tidak ada data yang tersedia pada tabel ini",
+        "zeroRecords": "Tidak ditemukan data yang sesuai",
       };
 
 
@@ -234,7 +242,8 @@
       o${tableid} = $('#${tableid}').DataTable({
             scrollX: ${field.scroll_x},
             //scrollY: ${field.scroll_y},
-            dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
+            //dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
+            dom: '<"row"<"col-md-8"<"toolbar">>><"row"<"col-md-8"Bl><"col-md-4"fr>>t<"row dt-footer"<"col-md-8" i><"col-md-4"p>>',
             processing: true,
             serverSide: ${server_side},
             data: param_data,
@@ -269,7 +278,8 @@
       let tb = tb_array.join(' ');
       $("div.toolbar").html(tb);
       $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
-
+      $("div.dt-footer").attr('style','margin-left: -7px;');
+      $(".dataTables_scrollBody").attr('style','margin-top: -10px;');
 
       $('#${tableid} tbody').on('click', ':checkbox', function () {
         if (this.checked) m${tableid}CheckList.push($(this).val());
@@ -293,6 +303,8 @@
         var code = e.keyCode || e.which;
         if (code === 13) filter_table();
       });
+
+      $("#${tableid}_length").append('<label>&emsp;${structure:edit_buttons}</label>')
 
       function filter_table() {
         $(".${tableid}-control-filter").each(function (e) {
