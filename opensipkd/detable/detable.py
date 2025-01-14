@@ -203,14 +203,16 @@ class DeTable(field.Field):
                             class= "btn btn-warning dropdown">Filters</a>
                     """
             header_buttons.insert(0, button)
-
+        edit_buttons = []
         if allow_check:
             button = f"""
-            <input type="checkbox" class="${tableid}checkAll">All</input>
+            <input type="checkbox" class="{tableid}checkAll form-control"> All</input>
             """
-            header_buttons.insert(0, button)
+            edit_buttons.append(button)
 
         self.buttons = "','".join(header_buttons).replace('\n', ""). \
+            replace(';', ';\n')
+        self.edit_buttons = "','".join(edit_buttons).replace('\n', ""). \
             replace(';', ';\n')
         self.tableid = tableid
         self.scripts = ''.join(_scripts).replace(';', ";\n")
