@@ -424,7 +424,7 @@ class BaseView(object):
         # log.debug(str(qry))
         row_table = DataTables(self.req.GET, query, columns)
         result = row_table.output_result()
-        data = result and "data" in result and result["data"] or {}
+        data = result and result.get("data") or {}
         for res in data:
             for k in res:
                 if k in select_list.keys():
@@ -708,9 +708,18 @@ class BaseView(object):
         #     log.debug(status)
         #     row.status = status
         self.db_session.add(row)
-        self.db_session.flush()
-
+        self.after_save(values, row)
         return row
+
+    def after_save(self, values, row):
+        """Digunakan apabila ada prosess setelah melakukan penyimpanan data
+           sebelum di flush ke database biasanya digunakan untuk master detail 
+
+        Args:
+            values dict: _description_
+            row table: _description_
+        """
+        self.db_session.flush()
 
     def save_request(self, values, row=None):
         for k, v in self.req.GET.items():

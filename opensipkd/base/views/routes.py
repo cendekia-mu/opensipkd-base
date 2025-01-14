@@ -64,12 +64,16 @@ class EditSchema(colander.Schema):
     permission = colander.SchemaNode(
         colander.String(),
         missing=colander.drop,
-        description="Nama permission untuk menentukan hak akses"
+        description="Nama permission untuk menentukan hak akses",
+        default="",
     )
     class_view = colander.SchemaNode(
         colander.String(),
         missing=colander.drop,
-        description="Nama file tanpa extension yang berisi class Views")
+        description="Nama file tanpa extension yang berisi class Views",
+        default=""
+    ),
+
     def_func = colander.SchemaNode(
         colander.String(),
         missing=colander.drop,
@@ -211,13 +215,15 @@ class Views(BaseView):
         def err_nama():
             raise colander.Invalid(
                 form,
-                'Nama %s sudah digunakan oleh ID %s' % (values['nama'], found.id)
+                'Nama %s sudah digunakan oleh ID %s' % (
+                    values['nama'], found.id)
             )
 
         def err_kode():
             raise colander.Invalid(
                 form,
-                'Kode %s sudah digunakan oleh ID %s' % (values['kode'], found.id)
+                'Kode %s sudah digunakan oleh ID %s' % (
+                    values['kode'], found.id)
             )
 
         if 'id' in form.request.matchdict:
@@ -246,6 +252,8 @@ class Views(BaseView):
                 err_kode()
         elif found:
             err_kode()
+        if "permission" not in values:
+            values["permission"] = ""
 
     @view_config(
         route_name='routes-act', renderer='json', permission='edit-title')

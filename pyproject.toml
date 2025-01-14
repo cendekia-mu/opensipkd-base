@@ -1,9 +1,15 @@
 [build-system]
-requires = ['setuptools >= 64']
+requires = ['setuptools >= 64', 'wheel']
+build-backend = 'setuptools.build_meta'
+#requires = ["hatchling"]
+#build-backend = "hatchling.build"
+
+[tool.setuptools]
+py-modules = ["opensipkd"]
 
 [project]
 name = 'opensipkd-base'
-version = '4.2'
+version = '4.2B'
 dependencies = [
     'sqlalchemy',
     'colander',
@@ -32,20 +38,32 @@ dependencies = [
     'google',
     'pyjwt',
     ]
-requires-python = '>= 3.9'
+requires-python = '>= 3.8'
+
 authors = [
     {name='Agus Gustiana', email='aa.gustiana@gmail.com'},
-    ]
-description = 'Basis Aplikasi openSIPKD'
+    { email = "opensipkd@gmail.com" },]
+
+maintainers = [
+    { name = "Ari", email = "ariagungprasetiyo@gmail.com" }]
+
+description = 'Framwork Aplikasi openSIPKD'
 readme = 'README.rst'
 license = {text='Apache Software License'}
+keywords = ["openSIPKD"]
 classifiers = [
-    'Programming Language :: Python :: 3',
-    'Operating System :: OS Independent',
-    'Framework :: Pylons',
-    'Topic :: Internet :: WWW/HTTP',
-    'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
-    ]
+    #'Development Status :: 4 - Beta",
+    #'Programming Language :: Python :: 3',
+    #'Operating System :: OS Independent',
+    #'Framework :: Pylons',
+    #'Topic :: Internet :: WWW/HTTP',
+    #'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
+]
+
+[project.optional-dependencies]
+dev = [
+    'pyramid_debugtoolbar',
+    'pytest', 'webtest']
 
 [project.entry-points."paste.app_factory"]
 main = 'opensipkd.base:main'

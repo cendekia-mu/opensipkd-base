@@ -6,7 +6,7 @@ import logging
 from colander import SchemaNode, null, Mapping, Invalid  # , string_types
 # from colander import compat # tidak ada di colander 2.0
 from deform import widget
-from deform.compat import sequence_types, text_type
+from deform.compat import sequence_types, text_type, text_
 from deform.form import Button
 from deform.i18n import _
 from deform.widget import (
@@ -260,11 +260,19 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
         if isinstance(self.values, string_types):
             options["remote"] = "%s?term=%%QUERY" % self.values
         else:
+            # vals = []
+            # for v in self.values:
+            #     if not isinstance(v, string_types):
+            #         vals.append(v[1])
+            # if not vals:
+            # vals = self.values
+
             options["local"] = self.values
 
         options["minLength"] = kw.pop("min_length", self.min_length)
         options["limit"] = kw.pop("items", self.items)
         kw["options"] = json.dumps(options)
+        kw["data"] = self.values
 
         template = readonly and self.readonly_template or self.template
         tmpl_values = self.get_template_values(field, cstruct, kw)

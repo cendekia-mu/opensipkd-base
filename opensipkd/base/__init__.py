@@ -18,7 +18,8 @@ from pyramid.events import subscriber
 from pyramid.events import BeforeRender
 from pyramid.renderers import JSON
 from pyramid_mailer import mailer_factory_from_settings
-import datetime, decimal
+import datetime
+import decimal
 from sqlalchemy import engine_from_config, or_
 from .security import (
     group_finder,
@@ -182,7 +183,7 @@ def get_params(params, alternate=None, settings=None):
     if not settings:
         settings = get_settings()
     result = settings and params in settings and \
-             settings[params].strip() or None
+        settings[params].strip() or None
     if not result:
         row = Parameter.query_kode(params).first()
         result = row and row.value or None
@@ -393,7 +394,8 @@ def format_datetime(v):
 
 def json_renderer():
     json_r = JSON()
-    json_r.add_adapter(datetime.datetime, lambda v, request: format_datetime(v))
+    json_r.add_adapter(datetime.datetime, lambda v,
+                       request: format_datetime(v))
     json_r.add_adapter(datetime.date, lambda v, request: dmy(v))
     json_r.add_adapter(decimal.Decimal, lambda v, request: str(v))
     return json_r
@@ -436,7 +438,8 @@ def get_home(request):
 
 
 def _set_routes1(config, app_id):
-    q = DBSession.query(Route).filter(Route.path != None, Route.module == None, Route.status == 1)
+    q = DBSession.query(Route).filter(Route.path != None,
+                                      Route.module == None, Route.status == 1)
     if not app_id:
         q.filter(or_(Route.app_id == 0, None == Route.app_id))
     else:
@@ -453,14 +456,16 @@ def _set_routes1(config, app_id):
 
 
 def _set_routes2(config, module="base"):
-    q = DBSession.query(Route).filter(Route.module == module, Route.status == 1)
+    q = DBSession.query(Route).filter(
+        Route.module == module, Route.status == 1)
     for route in q:
         if route.type == 0:
             config.add_route(route.kode, route.path)
             if route.nama:
                 titles[route.kode] = route.nama
         elif route.type == 1:
-            config.add_jsonrpc_endpoint(route.kode, route.path, default_renderer="json_rpc")
+            config.add_jsonrpc_endpoint(
+                route.kode, route.path, default_renderer="json_rpc")
     return q
 
 
@@ -471,7 +476,8 @@ def add_view_config(config, module, view_name):
     module: application module
     views: class or file tobe imported
     """
-    q = DBSession.query(Route).filter(Route.module == module, Route.status == 1)
+    q = DBSession.query(Route).filter(
+        Route.module == module, Route.status == 1)
     for row in q.all():
         if row.type == 0:
             config.add_route(row.kode, row.path)
@@ -549,45 +555,12 @@ def get_module_submenus(parent_id):
 partner_idcard_url = 'partner/idcard'
 
 
-def main(global_config, **settings):
-    """ This function returns a Pyramid WSGI application.
-    """
-    default_resource_registry.registry['jquery.maskMoney'] = {
-        None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
-
-    engine = engine_from_config(
-        settings, 'sqlalchemy.', client_encoding='utf8',
-        max_identifier_length=30)  # , convert_unicode=True
-    DBSession.configure(bind=engine)
-    LogDBSession.configure(bind=engine)
-    Base.metadata.bind = engine
-    init_model()
-
+def get_config(settings):
     session_factory = session_factory_from_settings(settings)
-    if 'localization' not in settings:
-        settings['localization'] = 'id_ID.UTF-8'
-
-    locale.setlocale(locale.LC_ALL, settings['localization'])
-    if 'timezone' not in settings:
-        settings['timezone'] = DefaultTimeZone
-
     config = Configurator(settings=settings,
                           root_factory='opensipkd.models.RootFactory',
                           session_factory=session_factory)
     config.set_default_csrf_options(require_csrf=False)
-    modules = get_modules(settings)
-    from importlib import import_module
-    for module in modules:
-        # compatibility
-        if module == 'admin':
-            continue
-        module = module.replace('/', '.')
-        mfile = module
-        m = import_module(mfile)
-        cfg = m.main(config, **settings)
-        if cfg:
-            config = cfg
-
     config.set_security_policy(MySecurityPolicy(settings["session.secret"]))
     config.add_subscriber(add_cors_headers_response_callback, NewRequest)
 
@@ -651,10 +624,47 @@ def main(global_config, **settings):
 
     config.registry['mailer'] = mailer_factory_from_settings(settings)
     config.scan()
-    for m in modules:
-        config.scan(m)
+    # for m in modules:
+    #     config.scan(m)
 
-    return config.make_wsgi_app()
+    return config
+
+
+def main(global_config, **settings):
+    """ This function returns a Pyramid WSGI application.
+    """
+    default_resource_registry.registry['jquery.maskMoney'] = {
+        None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
+
+    engine = engine_from_config(
+        settings, 'sqlalchemy.', client_encoding='utf8',
+        max_identifier_length=30)  # , convert_unicode=True
+    DBSession.configure(bind=engine)
+    LogDBSession.configure(bind=engine)
+    Base.metadata.bind = engine
+    init_model()
+
+    if 'localization' not in settings:
+        settings['localization'] = 'id_ID.UTF-8'
+
+    locale.setlocale(locale.LC_ALL, settings['localization'])
+    if 'timezone' not in settings:
+        settings['timezone'] = DefaultTimeZone
+
+    # modules = get_modules(settings)
+    # from importlib import import_module
+    # for module in modules:
+    #     # compatibility
+    #     if module == 'admin':
+    #         continue
+    #     module = module.replace('/', '.')
+    #     mfile = module
+    #     m = import_module(mfile)
+    #     cfg = m.main(config, **settings)
+    #     if cfg:
+    #         config = cfg
+
+    return get_config(settings=settings).make_wsgi_app()
 
 
 def routes_by_array(config, routs=routes):
