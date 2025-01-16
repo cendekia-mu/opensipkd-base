@@ -468,9 +468,6 @@ class BaseView(object):
     def get_bindings(self, row=None):
         return {"row": row}
 
-    def next_view(self, form, **kwargs):
-        return
-
     def next_edit(self, form, **kwargs):
         return self.route_list(**kwargs)
 
@@ -508,18 +505,18 @@ class BaseView(object):
     def before_view(self, **kw):
         return False
 
-    def view_view(self, **kwargs):  # row = query_id(request).first()
+    def view_view(self, **kwargs):
         request = self.req
         row = self.query_id().first()
-        self.ses["readonly"] = True
         if not row:
             return self.id_not_found()
+
+        self.ses["readonly"] = True
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
         before_view = self.before_view(row=row)
         if before_view:
             return before_view
-
         bindings = self.get_bindings(row)
         buttons = kwargs.get("buttons", None)
         if not buttons:
@@ -528,7 +525,7 @@ class BaseView(object):
         form = self.get_form(self.edit_schema, buttons=buttons,
                              bindings=bindings)
         if request.POST:
-            result = self.next_view(form, row=row)
+            result = self.next_view(form=form, row=row)
             if result:
                 return result
             return self.after_view(row=row)
@@ -540,6 +537,29 @@ class BaseView(object):
         table = self.get_item_table(row)
         kwargs["readonly"] = True
         return self.returned_form(form, table, **kwargs)
+
+    def after_view(self, **kwargs):
+        """Digunakan untuk customize Proses
+            kwargs["row] (SQLAlchemy Row Objek):
+        Returns:
+            dict: (Form Objek) Secara default akan dikembalikan ke tampilan 
+                Grid/List
+        Notes : disini terdapat inconsistensi antara after view dan next view 
+                keduanya digunakan untuk memproses aksi saat dari tampilan view
+        """
+        return self.route_list(**kwargs)
+
+    def next_view(self, form=None, **kwargs):
+        """Digunakan untuk customize Form Objek
+
+        Args:
+            form (Form): Objek Form,
+            kwarg["row"] (SQLAlchemy Result): 
+
+        Results:
+            Form Object Or None
+        """
+        return
 
     def set_post(self, **kwargs):
         pass
@@ -631,9 +651,6 @@ class BaseView(object):
         return self.route_list(**kwargs)
 
     def after_edit(self, row=None, **kwargs):
-        return self.route_list(**kwargs)
-
-    def after_view(self, **kwargs):
         return self.route_list(**kwargs)
 
     def get_captcha_url(self):
