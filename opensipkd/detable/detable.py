@@ -144,9 +144,11 @@ class DeTable(field.Field):
         new_buttons = kw.get("new_buttons") or {}
         action_suffix = f"{action_suffix}{params}"
 
-        close_url = self.action.split("/")
-        close_url = "/".join(close_url[:-1])
-        close_url.replace(":/", "://")
+        close_url = self.action
+        if close_url[:4] != "http":
+            close_url = self.action.split("/")
+            close_url = "/".join(close_url[:-1])
+            close_url.replace(":/", "://")
         params = params and f"?{params}" or ""
         dict_buttons = {
             "close": "{window.location = '" + close_url + "'; return false;}",

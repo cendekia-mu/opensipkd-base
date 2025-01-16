@@ -188,14 +188,20 @@ class BaseView(object):
     def query_register(self, **kwargs):
         pass
 
+    def get_routes(self):
+        """
+        Digunakan untuk mendapatkan default url apabula list_url tidak ada
+        """
+
     def route_list(self, **kwargs):
         msg = kwargs.get("msg")
         error = kwargs.get("error", "")
-        list_url = kwargs.get("list_url", None)
+        list_url = kwargs.get("list_url", self.get_routes())
         if msg:
             self.ses.flash(msg, error)
+
         if not list_url:
-            list_url = self.req.route_url(self.list_route)
+            list_url = self.req.route_url(self.list_route, **kwargs)
         log.error(list_url)
         if self.headers:
             return HTTPFound(location=get_urls(list_url),
@@ -295,13 +301,13 @@ class BaseView(object):
 
             if not new_buttons:
                 new_buttons = self.new_buttons
-
+            
             if not list_url and self.list_route:
                 list_url = self.req.route_url(self.list_route)
             else:
-                list_url = list_url and list_url[0:1] != "/" and "/" + \
-                    list_url or list_url
-                list_url = self.home + list_url
+                if list_url[:4] != 'http':
+                    list_url = f"/{list_url}".replace("//", "/")
+                    list_url = self.home + list_url
 
             table = DeTable(schema,
                             action=list_url,
