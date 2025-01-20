@@ -301,7 +301,7 @@ class BaseView(object):
 
             if not new_buttons:
                 new_buttons = self.new_buttons
-            
+
             if not list_url and self.list_route:
                 list_url = self.req.route_url(self.list_route)
             else:
@@ -475,6 +475,14 @@ class BaseView(object):
         return {"row": row}
 
     def next_edit(self, form, **kwargs):
+        """Digunakan untuk memproses button post yang lainnya
+
+        Args:
+            form (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
         return self.route_list(**kwargs)
 
     def returned_form(self, form, table=None, **kwargs):
@@ -657,6 +665,13 @@ class BaseView(object):
         return self.route_list(**kwargs)
 
     def after_edit(self, row=None, **kwargs):
+        """Digunakan untuk memproses setelah proses penyimpanan
+        Args:
+            row (objek, optional): Berupa objek row dari tabel yang  disimpan. 
+            Defaults to None.
+        Returns:
+            HTTPFound: URL yang akan ditampilkan atau procedure tampilan yang lain
+        """
         return self.route_list(**kwargs)
 
     def get_captcha_url(self):
@@ -719,7 +734,11 @@ class BaseView(object):
             row.updated = datetime.now()
             row.update_uid = user and user.id or None
 
-        row.from_dict(values)
+        for key, value in values.items():
+            if hasattr(row, key):
+                setattr(row, key, value)
+
+        # row.from_dict(values)
         # if hasattr(row, "status"):
         #     status = "status" in values and values["status"] or 0
         #     log.debug(status)
@@ -759,13 +778,20 @@ class BaseView(object):
         return self.route_list(**kwargs)
 
     def get_values(self, row, istime=False, null=False):
-        d = row.to_dict(null=null)
+        d = dict(row.__dict__)
+        d.pop('_sa_instance_state', None)
+        # d = row.to_dict(null=null)
         # if 'tanggal' in d and d['tanggal']:
         #     d["tanggal"] = dmy(row.tanggal)
+        values = {}
         for f in d:
             if type(d[f]) is str:
-                d[f] = d[f].strip()
-        return d
+                values[f] = d[f].strip()
+            else:
+                if d[f] != None:
+                    values[f] = d[f]
+
+        return values
 
     def get_item_table(self, parent=None, **kwargs):
         if not self.form_list:
@@ -806,18 +832,12 @@ class BaseView(object):
         resources = form.get_widget_resources()
         if request.POST:
             if 'save' in request.POST:
-                # log.debug("Save Edit")
-                # log.debug(dict(request.POST.items()))
-                # log.debug(request.POST)
                 controls = request.POST.items()
                 log.debug(controls)
-                # log.debug(dict(controls))
-                # log.debug(list(controls))
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
                     log.error(f"Edit Error: {str(e.error.msg)}")
-                    # log.debug(f"Edit Data: {e.cstruct}")
                     form.set_appstruct(e.cstruct)
                     return self.returned_form(form, table, **kwargs)
 

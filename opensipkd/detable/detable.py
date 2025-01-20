@@ -285,8 +285,9 @@ class DeTable(field.Field):
                         return result;
                     }"""
             if f.name == "id" and self.action:
+                if not d.get("orderable"):
+                    d["orderable"] = True
                 d["width"] = "30pt"
-                d["orderable"] = False
                 d["className"] = "text-center"
                 d["visible"] = True
                 d["render"] = """
@@ -313,7 +314,8 @@ class DeTable(field.Field):
                 and thousand["separator"] or ','
             decimal = thousand and "decimal" in thousand and thousand[
                 "decimal"] or '.'
-            point = thousand and "point" in thousand and thousand["point"] or 0
+            point = thousand and thousand.get("point", 0) or 0
+            point = thousand and thousand.get("precision", point) or point
             currency = thousand and "currency" in thousand and \
                 thousand["currency"] or ""
             if thousand or isinstance(f.typ, colander.Float) or \
