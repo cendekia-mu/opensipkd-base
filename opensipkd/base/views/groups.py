@@ -94,7 +94,9 @@ class Views(BaseView):
 
     def save_request(self, values, row=None):
         insert = not row
-        row = self.save(values, self.req.user, row)
+        vals = values.copy()
+        vals.pop('permissions')
+        row = self.save(vals, self.req.user, row)
         existing = group_permission_set(row)
         unused = existing - values['permissions']
         if unused:
