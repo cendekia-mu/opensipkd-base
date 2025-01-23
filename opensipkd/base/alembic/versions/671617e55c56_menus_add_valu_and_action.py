@@ -31,5 +31,6 @@ def upgrade():
                       sa.Column('page_typ', sa.String(256)))
 
 
+        
 def downgrade():
     pass

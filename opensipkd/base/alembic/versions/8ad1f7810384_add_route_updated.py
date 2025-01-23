@@ -26,6 +26,7 @@ def upgrade():
 
     if not helpers.table_has_column('routes', 'update_uid'):
         op.add_column('routes', sa.Column('update_uid', sa.Integer, default=0))
+        
 
 def downgrade():
     pass
