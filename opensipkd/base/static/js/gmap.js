@@ -40,17 +40,17 @@ function initMap() {
 
   map.data.setControls(gmapControls);
 
-  google.maps.event.addListener(map, "center_changed", function (e) {
-    latLngObj = map.getCenter();
-    console.log("lat long object " + latLngObj);
-    console.log(e);
-  });
+  // google.maps.event.addListener(map, "center_changed", function (e) {
+  // latLngObj = map.getCenter();
+  // console.log("lat long object " + latLngObj);
+  // console.log(e);
+  // });
 
-  google.maps.event.addListener(map.data, "center_changed", function (e) {
-    latLngObj = map.data.getCenter();
-    console.log("lat long object data " + latLngObj);
-    console.log(e);
-  });
+  // google.maps.event.addListener(map.data, "center_changed", function (e) {
+  // latLngObj = map.data.getCenter();
+  // console.log("lat long object data " + latLngObj);
+  // console.log(e);
+  // });
 
   google.maps.event.addListener(map.data, "addfeature", function (e) {
     if (map.data.map.data.getControls() !== null) {
@@ -62,7 +62,9 @@ function initMap() {
         selectedFeature = e.feature;
         btnRemove.disabled = false;
         map.setCenter(center);
-        // map.setZoom(18);
+        // console.log("lat long object " + center);
+        map.panTo(center);
+        map.setZoom(18);
       } else {
         let bounds = new google.maps.LatLngBounds();
         bounds = extendBound(bounds, e.feature);
@@ -244,14 +246,16 @@ function getFeatureBounds() {
 }
 
 function setControls() {
+  console.log("setControl");
   let total = 0;
   let bounds = new google.maps.LatLngBounds();
   map.data.forEach(function (e) {
     total++;
     bounds = extendBound(bounds, e);
   });
+  console.log(bounds);
   if (total > 0) {
-    map.fitBounds(bounds);
+    //   map.fitBounds(bounds);
     map.data.setDrawingMode(null);
     map.data.setControls(null);
     let zoomLevel = map.getZoom();
