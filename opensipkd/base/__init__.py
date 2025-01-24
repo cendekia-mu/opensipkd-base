@@ -499,9 +499,11 @@ def add_view_config(config, module, view_name):
                 renderers = row.template
             else:
                 renderers = "views/templates/" + row.template
-            config.add_view(views.Views, attr=f"{attr}",
-                            route_name=row.kode, permission=row.permission,
-                            renderer=renderers)
+            params = dict(attr=f"{attr}", route_name=row.kode,
+                          renderer=renderers)
+            if row.permission:
+                params["permission"] = row.permission
+            config.add_view(views.Views, **params)
         except Exception as e:
             log.error(str(e))
             log.error(dict(row.__dict__))
@@ -521,7 +523,7 @@ def get_route_names(rows):
 
 
 def get_children(rows):
-    # log.debug(f"Children: {rows}")
+    log.debug(f"Children: {dict(rows.__dict__)}")
     return [dict(
         order_id=r.order_id,
         id=r.id,

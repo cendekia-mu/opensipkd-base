@@ -12,7 +12,7 @@ from opensipkd.models import (
     Menus, Pangkat)
 from opensipkd.models.handlers import LogDBSession
 from pyramid.paster import (get_appsettings, setup_logging, )
-from sqlalchemy import (engine_from_config, select, Table, inspect)
+from sqlalchemy import (desc, engine_from_config, select, Table, inspect)
 from sqlalchemy import text
 from sqlalchemy.dialects import oracle
 from sqlalchemy.schema import CreateSchema
@@ -47,7 +47,7 @@ def routes_callback(typ, **kwargs):
             value = splited_last
         elif field == "class_view":
             if data["def_func"] == "list" and not data["class_view"] \
-                    or splited_last not in ["add", "edit", "delete", "view", "act", "report"]:
+                    or splited_last not in ["add", "edit", "delete", "view", "act", "report", "upload"]:
                 log.debug(splited[-1:])
                 log.debug(data)
                 return "_".join(splited[1:])
@@ -79,6 +79,7 @@ def routes_callback(typ, **kwargs):
                 return "form.pt"
 
         return value
+
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -213,7 +214,8 @@ def append_csv(table, filename, keys, get_file_func=get_file,
     insp = inspect(DBSession.connection())
     # print(dir(table.__table__))
     # print("____")
-    schema = hasattr(table.__table__, "schema") and table.__table__.schema or "public"
+    schema = hasattr(
+        table.__table__, "schema") and table.__table__.schema or "public"
     columns_table = insp.get_columns(table.__tablename__, schema)
     fields = {}
     for c in columns_table:
@@ -316,7 +318,8 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     password = val
                 else:
                     if fname_orig in fields and type(fields[fname_orig]) is BOOLEAN:
-                        val = (val == 'true' or val == '1' or val == 1) and True or False
+                        val = (val == 'true' or val ==
+                               '1' or val == 1) and True or False
                     setattr(row, fname_orig, val)
 
             # Penambahan checking field nullable false wajib ada datanya 2024-09-05
@@ -438,3 +441,20 @@ def main(argv=sys.argv):
         restore_csv(ResKecamatan, 'kecamatan.csv')
         transaction.commit()
         restore_csv(ResDesa, 'desa.csv')
+
+
+def delete_route(module):
+    try:
+        routes = Route.query().filter(Route.module == module).\
+            order_by(desc(Route.parent_id), desc(Route.order_id), ).limit(100)
+        for route in routes:
+            try:
+                Route.query_id(route.id).delete()
+                transaction.commit()
+            except Exception as e:
+                # print(str(e))
+                # print(route.nama, route.id, route.parent_id, )
+                # print("Error")
+                transaction.abort()
+    except Exception as e:
+        print(str(e))

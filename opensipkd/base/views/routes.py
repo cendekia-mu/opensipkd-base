@@ -72,7 +72,7 @@ class EditSchema(colander.Schema):
         missing=colander.drop,
         description="Nama file tanpa extension yang berisi class Views",
         default=""
-    ),
+    )
 
     def_func = colander.SchemaNode(
         colander.String(),
