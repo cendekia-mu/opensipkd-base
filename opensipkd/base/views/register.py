@@ -290,7 +290,7 @@ class Registrasi(BaseView):
 
             else:
                 value.pop("idcard")
-        value["groups"]="Guest"
+        value["groups"] = "Guest"
 
     def before_add(self):
         result = {}
@@ -329,7 +329,7 @@ class Registrasi(BaseView):
         return DBSession.query(Partner). \
             filter(Partner.email == self.req.user.email)
 
-    def id_not_found(self):
+    def id_not_found(self, **kwargs):
         return
 
     def get_values(self, row, istime=False):
@@ -406,7 +406,7 @@ class Registrasi(BaseView):
                 'email-new-user.tpl')
             ts = _(
                 'user-added',
-                default='${email} berhasil ditambahkan dan email untuk ubah ' \
+                default='${email} berhasil ditambahkan dan email untuk ubah '
                         'kata kunci sudah dikirim.',
                 mapping={"email": row.email})
             self.ses.flash(ts)

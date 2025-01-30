@@ -734,9 +734,13 @@ class BaseView(object):
             row.updated = datetime.now()
             row.update_uid = user and user.id or None
 
-        for key, value in values.items():
-            if hasattr(row, key):
-                setattr(row, key, value)
+        for column in row.__table__.columns:
+            if column.name in values:
+                setattr(row, column.name, values[column.name])
+
+        # for key, value in values.items():
+            # if hasattr(row, key):
+                # setattr(row, key, value)
 
         # row.from_dict(values)
         # if hasattr(row, "status"):

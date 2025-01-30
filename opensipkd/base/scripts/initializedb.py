@@ -410,7 +410,7 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     # alembic_run(config_uri)  # alembicnya ziggurat
-    Base.metadata.create_all(engine)
+    Base.metadata.create_all(bind=engine)
     alembic_run(config_uri, "alembic_base")
     # base_alembic_run(config_uri)
 

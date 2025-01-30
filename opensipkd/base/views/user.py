@@ -128,7 +128,7 @@ class Views(BaseView):
         #              values["company_id"] or None
         # values["company_id"] = company_id
         if "company_id" not in values:
-            values["company_id"]=None
+            values["company_id"] = None
         if 'is_api_key' in values:
             values["api_key"] = generate_api_key()
         insert = not row
@@ -147,7 +147,7 @@ class Views(BaseView):
                 data = dict(email=row.email)
                 ts = _(
                     'user-added',
-                    default='${email} berhasil ditambahkan dan email untuk ubah ' \
+                    default='${email} berhasil ditambahkan dan email untuk ubah '
                             'kata kunci sudah dikirim.',
                     mapping=data)
             self.ses.flash(ts)
@@ -411,8 +411,8 @@ def user_widget(node, kw):
     values = kw.get('user_list', [])
     request = kw.get("request")
     return widget.SelectWidget(values=values,
-                                     placeholder="Pilih User",
-                                     style="width:300px;")
+                               placeholder="Pilih User",
+                               style="width:300px;")
 
 
 class UserFilterSchema(colander.Schema):

@@ -1,15 +1,32 @@
 [build-system]
 requires = ['setuptools >= 64', 'wheel']
 build-backend = 'setuptools.build_meta'
-#requires = ["hatchling"]
-#build-backend = "hatchling.build"
 
-[tool.setuptools]
-py-modules = ["opensipkd"]
+[tool.mypy]
+exclude = [
+    'base',
+    'report', 
+    'external', 
+    'developers',
+]
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+
+module = [
+    "opensipkd.base.*",
+    "opensipkd.models.*",
+    "opensipkd.detable.*",
+    "opensipkd.jsonrpc_auth.*",
+]
+
+warn_unused_ignores = true
+strict = true
+
 
 [project]
 name = 'opensipkd-base'
-version = '4.2B'
+version = '4.2'
 dependencies = [
     'sqlalchemy',
     'colander',
@@ -45,7 +62,8 @@ authors = [
     { email = "opensipkd@gmail.com" },]
 
 maintainers = [
-    { name = "Ari", email = "ariagungprasetiyo@gmail.com" }]
+    { name = "Ari", email = "ariagungprasetiyo@gmail.com" },
+    { name = "Owo Sugiana", email = "sugiana@gmail.com" }]
 
 description = 'Framwork Aplikasi openSIPKD'
 readme = 'README.rst'
