@@ -46,7 +46,7 @@ def jasper_db_conn(db_schema=None, dburl="sqlalchemy.url"):
     jdbc_dir = get_params("jdbc_dir", "")
     jdbc_driver = db_driver_port[db_driver][2]
     db_driver = db_driver_port[db_driver][0]
-    log.info(jdbc_dir)
+    log.debug(jdbc_dir)
     return {
         'driver': db_driver,
         'username': db_user.strip('/'),
@@ -119,12 +119,12 @@ def jasper_export(input_file, output_file=None, schema=None,
     )
 
     try:
-        log.info(input_file)
+        log.debug(input_file)
         pyreportjasper.compile(write_jasper=True)
         pyreportjasper.process_report()
     except Exception as e:
         log.debug(e)
         raise
     output_files = [".".join([output_file, f]) for f in output_formats]
-    log.info(output_files)
+    log.debug(output_files)
     return output_files
