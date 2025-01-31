@@ -53,13 +53,13 @@ class BaseView(object):
         # self.akhir = dmy(self.dt_akhir)
         # self.ses["dt_awal"] = self.dt_awal
         # self.ses["dt_akhir"] = self.dt_akhir
-        self.tahun = 'tahun' in self.ses and self.ses['tahun'] or now.strftime(
-            '%Y')
+        self.tahun = 'tahun' in self.ses and self.ses['tahun'] \
+            or now.strftime('%Y')
         self.tahun = 'tahun' in self.params and self.params['tahun'] or self.tahun
         self.ses['tahun'] = self.tahun
 
-        self.bulan = 'bulan' in self.ses and self.ses['bulan'] or now.strftime(
-            '%m')
+        self.bulan = 'bulan' in self.ses and self.ses['bulan'] \
+            or now.strftime('%m')
         if 'bulan' in self.params and self.params['bulan']:
             self.bulan = self.params['bulan'].strip().zfill(2)
             dt_awal = date_from_str(
@@ -211,6 +211,23 @@ class BaseView(object):
 
     def form_validator(self, form, value):
         pass
+
+    def form_validate(self, form, err_value, **kwargs):
+        controls = self.req.POST.items()
+        try:
+            c = form.validate(controls)
+        except ValidationFailure as e:
+            value = err_value()
+            for f in e.field.children:
+                if isinstance(f.typ, colander.Date):
+                    e.cstruct[f.name] = date_from_str(
+                        e.cstruct[f.name])
+                if f.name == "captcha":
+                    e.cstruct[f.name] = self.get_captcha_url()
+            value.update(e.cstruct)
+            form.set_appstruct(e.cstruct)
+            return self.returned_form(form, **kwargs)
+        return dict(c)
 
     def get_params(self, params, default=None):
         return get_params(params, default)
@@ -964,6 +981,29 @@ class BaseView(object):
                     return file_name
 
         self.form_error(form, error)
+
+    def save_file(self, values, field, path=None, filename=None):
+        if field in values and values[field]:
+            value = values[field]
+            if "fp" in value and value["fp"] and value["fp"] != b'':
+                if not path:
+                    path = get_params('tmp', '/tmp')
+                    path = os.join(path, "upload")
+
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                upload = Upload(path)
+                resp = upload.save_fp(value)
+                if filename:
+                    ext = get_ext(resp)
+                    new_resp = filename+ext
+                    new_resp_full = os.path.join(path, new_resp)
+                    if os.path.isfile(new_resp_full):
+                        os.remove(new_resp_full)
+
+                    os.rename(os.path.join(path, resp), new_resp_full)
+                    return new_resp
+                return resp
 
 
 @colander.deferred

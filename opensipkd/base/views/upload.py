@@ -5,7 +5,6 @@ from deform import (Form, widget, FileData, )
 from deform.interfaces import FileUploadTempStore
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
-
 from opensipkd.tools import (get_ext, dict_to_str, )
 from .view_tools import CSRFSchema
 from .. import get_urls
