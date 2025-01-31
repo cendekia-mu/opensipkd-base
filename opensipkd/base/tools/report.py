@@ -2,10 +2,10 @@ from pyreportjasper import PyReportJasper
 from opensipkd.base.tools import get_random_string
 from opensipkd.base import get_settings, get_params
 from platform import python_version
+import logging
 import os
 from opensipkd.tools.report import *
-from opensipkd.base import log
-
+log = logging.getLogger(__name__)
 log.warning("Opensipkd.base.tools.pbb depreciated use opensipkd.tools.pbb")
 
 # -*- coding: utf-8 -*-
@@ -63,9 +63,11 @@ def jasper_db_conn(db_schema=None, dburl="sqlalchemy.url"):
 
 def jasper_export(input_file, output_file=None, schema=None,
                   output_formats=["pdf"], dburl="sqlalchemy.url",
-                  parameters={}, db_schema=None, report_locale="en_US", use_db=True):
+                  parameters={}, db_schema=None, report_locale="en_US", use_db=True,
+                  out_file=None):
 
-    input_file = input_file.split(":")
+    module_file = None
+    input_file = input_file.split(":")  # Cek apakah input_file berupa module
     # if os.name == 'nt' and len(input_file)>1:
     #     input_file=[input_file[0]]
     # if len(input_file) > 1:
@@ -74,10 +76,9 @@ def jasper_export(input_file, output_file=None, schema=None,
     #     input_file = os.path.join(path, input_file[1])
     # else:
     #     input_file=input_file[0]
-    module_file = None
     if len(input_file) > 1:
         if os.name == 'nt':
-            if len(input_file) > 2:
+            if len(input_file) > 2:  # Cek apakah file berbentuk "C:\module_folder\filename.jrxml"
                 module_file = input_file[0]
                 input_file = ":".join([input_file[1], input_file[2]])
             else:
@@ -86,11 +87,10 @@ def jasper_export(input_file, output_file=None, schema=None,
             module_file = input_file[0]
             input_file = input_file[1]
 
-        if module_file:
-            path = __import__(module_file)
-            path = os.path.dirname(path.__file__)
-            input_file = os.path.join(path, input_file)
-
+    if module_file:
+        path = __import__(module_file)
+        path = os.path.dirname(path.__file__)
+        input_file = os.path.join(path, input_file)
     else:
         input_file = input_file[0]
 
@@ -98,7 +98,13 @@ def jasper_export(input_file, output_file=None, schema=None,
 
     if not output_file:
         output_file = get_params("tmp_report", "/tmp")
-    output_file = os.path.join(output_file, get_random_string(32))
+    if out_file:
+        log.debug(f"File name to generate: {out_file}")
+        out_file = os.path.splitext(out_file)[0]
+        output_file = os.path.join(output_file, out_file)
+    else:
+        output_file = os.path.join(output_file, get_random_string(32))
+
     db_connection = use_db and jasper_db_conn(
         db_schema=db_schema, dburl=dburl) or {}
     pyreportjasper = PyReportJasper()
