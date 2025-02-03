@@ -230,6 +230,7 @@ def get_id_card_folder(ext=None):
         if not os.path.exists(folder + ext):
             os.makedirs(folder + ext)
         return folder + ext
+    log.debug("IDCard Folder: {folder}")
     return folder
 
 
