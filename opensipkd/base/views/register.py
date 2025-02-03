@@ -31,6 +31,7 @@ from datetime import datetime
 
 import colander
 from deform import (widget, FileData, ValidationFailure)
+from opensipkd.pbb.esppt.tools import date_from_str
 from opensipkd.tools import Upload, mem_tmp_store, image_validator
 from opensipkd.tools.buttons import btn_cancel, btn_register, btn_save
 from pyramid.httpexceptions import HTTPFound
@@ -421,10 +422,21 @@ class Registrasi(BaseView):
             try:
                 c = form.validate(controls)
             except ValidationFailure as e:
-                return dict(form=form.render(e.cstruct),
-                            table=table and table.render() or None,
-                            scripts=self.form_scripts, css=resources["css"],
-                            js=resources["js"])
+                value = self.before_add()
+                for f in e.field.children:
+                    if isinstance(f.typ, colander.Date):
+                        e.cstruct[f.name] = date_from_str(
+                            e.cstruct[f.name])
+                    if f.name == "captcha":
+                        e.cstruct[f.name] = self.get_captcha_url()
+                value.update(e.cstruct)
+                form.set_appstruct(e.cstruct)
+                return self.returned_form(form, table, **kwargs)
+
+                # return dict(form=form.render(e.cstruct),
+                #            table=table and table.render() or None,
+                #            scripts=self.form_scripts, css=resources["css"],
+                #            js=resources["js"])
             values = dict(c)
             row = self.save_request(values)
             self.after_add(row=row, values=values)
