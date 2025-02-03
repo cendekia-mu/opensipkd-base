@@ -222,15 +222,15 @@ def get_ini_params(request, params=None, alternate=None, settings=None):
     return get_params(params, alternate, settings)
 
 
-def get_id_card_folder(ext=None):
-    folder = get_params("partner_idcard_folder", '/tmp/idcard')
+def get_id_card_folder(ext=None, settings=None):
+    folder = get_params("partner_idcard_folder", '/tmp/idcard', settings=settings)
     if ext:
         if ext and os.sep != '/':
             ext = ext.replace('/', '\\')
         if not os.path.exists(folder + ext):
             os.makedirs(folder + ext)
+        log.info(f"IDCard Folder: {folder+ext}")
         return folder + ext
-    log.debug("IDCard Folder: {folder}")
     return folder
 
 
@@ -604,8 +604,9 @@ def get_config(settings):
     config.add_static_view('static', 'opensipkd.base:static',
                            cache_max_age=3600)
     config.add_static_view(partner_idcard_url,
-                           get_id_card_folder("/"),
+                           get_id_card_folder("/", settings=settings),
                            cache_max_age=3600)
+    
     config.add_static_view('deform_static', 'deform:static')
 
     captcha_files = get_params('captcha_files', settings=settings,
