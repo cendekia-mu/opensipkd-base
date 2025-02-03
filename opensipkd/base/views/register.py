@@ -416,6 +416,7 @@ class Registrasi(BaseView):
 
     def next_add(self, form, **kwargs):
         table = kwargs.get("table")
+        kwargs.pop("table", None)
         resources = kwargs.get("resources")
         if 'register' in self.req.POST:
             controls = self.req.POST.items()
