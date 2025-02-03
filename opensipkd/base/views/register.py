@@ -26,7 +26,6 @@ Link dalam module registrasi:
 4. Form edit registrasi http://server/register/{uid}/edit
 5. Form Upload template
 """
-import base64
 import logging
 from datetime import datetime
 
@@ -294,12 +293,16 @@ class Registrasi(BaseView):
 
     def before_add(self):
         result = {}
+        # email = self.req.user and self.req.user.email or ""
+        # return {"email": email}
+
         if "id_info" in self.ses and self.ses['id_info']:
             result = self.ses["id_info"]
             result.update(dict(
                 nama=" ".join([result["given_name"], result["family_name"]])))
         if need_captcha():
             result.update(dict(captcha=get_url_captcha(self.req)))
+        print(result)
         return result
 
     # def after_save(self, row, values):
@@ -310,18 +313,18 @@ class Registrasi(BaseView):
 
     @view_config(route_name='register', renderer='templates/form.pt')
     def view_register(self):
+        self.bindings = dict(user=None)
+        request = self.req
+        if request.user:
+            return HTTPFound(location=get_urls(request.route_url("profile")))
+
         if "g_state" in self.req.cookies:
             if "id_info" not in self.ses or not self.ses["id_info"]:
                 return HTTPFound(location=get_urls(self.req.route_url("login")))
 
-        request = self.req
         reg_form = get_params("reg_form")
         if reg_form:
             return HTTPFound(location=get_urls(self.req.route_url(reg_form)))
-
-        self.bindings = dict(user=None)
-        if request.user:
-            return HTTPFound(location=get_urls(request.route_url("profile")))
 
         return super(Registrasi, self).view_add()
 
@@ -357,9 +360,7 @@ class Registrasi(BaseView):
                 d.pop("idcard")
         return d
 
-    def before_add(self):
-        email = self.req.user and self.req.user.email or ""
-        return {"email": email}
+    # def before_add(self):
 
     @view_config(route_name='profile', renderer='templates/form.pt',
                  permission='view')

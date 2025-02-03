@@ -985,6 +985,11 @@ class BaseView(object):
     def save_file(self, values, field, path=None, filename=None):
         if field in values and values[field]:
             value = values[field]
+            file_name = value["filename"]
+            ext = get_ext(file_name)
+            if ext not in self.upload_exts:
+                raise InvalidExtension(self.upload_exts)
+
             if "fp" in value and value["fp"] and value["fp"] != b'':
                 if not path:
                     path = get_params('tmp', '/tmp')
@@ -1004,6 +1009,7 @@ class BaseView(object):
                     os.rename(os.path.join(path, resp), new_resp_full)
                     return new_resp
                 return resp
+            return value["filename"]
 
 
 @colander.deferred
