@@ -141,6 +141,8 @@ def has_modules_(module_name, context=None):
 
 
 def _get_params(request, params, default=None, settings=None, context=None):
+    log.debug("_get_params")
+    log.debug(f"{params}, {default}")
     return get_params(params, default, settings)
 
 
@@ -158,7 +160,7 @@ def add_global(event):
     event['split'] = split
     event['allow_register'] = allow_register
     event['change_unit'] = change_unit
-    event['get_params'] = _get_params
+    event['get_params'] = get_params
     event['get_urls'] = get_urls
     event['get_csrf_token'] = get_csrf_token
     # event['get_params'] = get_params
@@ -180,6 +182,7 @@ def get_params(params, alternate=None, settings=None):
     contoh penggunaan:
         get_params('devel', False)
     """
+    log.debug("get_params")
     if not settings:
         settings = get_settings()
     result = settings and params in settings and \
