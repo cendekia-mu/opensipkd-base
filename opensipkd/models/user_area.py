@@ -42,3 +42,7 @@ class UserArea(DefaultModel, Base):
     @classmethod
     def get_by_user_id(cls, user_id):
         return cls.query().filter_by(user_id=user_id).all()
+
+    @classmethod
+    def user_area(cls, user_id):
+        return cls.query().filter(cls.user_id == user_id)
