@@ -104,6 +104,7 @@ class ViewPartner(BaseView):
         self.edit_schema = EditSchema
         self.table = Partner
         self.list_schema = ListSchema
+        self.save_state = True
 
     ########
     # List #
