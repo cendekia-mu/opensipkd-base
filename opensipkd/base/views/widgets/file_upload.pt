@@ -25,8 +25,8 @@
 
     <embed tal:condition="ext=='pdf'" src="${preview_url}" style="${style}" id="preview-${oid}">
   </div>
-  <a class="label label-default" href="${preview_url}" target="_blank" id="a-preview-${oid}"><i
-      class="fa fa-search"></i> View</a>
+  <a tal:condition="${preview_url}" class="label label-default" href="${preview_url}" target="_blank"
+    id="a-preview-${oid}"><i class="fa fa-search"></i> View</a>
 
   <input type="file" name="upload" id="${oid}" tal:attributes="style style;
           accept accept|field.widget.accept;
