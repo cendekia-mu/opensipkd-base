@@ -1,4 +1,5 @@
 import importlib
+import inspect
 import locale
 import logging
 import re
@@ -22,27 +23,13 @@ import datetime
 import decimal
 from sqlalchemy import engine_from_config, or_
 from .security import (
-    group_finder,
-    get_user, MySecurityPolicy,
-)
+    group_finder, get_user, MySecurityPolicy,)
 from pyramid.csrf import get_csrf_token
-
 from opensipkd.models import (
-    DBSession,
-    Base,
-    init_model,
-    Route,
-    Parameter)
+    DBSession, Base, Route, Parameter, init_model,)
 from opensipkd.tools import (
-    DefaultTimeZone,
-    money,
-    should_int,
-    thousand,
-    as_timezone,
-    split,
-    get_settings,
-    dmy, dmyhms,
-)
+    DefaultTimeZone, money, should_int, thousand, as_timezone, split,
+    get_settings, dmy, dmyhms,)
 
 from deform import ZPTRendererFactory, Form
 from pkg_resources import resource_filename
@@ -51,7 +38,7 @@ import os
 
 from opensipkd.models.handlers import LogDBSession
 
-log = logging.getLogger(__name__)
+_logging = logging.getLogger(__name__)
 
 # version 2.0.0 digunakan untuk change default template
 deform_templates = resource_filename('deform', 'templates')
@@ -62,9 +49,7 @@ renderer = ZPTRendererFactory(search_path)
 Form.set_zpt_renderer(search_path)
 main_title = 'openSIPKD'
 titles = {}
-static_route = [
-
-]
+static_route = []
 
 
 # http://stackoverflow.com/questions/9845669/pyramid-inverse-to-add-notfound-viewappend-slash-true
@@ -106,7 +91,7 @@ def add_cors_headers_response_callback(event):
             'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
             'Access-Control-Max-Age': '1728000',
         }
-        # log.info(f"{origin} {request.is_xhr}")
+        # _logging.info(f"{origin} {request.is_xhr}")
         # response.headers.update(
         #     {'Access-Control-Allow-Credential': 'true',
         #      'Access-Control-Allow-Origin': "*"}
@@ -118,7 +103,7 @@ def add_cors_headers_response_callback(event):
         if 'Access-Control-Allow-Credentials' not in headers:
             headers['Access-Control-Allow-Credentials'] = 'true'
 
-        # log.info(f"Headers: {headers}")
+        # _logging.info(f"Headers: {headers}")
         response.headers.update(headers)
 
     event.request.add_response_callback(cors_headers)
@@ -141,8 +126,11 @@ def has_modules_(module_name, context=None):
 
 
 def _get_params(request, params, default=None, settings=None, context=None):
-    log.debug("_get_params")
-    log.debug(f"{params}, {default}")
+    _logging.debug(f"_get_params: {params}, {default}")
+    curframe = inspect.currentframe()
+    calframe = inspect.getouterframes(curframe, 2)
+    _logging.debug('caller name:', calframe[1][3])
+
     return get_params(params, default, settings)
 
 
@@ -182,7 +170,8 @@ def get_params(params, alternate=None, settings=None):
     contoh penggunaan:
         get_params('devel', False)
     """
-    log.debug("get_params")
+    _logging.debug(f"get_params: {params}, {alternate}")
+
     if not settings:
         settings = get_settings()
     result = settings and params in settings and \
@@ -226,15 +215,21 @@ def get_ini_params(request, params=None, alternate=None, settings=None):
 
 
 def get_id_card_folder(ext=None, settings=None):
-    folder = get_params("partner_idcard_folder", '/tmp/idcard', settings=settings)
+    _logging.debug('get_id_card_folder')
+    idcard_files = get_params("partner_idcard_folder",
+                              '/tmp/idcard', settings=settings)
     if ext:
-        if ext and os.sep != '/':
-            ext = ext.replace('/', '\\')
-        if not os.path.exists(folder + ext):
-            os.makedirs(folder + ext)
-        log.info(f"IDCard Folder: {folder+ext}")
-        return folder + ext
-    return folder
+        idcard_files += ext
+        # if ext and os.sep != '/':
+        #     ext = ext.replace('/', '\\')
+
+    if os.sep != '/':
+        idcard_files = idcard_files.replace('/', '\\')
+
+    if not os.path.exists(idcard_files):
+        os.makedirs(idcard_files)
+    _logging.info(f"IDCard Files: {idcard_files}")
+    return idcard_files
 
 
 def allow_register(request):
@@ -509,8 +504,8 @@ def add_view_config(config, module, view_name):
                 params["permission"] = row.permission
             config.add_view(views.Views, **params)
         except Exception as e:
-            log.error(str(e))
-            log.error(dict(row.__dict__))
+            _logging.error(str(e))
+            _logging.error(dict(row.__dict__))
 
     config.scan('.')
 
@@ -527,7 +522,7 @@ def get_route_names(rows):
 
 
 def get_children(rows):
-    log.debug(f"Children: {dict(rows.__dict__)}")
+    _logging.debug(f"Children: {dict(rows.__dict__)}")
     return [dict(
         order_id=r.order_id,
         id=r.id,
@@ -547,7 +542,7 @@ def get_module_menus(module):
                 Route.parent_id == None)
 
     result = get_children(query.order_by(Route.order_id))
-    # log.debug(result)
+    # _logging.debug(result)
     return result
 
 
@@ -604,36 +599,42 @@ def get_config(settings):
 
     # config.add_translation_dirs('opensipkd.base:locale/')
 
+    partner_files = get_params("partner_files", settings=settings,
+                               alternate="/tmp/partner")
+    captcha_files = get_params('captcha_files', settings=settings,
+                               alternate="/tmp/captcha")
+
+    if os.sep != '/':
+        captcha_files = captcha_files.replace('/', '\\')
+        partner_files = partner_files.replace('/', '\\')
+
+    _logging.info(f"Captcha Files: {captcha_files}")
+    _logging.info(f"Partner Files: {partner_files}")
+    if not os.path.exists(captcha_files):
+        os.makedirs(captcha_files)
+    if not os.path.exists(partner_files):
+        os.makedirs(captcha_files)
+
     config.add_static_view('static', 'opensipkd.base:static',
                            cache_max_age=3600)
+
+    config.add_static_view('deform_static', 'deform:static')
+
     config.add_static_view(partner_idcard_url,
                            get_id_card_folder("/", settings=settings),
                            cache_max_age=3600)
-    
-    config.add_static_view('deform_static', 'deform:static')
-
-    captcha_files = get_params('captcha_files', settings=settings,
-                               alternate="/tmp/captcha")
-    if not os.path.exists(captcha_files):
-        os.makedirs(captcha_files)
 
     config.add_static_view('captcha', captcha_files)
-    config.add_static_view('partner/files',
-                           get_params("partner_files", settings=settings,
-                                      alternate="/tmp/partner"))
+    config.add_static_view('partner/files', partner_files)
 
     config.add_renderer('csv', 'opensipkd.tools.CSVRenderer')
     config.add_renderer('json', json_renderer())
     config.add_renderer('json_rpc', json_rpc())
-    set_routes(config)
-
-    routes_by_array(config)
-
     config.registry['mailer'] = mailer_factory_from_settings(settings)
+    set_routes(config)
+    routes_by_array(config)
     config.scan()
-    # for m in modules:
-    #     config.scan(m)
-
+    _logging.debug(config)
     return config
 
 

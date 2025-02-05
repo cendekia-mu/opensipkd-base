@@ -1,12 +1,11 @@
+import logging
 from datatables.clean_regex import clean_regex
 from datatables.search_methods import SEARCH_METHODS
-from sqlalchemy import (
-    String, Text,
-    or_,
-)
+from sqlalchemy import (String, Text, or_,)
 from sqlalchemy.dialects import oracle, mssql
 from datatables import DataTables as BaseDataTables, ColumnDT
-from opensipkd.base import log
+log = logging.getLogger(__name__)
+log.warning("opensipkd.base.captcha depreciated use opensipkd.tools.captcha")
 
 
 class DataTables(BaseDataTables):

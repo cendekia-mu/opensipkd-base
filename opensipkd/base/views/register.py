@@ -280,10 +280,11 @@ class Registrasi(BaseView):
             if not user or not UserService.check_password(
                     user, value['password']):
                 err_login()
+
         if "idcard" in value and value["idcard"]:
             idcard = value["idcard"]
-            path = get_id_card_folder()
             if "fp" in idcard and idcard["fp"] and idcard["fp"] != b'':
+                path = get_id_card_folder()
                 _logging.debug(idcard["fp"])
                 upload = Upload(path)
                 value["idcard"] = upload.save_fp(idcard)
@@ -386,7 +387,6 @@ class Registrasi(BaseView):
         row = super().save_request(values, row)
 
         if not self.req.user:  # User Baru
-
             user = User()
             user.email = row.email
             user.user_name = row.email
@@ -434,9 +434,6 @@ class Registrasi(BaseView):
                 form.set_appstruct(e.cstruct)
                 return self.returned_form(form, table, **kwargs)
 
-                # return dict(form=form.render(e.cstruct),
-                #            table=table and table.render() or None,
-                #            scripts=self.form_scripts, css=resources["css"],
                 #            js=resources["js"])
             values = dict(c)
             row = self.save_request(values)

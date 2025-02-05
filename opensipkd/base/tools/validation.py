@@ -1,5 +1,6 @@
+import logging
+from opensipkd.tools.validation import *
 from opensipkd.tools.report import *
-from opensipkd.base import log
+log = logging.getLogger(__name__)
 
 log.warning("Opensipkd.base.tools.pbb depreciated use opensipkd.tools.pbb")
-from opensipkd.tools.validation import *

@@ -1,3 +1,4 @@
-from opensipkd.base import log
+import logging
 from opensipkd.tools.pbb import *
+log = logging.getLogger(__name__)
 log.warning("Opensipkd.base.tools.pbb depreciated use opensipkd.tools.pbb")
