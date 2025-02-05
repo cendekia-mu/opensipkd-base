@@ -91,7 +91,7 @@ class ListSchema(colander.Schema):
 
     def after_bind(self, schema, kw):
         request = kw.get("request")
-        self["idcard"].url = request.static_url(get_id_card_folder("/"))
+        # self["idcard"].url = request.static_url(get_id_card_folder("/"))
 
 
 class ViewPartner(BaseView):
