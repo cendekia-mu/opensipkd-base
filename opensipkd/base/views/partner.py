@@ -86,6 +86,8 @@ class ListSchema(colander.Schema):
         colander.Boolean(),
         widget=widget.CheckboxWidget(),
         oid="status")
+    created = colander.SchemaNode(
+        colander.String())
 
     def after_bind(self, schema, kw):
         request = kw.get("request")
