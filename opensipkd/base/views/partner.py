@@ -44,7 +44,7 @@ class AddSchema(PartnerSchema):
         title="Company")
 
     def after_bind(self, schema, kwargs):
-        # super().after_bind(schema, kwargs)
+        super().after_bind(schema, kwargs)
         request = kwargs["request"]
         if request.user.company_id:
             self["company_id"].widget = widget.HiddenWidget()
@@ -58,8 +58,7 @@ class EditSchema(AddSchema):
                              )
 
     def after_bind(self, schema, kwargs):
-        pass
-        # super().after_bind(schema, kwargs)
+        super().after_bind(schema, kwargs)
 
 
 class ListSchema(colander.Schema):
