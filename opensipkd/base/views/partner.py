@@ -237,6 +237,15 @@ class ViewPartner(BaseView):
                 err_kode()
         elif found:
             err_kode()
+        if "idcard" in value and value["idcard"]:
+            idcard = value["idcard"]
+            if "fp" in idcard and idcard["fp"] and idcard["fp"] != b'':
+                path = get_id_card_folder()
+                upload = Upload(path)
+                value["idcard"] = upload.save_fp(idcard)
+
+            else:
+                value.pop("idcard")
 
         value['is_vendor'] = 'is_vendor' in value and \
                              value['is_vendor'] and 1 or 0
@@ -264,14 +273,14 @@ class ViewPartner(BaseView):
         return result
 
     def save_request(self, values, row=None):
-        if "idcard" in values and values["idcard"]:
-            if str(self.req.POST['upload']) != "":
-                folder = self.get_params("idcard_folder", '/tmp/idcard')
-                upload = Upload(folder)
-                file_name = upload.save(self.req, 'upload', img_exts)
-                values["idcard"] = file_name
-            else:
-                del values["idcard"]
+        # if "idcard" in values and values["idcard"]:
+        #     if str(self.req.POST['upload']) != "":
+        #         folder = self.get_params("idcard_folder", '/tmp/idcard')
+        #         upload = Upload(folder)
+        #         file_name = upload.save(self.req, 'upload', img_exts)
+        #         values["idcard"] = file_name
+        #     else:
+        #         del values["idcard"]
 
         row = super().save_request(values, row)
         return row
