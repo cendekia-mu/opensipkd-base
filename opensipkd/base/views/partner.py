@@ -110,12 +110,12 @@ class ViewPartner(BaseView):
                  permission='user-view')
     def view_list(self):
         new_buttons = {"kta":
-                           {"obj": "kta",
-                            "js": """if (m{tableid}ID!=null)  
+                       {"obj": "kta",
+                        "js": """if (m{tableid}ID!=null)  
                                      window.location=o{tableid}Uri+'/'+m{tableid}ID+'/kta?{params}';
                                      else displayEmptyID();
                                      """
-                            },
+                        },
                        "ktp":
                            {"obj": Button("ktp", title=_('KTP'), css_class="btn-danger"),
                             "js": """if (m{tableid}ID!=null)  
@@ -279,8 +279,7 @@ class ViewPartner(BaseView):
         if "idcard" in d and d["idcard"]:
             filename = d["idcard"]
             url = self.req.static_url(get_id_card_folder("/"))
-            preview_url = "/".join(
-                [url, filename])
+            preview_url = "/".join([url, filename]).replace("//", '/')
             d["idcard"] = {"uid": filename.split(".")[0],
                            "filename": filename,
                            "preview_url": preview_url
@@ -289,6 +288,8 @@ class ViewPartner(BaseView):
 
     def before_delete(self, row):
         PartnerFiles.query().filter_by(partner_id=row.id).delete()
+
+
 @colander.deferred
 def partner_widget(node, kw):
     values = kw.get('partner_list', [])

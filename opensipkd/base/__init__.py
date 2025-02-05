@@ -613,7 +613,7 @@ def get_config(settings):
     if not os.path.exists(captcha_files):
         os.makedirs(captcha_files)
     if not os.path.exists(partner_files):
-        os.makedirs(captcha_files)
+        os.makedirs(partner_files)
 
     config.add_static_view('static', 'opensipkd.base:static',
                            cache_max_age=3600)
