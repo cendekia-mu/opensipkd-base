@@ -1,3 +1,4 @@
+import logging
 import colander
 from deform import (
     widget, Button,
@@ -17,7 +18,7 @@ from .company import company_widget
 from .partner_base import PartnerSchema
 # from .. import partner_idcard_url
 from ..views import BaseView
-
+log = logging.getLogger(__name__)
 _ = TranslationStringFactory("opensipkd")
 
 SESS_ADD_FAILED = 'Tambah partner gagal'
@@ -43,7 +44,7 @@ class AddSchema(PartnerSchema):
         title="Company")
 
     def after_bind(self, schema, kwargs):
-        super().after_bind(schema, kwargs)
+        # super().after_bind(schema, kwargs)
         request = kwargs["request"]
         if request.user.company_id:
             self["company_id"].widget = widget.HiddenWidget()
@@ -57,7 +58,8 @@ class EditSchema(AddSchema):
                              )
 
     def after_bind(self, schema, kwargs):
-        super().after_bind(schema, kwargs)
+        pass
+        # super().after_bind(schema, kwargs)
 
 
 class ListSchema(colander.Schema):
@@ -91,7 +93,7 @@ class ListSchema(colander.Schema):
 
     def after_bind(self, schema, kw):
         request = kw.get("request")
-        # self["idcard"].url = request.static_url(get_id_card_folder("/"))
+        self["idcard"].url = request.static_url(get_id_card_folder("/"))
 
 
 class ViewPartner(BaseView):
@@ -292,6 +294,7 @@ class ViewPartner(BaseView):
             filename = d["idcard"]
             url = self.req.static_url(get_id_card_folder("/"))
             preview_url = "/".join([url, filename]).replace("//", '/')
+            log.info(preview_url)
             d["idcard"] = {"uid": filename.split(".")[0],
                            "filename": filename,
                            "preview_url": preview_url
