@@ -293,7 +293,7 @@ class ViewPartner(BaseView):
         if "idcard" in d and d["idcard"]:
             filename = d["idcard"]
             url = self.req.static_url(get_id_card_folder("/"))
-            preview_url = "/".join([url, filename]).replace("//", '/')
+            preview_url = "/".join([url, filename])
             log.info(preview_url)
             d["idcard"] = {"uid": filename.split(".")[0],
                            "filename": filename,
