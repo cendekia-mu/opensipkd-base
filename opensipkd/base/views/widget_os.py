@@ -488,7 +488,7 @@ class MapWidget(Widget):
 
     def __init__(self, **kw):
         super().__init__(**kw)
-        _logging.info(self.gmap_data_style)
+        _logging.debug(self.gmap_data_style)
         self.gmap_data_style = json.dumps(self.gmap_data_style)
 
     def serialize(self, field, cstruct, **kw):
@@ -505,7 +505,7 @@ class MapWidget(Widget):
             "removable": not readonly,
         }
         self.gmap_data_style = json.dumps(gmap_data_style)
-        _logging.info(self.gmap_data_style)
+        _logging.debug(self.gmap_data_style)
 
         values = self.get_template_values(field, cstruct, kw)
         return field.renderer(template, **values)

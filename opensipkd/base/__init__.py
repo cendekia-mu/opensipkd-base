@@ -522,7 +522,7 @@ def get_route_names(rows):
 
 
 def get_children(rows):
-    _logging.debug(f"Children: {dict(rows.__dict__)}")
+    # _logging.debug(f"Children: {dict(rows.__dict__)}")
     return [dict(
         order_id=r.order_id,
         id=r.id,

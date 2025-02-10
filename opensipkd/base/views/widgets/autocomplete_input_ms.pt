@@ -18,13 +18,28 @@
     deform.addCallback(
       '${oid}',
       function (oid) {
-        $('#' + oid + '-auto_value').typeahead(${structure: options});
+        $('#' + oid + '-auto_value').typeahead(${ structure: options });
         if ("${autofocus}" == "autofocus") {
           $('#' + oid + '-auto_value').focus();
         }
 
         $('#' + oid + '-auto_value').bind('typeahead:selected', function (obj, datum, name) {
           $('#' + oid + '-auto_id').val(datum.id);
+          var not_check = ["id", "value"];
+          $.each(datum, function (key, val) {
+            if (!not_check.includes(key)) {
+              var ele = $('#' + key);
+              if (ele !== undefined) {
+                var eleName = ele.prop('nodeName').toLowerCase();
+                if (eleName === "select")
+                  $("#" + key).val(val).trigger("change");
+                else if (eleName === "input")
+                  $("#" + key).val(val);
+                else
+                  $("#" + key).text(val);
+              }
+            }
+          });
           $('#' + oid + '-auto_id').change();
         });
 
