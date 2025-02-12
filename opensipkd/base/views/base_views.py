@@ -709,19 +709,17 @@ class BaseView(object):
                     c = form.validate(controls)
                 except ValidationFailure as e:
                     value = self.before_add()
-                    # value = self.validation_failure(e.cstruct)
-                    # value.update(self.before_add())
-                    # form.render(appstruct=value)
-                    # log.debug(e.cstruct)
-                    # log.debug(e.field)
-                    # efield = e.field
                     for f in e.field.children:
                         if isinstance(f.typ, colander.Date):
                             e.cstruct[f.name] = date_from_str(
                                 e.cstruct[f.name])
                         if f.name == "captcha":
                             e.cstruct[f.name] = self.get_captcha_url()
-                    value.update(e.cstruct)
+                        # if e.cstruct[f.name]:
+                    for k in value:
+                        if not e.cstruct.get(k):
+                            e.cstruct[k] = value[k]
+                    # value.update(e.cstruct)
                     form.set_appstruct(e.cstruct)
                     return self.returned_form(form, table, **kwargs)
 
