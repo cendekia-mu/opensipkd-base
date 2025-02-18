@@ -42,12 +42,19 @@ def table_has_seq(table, name, schema=None):
     return has_seq
 
 
-def fields_update(table, field, typ, schema=None, *args):
+def fields_update(table, field, typ, schema=None, **kw):
     context = op.get_context()
     # helpers = context.opts['helpers']
     # if not helpers.table_has_column(table, field, schema):
     if not table_has_column(table, field, schema):
         op.add_column(table, sa.Column(field, typ), schema=schema)
+        nullable = kw.get("nullable", None)
+        if nullable != None and nullable == False:
+            default = kw.get("default")
+            if default != None:
+                op.execute(
+                    f"UPDATE {schema}.{table} SET {field} = {default}")
+                op.alter_column(table, field, nullable=False, schema=schema)
 
 
 def seq_update(table, seq, schema=None, *args):

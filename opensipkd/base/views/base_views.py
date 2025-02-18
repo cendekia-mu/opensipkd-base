@@ -694,8 +694,18 @@ class BaseView(object):
     def get_captcha_url(self):
         return get_urls("/captcha/") + get_captcha(self.req)
 
+    def update_value(self, value, cstruct):
+        for k in cstruct:
+            val = cstruct.get(k)
+            if type(val) is dict:
+                value[k] = self.update_value(value[k], val)
+            elif val:
+                value[k] = cstruct.get(k)
+        return value
+
     def view_add(self, **kwargs):
         # bindings = self.get_bindings()
+
         form = self.get_form(self.add_schema, **kwargs)
         resources = form.get_widget_resources()
         is_object = kwargs.get("is_object", self.is_object)
@@ -716,11 +726,14 @@ class BaseView(object):
                         if f.name == "captcha":
                             e.cstruct[f.name] = self.get_captcha_url()
                         # if e.cstruct[f.name]:
-                    for k in value:
-                        if not e.cstruct.get(k):
-                            e.cstruct[k] = value[k]
+                    # cstruct = {}
+                    value = self.update_value(value, e.cstruct)
+                    # for k in cstruct:
+                    # if not e.cstruct.get(k):
+                    # e.cstruct[k] = value[k]
                     # value.update(e.cstruct)
-                    form.set_appstruct(e.cstruct)
+                    # value.update(cstruct)
+                    form.set_appstruct(value)
                     return self.returned_form(form, table, **kwargs)
 
                 values = dict(c)

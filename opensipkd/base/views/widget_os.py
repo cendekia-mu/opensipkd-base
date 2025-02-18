@@ -230,7 +230,7 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
 
     url = ""
     slave = ""
-    template = "autocomplete_input_ms.pt"
+    template = "autocomplete_input_ms"
 
     _pstruct_schema = SchemaNode(
         Mapping(),
