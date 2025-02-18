@@ -309,6 +309,27 @@ class BaseView(object):
         scroll_x = kwargs.get("scroll_x", self.scroll_x)
         html_buttons = kwargs.get("html_buttons", self.html_buttons)
         parent = kwargs.get("parent")
+
+        kwargs.pop("allow_view", None)
+        kwargs.pop("allow_edit", None)
+        kwargs.pop("allow_delete", None)
+        kwargs.pop("allow_post", None)
+        kwargs.pop("allow_unpost", None)
+        kwargs.pop("allow_check", None)
+        kwargs.pop("check_field", None)
+        kwargs.pop("state_save", None)
+        kwargs.pop("filter_columns", None)
+        kwargs.pop("server_side", None)
+        kwargs.pop("new_buttons", None)
+        kwargs.pop("is_object", None)
+        kwargs.pop("list_url", None)
+        kwargs.pop("action_suffix", None)
+        kwargs.pop("list_schema", None)
+        kwargs.pop("scroll_y", None)
+        kwargs.pop("scroll_x", None)
+        kwargs.pop("html_buttons", None)
+        kwargs.pop("parent", None)
+
         if list_schema:
             if parent:
                 action_suffix += f'?parent_id={parent.id}'
@@ -344,7 +365,8 @@ class BaseView(object):
                             server_side=server_side,
                             scroll_y=scroll_y,
                             scroll_x=scroll_x,
-                            html_buttons=html_buttons
+                            html_buttons=html_buttons,
+                            **kwargs
                             )
             resources = table.get_widget_resources()
             # resources=dict(css="", js="")
@@ -748,6 +770,13 @@ class BaseView(object):
         values = self.before_add()
         form.set_appstruct(values)
         return self.returned_form(form, table, **kwargs)
+
+    def view_act(self, **kwargs):
+        if self.req.matchdict['act'] == 'grid':
+            if self.req.params.get("paren"):
+                return self.get_list(**kwargs)
+            return self.get_list(**kwargs)
+        return super().view_act(**kwargs)
 
     def save(self, values, user, row=None):
         log.info("Save")
