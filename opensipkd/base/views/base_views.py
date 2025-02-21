@@ -720,6 +720,8 @@ class BaseView(object):
         for k in cstruct:
             val = cstruct.get(k)
             if type(val) is dict:
+                if k not in value:
+                    value[k] = {}
                 value[k] = self.update_value(value[k], val)
             elif val:
                 value[k] = cstruct.get(k)
@@ -747,14 +749,7 @@ class BaseView(object):
                                 e.cstruct[f.name])
                         if f.name == "captcha":
                             e.cstruct[f.name] = self.get_captcha_url()
-                        # if e.cstruct[f.name]:
-                    # cstruct = {}
                     value = self.update_value(value, e.cstruct)
-                    # for k in cstruct:
-                    # if not e.cstruct.get(k):
-                    # e.cstruct[k] = value[k]
-                    # value.update(e.cstruct)
-                    # value.update(cstruct)
                     form.set_appstruct(value)
                     return self.returned_form(form, table, **kwargs)
 
@@ -770,13 +765,6 @@ class BaseView(object):
         values = self.before_add()
         form.set_appstruct(values)
         return self.returned_form(form, table, **kwargs)
-
-    def view_act(self, **kwargs):
-        if self.req.matchdict['act'] == 'grid':
-            if self.req.params.get("paren"):
-                return self.get_list(**kwargs)
-            return self.get_list(**kwargs)
-        return super().view_act(**kwargs)
 
     def save(self, values, user, row=None):
         log.info("Save")
@@ -890,7 +878,7 @@ class BaseView(object):
 
         form = self.get_form(self.edit_schema, **kwargs)
         table = self.get_item_table(row)
-        resources = form.get_widget_resources()
+        values = self.get_values(row)
         if request.POST:
             if 'save' in request.POST:
                 controls = request.POST.items()
@@ -899,7 +887,14 @@ class BaseView(object):
                     controls = form.validate(controls)
                 except ValidationFailure as e:
                     log.error(f"Edit Error: {str(e.error.msg)}")
-                    form.set_appstruct(e.cstruct)
+                    for f in e.field.children:
+                        if isinstance(f.typ, colander.Date):
+                            e.cstruct[f.name] = date_from_str(
+                                e.cstruct[f.name])
+                        if f.name == "captcha":
+                            e.cstruct[f.name] = self.get_captcha_url()
+                    values = self.update_value(values, e.cstruct)
+                    form.set_appstruct(values)
                     return self.returned_form(form, table, **kwargs)
 
                 c = dict(controls)
@@ -908,7 +903,6 @@ class BaseView(object):
 
             return self.next_edit(form, row=row)
 
-        values = self.get_values(row)
         form.set_appstruct(values)
         form = self.before_edit(form)
 

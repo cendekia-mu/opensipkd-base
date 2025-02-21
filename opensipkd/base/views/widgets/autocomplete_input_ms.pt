@@ -3,8 +3,8 @@
                   oid oid|field.oid;
                   style style|field.widget.style;
                   autofocus autofocus|field.autofocus;
-                  url url|field.widget.url;
                   slave slave|field.widget.slave;
+                  url url|field.widget.url;
                   " tal:omit-tag="">
   ${field.start_mapping()}
   <input type="hidden" name="auto_id" id="${oid}-auto_id" value="${auto_id}" />
@@ -28,15 +28,22 @@
           var not_check = ["id", "value"];
           $.each(datum, function (key, val) {
             if (!not_check.includes(key)) {
-              var ele = $('#' + key);
-              if (ele !== undefined) {
-                var eleName = ele.prop('nodeName').toLowerCase();
+              var eleName = $('#' + key).prop('nodeName');
+
+              if (eleName !== undefined) {
+                eleName = eleName.toLowerCase();
                 if (eleName === "select")
                   $("#" + key).val(val).trigger("change");
                 else if (eleName === "input")
                   $("#" + key).val(val);
                 else
                   $("#" + key).text(val);
+              } else {
+                //Check apakah jika radio button
+                eleName = $("input[name ='" + key + "']").prop('type');
+                if (eleName == "radio") {
+                  $("input[name ='" + key + "'][value='" + val + "']").prop('checked', true);
+                }
               }
             }
           });

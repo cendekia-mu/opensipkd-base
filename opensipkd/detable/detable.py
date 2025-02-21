@@ -265,6 +265,8 @@ class DeTable(field.Field):
                 d["action"] = f.action
             else:
                 d["action"] = True
+            if hasattr(f, "search_method"):
+                d["search_method"] = f.search_method
 
             if isinstance(f.widget, deform_widget.HiddenWidget):
                 d["visible"] = False
@@ -441,18 +443,27 @@ class DeTable(field.Field):
             html += '</select>'
 
         elif isinstance(f.typ, colander.Date):
-            html += f'<div class="form-group" {txt}>'
-            html += f'<label class="form-label" style="font-size:12px">{f.title}</label>'
-            html += f'<div class="input-group input-daterange" style="padding: 3px 0px 7px !important;">'
-            html += f'<input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
-            html += f'data-index={field_index} placeholder="{f.title} Awal"'
-            html += f'name="{col_id}" id="{col_id}-min"/>'
-            html += f'<div class="input-group-addon">-</div>'
-            html += f'<input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
-            html += f'data-index={field_index} placeholder="{f.title} Akhir" '
-            html += f'name="{col_id}" id="{col_id}-max" /></span>'
-            html += f'</div>'
-            html += f'</div>'
+            search_method = getattr(f, "search_method", None)
+            if search_method == "date":
+                # html += f'<div class="tooltip">'
+                html += f'<label class="form-label" style="font-size:12px">{f.title}</label>'
+                html += f'<input type="date" class="form-control {self.tableid}-control-filter"'
+                html += f'{txt}/>'
+                # html += f'<span class="tooltiptext">{f.title}</span>'
+                # html += f'</div>'
+            else:
+                html += f'<div class="form-group" {txt}>'
+                html += f'<label class="form-label" style="font-size:12px">{f.title}</label>'
+                html += f'<div class="input-group input-daterange" style="padding: 3px 0px 7px !important;">'
+                html += f'<input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
+                html += f'data-index={field_index} placeholder="{f.title} Awal"'
+                html += f'name="{col_id}" id="{col_id}-min"/>'
+                html += f'<div class="input-group-addon">-</div>'
+                html += f'<input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
+                html += f'data-index={field_index} placeholder="{f.title} Akhir" '
+                html += f'name="{col_id}" id="{col_id}-max" /></span>'
+                html += f'</div>'
+                html += f'</div>'
             """
             awal
             html += f'<div class="form-group" {txt}>'
