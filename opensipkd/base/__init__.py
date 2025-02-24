@@ -467,6 +467,37 @@ def _set_routes2(config, module="base"):
                 route.kode, route.path, default_renderer="json_rpc")
     return q
 
+def _add_view_config(config, view_name, route):
+    if route.get("type") == 0:
+        config.add_route(route.get("kode"), route.get("path"))
+        if route.get("nama"):
+            titles[route.get("kode")] = route.get("nama")
+    elif route.get("type") == 1:
+        config.add_jsonrpc_endpoint(route.get("kode"), route.get("path"),
+                                        default_renderer="json_rpc")
+    if not route.get("def_func"):
+        return
+
+    class_view = route.get("class_view") and f".{route.get('class_view')}" or ""
+    class_name = f"{view_name}{class_view}"
+    attr = f"view_{route.get("def_func")}"
+    try:
+        _views = importlib.import_module(class_name)
+        views = _views
+        if route.get("template") == "json":
+            renderers = route.get("template")
+        else:
+            renderers = "views/templates/" + route.get("template")
+        params = dict(attr=f"{attr}", route_name=route.get("kode"),
+                        renderer=renderers)
+        if route.get("permission"):
+            params["permission"] = route.get("permission")
+        config.add_view(views.Views, **params)
+    except Exception as e:
+            _logging.error(str(e))
+            _logging.error(route)
+
+
 
 def add_view_config(config, module, view_name):
     """
