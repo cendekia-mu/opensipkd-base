@@ -4,6 +4,7 @@ home-auth,/home,Home Auth,1,
 home-about,/home/{id}/about,Home About,1
 login,/login,Login,1,0,
 logout,/logout,Logout,1,0,
+recreate-api-key,/recreate-api-key,Buat ulang API Key,1
 rpc,/rpc,RPC,1,1,
 change-password,/password/{code},Ubah password,1,
 password,/password,Ubah password,1,
@@ -69,7 +70,6 @@ parameter-act,/parameter/{act}/act,Act parameter,
 upload-logo,/upload/logo,Unggah Logo,
 upload-background,/upload/background,Unggah Background,
 user-rpt,/user/{rpt}/rpt,Urser Report,
-group-rpt,/group/{rpt}/rpt,Group Report,
 routes-rpt,/routes/{rpt}/rpt,Routes Report,
 partner,/partner,Partner,
 partner-add,/partner/add,Partner Add,
@@ -95,8 +95,6 @@ departemen-user-view,/departemen/user/{id}/view,User Organisasi view,1,0,
 departemen-user-del,/departemen/user/{id}/del,User Organisasi Hapus,1,0,
 departemen-user-rpt,/departemen/user/{rpt}/rpt,User Organisasi Report,1,0,
 rpc-user,/rpc/user,WebService User Management,1,1,
-recreate-api-key,/recreate-api-key,Buat ulang API Key,1,
-googleOauth2,/googleOauth2,'Google OAuth2',1
 googleOauth2,/googleOauth2,'Google OAuth2',1
 googlesignin,/googlesignin, "Google SignIn",1
 permission,/permission,Daftar Permission,1
