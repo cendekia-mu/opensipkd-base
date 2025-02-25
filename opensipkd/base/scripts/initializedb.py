@@ -429,7 +429,7 @@ def main(argv=sys.argv):
         append_csv(Permission, 'permissions.csv', ['perm_name'])
         append_csv(GroupPermission, 'group_permission.csv',
                    ['group_id', 'perm_name'])
-        append_csv(Route, 'routes.csv', ['kode'])
+        # append_csv(Route, 'routes.csv', ['kode'])
         append_csv(Menus, 'menus.csv', ['kode'])
         append_csv(Eselon, 'eselon.csv', ['kode'])
         append_csv(Jabatan, 'jabatan.csv', ['kode'])
