@@ -480,7 +480,7 @@ def _add_view_config(config, view_name, route):
 
     class_view = route.get("class_view") and f".{route.get('class_view')}" or ""
     class_name = f"{view_name}{class_view}"
-    attr = f"view_{route.get("def_func")}"
+    attr = f"view_{route.get('def_func')}"
     try:
         _views = importlib.import_module(class_name)
         views = _views
