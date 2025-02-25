@@ -1,3 +1,4 @@
+import csv
 import importlib
 import inspect
 import locale
@@ -26,7 +27,8 @@ from .security import (
     group_finder, get_user, MySecurityPolicy,)
 from pyramid.csrf import get_csrf_token
 from opensipkd.models import (
-    DBSession, Base, Route, Parameter, init_model,)
+    DBSession, Base, Parameter, init_model,)
+# Route,
 from opensipkd.tools import (
     DefaultTimeZone, money, should_int, thousand, as_timezone, split,
     get_settings, dmy, dmyhms,)
@@ -133,6 +135,7 @@ def _get_params(request, params, default=None, settings=None, context=None):
 
     return get_params(params, default, settings)
 
+BASE_MENUS=[]
 
 @subscriber(BeforeRender)
 def add_global(event):
@@ -152,8 +155,9 @@ def add_global(event):
     event['get_urls'] = get_urls
     event['get_csrf_token'] = get_csrf_token
     # event['get_params'] = get_params
-    event['get_module_menus'] = get_module_menus
-    event['get_module_submenus'] = get_module_submenus
+    # event['get_module_menus'] = get_module_menus
+    # event['get_module_submenus'] = get_module_submenus
+    event['get_base_menus'] = BASE_CLASS.get_menus()
 
 
 # def get_params(request, params, alternate=None, settings=None):
@@ -436,46 +440,50 @@ def get_home(request):
     return request.route_url('home')[:-1]
 
 
-def _set_routes1(config, app_id):
-    q = DBSession.query(Route).filter(Route.path != None,
-                                      Route.module == None, Route.status == 1)
-    if not app_id:
-        q.filter(or_(Route.app_id == 0, None == Route.app_id))
-    else:
-        q.filter(Route.app_id == app_id)
+# def _set_routes1(config, app_id):
+#     q = DBSession.query(Route).filter(Route.path != None,
+#                                       Route.module == None, Route.status == 1)
+#     if not app_id:
+#         q.filter(or_(Route.app_id == 0, None == Route.app_id))
+#     else:
+#         q.filter(Route.app_id == app_id)
 
-    for route in q:
-        if route.type == 0:
-            config.add_route(route.kode, route.path)
-            if route.nama:
-                titles[route.kode] = route.nama
-        elif route.type == 1:
-            config.add_jsonrpc_endpoint(route.kode, route.path,
+#     for route in q:
+#         if route.type == 0:
+#             config.add_route(route.kode, route.path)
+#             if route.nama:
+#                 titles[route.kode] = route.nama
+#         elif route.type == 1:
+#             config.add_jsonrpc_endpoint(route.kode, route.path,
+#                                         default_renderer="json_rpc")
+
+
+# def _set_routes2(config, module="base"):
+#     q = DBSession.query(Route).filter(
+#         Route.module == module, Route.status == 1)
+#     for route in q:
+#         if route.type == 0:
+#             config.add_route(route.kode, route.path)
+#             if route.nama:
+#                 titles[route.kode] = route.nama
+#         elif route.type == 1:
+#             config.add_jsonrpc_endpoint(
+#                 route.kode, route.path, default_renderer="json_rpc")
+#     return q
+
+
+def _add_route(config, route):
+        if int(route.get("type",0)) == 0:
+            config.add_route(route.get("kode"), route.get("path"))
+        elif int(route.get("type")) == 1:
+            config.add_jsonrpc_endpoint(route.get("kode"), route.get("path"),
                                         default_renderer="json_rpc")
-
-
-def _set_routes2(config, module="base"):
-    q = DBSession.query(Route).filter(
-        Route.module == module, Route.status == 1)
-    for route in q:
-        if route.type == 0:
-            config.add_route(route.kode, route.path)
-            if route.nama:
-                titles[route.kode] = route.nama
-        elif route.type == 1:
-            config.add_jsonrpc_endpoint(
-                route.kode, route.path, default_renderer="json_rpc")
-    return q
-
-
-def _add_view_config(config, view_name, route):
-    if route.get("type") == 0:
-        config.add_route(route.get("kode"), route.get("path"))
         if route.get("nama"):
             titles[route.get("kode")] = route.get("nama")
-    elif route.get("type") == 1:
-        config.add_jsonrpc_endpoint(route.get("kode"), route.get("path"),
-                                        default_renderer="json_rpc")
+
+def _add_view_config(config, view_name, route):
+    _add_route(config, route)
+
     if not route.get("def_func"):
         return
 
@@ -498,53 +506,53 @@ def _add_view_config(config, view_name, route):
             _logging.error(str(e))
             _logging.error(route)
 
-def add_view_config(config, module, view_name):
-    """
-    Digunakan untuk mengenerate view_config berdasarkan tabel Routes
-    config: config
-    module: application module
-    views: class or file tobe imported
-    """
-    q = DBSession.query(Route).filter(
-        Route.module == module, Route.status == 1)
-    for row in q.all():
-        if row.type == 0:
-            config.add_route(row.kode, row.path)
-            if row.nama:
-                titles[row.kode] = row.nama
-        elif row.type == 1:
-            config.add_jsonrpc_endpoint(row.kode, row.path,
-                                        default_renderer="json_rpc")
-        if not row.def_func:
-            continue
+# def add_view_config(config, module, view_name):
+#     """
+#     Digunakan untuk mengenerate view_config berdasarkan tabel Routes
+#     config: config
+#     module: application module
+#     views: class or file tobe imported
+#     """
+#     q = DBSession.query(Route).filter(
+#         Route.module == module, Route.status == 1)
+#     for row in q.all():
+#         if row.type == 0:
+#             config.add_route(row.kode, row.path)
+#             if row.nama:
+#                 titles[row.kode] = row.nama
+#         elif row.type == 1:
+#             config.add_jsonrpc_endpoint(row.kode, row.path,
+#                                         default_renderer="json_rpc")
+#         if not row.def_func:
+#             continue
 
-        class_view = row.class_view and f".{row.class_view}" or ""
-        class_name = f"{view_name}{class_view}"
-        attr = f"view_{row.def_func}"
-        try:
-            _views = importlib.import_module(class_name)
-            views = _views
-            if row.template == "json":
-                renderers = row.template
-            else:
-                renderers = "views/templates/" + row.template
-            params = dict(attr=f"{attr}", route_name=row.kode,
-                          renderer=renderers)
-            if row.permission:
-                params["permission"] = row.permission
-            config.add_view(views.Views, **params)
-        except Exception as e:
-            _logging.error(str(e))
-            _logging.error(dict(row.__dict__))
+#         class_view = row.class_view and f".{row.class_view}" or ""
+#         class_name = f"{view_name}{class_view}"
+#         attr = f"view_{row.def_func}"
+#         try:
+#             _views = importlib.import_module(class_name)
+#             views = _views
+#             if row.template == "json":
+#                 renderers = row.template
+#             else:
+#                 renderers = "views/templates/" + row.template
+#             params = dict(attr=f"{attr}", route_name=row.kode,
+#                           renderer=renderers)
+#             if row.permission:
+#                 params["permission"] = row.permission
+#             config.add_view(views.Views, **params)
+#         except Exception as e:
+#             _logging.error(str(e))
+#             _logging.error(dict(row.__dict__))
 
-    config.scan('.')
+#     config.scan('.')
 
 
-def set_routes(config, app_id=None):
-    if app_id and type(app_id) == str:
-        return _set_routes2(config, app_id)
-    else:
-        return _set_routes1(config, app_id)
+# def set_routes(config, app_id=None):
+#     if app_id and type(app_id) == str:
+#         return _set_routes2(config, app_id)
+#     else:
+#         return _set_routes1(config, app_id)
 
 
 def get_route_names(rows):
@@ -565,22 +573,22 @@ def get_children(rows):
     ) for r in rows if r.is_menu and r.status == 1]
 
 
-def get_module_menus(module):
-    query = DBSession.query(Route) \
-        .filter(Route.module == module,
-                Route.is_menu == 1,
-                Route.parent_id == None)
+# def get_module_menus(module):
+#     query = DBSession.query(Route) \
+#         .filter(Route.module == module,
+#                 Route.is_menu == 1,
+#                 Route.parent_id == None)
 
-    result = get_children(query.order_by(Route.order_id))
-    # _logging.debug(result)
-    return result
+#     result = get_children(query.order_by(Route.order_id))
+#     # _logging.debug(result)
+#     return result
 
 
-def get_module_submenus(parent_id):
-    q = DBSession.query(Route) \
-        .filter(Route.parent_id == parent_id) \
-        .order_bY(Route.order_id)
-    return [r.kode for r in q.all()]
+# def get_module_submenus(parent_id):
+#     q = DBSession.query(Route) \
+#         .filter(Route.parent_id == parent_id) \
+#         .order_bY(Route.order_id)
+#     return [r.kode for r in q.all()]
 
 
 partner_idcard_url = 'partner/idcard'
@@ -610,8 +618,6 @@ def get_config(settings):
     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(get_host, '_host', reify=True)
     config.add_request_method(get_host, 'home', reify=True)
-    # config.add_request_method(get_captcha_url, 'captcha', reify=True)
-    # config.add_request_method(get_urls, 'route_urls', reify=True)
     config.add_request_method(google_signin_client_id,
                               'google_signin_client_id', reify=True)
     config.add_request_method(google_signin_client_ids,
@@ -661,8 +667,10 @@ def get_config(settings):
     config.add_renderer('json', json_renderer())
     config.add_renderer('json_rpc', json_rpc())
     config.registry['mailer'] = mailer_factory_from_settings(settings)
-    set_routes(config)
-    routes_by_array(config)
+    # set_routes(config)
+    BASE_CLASS.route_from_csv(config)
+    BASE_CLASS.route_from_list(config)
+    # routes_by_array(config)
     config.scan()
     _logging.debug(config)
     return config
@@ -705,12 +713,71 @@ def main(global_config, **settings):
     return get_config(settings=settings).make_wsgi_app()
 
 
-def routes_by_array(config, routs=routes):
-    # New Routes By Array
-    for route in routs:
-        if len(route) > 4 and str(route[4]) == '1':
-            config.add_jsonrpc_endpoint(
-                route[0], route[1], default_renderer="json_rpc")
-        else:
-            config.add_route(route[0], route[1])
-        titles[route[0]] = route[2]
+
+def get_route_file(filename):
+    base_dir = os.path.split(__file__)[0]
+    fullpath = os.path.join(base_dir, 'scripts', 'data', filename)
+    return open(fullpath)
+
+class BaseApp():
+    def __init__(self):
+        self.menus = []
+
+    def route_from_csv(self, config, get_file=get_route_file):
+        with get_file("routes.csv") as f:
+            rows = csv.DictReader(f)
+            self.add_menu(config, rows)
+            
+    def route_from_list(self, config, routs=routes):
+        new_routes = []
+        for route in routs:
+            d = {"kode": route[0],
+                 "path": route[1],
+                 "nama": route[2],
+                 "type": len(route)>4 and route[4] or 0
+                 }
+            new_routes.append(d)
+
+        self.add_menu(config, new_routes)
+
+    def add_menu(self, config, route_menus, parent=None):
+        route_names = []
+        for route in route_menus:
+            route["route_names"]=[route["kode"]]
+            route["permission"] = route.get("permission", "")
+            route["icon"] = route.get("icon", None)
+            route_type = route.get("type", 0)
+            if route_type=="" or route_type==None:
+                route_type = 0
+            else:
+                route_type = int(route_type)
+            route["type"] = route_type
+            route["is_menu"] = route.get("is_menu", 0)
+            route["path"] = route.get("path", "#")
+            children = route.get("children", [])
+            route["children"]=[]
+            if route.get("class_view"):
+                _add_view_config(config, "opensipkd.coba.views", route)
+            elif route["path"] != "#":
+                _add_route(config, route)
+
+            if route.get("is_menu", None):
+                if not parent:
+                    self.menus.append(route)
+                else: 
+                    parent["children"].append(route)
+            if children:
+                route["route_names"].extend(
+                    self.add_menu(config, children, route)
+                )
+            route_names.append(route["kode"])
+        return route_names
+    
+    def get_menus(self):
+        return self.menus
+
+
+BASE_CLASS = BaseApp()
+
+        
+
