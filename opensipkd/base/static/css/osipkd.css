@@ -1,12 +1,12 @@
 body {
-  font-family: "Open Sans", "Helvetica Neue",  Helvetica, Arial, sans-serif; 
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-weight: 300;
   --color: #ffffff;
   --background: #bc2131;
   font-size: 12px !important;
   padding-top: 40px;
 }
-  
+
 h1,
 h2,
 h3,
@@ -21,107 +21,116 @@ legend {
 }
 
 .bar {
-    height: 18px;
-    background: green;
+  height: 18px;
+  background: green;
 }
 
 .twitter-typeahead .tt-query,
 .twitter-typeahead .tt-hint {
-margin-bottom: 0;
-width: 100%;
-height: 26px;
-position: absolute;
-top: 0;
-left: 0;
-} 
+  margin-bottom: 0;
+  width: 100%;
+  height: 26px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
 .twitter-typeahead .tt-hint {
-color: #a1a1a1;
-z-index: 1;
-padding: 3px 6px;
-border: 1px solid transparent;
-} 
+  color: #a1a1a1;
+  z-index: 1;
+  padding: 3px 6px;
+  border: 1px solid transparent;
+}
+
+.select2-container .select2-selection--single .select2-selection__rendered {
+  /* display: block; */
+  /* padding-left: 8px; */
+  /* padding-right: 20px; */
+  overflow: hidden;
+  /* text-overflow: ellipsis; */
+  /* white-space: nowrap; */
+  padding: 3px 6px;
+}
 .form-control {
   font-size: 12px;
   padding: 3px 6px !important;
   height: 26px;
 }
-.btn  {
+.btn {
   font-size: 12px;
   padding: 3px 6px;
   height: 26px;
 }
 
-.input-group-addon{
+.input-group-addon {
   padding: 3px 6px;
   height: 26px;
   font-size: 12px;
-  
 }
 
-.picker__select--month, .picker__select--year {
-    padding: 0.1em;
-    /*height: 3em;*/
+.picker__select--month,
+.picker__select--year {
+  padding: 0.1em;
+  /*height: 3em;*/
 }
 
 .container {
-    --max-width: 1024px;
+  --max-width: 1024px;
 }
 
 .container .info {
-    font-size: 18px;
-    padding: 14px;
-    color: #fff;
+  font-size: 18px;
+  padding: 14px;
+  color: #fff;
 }
 
-.container .btn-menu  {
-    text-align: left;
-    font-size: 16px;
-    padding: 14px 24px;
-    border-radius: 6px;
-    border: 0px none;
-    width: 100%;
-    margin-bottom: 10px;
+.container .btn-menu {
+  text-align: left;
+  font-size: 16px;
+  padding: 14px 24px;
+  border-radius: 6px;
+  border: 0px none;
+  width: 100%;
+  margin-bottom: 10px;
 }
 
-.container .btn-login  {
-    font-size: 18px;
-    padding: 10px 20px;
-    border-radius: 6px;
-    border: 0px none;
-    background: #BC2131;
-    background-image: linear-gradient(to bottom, #C6414E 0px, #BC2131 100%);
-    background-repeat: repeat-x;
+.container .btn-login {
+  font-size: 18px;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: 0px none;
+  background: #bc2131;
+  background-image: linear-gradient(to bottom, #c6414e 0px, #bc2131 100%);
+  background-repeat: repeat-x;
 
-    margin-top:20px;
+  margin-top: 20px;
 }
 
-.container .btn-logout  {
-    margin-top:12px;
+.container .btn-logout {
+  margin-top: 12px;
 }
 
-.container .btn-login:hover  {
-    background: #BC2131;
+.container .btn-login:hover {
+  background: #bc2131;
 }
 
-.container .btn-login  .label {
-    display: block;
-    font-size: 8px;
+.container .btn-login .label {
+  display: block;
+  font-size: 8px;
 }
-
 
 /* dataTables Customize */
 table.dataTable thead {
-    background-color: #EAEAEA;
+  background-color: #eaeaea;
 }
 
 table.dataTable tr.even.selected td {
-	background-color: #B0BED9;
+  background-color: #b0bed9;
 }
 table.dataTable tr.odd.selected td {
-	background-color: #9FAFD1;
+  background-color: #9fafd1;
 }
 table.dataTable tr.selected td {
-	background-color: #9FAFD1;
+  background-color: #9fafd1;
 }
 
 /*
@@ -169,7 +178,7 @@ div.tab-content {
 }
 */
 .form-horizontal .form-group {
-    margin-bottom: 4px !important; 
+  margin-bottom: 4px !important;
 }
 
 .picker {
@@ -189,6 +198,6 @@ div.tab-content {
   font-size: 10px !important;
 }
 
-.paginate_button .current{
+.paginate_button .current {
   font-size: 10px !important;
 }

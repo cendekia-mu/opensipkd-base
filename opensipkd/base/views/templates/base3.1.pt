@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en-us"
-         tal:define="
+<html lang="en-us" tal:define="
         home request._host;
         user_path  ['user', 'user-add', 'user-edit', 'user-view', 'user-delete'];
         user_area_path  ['user-area', 'user-area-add', 'user-area-edit', 'user-area-view', 'user-area-delete'];
@@ -22,6 +21,7 @@
         js js|[];
         route_name route_name|request.matched_route.name;
         ">
+
 <head>
 
     <!--<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">-->
@@ -41,302 +41,316 @@
 
     <!-- Basic Styles -->
     <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/bootstrap.min.css">
-<!--?    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/font-awesome.min.css">-->
-    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/fonts/fontawesome-free-6.1.2-web/css/all.min.css">
+    <!--?    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/font-awesome.min.css">-->
+    <link rel="stylesheet" type="text/css" media="screen"
+        href="${home}/static/v3/fonts/fontawesome-free-6.1.2-web/css/all.min.css">
 
     <!-- SmartAdmin Styles : Caution! DO NOT change the order -->
     <link rel="stylesheet" type="text/css" media="screen"
-          href="${home}/static/v3/css/smartadmin-production-plugins.min.css">
-    <link rel="stylesheet" type="text/css" media="screen"
-          href="${home}/static/v3/css/smartadmin-production.min.css">
-    <link rel="stylesheet" type="text/css" media="screen"
-          href="${home}/static/v3/css/smartadmin-skins.min.css">
+        href="${home}/static/v3/css/smartadmin-production-plugins.min.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/smartadmin-production.min.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/smartadmin-skins.min.css">
 
     <!-- We recommend you use "your_style.css" to override SmartAdmin
          specific styles this will also ensure you retrain your customization with each SmartAdmin update. -->
 
     <!-- LOOP FORM CSS INCLUDED-->
     <tal:loop tal:repeat="css_resource css">
-        <link rel="stylesheet" href="${home}${request.static_path(css_resource)}"
-              type="text/css" tal:condition="css_resource[:4]!='http'">
-      <link rel="stylesheet" href="${css_resource}"
-              type="text/css" tal:condition="css_resource[:4]=='http'">
+        <link rel="stylesheet" href="${home}${request.static_path(css_resource)}" type="text/css"
+            tal:condition="css_resource[:4]!='http'">
+        <link rel="stylesheet" href="${css_resource}" type="text/css" tal:condition="css_resource[:4]=='http'">
     </tal:loop>
     <!--?    <link href="${home}/static/v3/js/plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css"-->
     <!--?          rel="stylesheet">-->
     <link href="${home}/deform_static/css/form.css" rel="stylesheet">
     <!--?    <link href="${home}/static/v3/css/select2.min.css" rel="stylesheet" type="text/css">-->
     <metal:css define-slot="css_files"></metal:css>
-    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/osipkd.css">
+
 </head>
 
 <body class="fixed-header">
-<div id="loading" style="display:none;">
-    <img id="loading-image" src="${home}/static/img/ajax-loader.gif" alt="Loading..."/>
-</div>
-
-<!-- #HEADER -->
-<header id="header">
-    <div id="logo-group">
-        <!-- PLACE YOUR LOGO HERE -->
-        <h3 id="logo">
-            <a href="${home}/"><img src="${home}/static/img/logo.png" alt="LOGO"></a>
-        </h3>
-        <!-- END LOGO PLACEHOLDER -->
+    <link rel="stylesheet" type="text/css" media="screen" href="${home}/static/v3/css/osipkd.css">
+    <div id="loading" style="display:none;">
+        <img id="loading-image" src="${home}/static/img/ajax-loader.gif" alt="Loading..." />
     </div>
 
-    <!-- #PROJECTS: projects dropdown -->
-    <div class="project-context hidden-xs">
-        <span class="title-page">${request.title}</span>
-    </div>
-    <!-- end projects dropdown -->
+    <!-- #HEADER -->
+    <header id="header">
+        <div id="logo-group">
+            <!-- PLACE YOUR LOGO HERE -->
+            <h3 id="logo">
+                <a href="${home}/"><img src="${home}/static/img/logo.png" alt="LOGO"></a>
+            </h3>
+            <!-- END LOGO PLACEHOLDER -->
+        </div>
 
-    <!-- #TOGGLE LAYOUT BUTTONS -->
-    <!-- pulled right: nav area -->
-    <div class="pull-right">
-        <div tal:condition="request.user" class="project-context hidden-xs">
-            <span class="label"><i class="fa fa-sm fa-fw fa-institution"></i> ${request.company}</span>
-            <span tal:condition="request.user" class="project-selector dropdown-toggle" data-toggle="dropdown">Pilih Module <i
-                    class="fa fa-angle-down"></i></span>
-            <ul tal:condition="request.user" class="dropdown-menu">
-                <li tal:repeat="menu request.menus">
-                    <a href="${home}/${menu}">${request.menus[menu]}</a>
+        <!-- #PROJECTS: projects dropdown -->
+        <div class="project-context hidden-xs">
+            <span class="title-page">${request.title}</span>
+        </div>
+        <!-- end projects dropdown -->
+
+        <!-- #TOGGLE LAYOUT BUTTONS -->
+        <!-- pulled right: nav area -->
+        <div class="pull-right">
+            <div tal:condition="request.user" class="project-context hidden-xs">
+                <span class="label"><i class="fa fa-sm fa-fw fa-institution"></i> ${request.company}</span>
+                <span tal:condition="request.user" class="project-selector dropdown-toggle" data-toggle="dropdown">Pilih
+                    Module <i class="fa fa-angle-down"></i></span>
+                <ul tal:condition="request.user" class="dropdown-menu">
+                    <li tal:repeat="menu request.menus">
+                        <a href="${home}/${menu}">${request.menus[menu]}</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- collapse menu button -->
+            <div id="hide-menu" class="btn-header pull-right">
+                <span> <a href="javascript:void(0);" data-action="toggleMenu" title="Collapse Menu"><i
+                            class="fa fa-reorder"></i></a> </span>
+            </div>
+            <!-- end collapse menu -->
+
+            <!-- fullscreen button -->
+            <div id="fullscreen" class="btn-header transparent pull-right">
+                <span> <a href="javascript:void(0);" data-action="launchFullscreen" title="Full Screen">
+                        <i class="fa fa-arrows-alt"></i></a> </span>
+            </div>
+            <!-- end fullscreen button -->
+
+            <!-- User info -->
+            <ul tal:condition="request.user" class="header-dropdown-list hidden-xs">
+                <li>
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-lg fa-fw fa-user"></i>
+                        <span style="text-transform:capitalize"> ${request.user and request.user.nice_username() or ""}
+                        </span>
+                        <i class="fa fa-angle-down"></i> </a>
+                    <ul class="dropdown-menu pull-right">
+                        <li><a style="text-transform:capitalize" href="${request.route_url('profile')}">Profile</a></li>
+                        <li tal:condition="not request.user.external">
+                            <a style="text-transform:capitalize" href="${request.route_url('password')}">Ubah
+                                password</a>
+                        </li>
+                        <li><a style="text-transform:capitalize" href="${request.route_url('logout')}">Logout</a></li>
+                        <li tal:condition="request.user.api_key"><a style="text-transform:capitalize"
+                                href="${home}/recreate-api-key">API Key</a></li>
+                        <li tal:condition="'core' in request.modules and change_unit(request)">
+                            <a style="text-transform:capitalize" href="${home}/departemen/chg">Ubah
+                                Organisasi</a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
+            <!-- end user info -->
         </div>
-        <!-- collapse menu button -->
-        <div id="hide-menu" class="btn-header pull-right">
-            <span> <a href="javascript:void(0);" data-action="toggleMenu" title="Collapse Menu"><i
-                    class="fa fa-reorder"></i></a> </span>
-        </div>
-        <!-- end collapse menu -->
-
-        <!-- fullscreen button -->
-        <div id="fullscreen" class="btn-header transparent pull-right">
-            <span> <a href="javascript:void(0);" data-action="launchFullscreen" title="Full Screen">
-                <i class="fa fa-arrows-alt"></i></a> </span>
-        </div>
-        <!-- end fullscreen button -->
-
-        <!-- User info -->
-        <ul tal:condition="request.user" class="header-dropdown-list hidden-xs">
-            <li>
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-lg fa-fw fa-user"></i> <span
-                        style="text-transform:capitalize"> ${request.user and request.user.nice_username() or ""} </span>
-                    <i class="fa fa-angle-down"></i> </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a style="text-transform:capitalize" href="${request.route_url('profile')}">Profile</a></li>
-                    <li tal:condition="not request.user.external">
-                        <a style="text-transform:capitalize" href="${request.route_url('password')}">Ubah password</a>
-                    </li>
-                    <li><a style="text-transform:capitalize" href="${request.route_url('logout')}">Logout</a></li>
-                    <li tal:condition="request.user.api_key"><a
-                            style="text-transform:capitalize"
-                            href="${home}/recreate-api-key">API Key</a></li>
-                    <li tal:condition="'core' in request.modules and change_unit(request)">
-                        <a style="text-transform:capitalize"
-                           href="${home}/departemen/chg">Ubah
-                            Organisasi</a></li>
-                </ul>
-            </li>
-        </ul>
-        <!-- end user info -->
-    </div>
-    <!-- end pulled right: nav area -->
-</header>
-<!-- END HEADER -->
+        <!-- end pulled right: nav area -->
+    </header>
+    <!-- END HEADER -->
 
 
-<!-- Left panel : Navigation area -->
-<!-- Note: This width of the aside area can be adjusted through LESS variables -->
-<aside id="left-panel" style="padding-bottom:67px">
-    <!-- NAVIGATION : This navigation is also responsive-->
-    <nav style="">
-        <!-- Modul Menu -->
-        <ul metal:define-slot="navs"></ul>
-        <!-- Admin Menu -->
-        <ul tal:condition="has_permission(request, user_path)" style="margin-top: 0; padding-top: 0;">
-            <li>
-                <a href="#"><i class="fa fa-lg fa-fw fa-shield"></i><span class="menu-item-parent">Admin</span></a>
-                <ul>
-                    <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                             tal:attributes="class  route_name in user_path and 'active'">
-                        <a href="${home}/user">User</a>
-                    </li>
-                    <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                             tal:attributes="class  route_name in user_area_path and 'active'">
-                        <a href="${home}/user/area">User Area</a>
-                    </li>
-                  <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                             tal:attributes="class  route_name in user_dep_path and 'active'">
-                        <a href="${home}/user/departemen">User Departemen</a>
-                    </li>
-                    <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                             tal:attributes="class  route_name in user_ext_path and 'active'">
-                        <a href="${home}/user/ext">External User</a>
-                    </li>
-                    <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                             tal:attributes="class route_name in group_path and 'active'">
-                        <a href="${home}/group">Group</a>
-                    </li>
-                    <li tal:condition="has_permission(request, 'upload-logo')"
-                             tal:attributes="class route_name in ['upload-logo'] and 'active'">
-                        <a href="${home}/upload/logo">Upload Logo</a></li>
-                    <li tal:condition="has_permission(request, 'parameter')"
-                             tal:attributes="class route_name in param_path and 'active'">
-                        <a href="${home}/parameter">Parameter</a></li>
-                    <li tal:condition="has_permission(request, 'company')"
-                             tal:attributes="class route_name in company_path  and 'active'">
-                        <a href="${home}/company">Pemerintah</a></li>
-                    <li tal:condition="has_permission(request, 'eselon')"
-                             tal:attributes="class route_name in eselon_path and 'active'">
-                        <a href="${home}/eselon">Eselon</a></li>
-                    <li tal:condition="has_permission(request, 'jabatan')"
-                             tal:attributes="class  route_name in jabatan_path and 'active'">
-                        <a href="${home}/jabatan">Jabatan</a></li>
+    <!-- Left panel : Navigation area -->
+    <!-- Note: This width of the aside area can be adjusted through LESS variables -->
+    <aside id="left-panel" style="padding-bottom:67px">
+        <!-- NAVIGATION : This navigation is also responsive-->
+        <nav style="">
+            <!-- Modul Menu -->
+            <ul metal:define-slot="navs"></ul>
+            <!-- Admin Menu -->
+            <ul tal:condition="has_permission(request, user_path)" style="margin-top: 0; padding-top: 0;">
+                <li>
+                    <a href="#"><i class="fa fa-lg fa-fw fa-shield"></i><span class="menu-item-parent">Admin</span></a>
+                    <ul>
+                        <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
+                            tal:attributes="class  route_name in user_path and 'active'">
+                            <a href="${home}/user">User</a>
+                        </li>
+                        <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
+                            tal:attributes="class  route_name in user_area_path and 'active'">
+                            <a href="${home}/user/area">User Area</a>
+                        </li>
+                        <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
+                            tal:attributes="class  route_name in user_dep_path and 'active'">
+                            <a href="${home}/user/departemen">User Departemen</a>
+                        </li>
+                        <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
+                            tal:attributes="class  route_name in user_ext_path and 'active'">
+                            <a href="${home}/user/ext">External User</a>
+                        </li>
+                        <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
+                            tal:attributes="class route_name in group_path and 'active'">
+                            <a href="${home}/group">Group</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'upload-logo')"
+                            tal:attributes="class route_name in ['upload-logo'] and 'active'">
+                            <a href="${home}/upload/logo">Upload Logo</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'parameter')"
+                            tal:attributes="class route_name in param_path and 'active'">
+                            <a href="${home}/parameter">Parameter</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'company')"
+                            tal:attributes="class route_name in company_path  and 'active'">
+                            <a href="${home}/company">Pemerintah</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'eselon')"
+                            tal:attributes="class route_name in eselon_path and 'active'">
+                            <a href="${home}/eselon">Eselon</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'jabatan')"
+                            tal:attributes="class  route_name in jabatan_path and 'active'">
+                            <a href="${home}/jabatan">Jabatan</a>
+                        </li>
 
-                    <li tal:condition="has_permission(request, 'departemen')"
-                             tal:attributes="class route_name in dep_path  and 'active'">
-                        <a href="${home}/departemen">Departemen</a></li>
-                    <li tal:condition="has_permission(request, 'partner')"
-                             tal:attributes="class route_name in partner_path  and 'active'">
-                        <a href="${home}/partner">Partner</a></li>
-                    <li tal:condition="has_permission(request, 'partner-departemen')"
-                             tal:attributes="class route_name in part_dep_path and 'active'">
-                        <a href="${home}/partner/departemen">Partner Departemen</a></li>
-                    <li tal:condition="has_permission(request, 'provinsi')"
-                             tal:attributes="class route_name in provinsi_path and 'active'">
-                        <a href="${home}/provinsi">Provinsi</a></li>
-                    <li tal:condition="has_permission(request, 'dati2')"
-                             tal:attributes="class  route_name in dati2_path and 'active'">
-                        <a href="${home}/dati2">Kabupaten/Kota</a></li>
-                    <li tal:condition="has_permission(request, 'kecamatan')"
-                             tal:attributes="class  route_name in kecamatan_path and 'active'">
-                        <a href="${home}/kecamatan">Kecamatan</a></li>
-                    <li tal:condition="has_permission(request, 'desa')"
-                             tal:attributes="class  route_name in desa_path and 'active'">
-                        <a href="${home}/desa">Desa/Kelurahan</a></li>
-                    <li tal:condition="has_permission(request, 'log')"
-                             tal:attributes="class route_name in ['log'] and 'active'">
-                        <a href="${home}/log">Log</a></li>
+                        <li tal:condition="has_permission(request, 'departemen')"
+                            tal:attributes="class route_name in dep_path  and 'active'">
+                            <a href="${home}/departemen">Departemen</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'partner')"
+                            tal:attributes="class route_name in partner_path  and 'active'">
+                            <a href="${home}/partner">Partner</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'partner-departemen')"
+                            tal:attributes="class route_name in part_dep_path and 'active'">
+                            <a href="${home}/partner/departemen">Partner Departemen</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'provinsi')"
+                            tal:attributes="class route_name in provinsi_path and 'active'">
+                            <a href="${home}/provinsi">Provinsi</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'dati2')"
+                            tal:attributes="class  route_name in dati2_path and 'active'">
+                            <a href="${home}/dati2">Kabupaten/Kota</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'kecamatan')"
+                            tal:attributes="class  route_name in kecamatan_path and 'active'">
+                            <a href="${home}/kecamatan">Kecamatan</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'desa')"
+                            tal:attributes="class  route_name in desa_path and 'active'">
+                            <a href="${home}/desa">Desa/Kelurahan</a>
+                        </li>
+                        <li tal:condition="has_permission(request, 'log')"
+                            tal:attributes="class route_name in ['log'] and 'active'">
+                            <a href="${home}/log">Log</a>
+                        </li>
 
-                </ul>
-            </li>
-        </ul>
-    </nav>
-    <span class="minifyme" data-action="minifyMenu">
-      <i class="fa fa-arrow-circle-left hit"></i>
-  </span>
-    <span class="footer-side">&copy; OpenSIPKD.com
-     <script>document.write(new Date().getFullYear());</script>
-  </span>
-</aside>
-<!-- END NAVIGATION -->
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <span class="minifyme" data-action="minifyMenu">
+            <i class="fa fa-arrow-circle-left hit"></i>
+        </span>
+        <span class="footer-side">&copy; OpenSIPKD.com
+            <script>document.write(new Date().getFullYear());</script>
+        </span>
+    </aside>
+    <!-- END NAVIGATION -->
 
 
-<!-- JS -->
-<script src="${home}/static/v3/js/jquery-2.1.1.min.js"></script>
-<script>
-    if (!window.jQuery) {
-        document.write('<script src="${home}/static/v3/js/libs/jquery-2.1.1.min.js"><\/script>');
-    }
-</script>
-<!--?<script src="${home}/static/v3/js/jquery-ui-1.10.3.min.js"></script>-->
-<script>
-    // if (!window.jQuery.ui) {
-    <!--?    document.write('<script src="${home}/static/v3/js/libs/jquery-ui-1.10.3.min.js"><\/script>');-->
-    // }
-</script>
+    <!-- JS -->
+    <script src="${home}/static/v3/js/jquery-2.1.1.min.js"></script>
+    <script>
+        if (!window.jQuery) {
+            document.write('<script src="${home}/static/v3/js/libs/jquery-2.1.1.min.js"><\/script>');
+        }
+    </script>
+    <!--?<script src="${home}/static/v3/js/jquery-ui-1.10.3.min.js"></script>-->
+    <script>
+        // if (!window.jQuery.ui) {
+        <!--?    document.write('<script src="${home}/static/v3/js/libs/jquery-ui-1.10.3.min.js"><\/script>');-->
+        // }
+    </script>
 
-<!-- IMPORTANT: APP CONFIG -->
-<script src="${home}/static/v3/js/app.config.js"></script>
+    <!-- IMPORTANT: APP CONFIG -->
+    <script src="${home}/static/v3/js/app.config.js"></script>
 
-<!-- BOOTSTRAP JS -->
-<script src="${home}/static/v3/js/bootstrap/bootstrap.min.js"></script>
+    <!-- BOOTSTRAP JS -->
+    <script src="${home}/static/v3/js/bootstrap/bootstrap.min.js"></script>
 
-<!-- FastClick: For mobile devices -->
-<script src="${home}/static/v3/js/plugin/fastclick/fastclick.min.js"></script>
+    <!-- FastClick: For mobile devices -->
+    <script src="${home}/static/v3/js/plugin/fastclick/fastclick.min.js"></script>
 
-<!--[if IE 8]>
+    <!--[if IE 8]>
 
 <h1>Your browser is out of date, please update your browser by going to www.microsoft.com/download</h1>
 
 <![endif]-->
 
-<!-- MAIN APP JS FILE -->
-<script src="${home}/static/v3/js/app.min.js"></script>
+    <!-- MAIN APP JS FILE -->
+    <script src="${home}/static/v3/js/app.min.js"></script>
 
-<!-- PAGE RELATED PLUGIN(S) -->
-<!--?<script src="${home}/static/v3/js/plugin/datatables/jquery.dataTables.min.js"></script>-->
-<!--?<script src="${home}/static/v3/js/plugin/datatables/dataTables.colVis.min.js"></script>-->
-<!--?<script src="${home}/static/v3/js/plugin/datatables/dataTables.tableTools.min.js"></script>-->
-<!--?<script src="${home}/static/v3/js/plugin/datatables/dataTables.bootstrap.min.js"></script>-->
-<!--?<script src="${home}/static/v3/js/plugin/datatable-responsive/datatables.responsive.min.js"></script>-->
+    <!-- PAGE RELATED PLUGIN(S) -->
+    <!--?<script src="${home}/static/v3/js/plugin/datatables/jquery.dataTables.min.js"></script>-->
+    <!--?<script src="${home}/static/v3/js/plugin/datatables/dataTables.colVis.min.js"></script>-->
+    <!--?<script src="${home}/static/v3/js/plugin/datatables/dataTables.tableTools.min.js"></script>-->
+    <!--?<script src="${home}/static/v3/js/plugin/datatables/dataTables.bootstrap.min.js"></script>-->
+    <!--?<script src="${home}/static/v3/js/plugin/datatable-responsive/datatables.responsive.min.js"></script>-->
 
-<!--?<script src="${home}/static/v3/js/plugin/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>-->
-<!--?<script src="${home}/static/v3/js/plugin/bootstrap-timepicker/bootstrap-timepicker.min.js"></script>-->
-<!--?<script src="${home}/deform_static/scripts/deform.js"></script>-->
-<!--?<script src="${home}/deform_static/scripts/typeahead.min.js"></script>-->
-<!--?<script src="${home}/deform_static/scripts/jquery.maskMoney-3.1.1.min.js"></script>-->
-<!--?<script src="${home}/deform_static/tinymce/tinymce.min.js"></script>-->
-<!--?<script src="${home}/static/v3/js/tools.js"></script>-->
-<!--?<script src="${home}/static/v3/js/notification/SmartNotification.min.js"></script>-->
-<!--?<script src="${home}/static/v3/js/plugin/masked-input/jquery.maskedinput.min.js"></script>-->
-<!--?<script src="${home}/static/v3/js/select2.full.min.js"></script>-->
-<!--?<script src="${home}/deform_static/scripts/file_upload.js"></script>-->
-<script src="${home}/static/v3/js/osipkd.js"></script>
-<!-- LOOP ON JS RESOURCE -->
-<tal:loop tal:repeat="js_resource js">
-    <script src="${home}${request.static_path(js_resource)}" tal:condition="js_resource[:4]!='http'"></script>
-    <script src="${js_resource}" tal:condition="js_resource[:4]=='http'"></script>
-</tal:loop>
+    <!--?<script src="${home}/static/v3/js/plugin/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>-->
+    <!--?<script src="${home}/static/v3/js/plugin/bootstrap-timepicker/bootstrap-timepicker.min.js"></script>-->
+    <!--?<script src="${home}/deform_static/scripts/deform.js"></script>-->
+    <!--?<script src="${home}/deform_static/scripts/typeahead.min.js"></script>-->
+    <!--?<script src="${home}/deform_static/scripts/jquery.maskMoney-3.1.1.min.js"></script>-->
+    <!--?<script src="${home}/deform_static/tinymce/tinymce.min.js"></script>-->
+    <!--?<script src="${home}/static/v3/js/tools.js"></script>-->
+    <!--?<script src="${home}/static/v3/js/notification/SmartNotification.min.js"></script>-->
+    <!--?<script src="${home}/static/v3/js/plugin/masked-input/jquery.maskedinput.min.js"></script>-->
+    <!--?<script src="${home}/static/v3/js/select2.full.min.js"></script>-->
+    <!--?<script src="${home}/deform_static/scripts/file_upload.js"></script>-->
+    <script src="${home}/static/v3/js/osipkd.js"></script>
+    <!-- LOOP ON JS RESOURCE -->
+    <tal:loop tal:repeat="js_resource js">
+        <script src="${home}${request.static_path(js_resource)}" tal:condition="js_resource[:4]!='http'"></script>
+        <script src="${js_resource}" tal:condition="js_resource[:4]=='http'"></script>
+    </tal:loop>
 
-<metal:js define-slot="js_files"></metal:js>
+    <metal:js define-slot="js_files"></metal:js>
 
-<!-- End isi Script-->
-<!-- MAIN PANEL -->
-<div id="main" role="main">
-    <!-- MAIN CONTENT -->
-    <div id="content">
+    <!-- End isi Script-->
+    <!-- MAIN PANEL -->
+    <div id="main" role="main">
+        <!-- MAIN CONTENT -->
+        <div id="content">
 
-        <!-- Error session flash -->
-        <div tal:condition="request.session.peek_flash()">
-            <div class="alert alert-success" tal:repeat="message request.session.pop_flash()"><i
-                    class="fa fa-fw fa-lg fa-check-circle"></i>&nbsp;${message}
+            <!-- Error session flash -->
+            <div tal:condition="request.session.peek_flash()">
+                <div class="alert alert-success" tal:repeat="message request.session.pop_flash()"><i
+                        class="fa fa-fw fa-lg fa-check-circle"></i>&nbsp;${message}
+                </div>
             </div>
-        </div>
-        <div tal:condition="request.session.peek_flash('error')">
-            <div class="alert alert-danger" tal:repeat="message request.session.pop_flash('error')"><i
-                    class="fa fa-fw fa-lg fa-times-circle"></i>&nbsp;${message}
+            <div tal:condition="request.session.peek_flash('error')">
+                <div class="alert alert-danger" tal:repeat="message request.session.pop_flash('error')"><i
+                        class="fa fa-fw fa-lg fa-times-circle"></i>&nbsp;${message}
+                </div>
             </div>
+            <!-- Error session flash -->
+
+            <!-- <div id="errors" name="errors"> -->
+            <div class="alert alert-danger" id="errors" name="errors" style="display:none;">errors</div>
+            <div class="alert alert-success" id="success" name="success" style="display:none;">success</div>
+            <!-- <div id="errors" name="errors"> -->
+
+            <!-- Global Alert -->
+            <div tal:condition="request.session.peek_flash()">
+                <div class="alert alert-success" tal:repeat="message request.session.pop_flash()">${message}</div>
+            </div>
+            <div tal:condition="request.session.peek_flash('error')">
+                <div class="alert alert-danger" tal:repeat="message request.session.pop_flash('error')">${message}</div>
+            </div>
+
+            <!-- End Global Alert -->
+
+            <!-- SLOT KONTEN -->
+            <div metal:define-slot="content"></div>
+            <!-- END SLOT KONTEN -->
+
         </div>
-        <!-- Error session flash -->
-
-        <!-- <div id="errors" name="errors"> -->
-        <div class="alert alert-danger" id="errors" name="errors" style="display:none;">errors</div>
-        <div class="alert alert-success" id="success" name="success" style="display:none;">success</div>
-        <!-- <div id="errors" name="errors"> -->
-
-        <!-- Global Alert -->
-        <div tal:condition="request.session.peek_flash()">
-            <div class="alert alert-success" tal:repeat="message request.session.pop_flash()">${message}</div>
-        </div>
-        <div tal:condition="request.session.peek_flash('error')">
-            <div class="alert alert-danger" tal:repeat="message request.session.pop_flash('error')">${message}</div>
-        </div>
-
-        <!-- End Global Alert -->
-
-        <!-- SLOT KONTEN -->
-        <div metal:define-slot="content"></div>
-        <!-- END SLOT KONTEN -->
-
+        <!-- END MAIN CONTENT -->
     </div>
-    <!-- END MAIN CONTENT -->
-</div>
-<!-- END MAIN PANEL -->
+    <!-- END MAIN PANEL -->
 
-<!-- Define Script-->
-<script metal:define-slot="scripts"></script>
+    <!-- Define Script-->
+    <script metal:define-slot="scripts"></script>
 </body>
+
 </html>

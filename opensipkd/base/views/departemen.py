@@ -78,7 +78,10 @@ class AddSchema(colander.Schema):
                                      missing=colander.drop,
                                      oid="company_id")
 
-    status = colander.SchemaNode(colander.Boolean(), oid="status")
+    status = colander.SchemaNode(
+        colander.Integer(),
+        widget=widget.CheckboxWidget(true_val='1', false_val='0'),
+        oid="status")
 
     def after_bind(self, schema, kwargs):
         request = kwargs["request"]

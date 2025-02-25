@@ -41,7 +41,7 @@
         <div class="row" tal:condition="filter_columns">
           <div id="${tableid}-form-filter-container" class="col-md-3">
             <div id="${tableid}-form-filter" class="collapse">
-                ${structure:filter_form}
+              ${structure:filter_form}
             </div>
           </div>
         </div>
@@ -57,7 +57,7 @@
           <script>
 
             $(document).ready(function () {
-              $(document).on("click",'.${tableid}checkAll',function () {
+              $(document).on("click", '.${tableid}checkAll', function () {
                 if (this.checked) {
                   $(".${tableid}_check").prop("checked", true);
                 } else {
@@ -69,18 +69,18 @@
         </div>
         <table id="${tableid}" class="table table-bordered table-hover table-condensed dataTable no-footer">
           <thead>
-          <tr>
-          <tr>
-            <tal:block tal:repeat="child field">
+            <tr>
+            <tr>
+              <tal:block tal:repeat="child field">
 
-              <tal:block tal:condition="python:not hasattr(child, 'visible') or getattr(child, 'visible')==True">
-                <th
-                     tal:condition="python:hasattr(child, 'action') and not getattr(child.condition)==False and False or True">
-                    ${child.title}  </th>
+                <tal:block tal:condition="python:not hasattr(child, 'visible') or getattr(child, 'visible')==True">
+                  <th
+                    tal:condition="python:hasattr(child, 'action') and not getattr(child.condition)==False and False or True">
+                    ${child.title} </th>
 
+                </tal:block>
               </tal:block>
-            </tal:block>
-          </tr>
+            </tr>
 
           </thead>
           <tbody></tbody>
@@ -105,20 +105,16 @@
     var o${tableid}Url = o${tableid}Uri + "${url_suffix}";
     var m${tableid}ID;
     var m${tableid}CheckList = [];
-    var check_field = ${check_field};
+    var check_field = ${ check_field };
     deform.addCallback('${tableid}', function (oid) {
-      // $(document).ready(function () {
-
-
       function displayEmptyID() {
         $("#emptyID").show();
-        $('#emptyID').animate({opacity: 0.8}, 2000);
+        $('#emptyID').animate({ opacity: 0.8 }, 2000);
         setTimeout(function () {
-              $("#emptyID").fadeTo(500, 0).slideUp(500, function () {
-                $("#emptyID").hide();
-              });
-            }
-            , 4000);
+          $("#emptyID").fadeTo(500, 0).slideUp(500, function () {
+            $("#emptyID").hide();
+          });
+        }, 4000);
       }
 
       let tb_array = [
@@ -147,28 +143,24 @@
       };
 
 
-      let ${tableid}Columns = ${structure: columns};
+      let ${tableid}Columns = ${ structure: columns };
 
       function render_checkbox(value) {
-        if (value === true) {
+        if (value === true) 
           return '<i class="fas fa-check-square" aria-hidden="true">';
-        }
-        if (value === false) {
+        if (value === false) 
           return '<i class="fas fa-minus-square" aria-hidden="true">';
-          //'Archived';
-        }
         return value;
       }
 
       function render_checklist(value) {
-
-        return '<input type="checkbox" class="${tableid}_check" checked="' + {value} + '"></input>';
+        return '<input type="checkbox" class="${tableid}_check" checked="' + { value } + '"></input>';
       }
 
 
       for (let co in ${tableid}Columns) {
         if (${tableid}Columns[co].wg_checkbox === true) {
-          ${tableid}Columns[co].render = function (value) {
+            ${tableid}Columns[co].render = function (value) {
             if (typeof value === "string" && value.length > 0) {
               return render_checkbox(value)
             }
@@ -177,134 +169,128 @@
             }
             return render_checkbox(false);
           }
-        //} 
-		//else if (${tableid}Columns[co].wg_select === true) {
-        //  ${tableid}Columns[co].render = function (value) {
-        //    if (value != null)
-        //      return ${tableid}Columns[co].wg_select_val[value];
-        //    return "";
-        //  }
-        } else if (${tableid}Columns[co].hasOwnProperty("url")) {
+          //} 
+          //else if (${tableid}Columns[co].wg_select === true) {
+          //  ${tableid}Columns[co].render = function (value) {
+          //    if (value != null)
+          //      return ${tableid}Columns[co].wg_select_val[value];
+          //    return "";
+          //  }
+        }else if (${tableid}Columns[co].hasOwnProperty("url")) {
           let url = ${tableid}Columns[co].url;
-          ${tableid}Columns[co].render = function (data) {
+            ${tableid}Columns[co].render = function (data) {
             let result = "No Data";
             if (data != null) {
               result = '<a href="' + url + data + '" target="_blank">Link</a>&nbsp;';
             }
             return result;
           }
-        } else if (${tableid}Columns[co].data === "id") {
+        }else if (${tableid}Columns[co].data === "id") {
           ${tableid}Columns[co].render = function (id, typ, data, setting) {
             if (${tableid}Columns[co].action === false) return ""
-
             let result = "";
-            if (${allow_check}) {
+            if (${ allow_check }) {
               var checked = "";
               if (check_field !== "") {
                 checked = data[check_field] !== null ? "checked" : "";
-                m${tableid}CheckList.push(id);
+                  m${tableid}CheckList.push(id);
 
               }
               var mtableId = "${tableid}";
               result = '<input type="checkbox" class="' + mtableId + '_check" value="' + id + '" ' + checked + ' name="' + mtableId + '_check"/>&nbsp;';
             }
-            if (${allow_view})
+            if (${ allow_view })
               result += '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
 
-            if (${allow_edit})
+            if (${ allow_edit })
               result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true" title="Edit"></i></a>&nbsp;'
 
-            if (${allow_delete})
+            if (${ allow_delete })
               result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true" title="Delete"></i></a>';
 
-            if (${allow_post})
+            if (${ allow_post })
               result += '<a href="${url}/' + id + '/post"><i class="fas fa-signs-post" aria-hidden="true" title="Post"></i></a>';
 
-            if (${allow_unpost})
+            if (${ allow_unpost })
               result += '<a href="${url}/' + id + '/unpost"><i class="fas fa-delete-left" aria-hidden="true" title="Unpost"></i></a>';
 
             return result;
           }
-          //columns[1].order = "order_asc";
         }
       }
 
 
-      let ${tableid}Params = {}
-
+      let ${tableid}Params = {};
       var param_ajax = "";
       var param_data = [];
-      if (!${server_side}) {
-        param_data = ${data};
-      } else {
-		 param_ajax = o${tableid}Url;
-      }
+      if (!${ server_side }) param_data = ${ data };
+      else param_ajax = o${tableid}Url;
+
       o${tableid} = $('#${tableid}').DataTable({
-            scrollX: ${field.scroll_x},
-            //scrollY: ${field.scroll_y},
-            //dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
-            dom: '<"row"<"col-md-8"<"toolbar">>><"row"<"col-md-8"Bl><"col-md-4"fr>>t<"row dt-footer"<"col-md-8" i><"col-md-4"p>>',
-            processing: true,
-            serverSide: ${server_side},
-            data: param_data,
-            ajax: param_ajax,
-            stateSave: ${state_save},
-            scrollCollapse: true,
-            sort: ${sorts},
-            info: true,
-            filter: ${filters},
-            autoWidth: false,
-            paginate: ${paginates},
-            paginationType: "full_numbers",
-            order: [],
-            lengthMenu: [
-              [10, 25, 50, 100],
-              [10, 25, 50, 100]
-            ],
-            pageLength: 25,
-            columns: ${tableid}Columns,
-            language: ${tableid}Language,
-            initComplete: function () {
-              $('.dataTables_filter input').unbind()
-                  .bind('keyup', function (e) {
-                    var code = e.keyCode || e.which;
-                    if (code === 13) {
-                      o${tableid}.search(this.value).draw();
-                    }
-                  });
-            }
-          }
-      );
+        scrollX: ${ field.scroll_x },
+        //scrollY: ${field.scroll_y},
+        //dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
+        dom: '<"row"<"col-md-8"<"toolbar">>><"row"<"col-md-8"Bl><"col-md-4"fr>>t<"row dt-footer"<"col-md-8" i><"col-md-4"p>>',
+        processing: true,
+        serverSide: ${ server_side },
+        data: param_data,
+        ajax: param_ajax,
+        stateSave: ${ state_save },
+        scrollCollapse: true,
+        sort: ${ sorts },
+        info: true,
+        filter: ${ filters },
+        autoWidth: false,
+        paginate: ${ paginates },
+        paginationType: "full_numbers",
+        order: [],
+        lengthMenu: [
+        [10, 25, 50, 100],
+        [10, 25, 50, 100]
+      ],
+        pageLength: 25,
+        columns: ${tableid}Columns,
+        language: ${tableid}Language,
+        initComplete: function () {
+          $('.dataTables_filter input').unbind()
+            .bind('keyup', function (e) {
+              var code = e.keyCode || e.which;
+              if (code === 13) {
+                        o${tableid}.search(this.value).draw();
+              }
+            });
+        }
+      });
+    
       let tb = tb_array.join(' ');
       $("div.toolbar").html(tb);
       $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
-      $("div.dt-footer").attr('style','margin-left: -7px;');
-      $(".dataTables_scrollBody").attr('style','margin-top: -10px;');
-
+      $("div.dt-footer").attr('style', 'margin-left: -7px;');
+      $(".dataTables_scrollBody").attr('style', 'margin-top: -10px;');
       $('#${tableid} tbody').on('click', ':checkbox', function () {
         if (this.checked) m${tableid}CheckList.push($(this).val());
-        else m${tableid}CheckList.splice(m${tableid}CheckList.indexOf($(this).val()), 1);
+          else m${tableid}CheckList.splice(m${tableid}CheckList.indexOf($(this).val()), 1);
       });
       $('#${tableid} tbody').on('click', 'tr', function () {
         if ($(this).hasClass('selected')) {
           $(this).removeClass('selected');
-          m${tableid}ID = null;
+            m${tableid}ID = null;
         } else {
           let aData = o${tableid}.row(this).data();
-          o${tableid}.$('tr.selected').removeClass('selected');
+            o${tableid}.$('tr.selected').removeClass('selected');
           $(this).addClass('selected');
-          m${tableid}ID = aData.id;
-          o${tableid}.$('tr.row_selected').removeClass('row_selected');
+            m${tableid}ID = aData.id;
+            o${tableid}.$('tr.row_selected').removeClass('row_selected');
           $(this).addClass('row_selected');
         }
       });
       <tal:block tal:condition="filter_columns">
       $(".${tableid}-control-filter").on('keyup', function (e) {
         var code = e.keyCode || e.which;
-        if (code === 13) filter_table();
+      if (code === 13) filter_table();
       });
 
-      $("#${tableid}_length").append('<label>&emsp;${structure:edit_buttons}</label>')
+      $("#${tableid}_length").append('<label>&emsp;${structure:edit_buttons}</label>');
 
       function filter_table() {
         $(".${tableid}-control-filter").each(function (e) {
@@ -316,74 +302,69 @@
             col_id = col_id.join("-");
             value = this.value;
             if (this.checked) {
-              console.log(col_id, $(this).attr('id'), value, this.checked);
+              //console.log(col_id, $(this).attr('id'), value, this.checked);
               localStorage.setItem(col_id, value);
-              o${tableid}
-                  .column($(this).data('index'))
-                  .search(this.value)
+              o${tableid}.column($(this).data('index')).search(this.value)
             }
-          } 
-		  else if ($(this).attr("type") === 'date') {
+          }
+          else if ($(this).attr("type") === 'date') {
             value = this.value;
             localStorage.setItem(col_id, value);
             var splitted = col_id.split('-');
-            var min_val = undefined;
-            var max_val = undefined;
-            if (splitted[splitted.length - 1] === "min") {
-              min_val = this.value;
-              splitted.length = splitted.length - 1;
-              col_id = splitted.join("-");
-              max_val = $("#" + col_id + '-max').val()
-            } else {
-              max_val = this.value;
-              splitted.length = splitted.length - 1;
-              col_id = splitted.join("-");
-              min_val = $("#" + col_id + '-min').val()
+            if (splitted[splitted.length - 1] !== "min" && splitted[splitted.length - 1] !== "max"){
+              o${tableid}.column($(this).data('index')).search(value)
             }
-            if (min_val === undefined && max_val !== undefined)
-              min_val = max_val;
-            if (max_val === undefined && min_val !== undefined)
-              max_val = min_val;
-            if (max_val !== undefined && min_val !== undefined && min_val !== "" && max_val !== "" && min_val !== null && max_val !== null)
-              o${tableid}
+            else{
+              var min_val = undefined;
+              var max_val = undefined;
+              if (splitted[splitted.length - 1] === "min") {
+                min_val = this.value;
+                splitted.length = splitted.length - 1;
+                col_id = splitted.join("-");
+                max_val = $("#" + col_id + '-max').val()
+              } 
+              else {
+                max_val = this.value;
+                splitted.length = splitted.length - 1;
+                col_id = splitted.join("-");
+                min_val = $("#" + col_id + '-min').val();
+              }
+              if (min_val === undefined && max_val !== undefined) min_val = max_val;
+              if (max_val === undefined && min_val !== undefined) max_val = min_val;
+              if (max_val !== undefined && min_val !== undefined && min_val !== null && max_val !== null)
+                o${tableid}
                   .column($(this).data('index'))
-                  .search(min_val + '-yadcf_delim-' + max_val, true)
-          } 
-		  else {
+                  .search(min_val + '-yadcf_delim-' + max_val, true);
+                  //&& min_val !== "" && max_val !== ""
+            }
+          }
+          else {
             col_id = this.id;
             value = this.value;
-            if (value === undefined || value === null) {
-              value = "";
-            }
+            if (value === undefined || value === null) value = "";
             console.log(col_id, $(this).attr('id'), value, $(this).data('index'));
             localStorage.setItem(col_id, value);
             o${tableid}
-                .column($(this).data('index'))
-                .search(value);
+              .column($(this).data('index'))
+              .search(value);
           }
         });
-		//o${tableid}.ajax.url(o${tableid}Url).load();
         o${tableid}.draw();
       }
 
       $(".${tableid}-control-filter").on('click', function (e) {
-        console.log("Write Data Click");
+        //console.log("Write Data Click");
         var typ = $(this).attr("type");
         if (typ === 'radio') {
-          filter_table();
+        filter_table();
         }
       });
       $(".${tableid}-control-filter").on('change', function (e) {
         var typ = $(this).prop("nodeName").toLowerCase();
-        if (typ === "select") {
-          filter_table()
-        }
+        if (typ === "select") filter_table();
 
         var typ = $(this).attr("type").toLowerCase();
-        if (typ === "date") {
-          filter_table();
-        }
-
+        if (typ === "date") filter_table();
       });
 
       console.log("Read Data");
@@ -396,21 +377,20 @@
           col_id = col_id.join("-");
           value = localStorage.getItem(col_id);
           if (value !== undefined && value != null)
-            if ($(this).val() === value) $(this).attr("checked", true);
-            else $(this).attr("checked", false);
-        } else {
+          if ($(this).val() === value) $(this).attr("checked", true);
+          else $(this).attr("checked", false);
+        } 
+        else {
           value = localStorage.getItem(col_id);
           if (value !== undefined && value !== null)
-            $(this).val(value);
+          $(this).val(value);
         }
-        //console.log(col_id, $(this).attr('id'), value);
       });
 
       filter_table();
-	  
       </tal:block>
-        ${structure: btnscripts}
-        ${structure: filter_scripts}
+      ${structure:btnscripts}
+      ${structure:filter_scripts}
     });
   </script>
 </div>

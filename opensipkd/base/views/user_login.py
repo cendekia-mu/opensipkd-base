@@ -57,9 +57,6 @@ class Login(CSRFSchema):
     password = colander.SchemaNode(
         colander.String(), widget=widget.PasswordWidget())
 
-
-
-
     # def after_bind(self, schema, kwargs):
     #     request = kwargs["request"]
     #     csrf_token = new_csrf_token(request)
@@ -98,6 +95,8 @@ class LoginUser(object):
             self.message = "Login Gagal"
             set_user_log(self.message, self.request, log, values["username"])
             return
+        for g in self.user.groups:
+            log.debug(f"Group: {g.id} as {g.group_name}")
 
         # generate security_code dan simpan dalam session
         regenerate_security_code(self.user, 0.03)  # berlaku selama 1.8 menit
@@ -115,8 +114,7 @@ class Oauth2UserExc(Exception):
 
 
 def oauth2_login(request, params=None):
-    provider_name = params and params["provider_name"] \
-                    or request.params["provider_name"]
+    provider_name = params and params["provider_name"] or request.params["provider_name"]
     if provider_name == "google":
         from .base_google import googlesignin
         try:
@@ -129,8 +127,8 @@ def oauth2_login(request, params=None):
         id_info = None
 
     iss = id_info and re.sub(r'https?://', '', id_info['iss']) or None
-    user = id_info and ExternalIdentityService. \
-        user_by_external_id_and_provider(id_info['sub'], iss)
+    user = id_info and ExternalIdentityService.user_by_external_id_and_provider(
+        id_info['sub'], iss)
     log.debug("Users : %s", user)
     log.debug("IdInfo : %s", id_info)
     if id_info and not user:
@@ -143,7 +141,8 @@ def oauth2_login(request, params=None):
         log.debug("User  : %s", user)
         log.debug("Partner : %s", partner)
         if user or partner:
-            raise Oauth2UserExc("Email sudah terdaftar silahkan login standard")
+            raise Oauth2UserExc(
+                "Email sudah terdaftar silahkan login standard")
 
         user = User()
         user.from_dict(values)
@@ -205,9 +204,9 @@ class ViewLogin(BaseView):
             # start cek external module
             pckgs = get_params('external-uim')
             if user:
-                external_user = DBSession.query(ExternalIdentity) \
-                    .filter_by(local_user_id=user.id,
-                               external_user_name=identity).first()
+                external_user = DBSession.query(ExternalIdentity).\
+                    filter_by(local_user_id=user.id,
+                              external_user_name=identity).first()
                 pckgs = external_user and pckgs or None
 
             if pckgs:
@@ -224,7 +223,8 @@ class ViewLogin(BaseView):
                 login = LoginUser(self.req)
                 if not login.login(values, user):
                     request.session.flash(login.message, "error")
-                    next_url = get_urls(f"{request.route_url('login')}?next={next_url}")
+                    next_url = get_urls(
+                        f"{request.route_url('login')}?next={next_url}")
                     return HTTPFound(location=next_url)
             return redirect_login(request, user)
 
@@ -237,8 +237,7 @@ class ViewLogin(BaseView):
             del request.session['login failed']
             return r
 
-        elif "provider_name" in request.params and \
-                request.params["provider_name"]:
+        elif "provider_name" in request.params and request.params["provider_name"]:
             try:
                 user = oauth2_login(request)
             except Oauth2ParseExc as e:
@@ -279,6 +278,9 @@ class ViewLogin(BaseView):
 
 def redirect_login(request, user):
     set_user_log("Login Sukses", request, log, user.user_name)
+    for g in user.groups:
+        log.debug(f"Group: {g.id} as {g.group_name}")
+
     headers = get_login_headers(request, user)
     request.session.flash("Sukses Login")
     next_url = request.params.get('next')
@@ -379,8 +381,7 @@ def view_change_password(request):
     code = request.matchdict['code']
     q = DBSession.query(User).filter_by(security_code=code)
     user = q.first()
-    if not user or \
-            create_now() - user.security_code_date > one_hour:
+    if not user or create_now() - user.security_code_date > one_hour:
         request.session.flash('Security code expired', 'error')
         return HTTPFound(location=get_urls(request.route_url('login')))
 
@@ -436,7 +437,7 @@ class ResetPassword(colander.Schema):
         colander.String(), title=_('Email'),
         description=_(
             'email-reset-password',
-            default='Enter your email address and we will send you ' \
+            default='Enter your email address and we will send you '
                     'a link to reset your password.')
     )
 
@@ -459,8 +460,7 @@ def send_email_security_code(
         **kwargs):
     settings = get_settings()
     password = kwargs.get("password", "")
-    if 'mail.sender_name' not in settings \
-            or 'mail.username' not in settings:
+    if 'mail.sender_name' not in settings or 'mail.username' not in settings:
         return
 
     url = '{}/password/{}?password={}'.format(
@@ -499,8 +499,7 @@ def sending_mail(request, user, subject, body):
 def send_email_pending(
         request, user, subject, body_msg_id, body_default_file):
     settings = get_settings()
-    if 'mail.sender_name' not in settings \
-            or 'mail.username' not in settings:
+    if 'mail.sender_name' not in settings or 'mail.username' not in settings:
         return
 
     here = os.path.abspath(os.path.dirname(__file__))
