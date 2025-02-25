@@ -5,6 +5,8 @@ import locale
 import logging
 import re
 
+import urllib
+
 from .routes import routes
 
 # from opensipkd.tools.captcha import get_captcha_url
@@ -135,7 +137,9 @@ def _get_params(request, params, default=None, settings=None, context=None):
 
     return get_params(params, default, settings)
 
-BASE_MENUS=[]
+
+BASE_MENUS = []
+
 
 @subscriber(BeforeRender)
 def add_global(event):
@@ -473,21 +477,22 @@ def get_home(request):
 
 
 def _add_route(config, route):
-        if int(route.get("type",0)) == 0:
-            config.add_route(route.get("kode"), route.get("path"))
-        elif int(route.get("type")) == 1:
-            config.add_jsonrpc_endpoint(route.get("kode"), route.get("path"),
-                                        default_renderer="json_rpc")
-        if route.get("nama"):
-            titles[route.get("kode")] = route.get("nama")
+    if int(route.get("type", 0)) == 0:
+        config.add_route(route.get("kode"), route.get("path"))
+    elif int(route.get("type")) == 1:
+        config.add_jsonrpc_endpoint(route.get("kode"), route.get("path"),
+                                    default_renderer="json_rpc")
+    if route.get("nama"):
+        titles[route.get("kode")] = route.get("nama")
+
 
 def _add_view_config(config, view_name, route):
     _add_route(config, route)
-
     if not route.get("def_func"):
         return
 
-    class_view = route.get("class_view") and f".{route.get('class_view')}" or ""
+    class_view = route.get(
+        "class_view") and f".{route.get('class_view')}" or ""
     class_name = f"{view_name}{class_view}"
     attr = f"view_{route.get('def_func')}"
     try:
@@ -498,13 +503,13 @@ def _add_view_config(config, view_name, route):
         else:
             renderers = "views/templates/" + route.get("template")
         params = dict(attr=f"{attr}", route_name=route.get("kode"),
-                        renderer=renderers)
+                      renderer=renderers)
         if route.get("permission"):
             params["permission"] = route.get("permission")
         config.add_view(views.Views, **params)
     except Exception as e:
-            _logging.error(str(e))
-            _logging.error(route)
+        _logging.error(str(e))
+        _logging.error(route)
 
 # def add_view_config(config, module, view_name):
 #     """
@@ -713,79 +718,81 @@ def main(global_config, **settings):
     return get_config(settings=settings).make_wsgi_app()
 
 
-
 def get_route_file(filename):
     base_dir = os.path.split(__file__)[0]
     fullpath = os.path.join(base_dir, 'scripts', 'data', filename)
     return open(fullpath)
 
+
 class BaseApp():
     def __init__(self):
         self.menus = []
 
-    def route_from_csv(self, config, get_file=get_route_file):
+    def route_from_csv(self, config, get_file=get_route_file, paket="opensipkd.base.views"):
         with get_file("routes.csv") as f:
             rows = csv.DictReader(f)
-            new_routes=[]
+            new_routes = []
             for row in rows:
                 if row.get("parent_id") or row.get("parent_id/routes.kode"):
                     new_routes[len(new_routes)-1]["children"].append(row)
                 else:
-                    row["children"]=[]
+                    row["children"] = []
                     new_routes.append(row)
 
-            self.add_menu(config, new_routes)
-            
-    def route_from_list(self, config, routs=routes):
+            self.add_menu(config, new_routes, paket)
+
+    def route_from_list(self, config, routs=routes, paket="opensipkd.base.views"):
         new_routes = []
         for route in routs:
             d = {"kode": route[0],
                  "path": route[1],
                  "nama": route[2],
-                 "type": len(route)>4 and route[4] or 0
+                 "type": len(route) > 4 and route[4] or 0
                  }
             new_routes.append(d)
 
-        self.add_menu(config, new_routes)
+        self.add_menu(config, new_routes, paket)
 
-    def add_menu(self, config, route_menus, parent=None):
+    def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views"):
         route_names = []
         for route in route_menus:
-            route["route_names"]=[route["kode"]]
+            route["route_names"] = [route["kode"]]
             route["permission"] = route.get("permission", "")
             route["icon"] = route.get("icon", None)
             route_type = route.get("type", 0)
-            if route_type=="" or route_type==None:
+            if route_type == "" or route_type == None:
                 route_type = 0
             else:
                 route_type = int(route_type)
             route["type"] = route_type
             route["is_menu"] = route.get("is_menu", 0)
-            route["path"] = route.get("path", "#")
+            url_path = route.get("path", None)
+            if not url_path:
+                # pjdl   /pjdl pjdl-add /pjdl/add
+                url_path = "/"+route["kode"].replace("-", "/")
+            route["path"] = url_path
+
             children = route.get("children", [])
-            route["children"]=[]
+            route["children"] = []
             if route.get("class_view"):
-                _add_view_config(config, "opensipkd.coba.views", route)
+                _add_view_config(config, paket, route)
             elif route["path"] != "#":
                 _add_route(config, route)
 
             if route.get("is_menu", None):
                 if not parent:
                     self.menus.append(route)
-                else: 
+                else:
                     parent["children"].append(route)
             if children:
                 route["route_names"].extend(
-                    self.add_menu(config, children, route)
+                    self.add_menu(config, children, route, paket)
                 )
             route_names.append(route["kode"])
         return route_names
-    
+
     def get_menus(self):
         return self.menus
 
 
 BASE_CLASS = BaseApp()
-
-        
-
