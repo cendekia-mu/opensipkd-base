@@ -726,7 +726,15 @@ class BaseApp():
     def route_from_csv(self, config, get_file=get_route_file):
         with get_file("routes.csv") as f:
             rows = csv.DictReader(f)
-            self.add_menu(config, rows)
+            new_routes=[]
+            for row in rows:
+                if row.get("parent_id") or row.get("parent_id/routes.kode"):
+                    new_routes[len(new_routes)-1]["children"].append(row)
+                else:
+                    row["children"]=[]
+                    new_routes.append(row)
+
+            self.add_menu(config, new_routes)
             
     def route_from_list(self, config, routs=routes):
         new_routes = []
