@@ -3,13 +3,11 @@ import importlib
 import inspect
 import locale
 import logging
+from sqlalchemy import or_
 import re
 
-import urllib
 
 from .routes import routes
-
-# from opensipkd.tools.captcha import get_captcha_url
 
 try:
     from urllib import (urlencode, quote, quote_plus, )
@@ -24,13 +22,13 @@ from pyramid.renderers import JSON
 from pyramid_mailer import mailer_factory_from_settings
 import datetime
 import decimal
-from sqlalchemy import engine_from_config, or_
+from sqlalchemy import engine_from_config
 from .security import (
-    group_finder, get_user, MySecurityPolicy,)
+    get_user, MySecurityPolicy,)
 from pyramid.csrf import get_csrf_token
 from opensipkd.models import (
-    DBSession, Base, Parameter, init_model,)
-# Route,
+    DBSession, Base, Parameter, init_model, Route,)
+
 from opensipkd.tools import (
     DefaultTimeZone, money, should_int, thousand, as_timezone, split,
     get_settings, dmy, dmyhms,)
@@ -444,36 +442,43 @@ def get_home(request):
     return request.route_url('home')[:-1]
 
 
-# def _set_routes1(config, app_id):
-#     q = DBSession.query(Route).filter(Route.path != None,
-#                                       Route.module == None, Route.status == 1)
-#     if not app_id:
-#         q.filter(or_(Route.app_id == 0, None == Route.app_id))
-#     else:
-#         q.filter(Route.app_id == app_id)
+def _set_routes1(config, app_id):
+    q = DBSession.query(Route).filter(Route.path != None,
+                                      Route.module == None, Route.status == 1)
+    if not app_id:
+        q.filter(or_(Route.app_id == 0, None == Route.app_id))
+    else:
+        q.filter(Route.app_id == app_id)
 
-#     for route in q:
-#         if route.type == 0:
-#             config.add_route(route.kode, route.path)
-#             if route.nama:
-#                 titles[route.kode] = route.nama
-#         elif route.type == 1:
-#             config.add_jsonrpc_endpoint(route.kode, route.path,
-#                                         default_renderer="json_rpc")
+    for route in q:
+        if route.type == 0:
+            config.add_route(route.kode, route.path)
+            if route.nama:
+                titles[route.kode] = route.nama
+        elif route.type == 1:
+            config.add_jsonrpc_endpoint(route.kode, route.path,
+                                        default_renderer="json_rpc")
 
 
-# def _set_routes2(config, module="base"):
-#     q = DBSession.query(Route).filter(
-#         Route.module == module, Route.status == 1)
-#     for route in q:
-#         if route.type == 0:
-#             config.add_route(route.kode, route.path)
-#             if route.nama:
-#                 titles[route.kode] = route.nama
-#         elif route.type == 1:
-#             config.add_jsonrpc_endpoint(
-#                 route.kode, route.path, default_renderer="json_rpc")
-#     return q
+def _set_routes2(config, module="base"):
+    q = DBSession.query(Route).filter(
+        Route.module == module, Route.status == 1)
+    for route in q:
+        if route.type == 0:
+            config.add_route(route.kode, route.path)
+            if route.nama:
+                titles[route.kode] = route.nama
+        elif route.type == 1:
+            config.add_jsonrpc_endpoint(
+                route.kode, route.path, default_renderer="json_rpc")
+    return q
+
+
+def set_routes(config, app_id=None):
+    if app_id and type(app_id) == str:
+        return _set_routes2(config, app_id)
+    else:
+        return _set_routes1(config, app_id)
 
 
 def _add_route(config, route):
@@ -551,13 +556,6 @@ def _add_view_config(config, view_name, route):
 #             _logging.error(dict(row.__dict__))
 
 #     config.scan('.')
-
-
-# def set_routes(config, app_id=None):
-#     if app_id and type(app_id) == str:
-#         return _set_routes2(config, app_id)
-#     else:
-#         return _set_routes1(config, app_id)
 
 
 def get_route_names(rows):
@@ -724,6 +722,10 @@ def get_route_file(filename):
     return open(fullpath)
 
 
+def routes_by_array(config, routs):
+    BaseApp().route_from_list(config, routs)
+
+
 class BaseApp():
     def __init__(self):
         self.menus = []
@@ -768,8 +770,8 @@ class BaseApp():
             route["is_menu"] = route.get("is_menu", 0)
             url_path = route.get("path", None)
             if not url_path:
-                # pjdl   /pjdl pjdl-add /pjdl/add
                 url_path = "/"+route["kode"].replace("-", "/")
+
             route["path"] = url_path
 
             children = route.get("children", [])
