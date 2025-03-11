@@ -2,6 +2,9 @@
 requires = ['setuptools >= 64', 'wheel']
 build-backend = 'setuptools.build_meta'
 
+[tool.hatch.build]
+dev-mode-dirs = ["."]
+
 [tool.mypy]
 exclude = [
     'base',
@@ -12,14 +15,12 @@ exclude = [
 show_error_codes = true
 
 [[tool.mypy.overrides]]
-
 module = [
     "opensipkd.base.*",
     "opensipkd.models.*",
     "opensipkd.detable.*",
     "opensipkd.jsonrpc_auth.*",
 ]
-
 warn_unused_ignores = true
 strict = true
 

@@ -42,6 +42,75 @@ class BaseView(object):
         self.db_session = DBSession
         self.params = self.req.params
         self.settings = get_settings()
+        self.tahun = None
+        self.bulan = None
+        self.posted = False
+        self.awal = None
+        self.akhir = None
+        self.dt_awal = None
+        self.dt_akhir = None
+        self.tahun_awal = None 
+        self.tahun_akhir = None 
+        self.departemen_kd = None
+        self.departemen_nm = None
+        self.departemen_id = None
+        self.jenis = None 
+        self.list_route = 'home'
+        self.list_col_defs = ""
+        self.list_cols = ""
+        self.list_report = (btn_csv, btn_pdf)
+        self.list_buttons = (btn_add, btn_close)
+        self.columns = None
+        self.form_params = dict(scripts="")
+        self.list_url = ""
+        self.list_route = ''
+        self.allow_view = True
+        self.allow_edit = True
+        self.allow_delete = True
+        self.allow_post = False
+        self.allow_unpost = False
+        self.allow_check = False
+        self.check_field = ""
+        self.state_save = False
+        self.server_side = True
+        self.scroll_y = False
+        self.scroll_x = False
+
+        self.list_form = None
+        self.form_list = None
+        self.filter_columns = False
+
+        self.form_scripts = """
+         $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
+              $('#parent_id').val(datum.id);
+              $('#parent_kd').val(datum.kode);
+
+        });"""
+        self.form_widget = None
+
+        self.list_schema = colander.Schema()
+        self.add_schema = colander.Schema()
+        self.edit_schema = colander.Schema()
+        self.upload_schema = UploadSchema
+        
+        self.upload_exts = (".csv", ".tsv")
+        self.upload_keys = ["kode"]
+
+        self.table = Table
+        self.home = self.req._host
+        self.buttons = None
+        self.headers = None
+        self.bindings = {}
+        self.autocomplete = 'on'
+        self.action_suffix = "/grid/act"
+        self.report_file = ""
+        self.new_buttons = {}
+        self.is_object = False
+        self.html_buttons = {}
+
+        self.init_session(request)
+
+    def init_session(self, request):
         # if not request.user:
         if "g_state" in request.cookies:
             request.response.delete_cookie("g_state", '/')
@@ -130,70 +199,21 @@ class BaseView(object):
         self.jenis = 'jenis' in self.params and self.params[
             'jenis'] or self.jenis
         self.ses['jenis'] = self.jenis
-        self.list_route = 'home'
-        self.list_col_defs = ""
-        self.list_cols = ""
-        # self.list_buttons = 'btn_view, btn_add, btn_edit, btn_delete, ' \
-        #                     'btn_close'
-        self.list_report = (btn_csv, btn_pdf)
-        # self.list_buttons = (btn_view, btn_add, btn_edit, btn_delete, btn_close)
-        self.list_buttons = (btn_add, btn_close)
-        self.columns = None
-        self.form_params = dict(scripts="")
-        self.list_url = ""
-        self.list_route = ''
-        self.list_schema = colander.Schema
-        self.allow_view = True
-        self.allow_edit = True
-        self.allow_delete = True
-        self.allow_post = False
-        self.allow_unpost = False
-        self.allow_check = False
-        self.check_field = ""
-        self.state_save = False
-        self.server_side = True
-        self.scroll_y = False
-        self.scroll_x = False
 
-        self.list_form = None
-        self.form_list = None
-        self.filter_columns = False
-
-        self.form_scripts = """
-         $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
-              $('#parent_id').val(datum.id);
-              $('#parent_kd').val(datum.kode);
-
-        });"""
-        self.form_widget = None
-
-        self.edit_schema = colander.Schema()
-        self.add_schema = colander.Schema()
-        self.upload_schema = UploadSchema
-        self.upload_exts = (".csv", ".tsv")
-        self.upload_keys = ["kode"]
-
-        self.table = Table
-        self.home = self.req._host
-        self.buttons = None
-        self.headers = None
-        self.bindings = {}
-        self.autocomplete = 'on'
-        self.action_suffix = "/grid/act"
-        self.report_file = ""
-        self.new_buttons = {}
-        self.is_object = False
-        self.html_buttons = {}
 
     def query_register(self, **kwargs):
         pass
 
     def get_routes(self):
         """
-        Digunakan untuk mendapatkan default url apabula list_url tidak ada
+        Digunakan untuk mendapatkan default url apabila list_url tidak ada
         """
 
     def route_list(self, **kwargs):
+        """
+        Digubakan untk mengalihkan proses setelah add edit view delete data
+        Default akan di arahkan ke list-route untuk merubah default direction 
+        """
         msg = kwargs.get("msg")
         error = kwargs.get("error", "")
         list_url = kwargs.get("list_url", self.get_routes())
@@ -202,7 +222,9 @@ class BaseView(object):
 
         if not list_url:
             list_url = self.req.route_url(self.list_route, **kwargs)
-        log.error(list_url)
+        
+        log.debug(list_url)
+
         if self.headers:
             return HTTPFound(location=get_urls(list_url),
                              headers=self.headers)
@@ -632,63 +654,120 @@ class BaseView(object):
         return self.view_view(buttons=buttons)
 
     def view_upload(self, **kw):
+        return self.view_import(self, **kw)
+        # exts = kw.get("exts")
+        # table = None
+        # if not exts:
+        #     exts = self.upload_exts
+
+        # delimiter = kw.get("delimiter")
+        # bindings = self.get_bindings()
+        # form = self.get_form(self.upload_schema, bindings=bindings)
+        # resources = form.get_widget_resources()
+        # if self.req.POST:
+        #     if 'save' in self.req.POST:
+        #         input_file = self.req.POST['upload'].file
+        #         filename = self.req.POST['upload'].filename.lower()
+        #         ext = get_ext(filename).lower()
+        #         if ext.lower() not in exts:
+        #             ext = ", ".join([ex for ex in exts])
+        #             self.req.session.flash(f'File harus format {ext}', 'error')
+        #             return self.returned_form(form, table, **kw)
+        #             # return dict(form=form.render(),
+        #                         # scripts=self.form_scripts, css=resources["css"],
+        #                         # js=resources["js"])
+
+        #         _here = get_params('tmp', '/tmp')
+        #         folder = os.path.join(_here, 'upload')
+        #         if not os.path.exists(folder):
+        #             os.makedirs(folder)
+
+        #         fullpath = os.path.join(folder, filename)
+        #         output_file = open(fullpath, 'wb')
+        #         input_file.seek(0)
+        #         while True:
+        #             data = input_file.read(2 << 16)
+        #             if not data:
+        #                 break
+        #             output_file.write(data)
+        #         output_file.close()
+        #         try:
+        #             self.save_upload(fullpath, **kw)
+        #         except Exception as e:
+        #             self.req.session.flash(str(e), 'error')
+        #             return dict(form=form.render(),
+        #                         scripts=self.form_scripts, css=resources["css"],
+        #                         js=resources["js"])
+
+        #     elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
+        #         self.cancel_act()
+
+        #     return self.route_list()
+
+        # return self.returned_form(form, table, **kw)
+        # return dict(form=form.render(),
+                    # scripts=self.form_scripts, css=resources["css"],
+                    # js=resources["js"])
+
+    def view_import(self, **kw):
         exts = kw.get("exts")
+        table = None
         if not exts:
             exts = self.upload_exts
+        from opensipkd.tools import Upload
 
-        delimiter = kw.get("delimiter")
         bindings = self.get_bindings()
         form = self.get_form(self.upload_schema, bindings=bindings)
-        resources = form.get_widget_resources()
         if self.req.POST:
             if 'save' in self.req.POST:
-                input_file = self.req.POST['upload'].file
-                filename = self.req.POST['upload'].filename.lower()
-                ext = get_ext(filename).lower()
-                if ext.lower() not in exts:
-                    ext = ", ".join([ex for ex in exts])
-                    self.req.session.flash(f'File harus format {ext}', 'error')
-                    return dict(form=form.render(),
-                                scripts=self.form_scripts, css=resources["css"],
-                                js=resources["js"])
-
                 _here = get_params('tmp', '/tmp')
-                folder = os.path.join(_here, 'upload')
-                if not os.path.exists(folder):
-                    os.makedirs(folder)
+                folder = os.path.join(_here, 'import')
+                # if not os.path.exists(folder):
+                    # os.makedirs(folder)
 
-                fullpath = os.path.join(folder, filename)
-                output_file = open(fullpath, 'wb')
-                input_file.seek(0)
-                while True:
-                    data = input_file.read(2 << 16)
-                    if not data:
-                        break
-                    output_file.write(data)
-                output_file.close()
+                upload = Upload(folder)
+                try:
+                    file_name = upload.save(self.req, "upload", exts)
+                except:
+                    self.ses.flash(f'File harus format {exts}', 'error')
+                    return self.returned_form(form, table, **kw)
+
+                # input_file = self.req.POST['upload'].file
+                # filename = self.req.POST['upload'].filename.lower()
+                # ext = get_ext(filename).lower()
+                # if ext.lower() not in exts:
+                    # ext = ", ".join([ex for ex in exts])
+                    # self.req.session.flash(f'File harus format {ext}', 'error')
+                    # return self.returned_form(form, table, **kw)
+
+
+
+                # fullpath = os.path.join(folder, filename)
+                # output_file = open(fullpath, 'wb')
+                # input_file.seek(0)
+                # while True:
+                #     data = input_file.read(2 << 16)
+                #     if not data:
+                #         break
+                #     output_file.write(data)
+                # output_file.close()
+                fullpath = os.path.join(folder, file_name)
                 try:
                     self.save_upload(fullpath, **kw)
                 except Exception as e:
                     self.req.session.flash(str(e), 'error')
-                    return dict(form=form.render(),
-                                scripts=self.form_scripts, css=resources["css"],
-                                js=resources["js"])
-
+                    return self.returned_form(form, table, **kw)
+                
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
 
             return self.route_list()
-        return dict(form=form.render(),
-                    scripts=self.form_scripts, css=resources["css"],
-                    js=resources["js"])
+
+        return self.returned_form(form, table, **kw)
 
     def get_file(self, filename):
         return open(filename)
 
-    def save_upload(self, file_name, **args):
-        return append_csv(self.table, file_name, self.upload_keys,
-                          get_file_func=self.get_file, update_exist=True,
-                          **args)
 
     def before_add(self):
         return {}
@@ -1045,6 +1124,7 @@ class BaseView(object):
                 return resp
             return value["filename"]
 
+    
 
 @colander.deferred
 def deferred_status(node, kw):

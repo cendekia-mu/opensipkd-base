@@ -5,10 +5,7 @@ import locale
 import logging
 from sqlalchemy import or_
 import re
-
-
 from .routes import routes
-
 try:
     from urllib import (urlencode, quote, quote_plus, )
 except ImportError:
@@ -156,11 +153,10 @@ def add_global(event):
     event['get_params'] = get_params
     event['get_urls'] = get_urls
     event['get_csrf_token'] = get_csrf_token
+    event['get_base_menus'] = BASE_CLASS.get_menus()
     # event['get_params'] = get_params
     # event['get_module_menus'] = get_module_menus
     # event['get_module_submenus'] = get_module_submenus
-    event['get_base_menus'] = BASE_CLASS.get_menus()
-
 
 # def get_params(request, params, alternate=None, settings=None):
 #     return get_params(params, alternate, settings)
@@ -223,7 +219,7 @@ def get_ini_params(request, params=None, alternate=None, settings=None):
 def get_id_card_folder(ext=None, settings=None):
     _logging.debug('get_id_card_folder')
     idcard_files = get_params("partner_idcard_folder",
-                              '/tmp/idcard', settings=settings)
+                              '/tmp/idcard/', settings=settings)
     if ext:
         idcard_files += ext
         # if ext and os.sep != '/':
