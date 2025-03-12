@@ -654,7 +654,7 @@ class BaseView(object):
         return self.view_view(buttons=buttons)
 
     def view_upload(self, **kw):
-        return self.view_import(self, **kw)
+        return self.view_import(**kw)
         # exts = kw.get("exts")
         # table = None
         # if not exts:
@@ -767,7 +767,11 @@ class BaseView(object):
 
     def get_file(self, filename):
         return open(filename)
-
+    
+    def save_upload(self, file_name, **args):
+        return append_csv(self.table, file_name, self.upload_keys,
+                        get_file_func=self.get_file, update_exist=True,
+                        **args)
 
     def before_add(self):
         return {}
