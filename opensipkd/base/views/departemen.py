@@ -1,4 +1,5 @@
 from datetime import datetime
+from email.policy import default
 
 import colander
 from deform import (widget, )
@@ -58,7 +59,7 @@ class ListSchema(colander.Schema):
     status = colander.SchemaNode(
         colander.Boolean(),
         title="Status", width='50pt',
-        widget=widget.CheckboxWidget())
+        widget=widget.CheckboxWidget(true_val='1', false_val='0'))
     level_id = colander.SchemaNode(
         colander.Integer(),
         title="Level",
@@ -110,17 +111,20 @@ class AddSchema(colander.Schema):
     singkat = colander.SchemaNode(
         colander.String(),
         missing=colander.drop,
-        oid="singkat")
+        oid="singkat",
+        default="")
 
     kategori = colander.SchemaNode(
         colander.String(),
         missing=colander.drop,
-        oid="kategori")
+        oid="kategori",
+        default="")
 
     alamat = colander.SchemaNode(
         colander.String(),
         missing=colander.drop,
-        oid="alamat")
+        oid="alamat",
+        default="")
     company_id = colander.SchemaNode(
         colander.Integer(),
         widget=company_widget,
@@ -130,6 +134,7 @@ class AddSchema(colander.Schema):
     status = colander.SchemaNode(
         colander.Integer(),
         widget=widget.CheckboxWidget(true_val='1', false_val='0'),
+        default = 0,
         oid="status")
 
     def after_bind(self, schema, kwargs):
@@ -178,8 +183,8 @@ class Views(BaseView):
             raise exc
 
         def err_nama():
-            raise colander.Invalid(form,
-                                   'Uraian %s sudah digunakan oleh kode %s' % (
+            raise colander.Invalid(
+                form, 'Uraian %s sudah digunakan oleh kode %s' % (
                                        value['nama'], found.kode))
 
         if 'id' in form.request.matchdict:
@@ -220,9 +225,9 @@ class Views(BaseView):
                 self.update_children(child.children)
 
     def save_request(self, values, row=None):  # save(self, row, values):
-        for k, v in values.items():
-            if not v:
-                setattr(row, k, None)
+        # for k, v in values.items():
+        #     if not v:
+        #         setattr(row, k, None)
 
         values["level_id"] = 1
         if "parent_id" in values and values["parent_id"]:
@@ -237,17 +242,17 @@ class Views(BaseView):
         row = super().save_request(values, row)
         return row
 
-    @view_config(route_name='departemen-view',
-                 renderer='templates/form.pt',
-                 permission='departemen')
-    def view_view(self):
-        return super().view_view()
+    # @view_config(route_name='departemen-view',
+    #              renderer='templates/form.pt',
+    #              permission='departemen')
+    # def view_view(self):
+    #     return super().view_view()
 
-    @view_config(route_name='departemen',
-                 renderer='templates/table.pt',
-                 permission='departemen')
-    def view_list(self):
-        return super().view_list()
+    # @view_config(route_name='departemen',
+    #              renderer='templates/table.pt',
+    #              permission='departemen')
+    # def view_list(self):
+    #     return super().view_list()
 
     def list_join(self, query):
         query = query.outerjoin(
@@ -257,8 +262,8 @@ class Views(BaseView):
         )
         return query
 
-    @view_config(route_name='departemen-act', renderer='json',
-                 permission='view')
+    # @view_config(route_name='departemen-act', renderer='json',
+                #  permission='view')
     def view_act(self):
         request = self.req
         # ses = request.session
@@ -381,24 +386,24 @@ class Views(BaseView):
     def get_bindings(self, row=None):
         return {"company_list": ResCompany.get_list()}
 
-    @view_config(route_name='departemen-add', renderer='templates/form.pt',
-                 permission='departemen')
-    def view_add(self):
-        return super().view_add()
+    # @view_config(route_name='departemen-add', renderer='templates/form.pt',
+    #              permission='departemen')
+    # def view_add(self):
+    #     return super().view_add()
 
-    @view_config(route_name='departemen-edit',
-                 renderer='templates/form.pt', permission='departemen')
-    def view_edit(self):
-        return super().view_edit()
+    # @view_config(route_name='departemen-edit',
+    #              renderer='templates/form.pt', permission='departemen')
+    # def view_edit(self):
+    #     return super().view_edit()
 
-    @view_config(route_name='departemen-delete',
-                 renderer='templates/form.pt', permission='departemen')
-    def view_delete(self):
-        return super().view_delete()
+    # @view_config(route_name='departemen-delete',
+    #              renderer='templates/form.pt', permission='departemen')
+    # def view_delete(self):
+    #     return super().view_delete()
 
-    @view_config(route_name='departemen-upload',
-                 renderer='templates/form.pt',
-                 permission='departemen')
+    # @view_config(route_name='departemen-upload',
+    #              renderer='templates/form.pt',
+    #              permission='departemen')
     def view_upload(self):
         return super().view_upload(exts=('.csv', '.tsv'), delimiter="\t")
 

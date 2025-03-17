@@ -439,6 +439,8 @@ def get_home(request):
 
 
 def _set_routes1(config, app_id):
+    """Compatibility
+    """
     q = DBSession.query(Route).filter(Route.path != None,
                                       Route.module == None, Route.status == 1)
     if not app_id:
@@ -457,6 +459,8 @@ def _set_routes1(config, app_id):
 
 
 def _set_routes2(config, module="base"):
+    """Compatibility
+    """
     q = DBSession.query(Route).filter(
         Route.module == module, Route.status == 1)
     for route in q:
@@ -471,6 +475,8 @@ def _set_routes2(config, module="base"):
 
 
 def set_routes(config, app_id=None):
+    """Compatibility
+    """
     if app_id and type(app_id) == str:
         return _set_routes2(config, app_id)
     else:
@@ -478,39 +484,50 @@ def set_routes(config, app_id=None):
 
 
 def _add_route(config, route):
-    if int(route.get("type", 0)) == 0:
+    if int(route.get("typ", 0)) == 0:
         config.add_route(route.get("kode"), route.get("path"))
-    elif int(route.get("type")) == 1:
+    elif int(route.get("typ")) == 1:
         config.add_jsonrpc_endpoint(route.get("kode"), route.get("path"),
                                     default_renderer="json_rpc")
     if route.get("nama"):
         titles[route.get("kode")] = route.get("nama")
 
 
-def _add_view_config(config, view_name, route):
+def _add_view_config(config, paket, route):
     _add_route(config, route)
-    if not route.get("def_func"):
-        return
+    if not route.get("func_name"):
+        func_name = "".join(route.get("kode").split('-')[-1:])
+        route["func_name"] = "_".join(["view", func_name])
 
-    class_view = route.get(
-        "class_view") and f".{route.get('class_view')}" or ""
-    class_name = f"{view_name}{class_view}"
-    attr = f"view_{route.get('def_func')}"
+    file_name = f"{paket}.{route.get("file_name")}"
+    _logging.debug(f"File Name: {file_name}")
+    attr = f"{route.get('func_name')}"
     try:
-        _views = importlib.import_module(class_name)
-        views = _views
-        if route.get("template") == "json":
-            renderers = route.get("template")
-        else:
-            renderers = "views/templates/" + route.get("template")
-        params = dict(attr=f"{attr}", route_name=route.get("kode"),
-                      renderer=renderers)
+        _views = importlib.import_module(file_name)
+        class_name = route.get("class_name", None)
+        if not class_name:
+            class_name="Views"
+
+        views = getattr(_views, class_name)
+        template = route.get("template", "form.pt")
+        if not template:
+            template = "form.pt"
+            
+        if template != "json":
+            template = "views/templates/" + template
+        params = dict(attr=f"{attr}", 
+                        route_name=route.get("kode"),
+                        renderer=template)
         if route.get("permission"):
             params["permission"] = route.get("permission")
-        config.add_view(views.Views, **params)
+        
+        config.add_view(views, **params)
     except Exception as e:
+        raise e
+        _logging.error(f"Add View Config :" )
         _logging.error(str(e))
         _logging.error(route)
+
 
 # def add_view_config(config, module, view_name):
 #     """
@@ -666,12 +683,7 @@ def get_config(settings):
     config.add_renderer('json', json_renderer())
     config.add_renderer('json_rpc', json_rpc())
     config.registry['mailer'] = mailer_factory_from_settings(settings)
-    # set_routes(config)
-    BASE_CLASS.route_from_csv(config)
-    BASE_CLASS.route_from_list(config)
-    # routes_by_array(config)
-    config.scan()
-    _logging.debug(config)
+
     return config
 
 
@@ -709,7 +721,12 @@ def main(global_config, **settings):
     #     if cfg:
     #         config = cfg
 
-    return get_config(settings=settings).make_wsgi_app()
+    config = get_config(settings=settings)
+    BASE_CLASS.route_from_csv(config)
+    BASE_CLASS.route_from_list(config)
+    config.scan()
+    _logging.debug(config)
+    return config.make_wsgi_app()
 
 
 def get_route_file(filename):
@@ -726,30 +743,6 @@ class BaseApp():
     def __init__(self):
         self.menus = []
 
-    def route_from_csv(self, config, get_file=get_route_file, paket="opensipkd.base.views"):
-        with get_file("routes.csv") as f:
-            rows = csv.DictReader(f)
-            new_routes = []
-            for row in rows:
-                if row.get("parent_id") or row.get("parent_id/routes.kode"):
-                    new_routes[len(new_routes)-1]["children"].append(row)
-                else:
-                    row["children"] = []
-                    new_routes.append(row)
-
-            self.add_menu(config, new_routes, paket)
-
-    def route_from_list(self, config, routs=routes, paket="opensipkd.base.views"):
-        new_routes = []
-        for route in routs:
-            d = {"kode": route[0],
-                 "path": route[1],
-                 "nama": route[2],
-                 "type": len(route) > 4 and route[4] or 0
-                 }
-            new_routes.append(d)
-
-        self.add_menu(config, new_routes, paket)
 
     def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views"):
         route_names = []
@@ -757,22 +750,22 @@ class BaseApp():
             route["route_names"] = [route["kode"]]
             route["permission"] = route.get("permission", "")
             route["icon"] = route.get("icon", None)
-            route_type = route.get("type", 0)
-            if route_type == "" or route_type == None:
-                route_type = 0
+            route_typ = route.get("typ", 0)
+            if route_typ == "" or route_typ == None:
+                route_typ = 0
             else:
-                route_type = int(route_type)
-            route["type"] = route_type
+                route_typ = int(route_typ)
+            route["typ"] = route_typ
             route["is_menu"] = route.get("is_menu", 0)
+            
             url_path = route.get("path", None)
             if not url_path:
                 url_path = "/"+route["kode"].replace("-", "/")
-
             route["path"] = url_path
 
             children = route.get("children", [])
             route["children"] = []
-            if route.get("class_view"):
+            if route.get("file_name"):
                 _add_view_config(config, paket, route)
             elif route["path"] != "#":
                 _add_route(config, route)
@@ -788,6 +781,33 @@ class BaseApp():
                 )
             route_names.append(route["kode"])
         return route_names
+
+    def route_from_csv(self, config, get_file=get_route_file, paket="opensipkd.base.views"):
+        with get_file("routes.csv") as f:
+            rows = csv.DictReader(f)
+            new_routes = []
+            for row in rows:
+                row["children"] = []
+                if row.get("parent_id") or row.get("parent_id/routes.kode"):
+                    new_routes[len(new_routes)-1]["children"].append(row)
+                else:
+                    new_routes.append(row)
+
+            self.add_menu(config, new_routes, None, paket)
+
+    def route_from_list(self, config, routs=routes, paket="opensipkd.base.views"):
+        new_routes = []
+        for route in routs:
+            d = {"kode": route[0],
+                 "path": route[1],
+                 "nama": route[2],
+                 "typ": len(route) > 4 and route[4] or 0
+                 }
+            new_routes.append(d)
+
+        self.add_menu(config, new_routes, paket)
+
+    
 
     def get_menus(self):
         return self.menus
