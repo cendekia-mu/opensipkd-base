@@ -154,6 +154,7 @@ def add_global(event):
     event['get_urls'] = get_urls
     event['get_csrf_token'] = get_csrf_token
     event['get_base_menus'] = BASE_CLASS.get_menus
+    
     # event['get_params'] = get_params
     # event['get_module_menus'] = get_module_menus
     # event['get_module_submenus'] = get_module_submenus
@@ -820,6 +821,5 @@ class BaseApp():
 
 BASE_CLASS = BaseApp()
 
-@subscriber(BeforeRender)
-def add_global(event):
-    event['get_base_menus'] = BASE_CLASS.get_menus()
+# @subscriber(BeforeRender)
+# def add_global(event):
