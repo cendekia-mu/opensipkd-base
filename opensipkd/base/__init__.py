@@ -512,10 +512,16 @@ def _add_view_config(config, paket, route):
         views = getattr(_views, class_name)
         template = route.get("template", "form.pt")
         if not template:
-            template = "form.pt"
+            if route.get("func_name") == "view_list":
+                template = "list.pt" 
+            elif route.get("func_name") == "view_act":
+                template = "json"
+            else:
+                template = "form.pt"
             
         if template != "json":
             template = "views/templates/" + template
+
         params = dict(attr=f"{attr}", 
                         route_name=route.get("kode"),
                         renderer=template)
@@ -620,7 +626,6 @@ def get_config(settings):
     config.set_default_csrf_options(require_csrf=False)
     config.set_security_policy(MySecurityPolicy(settings["session.secret"]))
     config.add_subscriber(add_cors_headers_response_callback, NewRequest)
-
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_title, 'title', reify=True)
     config.add_request_method(get_company, 'company', reify=True)
@@ -751,7 +756,8 @@ class BaseApp():
         for route in route_menus:
             if not int(route.get("status", 0)):
                 continue
-            route["route_names"] = [route["kode"]]
+
+            route["route_name"] = [route["kode"]]
             route["permission"] = route.get("permission", "")
             route["icon"] = route.get("icon", None)
             route_typ = route.get("typ", 0)
@@ -759,12 +765,25 @@ class BaseApp():
                 route_typ = 0
             else:
                 route_typ = int(route_typ)
+            
             route["typ"] = route_typ
-            route["is_menu"] = route.get("is_menu", 0)
+            is_menu = route.get("is_menu", 0)
+            route["is_menu"] = is_menu and int(is_menu) or 0
             
             url_path = route.get("path", None)
             if not url_path:
-                url_path = "/"+route["kode"].replace("-", "/")
+                path_split = route.get("kode").split("-")
+                path_last = path_split[len(path_split) - 1]
+                if path_last in ["edit", "view", "delete"]:
+                    path = "/".join(path_split[:-1])
+                    path += "/{id}/"+path_last
+                elif path_last in ["act"]:
+                    path = "/".join(path_split[:-1])
+                    path += "/{act}/"+path_last
+                else:
+                    path = "/".join(path_split)
+                url_path = '/'+path
+
             route["path"] = url_path
 
             children = route.get("children", [])
@@ -780,11 +799,21 @@ class BaseApp():
                 else:
                     parent["children"].append(route)
             if children:
-                route["route_names"].extend(
+                route["route_name"].extend(
                     self.add_menu(config, children, route, paket)
                 )
             route_names.append(route["kode"])
         return route_names
+    
+    def route_children(self, parent, row):
+        for p in parent:
+            parent_id = row.get("parent_id") or row.get(
+                "parent_id/routes.kode")
+            if p["kode"]==parent_id:
+                p["children"].append(row)
+            else:
+                if p["children"]:
+                    self.route_children(p["children"], row)
 
     def route_from_csv(self, config, get_file=get_route_file, paket="opensipkd.base.views"):
         with get_file("routes.csv") as f:
@@ -794,8 +823,9 @@ class BaseApp():
                 if not int(row.get("status", 0)):
                     continue
                 row["children"] = []
-                if row.get("parent_id") or row.get("parent_id/routes.kode"):
-                    new_routes[len(new_routes)-1]["children"].append(row)
+                parent_id = row.get("parent_id") or row.get("parent_id/routes.kode")
+                if parent_id:
+                    self.route_children(new_routes, row)
                 else:
                     new_routes.append(row)
 
