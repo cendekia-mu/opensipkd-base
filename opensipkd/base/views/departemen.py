@@ -139,14 +139,7 @@ class AddSchema(colander.Schema):
 
     def after_bind(self, schema, kwargs):
         request = kwargs["request"]
-        self["parent_nm"].widget.values = f"{request.route_url('departemen')}/hon/act"
-        # self["parent_nm"].widget = widget.AutocompleteInputWidget(
-        #     size=60, min_length=3,
-        #     requirements=(("typeahead", None), ("deform", None),
-        #                   {"js": "opensipkd.base:static/js/form/departemen.js"}),
-        #     values=f"{request.route_url('departemen')}/hon/act",
-        # )
-
+        self["parent_nm"].widget.values = f"{request.route_url('departemen-act', act='hon')}"
         if request.user.company_id:
             self["company_id"].widget = widget.HiddenWidget()
         self["company_id"].default = request.user.company_id
@@ -242,18 +235,6 @@ class Views(BaseView):
         row = super().save_request(values, row)
         return row
 
-    # @view_config(route_name='departemen-view',
-    #              renderer='templates/form.pt',
-    #              permission='departemen')
-    # def view_view(self):
-    #     return super().view_view()
-
-    # @view_config(route_name='departemen',
-    #              renderer='templates/table.pt',
-    #              permission='departemen')
-    # def view_list(self):
-    #     return super().view_list()
-
     def list_join(self, query):
         query = query.outerjoin(
             dep_alias, Departemen.parent_id == dep_alias.id)\
@@ -262,8 +243,6 @@ class Views(BaseView):
         )
         return query
 
-    # @view_config(route_name='departemen-act', renderer='json',
-                #  permission='view')
     def view_act(self):
         request = self.req
         # ses = request.session
@@ -386,69 +365,8 @@ class Views(BaseView):
     def get_bindings(self, row=None):
         return {"company_list": ResCompany.get_list()}
 
-    # @view_config(route_name='departemen-add', renderer='templates/form.pt',
-    #              permission='departemen')
-    # def view_add(self):
-    #     return super().view_add()
-
-    # @view_config(route_name='departemen-edit',
-    #              renderer='templates/form.pt', permission='departemen')
-    # def view_edit(self):
-    #     return super().view_edit()
-
-    # @view_config(route_name='departemen-delete',
-    #              renderer='templates/form.pt', permission='departemen')
-    # def view_delete(self):
-    #     return super().view_delete()
-
-    # @view_config(route_name='departemen-upload',
-    #              renderer='templates/form.pt',
-    #              permission='departemen')
     def view_upload(self):
         return super().view_upload(exts=('.csv', '.tsv'), delimiter="\t")
-
-        # request = self.req
-        # form = self.get_form(UploadSchema)
-        # if request.POST:
-        #     if 'save' in request.POST:
-        #         input_file = request.POST['upload'].file
-        #         filename = request.POST['upload'].filename
-        #         ext = get_ext(filename)
-        #         if ext.lower() != '.csv':
-        #             request.session.flash('File harus format csv', 'error')
-        #             return dict(form=form.render())
-        #         if not input_file:
-        #             return dict(form=form.render())
-        #         input_file.seek(0)
-        #         temp_file_path = '/tmp/' + get_random_string(10) + '.csv'
-        #
-        #         with open(temp_file_path, 'wb') as output_file:
-        #             shutil.copyfileobj(input_file, output_file)
-        #
-        #         with open(temp_file_path) as f:
-        #             c = csv.DictReader(f)
-        #             for csv_row in c:
-        #                 kode = csv_row['kode']
-        #                 if kode:
-        #                     xcode = kode.split(".")
-        #                     for r in range(len(xcode)):
-        #                         xc = xcode[r] and int(xcode[r])
-        #                         if not xc and type(xc) == int:
-        #                             code = ""
-        #                             for t in range(r):
-        #                                 code += xcode[t] + '.'
-        #
-        #                             if code:
-        #                                 code = code[:-1]
-        #                                 self.save_upload(code, csv_row)
-        #
-        #                     self.save_upload(kode, csv_row)
-        #
-        #             DBSession.flush()
-        #         os.remove(temp_file_path)
-        #
-        #     return self.route_list()
-        # return dict(form=form.render())
 
     def get_values(self, row, values=None):
         if not values:
@@ -458,19 +376,3 @@ class Views(BaseView):
             values["parent_nm"] = parent.nama
             values["parent_kd"] = parent.kode
         return values
-
-    # def save_upload(self, kode, csv_row):
-    #     row = Departemen.query_kode(kode).first()
-    #     if not row:
-    #         row = Departemen()
-    #         row.created = datetime.now()
-    #         row.create_uid = self.req.user.id
-    #         row.level_id = kode.count('.') + 1
-    #         row.status = 1
-    #     else:
-    #         row.updated = datetime.now()
-    #         row.update_uid = self.req.user.id
-    #     row.kode = kode
-    #     row.nama = csv_row['nama']
-    #     DBSession.add(row)
-    #     return row

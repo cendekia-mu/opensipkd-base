@@ -153,7 +153,7 @@ def add_global(event):
     event['get_params'] = get_params
     event['get_urls'] = get_urls
     event['get_csrf_token'] = get_csrf_token
-    event['get_base_menus'] = BASE_CLASS.get_menus()
+    event['get_base_menus'] = BASE_CLASS.get_menus
     # event['get_params'] = get_params
     # event['get_module_menus'] = get_module_menus
     # event['get_module_submenus'] = get_module_submenus
@@ -523,10 +523,11 @@ def _add_view_config(config, paket, route):
         
         config.add_view(views, **params)
     except Exception as e:
-        raise e
-        _logging.error(f"Add View Config :" )
+        _logging.error(f"Add View Config :")
         _logging.error(str(e))
         _logging.error(route)
+        raise e
+
 
 
 # def add_view_config(config, module, view_name):
@@ -747,6 +748,8 @@ class BaseApp():
     def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views"):
         route_names = []
         for route in route_menus:
+            if not int(route.get("status", 0)):
+                continue
             route["route_names"] = [route["kode"]]
             route["permission"] = route.get("permission", "")
             route["icon"] = route.get("icon", None)
@@ -787,6 +790,8 @@ class BaseApp():
             rows = csv.DictReader(f)
             new_routes = []
             for row in rows:
+                if not int(row.get("status", 0)):
+                    continue
                 row["children"] = []
                 if row.get("parent_id") or row.get("parent_id/routes.kode"):
                     new_routes[len(new_routes)-1]["children"].append(row)
@@ -814,3 +819,7 @@ class BaseApp():
 
 
 BASE_CLASS = BaseApp()
+
+@subscriber(BeforeRender)
+def add_global(event):
+    event['get_base_menus'] = BASE_CLASS.get_menus()
