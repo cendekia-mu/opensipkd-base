@@ -533,7 +533,7 @@ def _add_view_config(config, paket, route):
         _logging.error(f"Add View Config :")
         _logging.error(str(e))
         _logging.error(route)
-        raise e
+        # raise e
 
 
 
@@ -823,7 +823,7 @@ class BaseApp():
                 status = row.get("status", 0)
                 if not status:
                     continue
-                
+
                 status = int(status)
                 row["children"] = []
                 parent_id = row.get("parent_id") or row.get("parent_id/routes.kode")
