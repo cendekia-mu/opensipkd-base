@@ -820,8 +820,11 @@ class BaseApp():
             rows = csv.DictReader(f)
             new_routes = []
             for row in rows:
-                if not int(row.get("status", 0)):
+                status = row.get("status", 0)
+                if not status:
                     continue
+                
+                status = int(status)
                 row["children"] = []
                 parent_id = row.get("parent_id") or row.get("parent_id/routes.kode")
                 if parent_id:
