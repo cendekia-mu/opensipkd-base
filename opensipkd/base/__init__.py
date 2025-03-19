@@ -500,7 +500,7 @@ def _add_view_config(config, paket, route):
         func_name = "".join(route.get("kode").split('-')[-1:])
         route["func_name"] = "_".join(["view", func_name])
 
-    file_name = f"{paket}.{route.get("file_name")}"
+    file_name = f"{paket}.{route.get('file_name')}"
     _logging.debug(f"File Name: {file_name}")
     attr = f"{route.get('func_name')}"
     try:
