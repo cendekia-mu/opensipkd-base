@@ -67,7 +67,8 @@ def jasper_export(input_file, output_file=None, schema=None,
                   out_file=None):
 
     module_file = None
-    input_file = input_file.split(":")  # Cek apakah input_file berupa module
+    input_file = input_file.split(":") 
+    # Cek apakah input_file berupa module
     # if os.name == 'nt' and len(input_file)>1:
     #     input_file=[input_file[0]]
     # if len(input_file) > 1:

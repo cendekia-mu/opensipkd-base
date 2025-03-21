@@ -1,19 +1,17 @@
 from datetime import datetime
-from email.policy import default
 
 import colander
-from deform import (widget, )
+from deform import widget
 from opensipkd.models import (
     DBSession, Departemen, Partner, PartnerDepartemen, ResCompany)
 from opensipkd.tools import (get_settings)
 from opensipkd.tools.buttons import btn_upload
-from pyramid.view import (view_config, )
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
 from .company import company_widget
 from .. import get_params
-from ..views import ColumnDT, DataTables, BaseView, get_urls
+from ..views import BaseView
 
 SESS_ADD_FAILED = 'Tambah departemen gagal'
 SESS_EDIT_FAILED = 'Edit departemen gagal'

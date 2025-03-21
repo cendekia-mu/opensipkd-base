@@ -84,7 +84,6 @@ class BaseView(object):
          $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
               $('#parent_id').val(datum.id);
               $('#parent_kd').val(datum.kode);
-
         });"""
         self.form_widget = None
 

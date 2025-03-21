@@ -754,8 +754,8 @@ class BaseApp():
     def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views"):
         route_names = []
         for route in route_menus:
-            if not int(route.get("status", 0)):
-                continue
+            # if not int(route.get("status", 0)):
+                # continue
 
             route["route_name"] = [route["kode"]]
             route["permission"] = route.get("permission", "")
