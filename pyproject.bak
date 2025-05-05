@@ -1,0 +1,27 @@
+
+
+
+#[project.scripts]
+#import_log = 'opensipkd.base.scripts.import_log:main'
+#[tool.setuptools]
+#packages = ["opensipkd", "opensipkd.models", "opensipkd.detables", "opensipkd.base"]
+
+
+#[tool.mypy]
+#exclude = [
+#    'base',
+#    'report', 
+#    'external', 
+#    'developers',
+#]
+#show_error_codes = true
+#
+#[[tool.mypy.overrides]]
+#module = [
+#    "opensipkd.base.*",
+#    "opensipkd.models.*",
+#    "opensipkd.detable.*",
+#    "opensipkd.jsonrpc_auth.*",
+#]
+#warn_unused_ignores = true
+#strict = true

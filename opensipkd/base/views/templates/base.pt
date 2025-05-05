@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"  tal:define="home request._host;">
+<html lang="en"  tal:define="home request.home;">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -23,10 +23,10 @@
   <!-- Jquery CSS -->
   <link href="${home}/static/v3/plugin/jqueryui/themes/base/jquery-ui.min.css" rel="stylesheet">
   <!-- DataTables -->
-  <link href="${home}/static/v3/plugin/datatables/1.10/media/css/dataTables.bootstrap.css" rel="stylesheet">
-
+  <!-- <link href="${home}/static/v3/plugin/datatables/1.10/media/css/dataTables.bootstrap.css" rel="stylesheet"> -->
+<!-- <link href="${home}/deform_static/css/typeahead.css" rel="stylesheet"> -->
+  
   <link href="${home}/deform_static/css/form.css" rel="stylesheet">
-  <link href="${home}/deform_static/css/typeahead.css" rel="stylesheet">
   <link href="${home}/static/css/theme.css" rel="stylesheet">
   <link href="${home}/static/css/navbar-fixed-top.css" rel="stylesheet">
   <!-- Home CSS -->
@@ -112,7 +112,7 @@
                       API Key
                   </a>
               </li>
-              <li tal:condition="'core' in request.modules and change_unit(request)"><a style="text-transform:capitalize" href="${home}/departemen/chg">Ubah Organisasi</a></li>
+              <!-- <li talcondition="'core' in request.modules and change_unit(request)"><a style="text-transform:capitalize" href="${home}/departemen/chg">Ubah Organisasi</a></li> -->
             </ul>
           </li>
         </ul>
@@ -148,12 +148,12 @@
         $.widget.bridge('uibutton', $.ui.button);
       </script>
       <script type="text/javascript" src="${home}/static/v3/js/bootstrap/bootstrap.min.js"></script>
-      <script type="text/javascript" src="${home}/static/v3/plugin/datatables/1.10/media/js/jquery.dataTables.min.js"></script>
-      <script type="text/javascript" src="${home}/static/v3/plugin/datatables/1.10/media/js/dataTables.bootstrap.js"></script>
-      <script type="text/javascript" src="${home}/static/v3/plugin/datatables/1.10/media/js/jquery.dataTables.ext.js"></script>
-      <script type="text/javascript" src="${home}/deform_static/scripts/deform.js"></script>
-      <script type="text/javascript" src="${home}/deform_static/scripts/typeahead.min.js"></script>
-      <script type="text/javascript" src="${home}/static/js/tools.js"></script>
+      <!-- <script type="text/javascript" src="${home}/static/v3/plugin/datatables/1.10/media/js/jquery.dataTables.min.js"></script> -->
+      <!-- <script type="text/javascript" src="${home}/static/v3/plugin/datatables/1.10/media/js/dataTables.bootstrap.js"></script> -->
+      <!-- <script type="text/javascript" src="${home}/static/v3/plugin/datatables/1.10/media/js/jquery.dataTables.ext.js"></script> -->
+      <!-- <script type="text/javascript" src="${home}/deform_static/scripts/deform.js"></script> -->
+      <!-- <script type="text/javascript" src="${home}/deform_static/scripts/typeahead.min.js"></script> -->
+      <!-- <script type="text/javascript" src="${home}/static/js/tools.js"></script> -->
       <metal:js define-slot="js_files"></metal:js>
 
       <script metal:define-slot="scripts"></script>

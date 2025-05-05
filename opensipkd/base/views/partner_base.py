@@ -1,15 +1,18 @@
+from sqlalchemy import true
 import colander
 from deform import FileData, widget
 from opensipkd.tools import mem_tmp_store
 from translationstring import TranslationStringFactory
 
-from opensipkd.base.views.dati2 import dati2_widget
-from opensipkd.base.views.desa import desa_widget
-from opensipkd.base.views.kecamatan import kecamatan_widget
-from opensipkd.base.views.provinsi import provinsi_widget
-from opensipkd.models import Partner
+# from opensipkd.base.views.dati2 import dati2_widget
+# from opensipkd.base.views.desa import desa_widget
+# from opensipkd.base.views.kecamatan import kecamatan_widget
+# from opensipkd.base.views.provinsi import provinsi_widget
+# from opensipkd.models import Partner
 from . import Validator
-from .. import get_urls
+# from .. import get_urls
+from ..models import Partner
+
 
 _ = TranslationStringFactory('partner')
 
@@ -138,38 +141,38 @@ class PartnerSchema(NamaSchema):
     #     validator=colander.Length(max=64),
     #     missing=colander.drop,
     #     oid="provinsi")
-    provinsi_id = colander.SchemaNode(
-        colander.Integer(),
-        widget=provinsi_widget,
-        missing=colander.drop,
-        oid="provinsi_id",
-        slave="dati2_id",
-        slave_url="/dati2/select/act?provinsi_id=",
-        title="Provinsi",
+    # provinsi_id = colander.SchemaNode(
+    #     colander.Integer(),
+    #     widget=provinsi_widget,
+    #     missing=colander.drop,
+    #     oid="provinsi_id",
+    #     slave="dati2_id",
+    #     slave_url="/dati2/select/act?provinsi_id=",
+    #     title="Provinsi",
 
-    )
-    dati2_id = colander.SchemaNode(
-        colander.Integer(),
-        widget=dati2_widget,
-        missing=colander.drop,
-        slave="kecamatan_id",
-        slave_url="/kecamatan/select/act?dati2_id=",
-        title="Kab/Kota",
-        oid="dati2_id")
-    kecamatan_id = colander.SchemaNode(
-        colander.Integer(),
-        missing=colander.drop,
-        widget=kecamatan_widget,
-        slave="desa_id",
-        slave_url="/desa/select/act?kecamatan_id=",
-        title="Kecamatan",
-        oid="kecamatan_id")
-    desa_id = colander.SchemaNode(
-        colander.Integer(),
-        widget=desa_widget,
-        missing=colander.drop,
-        title="Desa/Kelurahan",
-        oid="desa_id")
+    # )
+    # dati2_id = colander.SchemaNode(
+    #     colander.Integer(),
+    #     widget=dati2_widget,
+    #     missing=colander.drop,
+    #     slave="kecamatan_id",
+    #     slave_url="/kecamatan/select/act?dati2_id=",
+    #     title="Kab/Kota",
+    #     oid="dati2_id")
+    # kecamatan_id = colander.SchemaNode(
+    #     colander.Integer(),
+    #     missing=colander.drop,
+    #     widget=kecamatan_widget,
+    #     slave="desa_id",
+    #     slave_url="/desa/select/act?kecamatan_id=",
+    #     title="Kecamatan",
+    #     oid="kecamatan_id")
+    # desa_id = colander.SchemaNode(
+    #     colander.Integer(),
+    #     widget=desa_widget,
+    #     missing=colander.drop,
+    #     title="Desa/Kelurahan",
+    #     oid="desa_id")
 
     phone = colander.SchemaNode(
         colander.String(),
@@ -192,12 +195,13 @@ class PartnerSchema(NamaSchema):
         missing=colander.drop,
         oid="website")
     status = colander.SchemaNode(
-        colander.Boolean(),
+        colander.Integer(),
+        widget=widget.CheckboxWidget(true_val="1", false_val="0"),
         oid="status")
 
     def after_bind(self, schema, kwargs):
         request = kwargs["request"]
-        prefix = get_urls(request.route_url("home"))
-        self["provinsi_id"].slave_url = f"{prefix}/dati2/select/act?provinsi_id="
-        self["dati2_id"].slave_url = f"{prefix}/kecamatan/select/act?dati2_id="
-        self["kecamatan_id"].slave_url = f"{prefix}/desa/select/act?kecamatan_id="
+    #     prefix = request.route_url("base-home")
+    #     self["provinsi_id"].slave_url = f"{prefix}/dati2/select/act?provinsi_id="
+    #     self["dati2_id"].slave_url = f"{prefix}/kecamatan/select/act?dati2_id="
+    #     self["kecamatan_id"].slave_url = f"{prefix}/desa/select/act?kecamatan_id="

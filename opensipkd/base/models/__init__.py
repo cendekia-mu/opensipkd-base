@@ -1,3 +1,6 @@
-log = __import__("logging").getLogger(__name__)
-log.warning('Use opensipkd.models')
-from opensipkd.models import *
+from .meta import * 
+from .common import *
+from .base import *
+from .users import *
+from .wilayah import *
+from .partner import *

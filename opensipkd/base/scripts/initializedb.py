@@ -6,11 +6,17 @@ import sys
 from getpass import getpass
 
 import transaction
-from opensipkd.models import (
-    init_model, DBSession, Base, Group, UserGroup, Permission, GroupPermission,
-    User, Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa,
-    Menus, Pangkat)
-from opensipkd.models.handlers import LogDBSession
+from ..models.users import (
+    init_model, Group, UserGroup, Permission, GroupPermission, User, 
+    UserPermission, ExternalIdentityMixin)
+from ..models import (Partner, )
+from ..models import (DBSession)
+from ..models.handlers import (LogDBSession)
+from ..models.meta import Base  
+# from ..models import (Base, LogDBSession)
+#  Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa,
+#     Menus, Pangkat
+
 from pyramid.paster import (get_appsettings, setup_logging, )
 from sqlalchemy import (desc, engine_from_config, select, Table, inspect)
 from sqlalchemy import text
@@ -24,61 +30,57 @@ from opensipkd.tools import get_ext
 log = logging.getLogger(__name__)
 
 
-# , mssql
-# from .tools import mkdir
+# def routes_callback(typ, **kwargs):
+#     if typ == "mapping":
+#         return kwargs.get("value")
+#     if typ == "value":
+#         data = kwargs.get("data")
+#         field = kwargs.get("field")
+#         splited = data["kode"].split("-")
+#         value = None
+#         splited_last = splited[len(splited) - 1]
+#         if field == "module":
+#             value = splited[0]
+#         elif field == "def_func":
+#             if data["def_func"]:
+#                 return data["def_func"]
+#             elif splited_last == 'menu':
+#                 return None
+#             value = splited_last
+#         elif field == "class_view":
+#             if data["def_func"] == "list" and not data["class_view"] \
+#                     or splited_last not in ["add", "edit", "delete", "view", "act", "report", "upload"]:
+#                 log.debug(splited[-1:])
+#                 log.debug(data)
+#                 return "_".join(splited[1:])
 
+#             if splited_last == "menu":
+#                 return None
+#             value = "_".join(splited[1:-1])
 
-def routes_callback(typ, **kwargs):
-    if typ == "mapping":
-        return kwargs.get("value")
-    if typ == "value":
-        data = kwargs.get("data")
-        field = kwargs.get("field")
-        splited = data["kode"].split("-")
-        value = None
-        splited_last = splited[len(splited) - 1]
-        if field == "module":
-            value = splited[0]
-        elif field == "def_func":
-            if data["def_func"]:
-                return data["def_func"]
-            elif splited_last == 'menu':
-                return None
-            value = splited_last
-        elif field == "class_view":
-            if data["def_func"] == "list" and not data["class_view"] \
-                    or splited_last not in ["add", "edit", "delete", "view", "act", "report", "upload"]:
-                log.debug(splited[-1:])
-                log.debug(data)
-                return "_".join(splited[1:])
+#         elif field == "path":
+#             if splited_last == "menu":
+#                 return "-".join(splited)
+#             elif splited_last in ["act", "report"]:
+#                 return "/" + "/".join(splited[:-1]) + "/{act}/" + splited_last
+#             elif splited_last == "report":
+#                 return "/" + "/".join(splited[:-1]) + "/{act}/act"
+#             elif splited_last in ["edit", "view", "delete"]:
+#                 return "/" + "/".join(splited[:-1]) + "/{id}/" + splited_last
+#             else:
+#                 return "/" + "/".join(splited)
+#         elif field == "template":
+#             if splited_last == "act":
+#                 return "json"
+#             elif data["template"]:
+#                 return data["template"]
 
-            if splited_last == "menu":
-                return None
-            value = "_".join(splited[1:-1])
+#             elif data["def_func"] == "list":
+#                 return "list.pt"
+#             else:
+#                 return "form.pt"
 
-        elif field == "path":
-            if splited_last == "menu":
-                return "-".join(splited)
-            elif splited_last in ["act", "report"]:
-                return "/" + "/".join(splited[:-1]) + "/{act}/" + splited_last
-            elif splited_last == "report":
-                return "/" + "/".join(splited[:-1]) + "/{act}/act"
-            elif splited_last in ["edit", "view", "delete"]:
-                return "/" + "/".join(splited[:-1]) + "/{id}/" + splited_last
-            else:
-                return "/" + "/".join(splited)
-        elif field == "template":
-            if splited_last == "act":
-                return "json"
-            elif data["template"]:
-                return data["template"]
-
-            elif data["def_func"] == "list":
-                return "list.pt"
-            else:
-                return "form.pt"
-
-        return value
+#         return value
 
 
 def usage(argv):
@@ -337,7 +339,6 @@ def append_csv(table, filename, keys, get_file_func=get_file,
             db_session.flush()
             if user:
                 print("Table: ", table.__name__, filter_)
-
                 row = db_session.query(User).filter_by(id=row.id).first()
                 init_model()
                 UserService.set_password(row, password)
@@ -409,7 +410,6 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
-    # alembic_run(config_uri)  # alembicnya ziggurat
     Base.metadata.create_all(bind=engine)
     alembic_run(config_uri, "alembic_base")
     # base_alembic_run(config_uri)
@@ -430,31 +430,31 @@ def main(argv=sys.argv):
         append_csv(GroupPermission, 'group_permission.csv',
                    ['group_id', 'perm_name'])
         # append_csv(Route, 'routes.csv', ['kode'])
-        append_csv(Menus, 'menus.csv', ['kode'])
-        append_csv(Eselon, 'eselon.csv', ['kode'])
-        append_csv(Jabatan, 'jabatan.csv', ['kode'])
-        restore_csv(Pangkat, 'pangkat.csv')
-        restore_csv(ResProvinsi, 'provinsi.csv')
-        transaction.commit()
-        restore_csv(ResDati2, 'dati2.csv')
-        transaction.commit()
-        restore_csv(ResKecamatan, 'kecamatan.csv')
-        transaction.commit()
-        restore_csv(ResDesa, 'desa.csv')
+        # append_csv(Menus, 'menus.csv', ['kode'])
+        # append_csv(Eselon, 'eselon.csv', ['kode'])
+        # append_csv(Jabatan, 'jabatan.csv', ['kode'])
+        # restore_csv(Pangkat, 'pangkat.csv')
+        # restore_csv(ResProvinsi, 'provinsi.csv')
+        # transaction.commit()
+        # restore_csv(ResDati2, 'dati2.csv')
+        # transaction.commit()
+        # restore_csv(ResKecamatan, 'kecamatan.csv')
+        # transaction.commit()
+        # restore_csv(ResDesa, 'desa.csv')
 
 
-def delete_route(module):
-    try:
-        routes = Route.query().filter(Route.module == module).\
-            order_by(desc(Route.parent_id), desc(Route.order_id), ).limit(100)
-        for route in routes:
-            try:
-                Route.query_id(route.id).delete()
-                transaction.commit()
-            except Exception as e:
-                # print(str(e))
-                # print(route.nama, route.id, route.parent_id, )
-                # print("Error")
-                transaction.abort()
-    except Exception as e:
-        print(str(e))
+# def delete_route(module):
+#     try:
+#         routes = Route.query().filter(Route.module == module).\
+#             order_by(desc(Route.parent_id), desc(Route.order_id), ).limit(100)
+#         for route in routes:
+#             try:
+#                 Route.query_id(route.id).delete()
+#                 transaction.commit()
+#             except Exception as e:
+#                 # print(str(e))
+#                 # print(route.nama, route.id, route.parent_id, )
+#                 # print("Error")
+#                 transaction.abort()
+#     except Exception as e:
+#         print(str(e))

@@ -1,9 +1,0 @@
-<html metal:use-macro="load: ./base3.1.pt">
-<js metal:fill-slot="js_files">
-<script src="${home}/static/v3/js/plugin/datatables/jquery.dataTables.min.js"></script>
-    <script src="${home}/static/v3/js/plugin/datatables/dataTables.colVis.min.js"></script>
-    <script src="${home}/static/v3/js/plugin/datatables/dataTables.tableTools.min.js"></script>
-    <script src="${home}/static/v3/js/plugin/datatables/dataTables.bootstrap.min.js"></script>
-    <script src="${home}/static/v3/js/plugin/datatable-responsive/datatables.responsive.min.js"></script>
-</js>
-</html>

@@ -1,0 +1,173 @@
+###
+# app configuration
+# http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/environment.html
+###
+
+
+[app:main]
+;[app:opensipkd_base]
+use = egg:opensipkd_base
+reload_templates = true
+pyramid.debug_all = true
+pyramid.debug_authorization = false
+pyramid.debug_notfound = true
+pyramid.debug_routematch = true
+pyramid.debug_templates = true
+default_locale_name = id
+sqlalchemy.url = postgresql://aagusti:a@localhost:5432/demo2
+session.url = postgresql://aagusti:a@localhost:5433/demo2
+
+temp_dir = C:\tmp
+allow_register = true
+pyramid.includes =
+    pyramid_tm
+    pyramid_beaker
+    pyramid_chameleon
+    pyramid_debugtoolbar
+    pyramid_rpc.jsonrpc
+
+session.type = ext:database
+session.secret = s0s3cr3ts
+session.cookie_expires = true
+session.key = WhatEver
+session.timeout = 3000
+session.lock_dir = %(here)s/tmp
+timezone = Asia/Jakarta
+;localization = id_ID.UTF-8
+#localization = Indonesian_indonesia.1252
+localization = English_Australia.1252
+
+;login_tpl = opensipkd.samsat.jabar.views:templates/login.pt
+
+;static_files = %(here)s/../files
+;captcha_files = /tmp/captcha
+;company = Opensipkd
+;ibukota = Bekasi
+;departement = IT
+;address_1 = Jalan....
+;address_2 = Bekasi ...
+;
+;center.phone = 021123456789
+;center.mobile = 081311045668
+;center.email = aa.gustiana@gmail.com
+;center.email_password =
+;center.smtp_server =
+;
+;#_host = http://localhost:5433/demo2
+;
+;unoconv_py = C:\Program Files\LibreOffice\program\python.exe
+;unoconv_bin = C:\product\venv-lates\Scripts\unoconv
+;
+;modules =
+menus = login:Login
+;    pjdl:PJDL
+;    bphtb:BPHTB
+;    five:Five
+;app_name = GAJI ASN
+
+;change_unit = False
+;departemen_chg_id = 3
+
+# Registrasi User
+;captcha_files = /tmp/captcha
+;reg_captcha = 0
+;reg_idcard = 1
+;reg_verify = 1
+;reg_form =
+;login_tpl =
+
+# digunakan jika akan menggunakan form registrasi sendiri
+
+; PROXY
+;trusted_proxy_headers = "forwarded x-forwarded-for x-forwarded-host x-forwarded-proto x-forwarded-port"
+;url_prefix='/wsgi'
+
+;
+;[composite:main]
+;use = egg:rutter#urlmap
+;/ = opensipkd_base
+;/wsgi/ = opensipkd_base
+
+
+;[filter:proxy-prefix]
+;use = egg:PasteDeploy#prefix
+;prefix = /wsgi
+;
+;[pipeline:main]
+;pipeline =
+;    proxy-prefix
+;    opensipkd_base
+
+
+[server:main]
+use = egg:waitress#main
+host = 0.0.0.0
+port = 6543
+
+# Begin logging configuration
+
+[loggers]
+keys = root, opensipkd, sqlalchemy
+
+[handlers]
+keys = console
+#, filelog, tabel
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = WARN
+handlers = console
+#, filelog, tabel
+
+[logger_opensipkd]
+level = DEBUG
+handlers =
+qualname = opensipkd
+
+[logger_sqlalchemy]
+level = WARN
+handlers =
+qualname = sqlalchemy.engine
+# "level = INFO" logs SQL queries.
+# "level = DEBUG" logs SQL queries and results.
+# "level = WARN" logs neither.  (Recommended for production systems.)
+
+[handler_filelog]
+class = FileHandler
+args = ('log_file_location','a')
+level = INFO
+formatter = generic
+
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[handler_tabel]
+class = opensipkd.base.handlers.SQLAlchemyHandler
+args = ()
+level = WARN
+formatter = generic
+
+[formatter_generic]
+format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s
+
+# End logging configuration
+
+[alembic_ziggurat]
+script_location = ziggurat_foundations:migrations
+sqlalchemy.url = postgresql://aagusti:a@localhost:5432/demo2
+
+[alembic_base]
+script_location = opensipkd.base:alembic
+sqlalchemy.url = postgresql://aagusti:a@localhost:5432/demo2
+
+[pytest]
+filterwarnings =
+    error
+    ignore::UserWarning
+    ignore:function ham\(\) is deprecated:DeprecationWarning

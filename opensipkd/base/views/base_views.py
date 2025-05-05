@@ -1,27 +1,30 @@
 import logging
 import os
-import re
+# import re
 from datetime import datetime
-from email.utils import parseaddr
+# from email.utils import parseaddr
 
 import colander
+from opensipkd.base import BASE_CLASS
+from pyramid.csrf import new_csrf_token, get_csrf_token
 from datatables import ColumnDT
-from dateutil.relativedelta import relativedelta
+# from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from sqlalchemy import Table
 
-from opensipkd.base.views.upload import tmpstore
+# from opensipkd.base.views.upload import tmpstore
 from opensipkd.tools import dmy, get_settings, get_ext, \
-    date_from_str, get_random_string, Upload, InvalidExtension
-from opensipkd.tools.buttons import btn_save, btn_cancel, btn_close, btn_delete, \
-    btn_add, btn_csv, \
-    btn_pdf, btn_unpost, btn_post
-from opensipkd.tools.captcha import get_captcha
+    date_from_str, get_random_string, Upload, InvalidExtension, mem_tmp_store
+from opensipkd.tools.buttons import (
+    btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv, 
+    btn_pdf, btn_unpost, btn_post, btn_upload)
+# from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
 from .common import DataTables
-from .. import DBSession, get_params, get_urls
+from ..models import DBSession
+# , get_params, get_urls
 from ..scripts.initializedb import append_csv
 from ...detable import DeTable
 
@@ -31,8 +34,20 @@ log = logging.getLogger(__name__)
 class UploadSchema(colander.Schema):
     upload = colander.SchemaNode(
         FileData(),
-        widget=widget.FileUploadWidget(tmpstore),
+        widget=widget.FileUploadWidget(mem_tmp_store),
         title='Unggah')
+
+class CSRFSchema(colander.Schema):
+    def after_bind(self, schema, kwargs):
+        request = kwargs["request"]
+        csrf_token = get_csrf_token(request)
+        if not csrf_token:
+            csrf_token = new_csrf_token(request)
+
+        self["csrf_token"] = colander.SchemaNode(
+            colander.String(), widget=widget.HiddenWidget(),
+            default=csrf_token
+        )
 
 
 class BaseView(object):
@@ -40,28 +55,29 @@ class BaseView(object):
         self.req = request
         self.ses = self.req.session
         self.db_session = DBSession
-        self.params = self.req.params
-        self.settings = get_settings()
-        self.tahun = None
-        self.bulan = None
-        self.posted = False
-        self.awal = None
-        self.akhir = None
-        self.dt_awal = None
-        self.dt_akhir = None
-        self.tahun_awal = None 
-        self.tahun_akhir = None 
-        self.departemen_kd = None
-        self.departemen_nm = None
-        self.departemen_id = None
-        self.jenis = None 
+#         self.params = self.req.params
+#         self.settings = get_settings()
+#         self.tahun = None
+#         self.bulan = None
+#         self.posted = False
+#         self.awal = None
+#         self.akhir = None
+#         self.dt_awal = None
+#         self.dt_akhir = None
+#         self.tahun_awal = None 
+#         self.tahun_akhir = None 
+#         self.departemen_kd = None
+#         self.departemen_nm = None
+#         self.departemen_id = None
+#         self.jenis = None 
         self.list_route = 'home'
-        self.list_col_defs = ""
-        self.list_cols = ""
+#         self.list_col_defs = ""
+#         self.list_cols = ""
         self.list_report = (btn_csv, btn_pdf)
-        self.list_buttons = (btn_add, btn_close)
+        self.list_buttons = (btn_add,)
+        self.list_upload = (btn_upload,)
         self.columns = None
-        self.form_params = dict(scripts="")
+#         self.form_params = dict(scripts="")
         self.list_url = ""
         self.list_route = ''
         self.allow_view = True
@@ -75,10 +91,13 @@ class BaseView(object):
         self.server_side = True
         self.scroll_y = False
         self.scroll_x = False
-
-        self.list_form = None
-        self.form_list = None
         self.filter_columns = False
+        self.action_suffix = "/grid/act"
+        self.html_buttons = {}
+        self.new_buttons = {}
+
+        self.list_form = None  #List dam Form
+        self.form_list = None  #Form kemudian detail list
 
         self.form_scripts = """
          $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
@@ -87,121 +106,119 @@ class BaseView(object):
         });"""
         self.form_widget = None
 
-        self.list_schema = colander.Schema()
-        self.add_schema = colander.Schema()
-        self.edit_schema = colander.Schema()
+        # self.list_schema = colander.Schema()
+        # self.add_schema = colander.Schema()
+        # self.edit_schema = colander.Schema()
         self.upload_schema = UploadSchema
         
         self.upload_exts = (".csv", ".tsv")
         self.upload_keys = ["kode"]
 
         self.table = Table
-        self.home = self.req._host
+        self.home = self.req.home
         self.buttons = None
         self.headers = None
         self.bindings = {}
         self.autocomplete = 'on'
-        self.action_suffix = "/grid/act"
-        self.report_file = ""
-        self.new_buttons = {}
+#         self.report_file = ""
+        
         self.is_object = False
-        self.html_buttons = {}
 
-        self.init_session(request)
+#         self.init_session(request)
 
-    def init_session(self, request):
-        # if not request.user:
-        if "g_state" in request.cookies:
-            request.response.delete_cookie("g_state", '/')
+#     def init_session(self, request):
+#         # if not request.user:
+#         if "g_state" in request.cookies:
+#             request.response.delete_cookie("g_state", '/')
 
-        now = datetime.now()
-        # self.dt_awal = self.ses["dt_awal"] if "dt_awal" in self.ses else now
-        # self.awal = dmy(self.dt_awal)
-        # self.dt_akhir = self.ses["dt_akhir"] if "dt_akhir" in self.ses else now
-        # self.akhir = dmy(self.dt_akhir)
-        # self.ses["dt_awal"] = self.dt_awal
-        # self.ses["dt_akhir"] = self.dt_akhir
-        self.tahun = 'tahun' in self.ses and self.ses['tahun'] \
-            or now.strftime('%Y')
-        self.tahun = 'tahun' in self.params and self.params['tahun'] or self.tahun
-        self.ses['tahun'] = self.tahun
+#         now = datetime.now()
+#         # self.dt_awal = self.ses["dt_awal"] if "dt_awal" in self.ses else now
+#         # self.awal = dmy(self.dt_awal)
+#         # self.dt_akhir = self.ses["dt_akhir"] if "dt_akhir" in self.ses else now
+#         # self.akhir = dmy(self.dt_akhir)
+#         # self.ses["dt_awal"] = self.dt_awal
+#         # self.ses["dt_akhir"] = self.dt_akhir
+#         self.tahun = 'tahun' in self.ses and self.ses['tahun'] \
+#             or now.strftime('%Y')
+#         self.tahun = 'tahun' in self.params and self.params['tahun'] or self.tahun
+#         self.ses['tahun'] = self.tahun
 
-        self.bulan = 'bulan' in self.ses and self.ses['bulan'] \
-            or now.strftime('%m')
-        if 'bulan' in self.params and self.params['bulan']:
-            self.bulan = self.params['bulan'].strip().zfill(2)
-            dt_awal = date_from_str(
-                '{d}-{m}-{y}'.format(y=self.tahun, m=self.bulan, d='01'))
-            dt_akhir = dt_awal + \
-                relativedelta(months=1) - relativedelta(days=1)
-            self.ses['awal'] = dmy(dt_awal)
-            self.ses['akhir'] = dmy(dt_akhir)
+#         self.bulan = 'bulan' in self.ses and self.ses['bulan'] \
+#             or now.strftime('%m')
+#         if 'bulan' in self.params and self.params['bulan']:
+#             self.bulan = self.params['bulan'].strip().zfill(2)
+#             dt_awal = date_from_str(
+#                 '{d}-{m}-{y}'.format(y=self.tahun, m=self.bulan, d='01'))
+#             dt_akhir = dt_awal + \
+#                 relativedelta(months=1) - relativedelta(days=1)
+#             self.ses['awal'] = dmy(dt_awal)
+#             self.ses['akhir'] = dmy(dt_akhir)
 
-        self.ses['bulan'] = int(self.bulan)
+#         self.ses['bulan'] = int(self.bulan)
 
-        self.posted = 'posted' in self.ses and self.ses['posted'] or 0
-        if 'posted' in self.params and self.params['posted']:
-            posted = self.params['posted']
-            self.posted = ((posted == 'true' or posted == '1') and 1) or (
-                (posted == 'false' or posted == '0') and 0) or 0
-        self.ses['posted'] = self.posted
+#         self.posted = 'posted' in self.ses and self.ses['posted'] or 0
+#         if 'posted' in self.params and self.params['posted']:
+#             posted = self.params['posted']
+#             self.posted = ((posted == 'true' or posted == '1') and 1) or (
+#                 (posted == 'false' or posted == '0') and 0) or 0
+#         self.ses['posted'] = self.posted
 
-        self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
-        awal = 'awal' in self.params and self.params['awal'] or self.awal
-        try:
-            self.dt_awal = date_from_str(awal)
-            self.awal = awal
-        except:
-            self.dt_awal = date_from_str(self.awal)
+#         self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
+#         awal = 'awal' in self.params and self.params['awal'] or self.awal
+#         try:
+#             self.dt_awal = date_from_str(awal)
+#             self.awal = awal
+#         except:
+#             self.dt_awal = date_from_str(self.awal)
 
-        self.ses['awal'] = self.awal
-        self.ses['dt_awal'] = self.dt_awal
+#         self.ses['awal'] = self.awal
+#         self.ses['dt_awal'] = self.dt_awal
 
-        self.akhir = 'akhir' in self.ses and self.ses['akhir'] or dmy(now)
-        akhir = 'akhir' in self.params and self.params['akhir'] or self.akhir
+#         self.akhir = 'akhir' in self.ses and self.ses['akhir'] or dmy(now)
+#         akhir = 'akhir' in self.params and self.params['akhir'] or self.akhir
 
-        try:
-            self.dt_akhir = date_from_str(akhir)
-            self.akhir = akhir
-        except:
-            self.dt_akhir = date_from_str(self.akhir)
-        self.ses['akhir'] = self.akhir
-        self.ses['dt_akhir'] = self.dt_akhir
+#         try:
+#             self.dt_akhir = date_from_str(akhir)
+#             self.akhir = akhir
+#         except:
+#             self.dt_akhir = date_from_str(self.akhir)
+#         self.ses['akhir'] = self.akhir
+#         self.ses['dt_akhir'] = self.dt_akhir
 
-        self.tahun_awal = 'tahun_awal' in self.ses and self.ses['tahun_awal'] or self.tahun
-        self.tahun_awal = 'tahun_awal' in self.params and self.params[
-            'tahun_awal'] or self.tahun_awal
-        self.ses['tahun_awal'] = self.tahun_awal
+#         self.tahun_awal = 'tahun_awal' in self.ses and self.ses['tahun_awal'] or self.tahun
+#         self.tahun_awal = 'tahun_awal' in self.params and self.params[
+#             'tahun_awal'] or self.tahun_awal
+#         self.ses['tahun_awal'] = self.tahun_awal
 
-        self.tahun_akhir = 'tahun_akhir' in self.ses and self.ses[
-            'tahun_akhir'] or self.tahun_awal
-        self.tahun_akhir = 'tahun_akhir' in self.params and self.params[
-            'tahun_akhir'] or self.tahun_akhir
-        self.ses['tahun_akhir'] = self.tahun_akhir
+#         self.tahun_akhir = 'tahun_akhir' in self.ses and self.ses[
+#             'tahun_akhir'] or self.tahun_awal
+#         self.tahun_akhir = 'tahun_akhir' in self.params and self.params[
+#             'tahun_akhir'] or self.tahun_akhir
+#         self.ses['tahun_akhir'] = self.tahun_akhir
 
-        self.departemen_kd = 'departemen_kd' in self.ses and self.ses[
-            'departemen_kd'] or '0.0.00'
-        self.departemen_nm = 'departemen_nm' in self.ses and self.ses[
-            'departemen_nm'] or 'PILIH UNIT'
-        self.departemen_id = 'departemen_id' in self.ses and self.ses[
-            'departemen_id'] or 0
-        self.ses['departemen_kd'] = self.departemen_kd
-        self.ses['departemen_nm'] = self.departemen_nm
-        self.ses['departemen_id'] = self.departemen_id
-        if 'departemen_id' in self.params:
-            self.departemen_id = self.params['departemen_id']
-            if not self.departemen_id:
-                self.departemen_id = 0
+#         self.departemen_kd = 'departemen_kd' in self.ses and self.ses[
+#             'departemen_kd'] or '0.0.00'
+#         self.departemen_nm = 'departemen_nm' in self.ses and self.ses[
+#             'departemen_nm'] or 'PILIH UNIT'
+#         self.departemen_id = 'departemen_id' in self.ses and self.ses[
+#             'departemen_id'] or 0
+#         self.ses['departemen_kd'] = self.departemen_kd
+#         self.ses['departemen_nm'] = self.departemen_nm
+#         self.ses['departemen_id'] = self.departemen_id
+#         if 'departemen_id' in self.params:
+#             self.departemen_id = self.params['departemen_id']
+#             if not self.departemen_id:
+#                 self.departemen_id = 0
 
-        self.ses["departemen_id"] = self.departemen_id
-        self.jenis = 'jenis' in self.ses and self.ses['jenis'] or 0
-        self.jenis = 'jenis' in self.params and self.params[
-            'jenis'] or self.jenis
-        self.ses['jenis'] = self.jenis
+#         self.ses["departemen_id"] = self.departemen_id
+#         self.jenis = 'jenis' in self.ses and self.ses['jenis'] or 0
+#         self.jenis = 'jenis' in self.params and self.params[
+#             'jenis'] or self.jenis
+#         self.ses['jenis'] = self.jenis
 
 
-    def query_register(self, **kwargs):
-        pass
+#     def query_register(self, **kwargs):
+#         pass
 
     def get_routes(self):
         """
@@ -225,33 +242,38 @@ class BaseView(object):
         log.debug(list_url)
 
         if self.headers:
-            return HTTPFound(location=get_urls(list_url),
+            return HTTPFound(
+                location=self.req.route_url(self.list_route),
+                # location=get_urls(list_url),
                              headers=self.headers)
         else:
-            return HTTPFound(location=get_urls(list_url))
+            return HTTPFound(
+                location=self.req.route_url(self.list_route),
+                # location=get_urls(list_url)
+                )
 
     def form_validator(self, form, value):
         pass
 
-    def form_validate(self, form, err_value, **kwargs):
-        controls = self.req.POST.items()
-        try:
-            c = form.validate(controls)
-        except ValidationFailure as e:
-            value = err_value()
-            for f in e.field.children:
-                if isinstance(f.typ, colander.Date):
-                    e.cstruct[f.name] = date_from_str(
-                        e.cstruct[f.name])
-                if f.name == "captcha":
-                    e.cstruct[f.name] = self.get_captcha_url()
-            value.update(e.cstruct)
-            form.set_appstruct(e.cstruct)
-            return self.returned_form(form, **kwargs)
-        return dict(c)
+#     def form_validate(self, form, err_value, **kwargs):
+#         controls = self.req.POST.items()
+#         try:
+#             c = form.validate(controls)
+#         except ValidationFailure as e:
+#             value = err_value()
+#             for f in e.field.children:
+#                 if isinstance(f.typ, colander.Date):
+#                     e.cstruct[f.name] = date_from_str(
+#                         e.cstruct[f.name])
+#                 if f.name == "captcha":
+#                     e.cstruct[f.name] = self.get_captcha_url()
+#             value.update(e.cstruct)
+#             form.set_appstruct(e.cstruct)
+#             return self.returned_form(form, **kwargs)
+#         return dict(c)
 
-    def get_params(self, params, default=None):
-        return get_params(params, default)
+#     def get_params(self, params, default=None):
+#         return get_params(params, default)
 
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel),
                  **kwargs):
@@ -285,10 +307,10 @@ class BaseView(object):
 
         return Form(schema, buttons=buttons, autocomplete=self.autocomplete)
 
-    def session_failed(self, session_name):
-        r = dict(form=self.req.session[session_name])
-        del self.req.session[session_name]
-        return r
+#     def session_failed(self, session_name):
+#         r = dict(form=self.req.session[session_name])
+#         del self.req.session[session_name]
+#         return r
 
     def view_list(self, **kwargs):
         """
@@ -534,16 +556,16 @@ class BaseView(object):
     def get_bindings(self, row=None):
         return {"row": row}
 
-    def next_edit(self, form, **kwargs):
-        """Digunakan untuk memproses button post yang lainnya
+#     def next_edit(self, form, **kwargs):
+#         """Digunakan untuk memproses button post yang lainnya
 
-        Args:
-            form (_type_): _description_
+#         Args:
+#             form (_type_): _description_
 
-        Returns:
-            _type_: _description_
-        """
-        return self.route_list(**kwargs)
+#         Returns:
+#             _type_: _description_
+#         """
+#         return self.route_list(**kwargs)
 
     def returned_form(self, form, table=None, **kwargs):
         resources = form.get_widget_resources()
@@ -635,78 +657,26 @@ class BaseView(object):
         """
         return
 
-    def set_post(self, **kwargs):
-        pass
+#     def set_post(self, **kwargs):
+#         pass
 
-    def set_unpost(self, **kwargs):
-        pass
+#     def set_unpost(self, **kwargs):
+#         pass
 
-    def view_post(self, post_field="status", **kwargs):
-        request = self.req
-        row = self.query_id().first()
-        if not row:
-            return self.id_not_found()
-        if getattr(row, post_field):
-            buttons = (btn_unpost, btn_close)
-        else:
-            buttons = (btn_post, btn_close)
-        return self.view_view(buttons=buttons)
+#     def view_post(self, post_field="status", **kwargs):
+#         request = self.req
+#         row = self.query_id().first()
+#         if not row:
+#             return self.id_not_found()
+#         if getattr(row, post_field):
+#             buttons = (btn_unpost, btn_close)
+#         else:
+#             buttons = (btn_post, btn_close)
+#         return self.view_view(buttons=buttons)
 
     def view_upload(self, **kw):
         return self.view_import(**kw)
-        # exts = kw.get("exts")
-        # table = None
-        # if not exts:
-        #     exts = self.upload_exts
-
-        # delimiter = kw.get("delimiter")
-        # bindings = self.get_bindings()
-        # form = self.get_form(self.upload_schema, bindings=bindings)
-        # resources = form.get_widget_resources()
-        # if self.req.POST:
-        #     if 'save' in self.req.POST:
-        #         input_file = self.req.POST['upload'].file
-        #         filename = self.req.POST['upload'].filename.lower()
-        #         ext = get_ext(filename).lower()
-        #         if ext.lower() not in exts:
-        #             ext = ", ".join([ex for ex in exts])
-        #             self.req.session.flash(f'File harus format {ext}', 'error')
-        #             return self.returned_form(form, table, **kw)
-        #             # return dict(form=form.render(),
-        #                         # scripts=self.form_scripts, css=resources["css"],
-        #                         # js=resources["js"])
-
-        #         _here = get_params('tmp', '/tmp')
-        #         folder = os.path.join(_here, 'upload')
-        #         if not os.path.exists(folder):
-        #             os.makedirs(folder)
-
-        #         fullpath = os.path.join(folder, filename)
-        #         output_file = open(fullpath, 'wb')
-        #         input_file.seek(0)
-        #         while True:
-        #             data = input_file.read(2 << 16)
-        #             if not data:
-        #                 break
-        #             output_file.write(data)
-        #         output_file.close()
-        #         try:
-        #             self.save_upload(fullpath, **kw)
-        #         except Exception as e:
-        #             self.req.session.flash(str(e), 'error')
-        #             return dict(form=form.render(),
-        #                         scripts=self.form_scripts, css=resources["css"],
-        #                         js=resources["js"])
-
-        #     elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
-        #         self.cancel_act()
-
-        #     return self.route_list()
-
-        # return self.returned_form(form, table, **kw)
-        # return dict(form=form.render(),
-                    # scripts=self.form_scripts, css=resources["css"],
-                    # js=resources["js"])
+       
 
     def view_import(self, **kw):
         exts = kw.get("exts")
@@ -719,10 +689,11 @@ class BaseView(object):
         form = self.get_form(self.upload_schema, bindings=bindings)
         if self.req.POST:
             if 'save' in self.req.POST:
-                _here = get_params('tmp', '/tmp')
+                # _here = get_params('temp_files', '/tmp')
+                _here = BASE_CLASS.temp_files
                 folder = os.path.join(_here, 'import')
-                # if not os.path.exists(folder):
-                    # os.makedirs(folder)
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
 
                 upload = Upload(folder)
                 try:
@@ -730,26 +701,7 @@ class BaseView(object):
                 except:
                     self.ses.flash(f'File harus format {exts}', 'error')
                     return self.returned_form(form, table, **kw)
-
-                # input_file = self.req.POST['upload'].file
-                # filename = self.req.POST['upload'].filename.lower()
-                # ext = get_ext(filename).lower()
-                # if ext.lower() not in exts:
-                    # ext = ", ".join([ex for ex in exts])
-                    # self.req.session.flash(f'File harus format {ext}', 'error')
-                    # return self.returned_form(form, table, **kw)
-
-
-
-                # fullpath = os.path.join(folder, filename)
-                # output_file = open(fullpath, 'wb')
-                # input_file.seek(0)
-                # while True:
-                #     data = input_file.read(2 << 16)
-                #     if not data:
-                #         break
-                #     output_file.write(data)
-                # output_file.close()
+              
                 fullpath = os.path.join(folder, file_name)
                 try:
                     self.save_upload(fullpath, **kw)
@@ -764,8 +716,8 @@ class BaseView(object):
 
         return self.returned_form(form, table, **kw)
 
-    def get_file(self, filename):
-        return open(filename)
+#     def get_file(self, filename):
+#         return open(filename)
     
     def save_upload(self, file_name, **args):
         return append_csv(self.table, file_name, self.upload_keys,
@@ -775,8 +727,8 @@ class BaseView(object):
     def before_add(self):
         return {}
 
-    def validation_failure(self, value):
-        return value
+#     def validation_failure(self, value):
+#         return value
 
     def cancel_act(self, **kwargs):
         return self.route_list(**kwargs)
@@ -795,23 +747,22 @@ class BaseView(object):
         """
         return self.route_list(**kwargs)
 
-    def get_captcha_url(self):
-        return get_urls("/captcha/") + get_captcha(self.req)
+#     def get_captcha_url(self):
+#         return get_urls("/captcha/") + get_captcha(self.req)
 
-    def update_value(self, value, cstruct):
-        for k in cstruct:
-            val = cstruct.get(k)
-            if type(val) is dict:
-                if k not in value:
-                    value[k] = {}
-                value[k] = self.update_value(value[k], val)
-            elif val:
-                value[k] = cstruct.get(k)
-        return value
+#     def update_value(self, value, cstruct):
+#         for k in cstruct:
+#             val = cstruct.get(k)
+#             if type(val) is dict:
+#                 if k not in value:
+#                     value[k] = {}
+#                 value[k] = self.update_value(value[k], val)
+#             elif val:
+#                 value[k] = cstruct.get(k)
+#         return value
 
     def view_add(self, **kwargs):
         # bindings = self.get_bindings()
-
         form = self.get_form(self.add_schema, **kwargs)
         resources = form.get_widget_resources()
         is_object = kwargs.get("is_object", self.is_object)
@@ -1032,16 +983,16 @@ class BaseView(object):
     def query_id(self):
         q = self.db_session.query(self.table).filter_by(
             id=self.req.matchdict['id'])
-        if self.req.user:
-            if hasattr(self.table, 'company_id') and self.req.user.company_id:
-                q = q.filter_by(company_id=self.req.user.company_id)
+        # if self.req.user:
+        #     if hasattr(self.table, 'company_id') and self.req.user.company_id:
+        #         q = q.filter_by(company_id=self.req.user.company_id)
         return q
 
-    def filter_company(self, query):
-        if self.req.user.company_id:
-            return query.filter(
-                self.table.company_id == self.req.user.company_id)
-        return query
+#     def filter_company(self, query):
+#         if self.req.user.company_id:
+#             return query.filter(
+#                 self.table.company_id == self.req.user.company_id)
+#         return query
 
     def next_add(self, form, **kwargs):
         """
@@ -1051,121 +1002,121 @@ class BaseView(object):
         """
         return self.route_list()
 
-    def convert_avi_to_mp4(self, input_name):
-        output = os.path.splitext(input_name)[0] + ".mp4"
-        command = "ffmpeg -y -i {input}  -c:v mpeg4 {output}".format(
-            input=input_name, output=output)
-        log.debug(f"Convert: {command}")
-        os.popen(command)
-        # os.remove(input_name)
-        # "ffmpeg -i {input} -ac 2 -b:v 2000k -c:a aac -c:v libx264 -b:a 160k -vprofile high -bf 0 -strict experimental -f mp4 {output}.mp4"
-        return output
+#     def convert_avi_to_mp4(self, input_name):
+#         output = os.path.splitext(input_name)[0] + ".mp4"
+#         command = "ffmpeg -y -i {input}  -c:v mpeg4 {output}".format(
+#             input=input_name, output=output)
+#         log.debug(f"Convert: {command}")
+#         os.popen(command)
+#         # os.remove(input_name)
+#         # "ffmpeg -i {input} -ac 2 -b:v 2000k -c:a aac -c:v libx264 -b:a 160k -vprofile high -bf 0 -strict experimental -f mp4 {output}.mp4"
+#         return output
 
-    def form_error(self, form, error=None):
-        if error is None:
-            error = []
+#     def form_error(self, form, error=None):
+#         if error is None:
+#             error = []
 
-        if not error:
-            return
+#         if not error:
+#             return
 
-        err = colander.Invalid(form, "")
-        for e in error:
-            err[e[0]] = e[1]
-        raise err
+#         err = colander.Invalid(form, "")
+#         for e in error:
+#             err[e[0]] = e[1]
+#         raise err
 
-    def save_upload_file(self, form, value, folder, field):
-        file_dict = value[field]["file_name"]
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        upload = Upload(folder)
-        error = []
-        if file_dict:
-            input_file = file_dict["fp"]
-            if input_file:
-                filename = file_dict["filename"].lower()
-                ext = get_ext(filename)
-                if ext not in self.upload_exts:
-                    error.append(
-                        (field, InvalidExtension(self.upload_exts).error))
-                else:
-                    full_file_name = upload.save_to_file(
-                        input_file, ext, filename)
-                    if ext == ".avi":
-                        full_file_name = self.convert_avi_to_mp4(
-                            full_file_name)
-                    file_name = os.path.split(full_file_name)[1]
-                    return file_name
+#     def save_upload_file(self, form, value, folder, field):
+#         file_dict = value[field]["file_name"]
+#         if not os.path.exists(folder):
+#             os.makedirs(folder)
+#         upload = Upload(folder)
+#         error = []
+#         if file_dict:
+#             input_file = file_dict["fp"]
+#             if input_file:
+#                 filename = file_dict["filename"].lower()
+#                 ext = get_ext(filename)
+#                 if ext not in self.upload_exts:
+#                     error.append(
+#                         (field, InvalidExtension(self.upload_exts).error))
+#                 else:
+#                     full_file_name = upload.save_to_file(
+#                         input_file, ext, filename)
+#                     if ext == ".avi":
+#                         full_file_name = self.convert_avi_to_mp4(
+#                             full_file_name)
+#                     file_name = os.path.split(full_file_name)[1]
+#                     return file_name
 
-        self.form_error(form, error)
+#         self.form_error(form, error)
 
-    def save_file(self, values, field, path=None, filename=None):
-        if field in values and values[field]:
-            value = values[field]
-            file_name = value["filename"]
-            ext = get_ext(file_name)
-            if ext not in self.upload_exts:
-                raise InvalidExtension(self.upload_exts)
+#     def save_file(self, values, field, path=None, filename=None):
+#         if field in values and values[field]:
+#             value = values[field]
+#             file_name = value["filename"]
+#             ext = get_ext(file_name)
+#             if ext not in self.upload_exts:
+#                 raise InvalidExtension(self.upload_exts)
 
-            if "fp" in value and value["fp"] and value["fp"] != b'':
-                if not path:
-                    path = get_params('tmp', '/tmp')
-                    path = os.join(path, "upload")
+#             if "fp" in value and value["fp"] and value["fp"] != b'':
+#                 if not path:
+#                     path = get_params('tmp', '/tmp')
+#                     path = os.join(path, "upload")
 
-                if not os.path.exists(path):
-                    os.makedirs(path)
-                upload = Upload(path)
-                resp = upload.save_fp(value)
-                if filename:
-                    ext = get_ext(resp)
-                    new_resp = filename+ext
-                    new_resp_full = os.path.join(path, new_resp)
-                    if os.path.isfile(new_resp_full):
-                        os.remove(new_resp_full)
+#                 if not os.path.exists(path):
+#                     os.makedirs(path)
+#                 upload = Upload(path)
+#                 resp = upload.save_fp(value)
+#                 if filename:
+#                     ext = get_ext(resp)
+#                     new_resp = filename+ext
+#                     new_resp_full = os.path.join(path, new_resp)
+#                     if os.path.isfile(new_resp_full):
+#                         os.remove(new_resp_full)
 
-                    os.rename(os.path.join(path, resp), new_resp_full)
-                    return new_resp
-                return resp
-            return value["filename"]
+#                     os.rename(os.path.join(path, resp), new_resp_full)
+#                     return new_resp
+#                 return resp
+#             return value["filename"]
 
     
 
-@colander.deferred
-def deferred_status(node, kw):
-    values = kw.get('daftar_status', [])
-    return widget.SelectWidget(values=values)
+# @colander.deferred
+# def deferred_status(node, kw):
+#     values = kw.get('daftar_status', [])
+#     return widget.SelectWidget(values=values)
 
 
-def email_validator(node, value):
-    name, email = parseaddr(value)
-    if not email or email.find('@') < 0:
-        raise colander.Invalid(node, 'Invalid email format')
+# def email_validator(node, value):
+#     name, email = parseaddr(value)
+#     if not email or email.find('@') < 0:
+#         raise colander.Invalid(node, 'Invalid email format')
 
 
-class Store(dict):
-    def preview_url(self, name):
-        return ""
+# class Store(dict):
+#     def preview_url(self, name):
+#         return ""
 
 
-username_re = re.compile('^[a-z0-9_]{6,16}$', re.IGNORECASE)
+# username_re = re.compile('^[a-z0-9_]{6,16}$', re.IGNORECASE)
 
 
-def user_name_validator(node, value):
-    if not username_re.match(value):
-        raise colander.Invalid(
-            node,
-            'Value must be between 6 and 16 characters and can only contain ' +
-            'uppercase and lowercase alphanumeric characters or an underscore')
+# def user_name_validator(node, value):
+#     if not username_re.match(value):
+#         raise colander.Invalid(
+#             node,
+#             'Value must be between 6 and 16 characters and can only contain ' +
+#             'uppercase and lowercase alphanumeric characters or an underscore')
 
 
-def need_captcha():
-    is_captcha = get_params("reg_captcha")
-    return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" \
-        or is_captcha == True
+# def need_captcha():
+#     is_captcha = get_params("reg_captcha")
+#     return is_captcha == '1' or is_captcha == "True" or is_captcha == "true" \
+#         or is_captcha == True
 
 
-def need_verify():
-    result = get_params("reg_verify")
-    return result == '1' or result == "True" or result == "true" or result == True
+# def need_verify():
+#     result = get_params("reg_verify")
+#     return result == '1' or result == "True" or result == "true" or result == True
 
 
 def get_url_captcha(request):

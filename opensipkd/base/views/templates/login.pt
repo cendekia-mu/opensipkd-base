@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"
-     tal:define="home request._host;">
+     tal:define="home request.home;">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -108,7 +108,7 @@
                         value="Login">
                   Login
                 </button>
-                <button tal:condition="allow_register(request)"
+                <button tal:condition="request.allow_register"
                     id="register" name="register" class="btn btn-info"
                     value="Register" style="float:left">
                   Register

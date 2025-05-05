@@ -1,5 +1,5 @@
 
-<html tal:define="home request._host;">
+<html tal:define="home '';">
 <body>
   <div class="well">
     <h2>${request.app_name}</h2>

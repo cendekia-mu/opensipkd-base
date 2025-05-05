@@ -2,32 +2,26 @@
 requires = ['setuptools >= 64', 'wheel']
 build-backend = 'setuptools.build_meta'
 
-[tool.hatch.build]
-dev-mode-dirs = ["."]
+[tool.setuptools]
+packages = ["opensipkd.base"]
+# package-dir = {"" = "opensipkd"}
+
+#[tool.setuptools.package-dir]
+# mypkg = "lib"
+#"opensipkd.models" = "models"
+#"opensipkd.base" = "base"
 
 [tool.mypy]
 exclude = [
-    'base',
-    'report', 
-    'external', 
-    'developers',
+    'bak',
+#    'report', 
+#    'external', 
+#    'developers',
 ]
-show_error_codes = true
-
-[[tool.mypy.overrides]]
-module = [
-    "opensipkd.base.*",
-    "opensipkd.models.*",
-    "opensipkd.detable.*",
-    "opensipkd.jsonrpc_auth.*",
-]
-warn_unused_ignores = true
-strict = true
-
 
 [project]
-name = 'opensipkd-base'
-version = '4.2'
+name = 'opensipkd_base'
+version = '5.0'
 dependencies = [
     'sqlalchemy',
     'colander',
@@ -38,8 +32,6 @@ dependencies = [
     'SQLAlchemy',
     'transaction',
     'waitress',
-    'pyramid_beaker',
-    'pyramid_mailer',
     'ziggurat-foundations',
     'zope.sqlalchemy',
     'pytz',
@@ -49,12 +41,12 @@ dependencies = [
     'pyramid_rpc',
     'requests',
     'sqlalchemy-datatables',
-    'py3o.template',
-    'wheezy.captcha',
-    'icecream',
+    #'py3o.template',
+    #'wheezy.captcha',
+    #'icecream',
     'google-api-python-client',
     'google',
-    'pyjwt',
+    #'pyjwt',
     ]
 requires-python = '>= 3.8'
 
@@ -68,15 +60,15 @@ maintainers = [
 
 description = 'Framwork Aplikasi openSIPKD'
 readme = 'README.rst'
-license = {text='Apache Software License'}
+# license = {text = 'Apache Software License'}
 keywords = ["openSIPKD"]
 classifiers = [
-    #'Development Status :: 4 - Beta",
-    #'Programming Language :: Python :: 3',
-    #'Operating System :: OS Independent',
-    #'Framework :: Pylons',
-    #'Topic :: Internet :: WWW/HTTP',
-    #'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
+    'Development Status :: 5 - Beta',
+    'Programming Language :: Python :: 3',
+    'Operating System :: OS Independent',
+    'Framework :: Pylons',
+    'Topic :: Internet :: WWW/HTTP',
+    'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
 ]
 
 [project.optional-dependencies]
@@ -88,5 +80,4 @@ dev = [
 main = 'opensipkd.base:main'
 
 [project.scripts]
-initialize_opensipkd_db = 'opensipkd.base.scripts.initializedb:main'
-import_log = 'opensipkd.base.scripts.import_log:main'
+osipkd-db-init = 'opensipkd.base.scripts.initializedb:main'

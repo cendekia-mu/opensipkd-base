@@ -1,9 +1,0 @@
-<html metal:use-macro="load: ./base3.1.pt"
-         tal:define="
-        home request._host;">
-<div metal:fill-slot="content">
-    <div class="jarviswidget jarviswidget-color-blueLight"> <!-- jarviswidget -->
-        <div tal:content="structure table"></div>
-    </div>
-</div>
-</html>

@@ -36,13 +36,17 @@ from ziggurat_foundations.models.services.external_identity import \
     ExternalIdentityService
 from ziggurat_foundations.models.services.user import UserService
 
-from opensipkd.base import DBSession, get_params
-from opensipkd.base.views import _, one_hour, two_minutes, BaseView
-from opensipkd.models import User, ExternalIdentity, Partner
+from opensipkd.base import BASE_CLASS, DBSession, get_params
+from . import one_hour, two_minutes
+from ..models.users import User, ExternalIdentity
+# , Partner
 from opensipkd.tools import create_now, set_user_log, get_settings
 from opensipkd.tools.buttons import btn_cancel
-from .. import get_urls
-from .view_tools import CSRFSchema
+# from .. import get_urls
+from .base_views import CSRFSchema, BaseView
+from pyramid.i18n import TranslationStringFactory
+_ = TranslationStringFactory('login')
+
 log = __import__("logging").getLogger(__name__)
 
 
@@ -51,7 +55,6 @@ class Login(CSRFSchema):
         colander.String(),
         widget=widget.TextInputWidget(
             placeholder="User Name"),
-        # validator=colander.Length(min=3, max=3),
         oid="username",
     )
     password = colander.SchemaNode(
@@ -170,18 +173,20 @@ def oauth2_login(request, params=None):
 
 
 class ViewLogin(BaseView):
-    @view_config(route_name='login', renderer='templates/form.pt', require_csrf=True)
+    # @view_config(route_name='login', renderer='templates/form.pt', require_csrf=True)
     def view_login(self):
         request = self.req
         request.session["login"] = True
         next_url = request.params.get('next', request.referrer)
         login_tpl = get_params('login_tpl', 'templates/login.pt')
         if not next_url:
-            next_url = get_urls(request.route_url('home'))
+            # next_url = get_urls(request.route_url('home'))
+            next_url = request.home
 
         if request.authenticated_userid:  # (request):
             request.session.flash('Anda sudah login', 'error')
-            return HTTPFound(location=get_urls(f"{request.route_url('home')}"))
+            # return HTTPFound(location=get_urls(f"{request.route_url('home')}"))
+            return HTTPFound(location=f"{request.route_url('base-home')}")
 
         schema = Login()
         schema = schema.bind(request=self.req)
@@ -229,8 +234,8 @@ class ViewLogin(BaseView):
             return redirect_login(request, user)
 
         elif 'register' in request.POST:
-            register_form = get_params("register_form", 'register')
-            return HTTPFound(location=get_urls(request.route_url(register_form)))
+            # register_form = get_params("register_form", 'register')
+            return HTTPFound(location=request.route_url(BASE_CLASS.reg_form))
 
         elif 'login failed' in request.session:
             r = dict(form=request.session['login failed'])
@@ -270,7 +275,8 @@ class ViewLogin(BaseView):
             request=request,
             value=dict(form=form,
                        message=message,
-                       url=get_urls(request.route_url('login')),
+                    #    url=get_urls(request.route_url('login')),
+                       url=request.route_url('base-login'),
                        next_url=next_url,
                        login=login, ),
         )
@@ -288,6 +294,9 @@ def redirect_login(request, user):
         url = get_params('modules_default', 'home')
         return HTTPFound(location=get_urls(request.route_url(url)),
                          headers=headers)
+    if not next_url:
+        next_url = request.home
+
     return HTTPFound(location=next_url, headers=headers)
 
 
@@ -303,8 +312,8 @@ btn_logout = Button("logout", css_class="btn-danger")
 btn_home = Button("home", css_class="btn-success")
 
 
-class Logout(BaseView):
-    @view_config(route_name='logout', renderer="templates/logout.pt", require_csrf=False)
+class ViewLogout(BaseView):
+    # @view_config(route_name='logout', renderer="templates/logout.pt", require_csrf=False)
     def view_logout(self):
         request = self.req
         if not request.user:
@@ -313,8 +322,9 @@ class Logout(BaseView):
 
         form = self.get_form(LogoutSchema, buttons=(btn_cancel, btn_logout))
         if 'cancel' in request.POST or "home" in request.POST:
-            log.info(get_urls(request.route_url('home')))
-            return HTTPFound(location=get_urls(f"{request.route_url('home')}", ))
+            # log.info(get_urls(request.route_url('home')))
+            # return HTTPFound(location=get_urls(f"{request.route_url('home')}", ))
+            return HTTPFound(location=request.home)
 
         elif "logout" in request.POST:
             form = self.get_form(LogoutSchema, buttons=(btn_home,))
@@ -354,8 +364,8 @@ def change_password_validator(form, value):
     # raise exc
 
 
-@view_config(route_name='change-password',
-             renderer='templates/change-password.pt')
+# @view_config(route_name='change-password',
+#              renderer='templates/change-password.pt')
 def view_change_password(request):
     """
     Digunakan untuk change password url dari email (register, reset password)
@@ -406,9 +416,9 @@ def generate_api_key():
     return UserService.generate_random_string(64)
 
 
-@view_config(
-    route_name='recreate-api-key', renderer='templates/recreate-api-key.pt',
-    permission='view')
+# @view_config(
+#     route_name='recreate-api-key', renderer='templates/recreate-api-key.pt',
+#     permission='view')
 def view_recreate_api_key(request):
     if not request.user.api_key:
         return HTTPNotFound()
@@ -522,8 +532,8 @@ def regenerate_security_code(user, hour=1.0):
     return hour
 
 
-@view_config(route_name='reset-password',
-             renderer='templates/reset-password.pt')
+# @view_config(route_name='reset-password',
+#              renderer='templates/reset-password.pt')
 def view_reset_password(request):
     if request.authenticated_userid:
         return HTTPFound(location=get_urls(f"{request.route_url('home')}"))
@@ -553,8 +563,8 @@ def view_reset_password(request):
     return resp
 
 
-@view_config(
-    route_name='reset-password-sent',
-    renderer='templates/reset-password-sent.pt')
+# @view_config(
+#     route_name='reset-password-sent',
+#     renderer='templates/reset-password-sent.pt')
 def view_reset_password_sent(request):
     return dict(title=_('Reset password'))

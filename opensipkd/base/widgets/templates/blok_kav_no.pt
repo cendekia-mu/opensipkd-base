@@ -1,0 +1,41 @@
+<div i18n:domain="deform"
+     tal:omit-tag=""
+     tal:define="oid oid|field.oid;
+                  name name|field.name;
+                  css_class css_class|field.widget.css_class;
+                  style style|field.widget.style;">
+  ${field.start_mapping()}
+  <div class="row">
+    <div class="col-xs-12 col-lg-6">
+        <div class="input-group">
+            <div class="row input-group-addon">
+                <div class="col-xs-6">
+                    <input type="text" name="blok_kav_no" value="${blok_kav_no}"
+                     class="span2 form-control ${css_class or ''}"
+                     tal:attributes="style style;
+                           blok_kav_no_attributes|field.widget.blok_kav_no_attributes|{};"
+                     maxlength="15" minlength="" placeholder="Blok Kav No"
+                     id="${oid}"/>
+                </div>
+                <div class="col-xs-3">
+                    <input type="text" name="rt" value="${rt}"
+                     class="span2 form-control ${css_class or ''}"
+                     tal:attributes="style style;
+                                 rt_attributes|field.widget.rt_attributes|{};"
+                     maxlength="3" minlength="3" placeholder="RT"
+                     id="${oid}-rt"/>
+                </div>
+                <div class="col-xs-3">
+                    <input type="text" name="rw" value="${rw}"
+                      class="span2 form-control ${css_class or ''}"
+                      tal:attributes="style style;
+                                 rw_attributes|field.widget.rw_attributes|{};"
+                      maxlength="2" minlength="2" placeholder="RW"
+                      id="${oid}-rw"/>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+  ${field.end_mapping()}
+</div>

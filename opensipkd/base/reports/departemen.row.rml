@@ -1,5 +1,0 @@
-<tr>
-    <td><para style="tableBody">{kode}</para></td>
-    <td><para style="tableBody">{nama}</para></td>
-    <td><para style="tableBody">{status}</para></td>
-</tr>

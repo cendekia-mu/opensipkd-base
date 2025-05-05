@@ -1,7 +1,0 @@
-<tr>
-    <td vAlign="top"><para style="tableBody">{kode}</para></td>
-    <td vAlign="top"><para style="tableBody">{nama}</para></td>
-    <td vAlign="top"><para style="tableBody">{vendor}</para></td>
-    <td vAlign="top"><para style="tableBody">{is_customer}</para></td>
-    <td vAlign="top"><para style="tableBody">{status}</para></td>
-</tr>

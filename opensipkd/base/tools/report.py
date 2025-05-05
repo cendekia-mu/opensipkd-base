@@ -1,5 +1,5 @@
 from pyreportjasper import PyReportJasper
-from opensipkd.base.tools import get_random_string
+from opensipkd.tools import get_random_string
 from opensipkd.base import get_settings, get_params
 from platform import python_version
 import logging

@@ -1,0 +1,52 @@
+<span tal:define="name name|field.name;
+                  css_class css_class|field.widget.css_class;
+                  oid oid|field.oid;
+                  mask mask|field.widget.mask;
+                  button button|field.widget.button;
+                  mask_placeholder mask_placeholder|field.widget.mask_placeholder;
+                  style style|field.widget.style;
+                  js js|field.widget.js;
+        " tal:omit-tag="">
+    <input type="text" tal:attributes="class string: form-control ${css_class or ''};
+                           style style;
+                           attributes|field.widget.attributes|{};" id="${oid}" name="${name}" value="${cstruct}"
+        tal:condition="not button" />
+
+    <div class="input-group" tal:condition="button">
+        <input type="text" name="${name}" value="${cstruct}" tal:attributes="class string: form-control ${css_class or ''};
+                       style style;
+                       attributes|field.widget.attributes|{};" id="${oid}" />
+        <span class="input-group-btn">
+            <button tal:define="btn_disposition 'btn-default';" tal:attributes="disabled button.disabled if button.disabled else None;
+                                attributes|button.attributes|{};" id="${oid+button.name}" name="${button.name}"
+                type="${button.type}" class="btn ${button.css_class or btn_disposition}" value="${button.value}"
+                tal:condition="button.type != 'link'">
+                <span tal:condition="button.icon" class="glyphicon glyphicon-${button.icon}"></span>
+                ${button.title}
+            </button>
+            <a tal:define="btn_disposition 'btn-default';
+                btn_href button.value|''" class="btn ${button.css_class or btn_disposition}" id="${oid + button.name}"
+                href="${btn_href}" tal:condition="button.type == 'link'">
+                <span tal:condition="button.icon" class="glyphicon glyphicon-${button.icon}"></span>
+                ${button.title}
+            </a>
+        </span>
+        <script tal:condition="js" type="text/javascript">
+            deform.addCallback(
+                '${oid+button.name}',
+                function (oid) {
+                    ${structure:js}
+                });
+
+        </script>
+    </div><!-- /input-group -->
+
+    <script tal:condition="mask" type="text/javascript">
+        deform.addCallback(
+            '${oid}',
+            function (oid) {
+                $("#" + oid).mask("${mask}",
+                    { placeholder: "${mask_placeholder}" });
+            });
+    </script>
+</span>
