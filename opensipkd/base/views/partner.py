@@ -134,10 +134,6 @@ class Views(BaseView):
     #                    }
     #     return super().view_list(new_buttons=new_buttons)
 
-    # # @view_config(route_name='partner-act', renderer='json',
-    #              permission='user-view')
-    # def view_act(self):
-    #     return super().view_act()
 
     def next_act(self):
         request = self.req
@@ -203,26 +199,6 @@ class Views(BaseView):
                 r.append(d)
             return r
 
-    # @view_config(route_name='partner-add', renderer='templates/form.pt',
-    #              permission='user-edit')
-    # def view_add(self):
-    #     return super().view_add()
-
-    # @view_config(route_name='partner-edit', renderer='templates/form.pt',
-    #              permission='user-edit')
-    # def view_edt(self):
-    #     return super().view_edit()
-
-    # @view_config(route_name='partner-view', renderer='templates/form.pt',
-    #              permission='user-edit')
-    # def view_view(self):
-    #     return super().view_view()
-
-    # @view_config(route_name='partner-delete', renderer='templates/form.pt',
-    #              permission='user-edit')
-    # def view_delete(self):
-    #     return super().view_delete()
-
     def form_validator(self, form, value):
         def err_kode():
             raise colander.Invalid(form,
@@ -254,12 +230,6 @@ class Views(BaseView):
             else:
                 value.pop("idcard")
 
-        # value['is_vendor'] = 'is_vendor' in value and \
-        #                      value['is_vendor'] and 1 or 0
-        # value['is_customer'] = 'is_customer' in value and \
-        #                        value['is_customer'] and 1 or 0
-        # value["status"] = 'status' in value and value['status'] and 1 or 0
-
     def get_bindings(self, row=None):
         result = super().get_bindings(row)
         # provinsi_list = ResProvinsi.get_list()
@@ -279,7 +249,7 @@ class Views(BaseView):
 
         return result
 
-    def save_request(self, values, row=None):
+    # def save_request(self, values, row=None):
         # if "idcard" in values and values["idcard"]:
         #     if str(self.req.POST['upload']) != "":
         #         folder = self.get_params("idcard_folder", '/tmp/idcard')
@@ -289,8 +259,8 @@ class Views(BaseView):
         #     else:
         #         del values["idcard"]
 
-        row = super().save_request(values, row)
-        return row
+        # row = super().save_request(values, row)
+        # return row
 
     def get_values(self, row, istime=False):
         d = super().get_values(row, istime)
@@ -308,6 +278,8 @@ class Views(BaseView):
     def before_delete(self, row):
         PartnerFiles.query().filter_by(partner_id=row.id).delete()
 
+    def before_delete(self, row):
+        PartnerFiles.query().filter_by(partner_id=row.id).delete()
 
 @colander.deferred
 def partner_widget(node, kw):

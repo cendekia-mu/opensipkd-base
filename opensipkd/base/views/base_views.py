@@ -556,16 +556,16 @@ class BaseView(object):
     def get_bindings(self, row=None):
         return {"row": row}
 
-#     def next_edit(self, form, **kwargs):
-#         """Digunakan untuk memproses button post yang lainnya
+    def next_edit(self, form, **kwargs):
+        """Digunakan untuk memproses button post yang lainnya
 
-#         Args:
-#             form (_type_): _description_
+        Args:
+            form (_type_): _description_
 
-#         Returns:
-#             _type_: _description_
-#         """
-#         return self.route_list(**kwargs)
+        Returns:
+            _type_: _description_
+        """
+        return self.route_list(**kwargs)
 
     def returned_form(self, form, table=None, **kwargs):
         resources = form.get_widget_resources()
@@ -576,8 +576,6 @@ class BaseView(object):
             resources["js"].extend(set(table["js"]) - set(resources["js"]))
             resources["css"].extend(set(table["css"]) - set(resources["css"]))
             table = table["form"]
-        # resources["js"] = list(resources["js"])
-        # resources["css"] = list(resources["css"])
         if is_object:
             return dict(form=form,
                         table=table and table.render() or None,
@@ -747,19 +745,19 @@ class BaseView(object):
         """
         return self.route_list(**kwargs)
 
-#     def get_captcha_url(self):
-#         return get_urls("/captcha/") + get_captcha(self.req)
+    def get_captcha_url(self):
+        return self.req.static_url(BASE_CLASS.captcha_files)
 
-#     def update_value(self, value, cstruct):
-#         for k in cstruct:
-#             val = cstruct.get(k)
-#             if type(val) is dict:
-#                 if k not in value:
-#                     value[k] = {}
-#                 value[k] = self.update_value(value[k], val)
-#             elif val:
-#                 value[k] = cstruct.get(k)
-#         return value
+    def update_value(self, value, cstruct):
+        for k in cstruct:
+            val = cstruct.get(k)
+            if type(val) is dict:
+                if k not in value:
+                    value[k] = {}
+                value[k] = self.update_value(value[k], val)
+            elif val:
+                value[k] = cstruct.get(k)
+        return value
 
     def view_add(self, **kwargs):
         # bindings = self.get_bindings()
@@ -800,7 +798,7 @@ class BaseView(object):
         return self.returned_form(form, table, **kwargs)
 
     def save(self, values, user, row=None):
-        log.info("Save")
+        log.debug("Save")
         log.debug(values)
         values.pop("id", None)
         self.ses["old_email"] = user and user.email or None

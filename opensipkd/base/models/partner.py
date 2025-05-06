@@ -97,6 +97,13 @@ class Partner(Base, PartnerModel):
             row = cls.query().filter_by(mobile=ident).first()
         return row
 
+    @classmethod
+    def query_register(cls):
+        columns= [cls.kode, cls.nama, cls.mobile, cls.email, cls.status]
+        return cls.query_from(columns=columns)
+
+
+
 
 class PartnerFiles(Base, StandarModel):
     __tablename__ = 'partner_files'

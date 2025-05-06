@@ -378,8 +378,6 @@ class CaptchaWidget(Widget):
         kode_captcha, file_name = img_captcha(self.request)
         self.request.session["captcha"] = kode_captcha
         cstruct = self.url+file_name
-        # if cstruct in (null, None):
-            # cstruct = ""
         readonly = kw.get("readonly", self.readonly)
         template = readonly and self.readonly_template or self.template
         values = self.get_template_values(field, cstruct, kw)
@@ -394,6 +392,8 @@ class CaptchaWidget(Widget):
             pstruct = pstruct.strip()
         if not pstruct:
             return null
+        if pstruct != self.request.session["captcha"]:
+            raise Invalid(field.schema, "Captcha tidak sesuai")
         return pstruct
 
 

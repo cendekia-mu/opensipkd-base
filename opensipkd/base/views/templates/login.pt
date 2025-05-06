@@ -79,6 +79,7 @@
                 <b class="tooltip tooltip-top-right"><i class="fa fa-lock txt-color-teal"></i> ISI
                   DENGAN PASSWORD ANDA</b> </label>
             </section>
+
             <section>
               <div class="form-group">
                 <label class=" checkbox checkbox-inline">
@@ -87,15 +88,17 @@
                   <a href="${home}/reset-password" id="lupa" >Lupa Password?</a>
                 </div>
               </div>
-
             </section>
 
+            <section tal:condition="'captcha' in form">
+              <div tal:define="field form['captcha']">
+                ${structure:field.serialize()}
+              </div>
+            </section>
 
-            <section>
-              <div tal:condition="'csrf_token' in form">
-                <div tal:define="field form['csrf_token']" style="display: none;">
-                    ${structure:field.serialize()}
-                </div>
+            <section tal:condition="'csrf_token' in form">
+              <div tal:define="field form['csrf_token']" style="display: none;">
+                  ${structure:field.serialize()}
               </div>
             </section>
 

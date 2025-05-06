@@ -125,12 +125,14 @@
                         </span>
                         <i class="fa fa-angle-down"></i> </a>
                     <ul class="dropdown-menu pull-right">
-                        <li><a style="text-transform:capitalize" href="{request.route_url('profile')}">Profile</a></li>
+                        <li><a style="text-transform:capitalize" href="${request.route_url('base-profile')}">Profile</a>
+                        </li>
                         <li tal:condition="not request.user.external">
-                            <a style="text-transform:capitalize" href="{request.route_url('password')}">Ubah
+                            <a style="text-transform:capitalize" href="${request.route_url('base-password')}">Ubah
                                 password</a>
                         </li>
-                        <li><a style="text-transform:capitalize" href="${request.route_url('base-logout')}">Logout</a></li>
+                        <li><a style="text-transform:capitalize" href="${request.route_url('base-logout')}">Logout</a>
+                        </li>
                         <li tal:condition="request.user.api_key"><a style="text-transform:capitalize"
                                 href="${home}/recreate-api-key">API Key</a></li>
                         <!-- <li talcondition="'core' in request.modules and change_unit(request)">
@@ -150,92 +152,51 @@
     <!-- Left panel : Navigation area -->
     <!-- Note: This width of the aside area can be adjusted through LESS variables -->
     <aside id="left-panel" style="padding-bottom:67px">
+        Menu
         <!-- NAVIGATION : This navigation is also responsive-->
-        <nav style="">
+        <nav class="smart-menu" id="menu">
             <!-- Modul Menu -->
+
             <ul metal:define-slot="navs"></ul>
-            <!-- Admin Menu -->
-            <ul tal:condition="has_permission(request, user_path)" style="margin-top: 0; padding-top: 0;">
-                <li>
-                    <a href="#"><i class="fa fa-lg fa-fw fa-shield"></i><span class="menu-item-parent">Admin</span></a>
-                    <ul>
-                        <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                            tal:attributes="class  route_name in user_path and 'active'">
-                            <a href="${home}/user">User</a>
-                        </li>
-                        <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                            tal:attributes="class  route_name in user_area_path and 'active'">
-                            <a href="${home}/user/area">User Area</a>
-                        </li>
-                        <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                            tal:attributes="class  route_name in user_dep_path and 'active'">
-                            <a href="${home}/user/departemen">User Departemen</a>
-                        </li>
-                        <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                            tal:attributes="class  route_name in user_ext_path and 'active'">
-                            <a href="${home}/user/ext">External User</a>
-                        </li>
-                        <li tal:condition="has_permission(request, ['user-view', 'user-edit'])"
-                            tal:attributes="class route_name in group_path and 'active'">
-                            <a href="${home}/group">Group</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'upload-logo')"
-                            tal:attributes="class route_name in ['upload-logo'] and 'active'">
-                            <a href="${home}/upload/logo">Upload Logo</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'parameter')"
-                            tal:attributes="class route_name in param_path and 'active'">
-                            <a href="${home}/parameter">Parameter</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'company')"
-                            tal:attributes="class route_name in company_path  and 'active'">
-                            <a href="${home}/company">Pemerintah</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'eselon')"
-                            tal:attributes="class route_name in eselon_path and 'active'">
-                            <a href="${home}/eselon">Eselon</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'jabatan')"
-                            tal:attributes="class  route_name in jabatan_path and 'active'">
-                            <a href="${home}/jabatan">Jabatan</a>
-                        </li>
+            <ul style="margin-top: 0; padding-top: 0;">
+                <li tal:repeat="menu get_base_menus()"
+                    tal:attributes="class route_name in menu['route_name'] and 'active'">
+                    <a tal:condition="python:not menu['children'] and has_permission(request, menu['permission'])"
+                        href="${home}${menu['path']}">
+                        <i tal:condition="menu['icon']" class="fa fa-lg fa-fw ${menu['icon']}"></i>
+                        <span>${menu['nama']}</span>
+                    </a>
+                    <a tal:condition="python:menu['children'] and has_permission(request, menu['permission'])" href="#">
+                        <i tal:condition="menu['icon']" class="fa fa-lg fa-fw ${menu['icon']}"></i>
+                        <span class="menu-item-parent">${menu['nama']}</span>
+                    </a>
 
-                        <li tal:condition="has_permission(request, 'departemen')"
-                            tal:attributes="class route_name in dep_path  and 'active'">
-                            <a href="${home}/departemen">Departemen</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'partner')"
-                            tal:attributes="class route_name in partner_path  and 'active'">
-                            <a href="${home}/partner">Partner</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'partner-departemen')"
-                            tal:attributes="class route_name in part_dep_path and 'active'">
-                            <a href="${home}/partner/departemen">Partner Departemen</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'provinsi')"
-                            tal:attributes="class route_name in provinsi_path and 'active'">
-                            <a href="${home}/provinsi">Provinsi</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'dati2')"
-                            tal:attributes="class  route_name in dati2_path and 'active'">
-                            <a href="${home}/dati2">Kabupaten/Kota</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'kecamatan')"
-                            tal:attributes="class  route_name in kecamatan_path and 'active'">
-                            <a href="${home}/kecamatan">Kecamatan</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'desa')"
-                            tal:attributes="class  route_name in desa_path and 'active'">
-                            <a href="${home}/desa">Desa/Kelurahan</a>
-                        </li>
-                        <li tal:condition="has_permission(request, 'log')"
-                            tal:attributes="class route_name in ['log'] and 'active'">
-                            <a href="${home}/log">Log</a>
-                        </li>
+                    <ul tal:condition="python:menu['children'] and has_permission(request, menu['permission'])">
+                        <li tal:repeat="submenu menu['children']"
+                            tal:attributes="class route_name in submenu['route_name'] and 'active'">
+                            <a tal:condition="python:not submenu['children'] and has_permission(request, submenu['permission'])"
+                                href="${home}${submenu['path']}">
+                                <i tal:condition="submenu['icon']" class="fa fa-lg fa-fw ${submenu['icon']}"></i>
+                                <span>${submenu['nama']}</span>
+                            </a>
 
+                            <a tal:condition="submenu['children']" href="#">
+                                <i tal:condition="submenu['icon']" class="fa fa-lg fa-fw ${submenu['icon']}"></i>
+                                <span class="menu-item-parent">${submenu['nama']}</span>
+                            </a>
+
+                            <ul tal:condition="submenu['children']">
+                                <li tal:repeat="submenu2 submenu['children']"
+                                    tal:attributes="class route_name in submenu2['route_name'] and 'active'">
+                                    <a href="${home}${submenu2['path']}">${submenu2['nama']}</a>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
                 </li>
             </ul>
+
+
         </nav>
         <span class="minifyme" data-action="minifyMenu">
             <i class="fa fa-arrow-circle-left hit"></i>

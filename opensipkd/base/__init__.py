@@ -397,6 +397,7 @@ class BaseApp():
         self.reg_form = ""
         self.reg_captcha = ""
         self.captcha_files = ""
+        self.login_captcha = 0
 
     def static_view(self, config, settings=None):
         self.partner_doc = get_params(
@@ -421,10 +422,12 @@ class BaseApp():
         self.captcha_files = os.path.join(self.temp_files, "captcha")+os.sep
         if not os.path.exists(self.captcha_files):
             os.makedirs(self.captcha_files)
-
         config.add_static_view(
             'captcha', self.captcha_files, cache_max_age=0)
 
+        self.login_tpl = get_params("login_tpl", "", settings=settings)
+        self.login_captcha = get_params("login_captcha", 0, settings=settings)
+        
 
     def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views"):
         route_names = []
@@ -523,6 +526,7 @@ class BaseApp():
         self.add_menu(config, new_routes, paket)
 
     def get_menus(self):
+        _logging.debug(f"Menus: {self.menus}")
         return self.menus
 
 
@@ -543,6 +547,8 @@ def has_permission_(request, perm_names, context=None):
 @subscriber(BeforeRender)
 def add_global(event):
     event['has_permission'] = has_permission_
+    event['get_base_menus'] = BASE_CLASS.get_menus
+    
 #     event['has_modules'] = has_modules_
 #     event['urlencode'] = urlencode
 #     event['quote_plus'] = quote_plus

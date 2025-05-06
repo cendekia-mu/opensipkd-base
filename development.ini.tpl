@@ -15,16 +15,14 @@ pyramid.debug_routematch = true
 pyramid.debug_templates = true
 default_locale_name = id
 sqlalchemy.url = postgresql://aagusti:a@localhost:5432/demo2
-session.url = postgresql://aagusti:a@localhost:5433/demo2
-
-temp_dir = C:\tmp
-allow_register = true
+session.url = postgresql://aagusti:a@localhost:5432/demo2
 pyramid.includes =
     pyramid_tm
     pyramid_beaker
     pyramid_chameleon
-    pyramid_debugtoolbar
     pyramid_rpc.jsonrpc
+    pyramid_debugtoolbar
+
 
 session.type = ext:database
 session.secret = s0s3cr3ts
@@ -36,6 +34,20 @@ timezone = Asia/Jakarta
 ;localization = id_ID.UTF-8
 #localization = Indonesian_indonesia.1252
 localization = English_Australia.1252
+
+# Base Configuration
+temp_files = C:\tmp
+partner_doc = C:\\tmp\\docs\\partner\\
+# Registrasi User
+allow_register = 1
+reg_form = 
+reg_idcard = 1
+reg_captcha = 1
+reg_verify = 1
+
+;reg_form =
+login_tpl =
+login_captcha = 1
 
 ;login_tpl = opensipkd.samsat.jabar.views:templates/login.pt
 
@@ -60,7 +72,7 @@ localization = English_Australia.1252
 ;
 ;modules =
 menus = login:Login
-;    pjdl:PJDL
+   register:PJDL
 ;    bphtb:BPHTB
 ;    five:Five
 ;app_name = GAJI ASN
@@ -68,13 +80,7 @@ menus = login:Login
 ;change_unit = False
 ;departemen_chg_id = 3
 
-# Registrasi User
-;captcha_files = /tmp/captcha
-;reg_captcha = 0
-;reg_idcard = 1
-;reg_verify = 1
-;reg_form =
-;login_tpl =
+
 
 # digunakan jika akan menggunakan form registrasi sendiri
 
@@ -110,20 +116,19 @@ port = 6543
 keys = root, opensipkd, sqlalchemy
 
 [handlers]
-keys = console
-#, filelog, tabel
-
+keys = console, filelog
+#, tabel
 [formatters]
 keys = generic
 
 [logger_root]
 level = WARN
-handlers = console
-#, filelog, tabel
+handlers = 
+#, tabel
 
 [logger_opensipkd]
 level = DEBUG
-handlers =
+handlers =console, filelog
 qualname = opensipkd
 
 [logger_sqlalchemy]
@@ -136,8 +141,9 @@ qualname = sqlalchemy.engine
 
 [handler_filelog]
 class = FileHandler
-args = ('log_file_location','a')
-level = INFO
+; args = ('log_file','a')
+args = ('/tmp/logs/opensipkd.log','a')
+level = DEBUG
 formatter = generic
 
 
@@ -163,7 +169,7 @@ script_location = ziggurat_foundations:migrations
 sqlalchemy.url = postgresql://aagusti:a@localhost:5432/demo2
 
 [alembic_base]
-script_location = opensipkd.base:alembic
+script_location = opensipkd.base.scripts:alembic
 sqlalchemy.url = postgresql://aagusti:a@localhost:5432/demo2
 
 [pytest]

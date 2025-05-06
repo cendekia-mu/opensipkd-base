@@ -23,7 +23,9 @@ import os
 import re
 from datetime import timedelta, datetime
 from importlib import import_module
+from urllib import request
 
+from bak.opensipkd.base.tools import buttons
 import colander
 from deform import widget, Form, ValidationFailure, Button
 from pyramid.csrf import new_csrf_token
@@ -36,7 +38,7 @@ from ziggurat_foundations.models.services.external_identity import \
     ExternalIdentityService
 from ziggurat_foundations.models.services.user import UserService
 
-from opensipkd.base import BASE_CLASS, DBSession, get_params
+from opensipkd.base import BASE_CLASS, DBSession, get_params, scripts
 from . import one_hour, two_minutes
 from ..models.users import User, ExternalIdentity
 # , Partner
@@ -45,6 +47,8 @@ from opensipkd.tools.buttons import btn_cancel
 # from .. import get_urls
 from .base_views import CSRFSchema, BaseView
 from pyramid.i18n import TranslationStringFactory
+from ..widgets import widget_os
+
 _ = TranslationStringFactory('login')
 
 log = __import__("logging").getLogger(__name__)
@@ -59,15 +63,22 @@ class Login(CSRFSchema):
     )
     password = colander.SchemaNode(
         colander.String(), widget=widget.PasswordWidget())
-
-    # def after_bind(self, schema, kwargs):
-    #     request = kwargs["request"]
-    #     csrf_token = new_csrf_token(request)
-    #     log.error(csrf_token)
-    #     self["csrf_token"] = colander.SchemaNode(
-    #         colander.String(), widget=widget.HiddenWidget(),
-    #         default=csrf_token
-    #     )
+    
+    def after_bind(self, schema, kwargs):
+        request = kwargs["request"]
+        csrf_token = new_csrf_token(request)
+        log.debug(csrf_token)
+        self["csrf_token"] = colander.SchemaNode(
+            colander.String(), widget=widget.HiddenWidget(),
+            default=csrf_token
+        )
+        if BASE_CLASS.login_captcha:
+            self["captcha"] = colander.SchemaNode(
+                colander.String(),
+                widget=widget_os.CaptchaWidget(
+                    request=request,
+                    url=request.static_url(BASE_CLASS.captcha_files)),
+                oid="captcha", title=_("Captcha"))
 
 
 # http://deformdemo.repoze.org/interfield/
@@ -172,27 +183,31 @@ def oauth2_login(request, params=None):
     return user
 
 
-class ViewLogin(BaseView):
-    # @view_config(route_name='login', renderer='templates/form.pt', require_csrf=True)
+class ViewAuth(BaseView):
     def view_login(self):
         request = self.req
         request.session["login"] = True
         next_url = request.params.get('next', request.referrer)
-        login_tpl = get_params('login_tpl', 'templates/login.pt')
+        login_tpl = BASE_CLASS.login_tpl
         if not next_url:
-            # next_url = get_urls(request.route_url('home'))
             next_url = request.home
 
         if request.authenticated_userid:  # (request):
             request.session.flash('Anda sudah login', 'error')
-            # return HTTPFound(location=get_urls(f"{request.route_url('home')}"))
-            return HTTPFound(location=f"{request.route_url('base-home')}")
+            return HTTPFound(location=f"{request.home}")
 
         schema = Login()
         schema = schema.bind(request=self.req)
-        form = Form(schema, buttons=('login',))
+        buttons = (Button('login', _('Login')),)
+        if BASE_CLASS.allow_register:
+            buttons += (Button('register', _('Register')),)
+        buttons += (Button('reset', _('Reset')), btn_cancel,)
+        
+        form = Form(schema, buttons=buttons)
         message = ""
-        if 'login' in request.POST:
+        if 'cancel' in request.POST:
+            return HTTPFound(location=request.home)
+        elif 'login' in request.POST:
             identity = request.POST.get('username')
             user = schema.user = User.get_by_identity(identity)
             controls = request.POST.items()
@@ -202,7 +217,7 @@ class ViewLogin(BaseView):
                 msg = 'Login gagal'
                 set_user_log(msg, request, log, identity)
                 request.session.flash(msg, 'error')
-                return HTTPFound(location=get_urls(request.route_url('login')))
+                return HTTPFound(location=request.route_url('base-login'))
 
             values = dict(c)
 
@@ -222,21 +237,20 @@ class ViewLogin(BaseView):
                 except Exception as e:
                     log.warn(str(e))
                     request.session.flash(str(e), "error")
-                    return HTTPFound(location=get_urls(request.route_url('login')))
+                    return HTTPFound(location=request.route_url('base-login'))
 
             else:
                 login = LoginUser(self.req)
                 if not login.login(values, user):
                     request.session.flash(login.message, "error")
-                    next_url = get_urls(
-                        f"{request.route_url('login')}?next={next_url}")
+                    next_url = f"{request.route_url('base-login')}?next={next_url}"
                     return HTTPFound(location=next_url)
             return redirect_login(request, user)
 
         elif 'register' in request.POST:
-            # register_form = get_params("register_form", 'register')
             return HTTPFound(location=request.route_url(BASE_CLASS.reg_form))
-
+        elif 'reset' in request.POST:
+            return HTTPFound(location=request.route_url('base-password-reset'))
         elif 'login failed' in request.session:
             r = dict(form=request.session['login failed'])
             del request.session['login failed']
@@ -252,13 +266,13 @@ class ViewLogin(BaseView):
                     login_tpl, dict(
                         form=form,
                         message=message,
-                        url=get_urls(request.route_url('login')),
+                        url=request.route_url('base-login'),
                         next_url=next_url,
                         login=login, ),
                     request=request)
             except Oauth2UserExc as e:
                 request.session.flash(str(e), 'error')
-                return HTTPFound(location=get_urls(request.route_url('login')))
+                return HTTPFound(location=request.route_url('base-login'))
             if user and user.status == 1:
                 return redirect_login(request, user)
         # values = {"csrf_token": new_csrf_token(request)}
@@ -269,18 +283,41 @@ class ViewLogin(BaseView):
         #                 url=get_urls(request.route_url('login')),
         #                 next_url=next_url,
         #                 login=login, )
-
-        return render_to_response(
-            renderer_name=login_tpl,
-            request=request,
-            value=dict(form=form,
-                       message=message,
-                    #    url=get_urls(request.route_url('login')),
-                       url=request.route_url('base-login'),
-                       next_url=next_url,
-                       login=login, ),
+        if login_tpl:
+            return render_to_response(
+                renderer_name=login_tpl,
+                request=request,
+                value=dict(form=form,
+                           message=message,
+                           url=request.route_url('base-login'),
+                           next_url=next_url,
+                           login=login, ),
         )
+        return dict(form=form.render(),scripts="")
 
+    def view_logout(self):
+        request = self.req
+        if not request.user:
+            if "g_state" in request.cookies:
+                request.response.delete_cookie("g_state", '/')
+
+        form = self.get_form(LogoutSchema, buttons=(btn_cancel, btn_logout))
+        if 'cancel' in request.POST or "home" in request.POST:
+            return HTTPFound(location=request.home)
+
+        elif "logout" in request.POST:
+            form = self.get_form(LogoutSchema, buttons=(btn_home,))
+            set_user_log("Logout", request, log)
+            headers = forget(request)
+            request.session.delete()
+            request.response.headers.update(headers)
+            if "g_state" in request.cookies:
+                request.response.delete_cookie("g_state", '/')
+            form.set_appstruct({"message": "Sukses Logout"})
+            request.session["login"] = False
+
+        return dict(form=form.render())
+    
 
 def redirect_login(request, user):
     set_user_log("Login Sukses", request, log, user.user_name)
@@ -291,8 +328,8 @@ def redirect_login(request, user):
     request.session.flash("Sukses Login")
     next_url = request.params.get('next')
     if not next_url and request.matched_route.name == 'login':
-        url = get_params('modules_default', 'home')
-        return HTTPFound(location=get_urls(request.route_url(url)),
+        url = get_params('modules_default', 'base-home')
+        return HTTPFound(location=request.route_url(url),
                          headers=headers)
     if not next_url:
         next_url = request.home
@@ -312,42 +349,169 @@ btn_logout = Button("logout", css_class="btn-danger")
 btn_home = Button("home", css_class="btn-success")
 
 
-class ViewLogout(BaseView):
+# class ViewLogout(BaseView):
     # @view_config(route_name='logout', renderer="templates/logout.pt", require_csrf=False)
-    def view_logout(self):
+
+
+
+class ViewPassword(BaseView):
+    def reset_password(self):
         request = self.req
-        if not request.user:
-            if "g_state" in request.cookies:
-                request.response.delete_cookie("g_state", '/')
+        if request.authenticated_userid:
+            return HTTPFound(location=f"{request.home}")
 
-        form = self.get_form(LogoutSchema, buttons=(btn_cancel, btn_logout))
-        if 'cancel' in request.POST or "home" in request.POST:
-            # log.info(get_urls(request.route_url('home')))
-            # return HTTPFound(location=get_urls(f"{request.route_url('home')}", ))
+        resp = dict(title=_('Reset password'))
+        resp['scripts'] = ""
+        schema = ResetPassword(validator=reset_password_validator)
+        btn_submit = Button('submit', _('Send password reset email'))
+        form = Form(schema, buttons=(btn_submit, btn_cancel))
+        if 'submit' in request.POST:
+            controls = request.POST.items()
+            identity = request.POST.get('email')
+            q = DBSession.query(User).filter_by(email=identity)
+            schema.user = user = q.first()
+            try:
+                c = form.validate(controls)
+            except ValidationFailure:
+                resp['form'] = form.render()
+                return resp
+            remain = regenerate_security_code(user)
+            set_user_log("Reset password to {}".format(user.email), request, log,
+                        user.user_name)
+            send_email_security_code(
+                request, user, remain, 'Reset password', 'reset-password-body',
+                'reset-password-body.tpl')
+            self.ses.flash(
+                'Email reset password sudah dikirim ke {}'.format(user.email))
             return HTTPFound(location=request.home)
+        elif 'cancel' in request.POST:
+            return HTTPFound(location=request.route_url('base-login'))
+        
+        resp['form'] = form.render()
+        return resp
+    
 
-        elif "logout" in request.POST:
-            form = self.get_form(LogoutSchema, buttons=(btn_home,))
-            set_user_log("Logout", request, log)
-            headers = forget(request)
-            request.session.delete()
-            request.response.headers.update(headers)
-            if "g_state" in request.cookies:
-                request.response.delete_cookie("g_state", '/')
-            form.set_appstruct({"message": "Sukses Logout"})
-            request.session["login"] = False
+    def change_password(self):
+        """
+        Digunakan untuk change password 
+        1. Jika sudah login maka redirect ke home
+        2. Jika form valid maka akan menyimpan password baru ke database
+        3. User di logout dan di redirect ke home
+        """
+        request = self.req
 
-        return dict(form=form.render())
+        schema = ChangePassword(validator=change_password_validator)
+        btn_save = Button('save', _('Simpan'))
+        btn_cancel = Button('cancel', _('Batalkan'))
+        buttons = (btn_save, btn_cancel)
+        form = Form(schema, buttons=buttons)
+        if not request.POST:
+            return dict(form=form.render(), scripts="")
+        
+        if 'save' not in request.POST:
+            return HTTPFound(location=request.route_url('base-login'))
+
+        items = request.POST.items()
+        try:
+            c = form.validate(items)
+        except ValidationFailure as e:
+            return dict(form=e.render())
+        
+        user = request.user
+        user.security_code = None
+        if not UserService.check_password(user, c['password']):
+            request.session.flash('Password lama tidak sesuai', 'error')
+            return HTTPFound(location=request.route_url('base-password'))
+        
+        UserService.set_password(user, c['new_password'])
+        self.db_session.add(user)
+        self.db_session.flush()
+        headers = forget(request)
+        request.session.flash('Password baru Anda sudah disimpan.')
+        set_user_log("Change Password", request, log)
+        return HTTPFound(location=f"{request.home}", headers=headers)
 
 
-class ChangePassword(colander.Schema):
+    def change_password_request(self):
+        """
+        Digunakan untuk change password url dari email (register, reset password)
+        1. Jika sudah login maka redirect ke home
+        2. Jika code tidak ada atau tidak valid maka akan redirect ke get code 
+        2. Jika code valid maka akan menampilkan form untuk change password
+        3. Jika form valid maka akan menyimpan password baru ke database
+        """
+        request = self.req
+        if request.authenticated_userid:
+            request.session.flash('Anda sudah login', 'error')
+            return HTTPFound(location=f"{request.home}")
+        code = request.matchdict['code']
+        q = DBSession.query(User).filter_by(security_code=code)
+        user = q.first()
+        now = create_now()
+        if not user or now - user.security_code_date > one_hour:
+            request.session.flash('Security code expired', 'error')
+            return HTTPFound(location=request.route_url('base-login'))
+        
+        schema = ChangePasswordRequest(validator=change_password_validator)
+        btn_save = Button('save', _('Simpan'))
+        btn_cancel = Button('cancel', _('Batalkan'))
+        buttons = (btn_save, btn_cancel)
+        form = Form(schema, buttons=buttons)
+        if not request.POST:
+            return dict(form=form.render(), scripts="")
+        if 'save' not in request.POST:
+            return HTTPFound(location=request.route_url('base-login'))
+        
+
+        items = request.POST.items()
+        try:
+            c = form.validate(items)
+        except ValidationFailure as e:
+            return dict(form=e.render())
+        
+
+        user.security_code = None
+        UserService.set_password(user, c['new_password'])
+        DBSession.add(user)
+        headers = get_login_headers(request, user)
+        request.session.flash('Password baru Anda sudah disimpan.')
+        set_user_log("Change Password", request, log)
+        return HTTPFound(location=f"{request.home}", headers=headers)
+
+   
+
+    
+    # def view_recreate_api_key(self):
+    #     request = self.req
+    #     if not request.user.api_key:
+    #         return HTTPNotFound()
+    #     schema = APIKey()
+    #     btn_submit = Button('recreate', _('Buat ulang'))
+    #     btn_cancel = Button('cancel', _('Batalkan'))
+    #     buttons = (btn_submit, btn_cancel)
+    #     form = Form(schema, buttons=buttons)
+    #     if not request.POST:
+    #         d = dict(api_key=request.user.api_key)
+    #         return dict(form=form.render(appstruct=d))
+    #     if 'recreate' not in request.POST:
+    #         return HTTPFound(location=f"{request.home}")
+    #     request.user.api_key = api_key = generate_api_key()
+    #     DBSession.add(request.user)
+    #     msg = 'API Key Anda yang baru {}'.format(api_key)
+    #     request.session.flash(msg)
+    #     return HTTPFound(location=f"{request.home}")
+
+class ChangePasswordRequest(colander.Schema):
     new_password = colander.SchemaNode(
         colander.String(), widget=widget.CheckedPasswordWidget())
-    # retype_password = colander.SchemaNode(
-    # colander.String(), widget=widget.PasswordWidget())
-    # password = colander.SchemaNode(colander.String(),
-    # widget=widget.PasswordWidget(),
-    # title=_("Old Password"))
+
+
+class ChangePassword(ChangePasswordRequest):
+    new_password = colander.SchemaNode(
+        colander.String(), widget=widget.CheckedPasswordWidget())
+    password = colander.SchemaNode(colander.String(),
+    widget=widget.PasswordWidget(),
+    title=_("Old Password"))
 
 
 def change_password_validator(form, value):
@@ -364,44 +528,7 @@ def change_password_validator(form, value):
     # raise exc
 
 
-# @view_config(route_name='change-password',
-#              renderer='templates/change-password.pt')
-def view_change_password(request):
-    """
-    Digunakan untuk change password url dari email (register, reset password)
-    """
-    if request.authenticated_userid:
-        request.session.flash('Anda sudah login', 'error')
-        return HTTPFound(location=get_urls(f"{request.route_url('home')}"))
 
-    schema = ChangePassword(validator=change_password_validator)
-    btn_save = Button('save', _('Simpan'))
-    btn_cancel = Button('cancel', _('Batalkan'))
-    buttons = (btn_save, btn_cancel)
-    form = Form(schema, buttons=buttons)
-    if not request.POST:
-        return dict(form=form.render())
-    if 'save' not in request.POST:
-        return HTTPFound(location=get_urls(request.route_url('login')))
-    items = request.POST.items()
-    try:
-        c = form.validate(items)
-    except ValidationFailure as e:
-        return dict(form=e.render())
-    code = request.matchdict['code']
-    q = DBSession.query(User).filter_by(security_code=code)
-    user = q.first()
-    if not user or create_now() - user.security_code_date > one_hour:
-        request.session.flash('Security code expired', 'error')
-        return HTTPFound(location=get_urls(request.route_url('login')))
-
-    user.security_code = None
-    UserService.set_password(user, c['new_password'])
-    DBSession.add(user)
-    headers = get_login_headers(request, user)
-    request.session.flash('Password baru Anda sudah disimpan.')
-    set_user_log("Change Password", request, log)
-    return HTTPFound(location=get_urls(f"{request.route_url('home')}"), headers=headers)
 
 
 ######################
@@ -416,27 +543,7 @@ def generate_api_key():
     return UserService.generate_random_string(64)
 
 
-# @view_config(
-#     route_name='recreate-api-key', renderer='templates/recreate-api-key.pt',
-#     permission='view')
-def view_recreate_api_key(request):
-    if not request.user.api_key:
-        return HTTPNotFound()
-    schema = APIKey()
-    btn_submit = Button('recreate', _('Buat ulang'))
-    btn_cancel = Button('cancel', _('Batalkan'))
-    buttons = (btn_submit, btn_cancel)
-    form = Form(schema, buttons=buttons)
-    if not request.POST:
-        d = dict(api_key=request.user.api_key)
-        return dict(form=form.render(appstruct=d))
-    if 'recreate' not in request.POST:
-        return HTTPFound(location=get_urls(f"{request.route_url('home')}"))
-    request.user.api_key = api_key = generate_api_key()
-    DBSession.add(request.user)
-    msg = 'API Key Anda yang baru {}'.format(api_key)
-    request.session.flash(msg)
-    return HTTPFound(location=get_urls(f"{request.route_url('home')}"))
+
 
 
 ##################
@@ -473,7 +580,7 @@ def send_email_security_code(
     if 'mail.sender_name' not in settings or 'mail.username' not in settings:
         return
 
-    url = '{}/password/{}?password={}'.format(
+    url = '{}/password/{}?password={}/request'.format(
         request.home, user.security_code, password)
 
     minutes = int(time_remain.seconds / 60)
@@ -525,46 +632,16 @@ def regenerate_security_code(user, hour=1.0):
     age = security_code_age(user)
     remain = hour - age
     if user.security_code and age < hour and remain > two_minutes:
+        log.debug("Security code: %s", user.security_code)
         return remain
     UserService.regenerate_security_code(user)
     user.security_code_date = create_now()
+    log.debug("Security code: %s", user.security_code)
     DBSession.add(user)
     return hour
 
 
-# @view_config(route_name='reset-password',
-#              renderer='templates/reset-password.pt')
-def view_reset_password(request):
-    if request.authenticated_userid:
-        return HTTPFound(location=get_urls(f"{request.route_url('home')}"))
-
-    resp = dict(title=_('Reset password'))
-    schema = ResetPassword(validator=reset_password_validator)
-    btn_submit = Button('submit', _('Send password reset email'))
-    form = Form(schema, buttons=(btn_submit,))
-    if 'submit' in request.POST:
-        controls = request.POST.items()
-        identity = request.POST.get('email')
-        q = DBSession.query(User).filter_by(email=identity)
-        schema.user = user = q.first()
-        try:
-            c = form.validate(controls)
-        except ValidationFailure:
-            resp['form'] = form.render()
-            return resp
-        remain = regenerate_security_code(user)
-        set_user_log("Reset password to {}".format(user.email), request, log,
-                     user.user_name)
-        send_email_security_code(
-            request, user, remain, 'Reset password', 'reset-password-body',
-            'reset-password-body.tpl')
-        return HTTPFound(location=get_urls(request.route_url('reset-password-sent')))
-    resp['form'] = form.render()
-    return resp
 
 
-# @view_config(
-#     route_name='reset-password-sent',
-#     renderer='templates/reset-password-sent.pt')
-def view_reset_password_sent(request):
-    return dict(title=_('Reset password'))
+
+
