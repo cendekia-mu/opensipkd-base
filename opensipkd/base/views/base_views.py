@@ -23,7 +23,7 @@ from opensipkd.tools.buttons import (
 # from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
 from .common import DataTables
-from ..models import DBSession
+from ..models import DBSession, Partner
 # , get_params, get_urls
 from ..scripts.initializedb import append_csv
 from ...detable import DeTable
@@ -1076,7 +1076,8 @@ class BaseView(object):
 #                 return resp
 #             return value["filename"]
 
-    
+    def get_partner(self):
+        return Partner.query_email(self.req.user.email).first()
 
 # @colander.deferred
 # def deferred_status(node, kw):
@@ -1117,6 +1118,7 @@ class BaseView(object):
 #     return result == '1' or result == "True" or result == "true" or result == True
 
 
-def get_url_captcha(request):
-    captcha = get_captcha(request)
-    return os.path.join(get_urls(request.route_url('home')), 'captcha', captcha)
+# def get_url_captcha(request):
+#     captcha = get_captcha(request)
+#     return os.path.join(get_urls(request.route_url('home')), 'captcha', captcha)
+

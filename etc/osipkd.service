@@ -1,0 +1,10 @@
+[Unit]
+After=postgresql.service
+
+[Service]
+User={user}
+ExecStart=/{bin_path}/pserve /{config_path}/production.ini
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

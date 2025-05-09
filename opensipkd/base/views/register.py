@@ -57,20 +57,40 @@ _logging = logging.getLogger(__name__)
 class AddSchema(colander.Schema):
     nama = colander.SchemaNode(
         colander.String(),
+        validator=colander.Length(max=64),
         oid="nama",
         title=_("Name"),
     )
     alamat_1 = colander.SchemaNode(
         colander.String(),
         title=_("Address"),
+        validator=colander.Length(max=128),
         oid="alamat_1")
     alamat_2 = colander.SchemaNode(
         colander.String(),
         title="",
+        validator=colander.Length(max=128),
         missing=colander.drop,
         oid="alamat_2")
+    kelurahan = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=64),
+        oid="kelurahan")
+    kecamatan = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=64),
+        oid="kecamatan")
+    kota = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=64),
+        oid="kota")
+    provinsi = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=64),
+        oid="provinsi")
     mobile = colander.SchemaNode(
         colander.String(),
+        validator=colander.Length(max=18, min=8),
         oid="no_hp",
         title=_("Mobile")
     )
@@ -285,7 +305,7 @@ class Views(BaseView):
         if "idcard" in value and value["idcard"]:
             idcard = value["idcard"]
             if "fp" in idcard and idcard["fp"] and idcard["fp"] != b'':
-                path = BASE_CLASS.reg_id_card
+                path = BASE_CLASS.partner_doc
                 _logging.debug(idcard["fp"])
                 upload = Upload(path)
                 value["idcard"] = upload.save_fp(idcard)
@@ -391,7 +411,7 @@ class Views(BaseView):
                 if d["idcard"]:
                     filename = d["idcard"]
                     preview_url = "/".join(
-                        [self.req.static_url(BASE_CLASS.reg_id_card),
+                        [self.req.static_url(BASE_CLASS.partner_doc),
                          filename])
                     d["idcard"] = {"uid": filename.split(".")[0],
                                    "filename": filename,

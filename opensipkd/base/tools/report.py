@@ -10,11 +10,11 @@ log.warning("Opensipkd.base.tools.pbb depreciated use opensipkd.tools.pbb")
 
 # -*- coding: utf-8 -*-
 
-db_driver_port = {
-    "postgresql": ["postgres", "5432", "org.postgresql.Driver", "jdbc:postgresql://localhost:5432/pjdl_ciamis"],
-    "oracle": ["oracle", "1512", "oracle.jdbc.driver.OracleDriver"],
+# db_driver_port = {
+#     "postgresql": ["postgres", "5432", "org.postgresql.Driver", "jdbc:postgresql://localhost:5432/pjdl_ciamis"],
+#     "oracle": ["oracle", "1512", "oracle.jdbc.driver.OracleDriver"],
 
-}
+# }
 
 
 def jasper_compile(input_file):

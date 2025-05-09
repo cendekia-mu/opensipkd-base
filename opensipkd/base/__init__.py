@@ -344,7 +344,7 @@ def _add_view_config(config, paket, route):
         route["func_name"] = "_".join(["view", func_name])
 
     file_name = f"{paket}.{route.get('file_name')}"
-    _logging.debug(f"File Name: {file_name}")
+    # _logging.debug(f"File Name: {file_name}")
     attr = f"{route.get('func_name')}"
     try:
         _views = importlib.import_module(file_name)
@@ -376,28 +376,29 @@ def _add_view_config(config, paket, route):
         config.add_view(views, **params)
 
     except Exception as e:
-        _logging.error(f"Add View Config :")
-        _logging.error(str(e))
-        _logging.error(route)
-        # raise e
+        _logging.error("Add View Config :{code} Kode {error}"\
+                       .format(code=route["kode"], error=str(e)))
+    _logging.debug(f"Route: {route.get('kode')} {route.get('path')}")
 
 
-def get_route_file(filename):
-    base_dir = os.path.split(__file__)[0]
-    fullpath = os.path.join(base_dir, 'scripts', 'data', filename)
-    return open(fullpath)
+
 
 class BaseApp():
     def __init__(self):
         self.menus = []
         self.partner_doc = ""
         self.temp_files = ""
-        self.reg_id_card = 0
         self.allow_register = 0
         self.reg_form = ""
-        self.reg_captcha = ""
+        self.reg_id_card = 0
+        self.reg_captcha = 0
         self.captcha_files = ""
         self.login_captcha = 0
+        self.base_dir = os.path.split(__file__)[0]
+
+    def get_route_file(self, filename="routes.csv"):
+        fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
+        return open(fullpath)
 
     def static_view(self, config, settings=None):
         self.partner_doc = get_params(
@@ -420,13 +421,14 @@ class BaseApp():
         self.reg_captcha = get_params(
             "reg_captcha", 0, settings=settings)
         self.captcha_files = os.path.join(self.temp_files, "captcha")+os.sep
+
         if not os.path.exists(self.captcha_files):
             os.makedirs(self.captcha_files)
         config.add_static_view(
             'captcha', self.captcha_files, cache_max_age=0)
 
         self.login_tpl = get_params("login_tpl", "", settings=settings)
-        self.login_captcha = get_params("login_captcha", 0, settings=settings)
+        self.login_captcha = int(get_params("login_captcha", 0, settings=settings))
         
 
     def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views"):
@@ -493,19 +495,18 @@ class BaseApp():
                 if p["children"]:
                     self.route_children(p["children"], row)
 
-    def route_from_csv(self, config, get_file=get_route_file, paket="opensipkd.base.views"):
-        with get_file("routes.csv") as f:
+    def route_from_csv(self, config, paket="opensipkd.base.views", filename="routes.csv"):
+        with self.get_route_file(filename) as f:
             rows = csv.DictReader(f)
             new_routes = []
             for row in rows:
                 status = row.get("status", 0)
-                if not status:
+                if not row["kode"] or not int(status):
                     continue
 
                 status = int(status)
                 row["children"] = []
-                parent_id = row.get("parent_id") or row.get(
-                    "parent_id/routes.kode")
+                parent_id = row.get("parent_id") or row.get("parent_id/routes.kode")
                 if parent_id:
                     self.route_children(new_routes, row)
                 else:

@@ -1,3 +1,4 @@
+import email
 import logging
 import colander
 from deform import (
@@ -49,9 +50,16 @@ class AddSchema(PartnerSchema):
     def after_bind(self, schema, kwargs):
         super().after_bind(schema, kwargs)
         request = kwargs["request"]
-        if request.user.company_id:
-            self["company_id"].widget = widget.HiddenWidget()
-            self["company_id"].default = request.user.company_id
+        if BASE_CLASS.reg_id_card:
+            self["kode"].title = "NIK/NIB"
+        else:
+            self["kode"].title = "E-mail"
+            del self["email"]
+            del self["idcard"]
+
+        # if request.user.company_id:
+        #     self["company_id"].widget = widget.HiddenWidget()
+        #     self["company_id"].default = request.user.company_id
 
 
 class EditSchema(AddSchema):

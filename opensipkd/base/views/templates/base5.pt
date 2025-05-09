@@ -118,6 +118,11 @@
             <!-- end fullscreen button -->
 
             <!-- User info -->
+            <ul tal:condition="not request.user" class="header-dropdown-list hidden-xs">
+                <li>
+                    <a href="${home}/login" class="dropdown-toggle"><i class="fa fa-lg fa-fw fa-user"></i>Login</a>
+                </li>
+            </ul>
             <ul tal:condition="request.user" class="header-dropdown-list hidden-xs">
                 <li>
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-lg fa-fw fa-user"></i>
@@ -159,22 +164,25 @@
 
             <ul metal:define-slot="navs"></ul>
             <ul style="margin-top: 0; padding-top: 0;">
+
                 <li tal:repeat="menu get_base_menus()"
                     tal:attributes="class route_name in menu['route_name'] and 'active'">
-                    <a tal:condition="python:not menu['children'] and has_permission(request, menu['permission'])"
+                    <a tal:condition="python:not menu['children'] and (not menu['permission'] or has_permission(request, menu['permission']))"
                         href="${home}${menu['path']}">
                         <i tal:condition="menu['icon']" class="fa fa-lg fa-fw ${menu['icon']}"></i>
                         <span>${menu['nama']}</span>
                     </a>
-                    <a tal:condition="python:menu['children'] and has_permission(request, menu['permission'])" href="#">
+                    <a tal:condition="python:menu['children'] and (not menu['permission'] or has_permission(request, menu['permission']))"
+                        href="#">
                         <i tal:condition="menu['icon']" class="fa fa-lg fa-fw ${menu['icon']}"></i>
                         <span class="menu-item-parent">${menu['nama']}</span>
                     </a>
 
-                    <ul tal:condition="python:menu['children'] and has_permission(request, menu['permission'])">
+                    <ul
+                        tal:condition="python:menu['children'] and (not menu['permission'] or has_permission(request, menu['permission']))">
                         <li tal:repeat="submenu menu['children']"
                             tal:attributes="class route_name in submenu['route_name'] and 'active'">
-                            <a tal:condition="python:not submenu['children'] and has_permission(request, submenu['permission'])"
+                            <a tal:condition="python:not submenu['children'] and (not menu['permission'] or has_permission(request, submenu['permission']))"
                                 href="${home}${submenu['path']}">
                                 <i tal:condition="submenu['icon']" class="fa fa-lg fa-fw ${submenu['icon']}"></i>
                                 <span>${submenu['nama']}</span>

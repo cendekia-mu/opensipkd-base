@@ -94,23 +94,18 @@ class NamaSchema(colander.Schema):
 
 
 class PartnerSchema(NamaSchema):
-    nip = colander.SchemaNode(
-        colander.String(),
-        missing=colander.drop,
-        validator=colander.Length(max=32),
-        oid="nip")
-    npwp = colander.SchemaNode(
-        colander.String(),
-        missing=colander.drop,
-        validator=colander.Length(max=32),
-        oid="npwp")
+    # nip = colander.SchemaNode(
+    #     colander.String(),
+    #     missing=colander.drop,
+    #     validator=colander.Length(max=32),
+    #     oid="nip")
+    # npwp = colander.SchemaNode(
+    #     colander.String(),
+    #     missing=colander.drop,
+    #     validator=colander.Length(max=32),
+    #     oid="npwp")
 
-    idcard = colander.SchemaNode(
-        FileData(),
-        widget=widget.FileUploadWidget(mem_tmp_store),
-        missing=colander.drop,
-        title="ID Card"
-    )
+
     alamat_1 = colander.SchemaNode(
         colander.String(),
         missing=colander.drop,
@@ -121,26 +116,26 @@ class PartnerSchema(NamaSchema):
         missing=colander.drop,
         validator=colander.Length(max=128),
         oid="alamat_2")
-    # kelurahan = colander.SchemaNode(
-    #     colander.String(),
-    #     missing=colander.drop,
-    #     validator=colander.Length(max=64),
-    #     oid="kelurahan")
-    # kecamatan = colander.SchemaNode(
-    #     colander.String(),
-    #     missing=colander.drop,
-    #     validator=colander.Length(max=64),
-    #     oid="kecamatan")
-    # kota = colander.SchemaNode(
-    #     colander.String(),
-    #     validator=colander.Length(max=64),
-    #     missing=colander.drop,
-    #     oid="kota")
-    # provinsi = colander.SchemaNode(
-    #     colander.String(),
-    #     validator=colander.Length(max=64),
-    #     missing=colander.drop,
-    #     oid="provinsi")
+    kelurahan = colander.SchemaNode(
+        colander.String(),
+        missing=colander.drop,
+        validator=colander.Length(max=64),
+        oid="kelurahan")
+    kecamatan = colander.SchemaNode(
+        colander.String(),
+        missing=colander.drop,
+        validator=colander.Length(max=64),
+        oid="kecamatan")
+    kota = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=64),
+        missing=colander.drop,
+        oid="kota")
+    provinsi = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=64),
+        missing=colander.drop,
+        oid="provinsi")
     # provinsi_id = colander.SchemaNode(
     #     colander.Integer(),
     #     widget=provinsi_widget,
@@ -187,13 +182,18 @@ class PartnerSchema(NamaSchema):
     mobile = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=16),
-        missing=colander.drop,
         oid="mobile")
     website = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=128),
         missing=colander.drop,
         oid="website")
+    idcard = colander.SchemaNode(
+        FileData(),
+        widget=widget.FileUploadWidget(mem_tmp_store),
+        missing=colander.drop,
+        title="ID Card"
+    )
     status = colander.SchemaNode(
         colander.Integer(),
         widget=widget.CheckboxWidget(true_val="1", false_val="0"),

@@ -11,9 +11,11 @@ from pyramid.renderers import render_to_response
 from .base_views import BaseView
 #, DataTables
 from datetime import timedelta
+from opensipkd.detable import *
+from .common import ColumnDT, DataTables
+from opensipkd.tools import mem_tmp_store
 from deform import (
     Form, ValidationFailure, widget, Button, FileData)
-from opensipkd.tools import mem_tmp_store
 
 one_hour = timedelta(1.0 / 24)
 two_minutes = timedelta(1.0 / 24 / 60)

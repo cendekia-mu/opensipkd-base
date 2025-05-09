@@ -1,0 +1,29 @@
+<p tal:define="preview_url cstruct.get('preview_url');
+    css_class css_class|field.widget.css_class;
+    style style|field.widget.style;
+    preview_url cstruct.get('preview_url')|'';
+    ext str(cstruct.get('filename').split('.')[-1:][0]).lower()|[];
+    fname str(cstruct.get('filename'))|'';
+    delete cstruct.get('delete')|'';
+    ext str(cstruct.get('filename').split('.')[-1:][0]).lower()|[];
+    oid oid|field.oid;
+    img ['jpg', 'jpeg', 'gif', 'png', 'svg', 'eps', 'psd'];
+    video ['avi', 'mov', 'mpv'];
+    ">
+<div class="thumbnail">
+  <img tal:condition="ext in img" id="preview-${oid}" alt="" src="${preview_url}" style="${style}"
+    onload="window.URL.revokeObjectURL(this.src);"></img>
+  <video tal:condition="ext in video" style="${style}" controls src="${preview_url}" type="video/${ext}"
+    id="preview-${oid}">
+    Your browser does not support the video tag.
+  </video>
+  <video tal:condition="ext=='mp4'" controls style="${style}" src="${preview_url}" type="video/mp4" id="preview-${oid}">
+    Your browser does not support the video tag.
+  </video>
+
+  <embed tal:condition="ext=='pdf'" src="${preview_url}" style="${style}" id="preview-${oid}">
+
+  <a id="a-preview-${oid}" class="label label-default" href="${structure: preview_url}" target="_blank"><i
+      class="fa fa-search"></i> View</a>
+</div>
+</p>
