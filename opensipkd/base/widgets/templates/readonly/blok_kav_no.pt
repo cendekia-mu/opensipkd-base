@@ -1,0 +1,9 @@
+<div tal:define="
+     oid oid|field.oid;" i18n:domain="deform">
+    <p class="deform-readonly-true" id="${oid}" i18n:translate="">
+        <span id="{$oid}-blok_kav_no">${blok_kav_no}</span>
+        <span id="{$oid}-rt">RT: ${rt}</span>
+        <span id="{$oid}-rw">RW: ${rw}</span>
+    </p>
+
+</div>

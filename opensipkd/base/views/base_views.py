@@ -1047,34 +1047,35 @@ class BaseView(object):
 
 #         self.form_error(form, error)
 
-#     def save_file(self, values, field, path=None, filename=None):
-#         if field in values and values[field]:
-#             value = values[field]
-#             file_name = value["filename"]
-#             ext = get_ext(file_name)
-#             if ext not in self.upload_exts:
-#                 raise InvalidExtension(self.upload_exts)
+    def save_file(self, values, field, path=None, filename=None):
+        if field in values and values[field]:
+            value = values[field]
+            file_name = value["filename"]
+            ext = get_ext(file_name)
+            if ext not in self.upload_exts:
+                raise InvalidExtension(self.upload_exts)
 
-#             if "fp" in value and value["fp"] and value["fp"] != b'':
-#                 if not path:
-#                     path = get_params('tmp', '/tmp')
-#                     path = os.join(path, "upload")
+            if "fp" in value and value["fp"] and value["fp"] != b'':
+                if not path:
+                    path = BASE_CLASS.temp_files
+                    path = os.join(path, "upload")
 
-#                 if not os.path.exists(path):
-#                     os.makedirs(path)
-#                 upload = Upload(path)
-#                 resp = upload.save_fp(value)
-#                 if filename:
-#                     ext = get_ext(resp)
-#                     new_resp = filename+ext
-#                     new_resp_full = os.path.join(path, new_resp)
-#                     if os.path.isfile(new_resp_full):
-#                         os.remove(new_resp_full)
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                    
+                upload = Upload(path)
+                resp = upload.save_fp(value)
+                if filename:
+                    ext = get_ext(resp)
+                    new_resp = filename+ext
+                    new_resp_full = os.path.join(path, new_resp)
+                    if os.path.isfile(new_resp_full):
+                        os.remove(new_resp_full)
 
-#                     os.rename(os.path.join(path, resp), new_resp_full)
-#                     return new_resp
-#                 return resp
-#             return value["filename"]
+                    os.rename(os.path.join(path, resp), new_resp_full)
+                    return new_resp
+                return resp
+            return value["filename"]
 
     def get_partner(self):
         return Partner.query_email(self.req.user.email).first()

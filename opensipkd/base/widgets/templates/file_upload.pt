@@ -7,10 +7,10 @@
     delete cstruct.get('delete')|'';
     maxsize field.widget.size|5242880;
     img ['jpg', 'jpeg', 'gif', 'png', 'svg', 'eps', 'psd'];
-    video ['avi', 'mov', 'mpv']
+    video ['avi', 'mov', 'mp4']
     ">
   ${field.start_mapping()}
-  <div class="thumbnail">
+  <div class="thumbnail" tal:condition="ext in img or ext in video or ext=='pdf'">
     <img tal:condition="ext in img" id="preview-${oid}" alt="" src="${preview_url}" style="${style}"
       onload="window.URL.revokeObjectURL(this.src);"></img>
     <video tal:condition="ext in video" style="${style}" controls src="${preview_url}" type="video/${ext}"
@@ -22,10 +22,10 @@
       id="preview-${oid}">
       Your browser does not support the video tag.
     </video>
-
     <embed tal:condition="ext=='pdf'" src="${preview_url}" style="${style}" id="preview-${oid}">
   </div>
-  <a class="label label-default" href="${preview_url}" target="_blank" id="a-preview-${oid}"><i
+
+  <a tal:condition="ext" class="label label-default" href="${preview_url}" target="_blank" id="a-preview-${oid}"><i
       class="fa fa-search"></i> View</a>
 
   <input type="file" name="upload" id="${oid}" tal:attributes="style style;

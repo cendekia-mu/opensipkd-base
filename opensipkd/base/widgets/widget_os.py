@@ -130,8 +130,8 @@ class FormulirWidget(Widget):
 
 
 class BlokKavNoWidget(Widget):
-    template = "opensipkd.base:/views/widgets/blok_kav_no.pt"
-    readonly_template = "opensipkd.base:/views/widgets/readonly/blok_kav_no.pt"
+    template = "opensipkd.base:./widgets/templates/blok_kav_no.pt"
+    readonly_template = "opensipkd.base:./widgets/templates/readonly/blok_kav_no.pt"
 
     _pstruct_schema = SchemaNode(
         Mapping(),
@@ -300,8 +300,8 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
 
 
 class QtyWidget(Widget):
-    template = "opensipkd.base:/views/widgets/qty.pt"
-    readonly_template = "opensipkd.base:/views/widgets/readonly/qty.pt"
+    template = "opensipkd.base:/widgets/templates/qty.pt"
+    readonly_template = "opensipkd.base:/viewswidgets/templates/readonly/qty.pt"
 
     _pstruct_schema = SchemaNode(
         Mapping(),
