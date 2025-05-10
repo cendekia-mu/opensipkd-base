@@ -25,7 +25,7 @@ from datetime import timedelta, datetime
 from importlib import import_module
 from urllib import request
 
-from bak.opensipkd.base.tools import buttons
+from opensipkd.base.tools import buttons
 import colander
 from deform import widget, Form, ValidationFailure, Button
 from pyramid.csrf import new_csrf_token
