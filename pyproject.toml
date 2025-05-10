@@ -3,7 +3,7 @@ requires = ['setuptools >= 64', 'wheel']
 build-backend = 'setuptools.build_meta'
 
 [tool.setuptools]
-packages = ["opensipkd.base"]
+packages = ["opensipkd", "opensipkd.detable", "opensipkd.base"]
 # package-dir = {"" = "opensipkd"}
 
 #[tool.setuptools.package-dir]
