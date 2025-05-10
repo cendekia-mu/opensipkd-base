@@ -10,6 +10,7 @@ from pyramid.renderers import JSON
 from pyramid_beaker import session_factory_from_settings
 from pyramid.config import Configurator
 from pyramid.events import NewRequest, BeforeRender, subscriber
+from pyramid_mailer import mailer_factory_from_settings
 
 from opensipkd.tools import get_settings, DefaultTimeZone, dmy, dmyhms
 from .security import MySecurityPolicy, get_user
@@ -287,7 +288,7 @@ def get_config(settings):
     config.add_renderer('csv', 'opensipkd.tools.CSVRenderer')
     config.add_renderer('json', json_renderer())
     config.add_renderer('json_rpc', json_rpc())
-    #     config.registry['mailer'] = mailer_factory_from_settings(settings)
+    config.registry['mailer'] = mailer_factory_from_settings(settings)
 
     return config
 
