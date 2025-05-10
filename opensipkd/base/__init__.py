@@ -402,7 +402,7 @@ class BaseApp():
 
     def static_view(self, config, settings=None):
         self.partner_doc = get_params(
-            "partner_doc", '/tmp/docs/partner', settings=settings)
+            "partner_doc", '/tmp/docs/partner', settings=settings)+os.sep
         if not os.path.exists(self.partner_doc):
             os.makedirs(self.partner_doc)
         config.add_static_view(
