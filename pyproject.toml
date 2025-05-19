@@ -4,7 +4,6 @@ build-backend = 'setuptools.build_meta'
 
 [tool.setuptools]
 packages = ["opensipkd", "opensipkd.detable", "opensipkd.base"]
-# package-dir = {"" = "opensipkd"}
 
 #[tool.setuptools.package-dir]
 # mypkg = "lib"
@@ -18,6 +17,7 @@ exclude = [
 #    'external', 
 #    'developers',
 ]
+show_error_codes = true
 
 [project]
 name = 'opensipkd_base'
@@ -42,7 +42,7 @@ dependencies = [
     'requests',
     'sqlalchemy-datatables',
     #'py3o.template',
-    #'wheezy.captcha',
+    'wheezy.captcha',
     #'icecream',
     'google-api-python-client',
     'google',

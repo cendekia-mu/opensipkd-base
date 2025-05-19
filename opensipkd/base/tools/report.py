@@ -88,12 +88,12 @@ def jasper_export(input_file, output_file=None, schema=None,
             module_file = input_file[0]
             input_file = input_file[1]
 
-    if module_file:
-        path = __import__(module_file)
-        path = os.path.dirname(path.__file__)
-        input_file = os.path.join(path, input_file)
-    else:
-        input_file = input_file[0]
+        if module_file:
+            path = __import__(module_file)
+            path = os.path.dirname(path.__file__)
+            input_file = os.path.join(path, input_file)
+        # else:
+        #     input_file = input_file[0]
 
     log.debug(f"Input File: {input_file}")
 
