@@ -133,7 +133,7 @@ class NameValidator:
         if self.group and self.group.group_name.lower() == group_name.lower():
             return
 
-        q = self.db_session.query(Group). \
+        q = DBSession.query(Group). \
             filter(Group.group_name.ilike(group_name))
         found = q.first()
         if not found:
