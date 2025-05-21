@@ -943,7 +943,13 @@ class BaseView(object):
         return f'Data ID {row.id} sudah dihapus.'
 
     def before_delete(self, row):
-        pass
+        """Digunakan untuk memproses sebelum data dihapus
+        Args: row (objek): Berupa objek row dari tabel yang akan dihapus datanya.
+        Returns: Exception: Apabila ada akan menolak pennghapusan data atau gagal
+                            apabila proses ada yang salah 
+                 None: Apabila proses berhasil
+                 
+        """
 
     def view_delete(self, **kwargs):
         request = self.req
