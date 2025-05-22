@@ -13,9 +13,6 @@ packages = ["opensipkd", "opensipkd.detable", "opensipkd.base"]
 [tool.mypy]
 exclude = [
     'bak',
-#    'report', 
-#    'external', 
-#    'developers',
 ]
 show_error_codes = true
 

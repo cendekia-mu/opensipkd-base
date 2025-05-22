@@ -248,7 +248,7 @@ def get_config(settings):
     #     config.add_request_method(disable_responsive, 'disable_responsive',
     #                               reify=True)
     #     config.add_request_method(_get_ini, 'get_ini', reify=True)
-    #     config.add_request_method(_get_params, 'get_params', reify=True)
+    # config.add_request_method(get_params, 'get_params', reify=True)
     #     config.add_request_method(get_csrf_token, 'get_csrf_token', reify=True)
 
     #     # Penambahan Module Auto Generate Menu
@@ -324,7 +324,7 @@ def main(global_config, **settings):
     BASE_CLASS.route_from_list(config)
     BASE_CLASS.static_view(config, settings=settings)
     config.scan()
-    _logging.debug(config)
+    # _logging.debug(config)
     return config.make_wsgi_app()
 
 
@@ -562,7 +562,7 @@ def add_global(event):
 #     event['split'] = split
 #     event['allow_register'] = allow_register
 #     event['change_unit'] = change_unit
-#     event['get_params'] = get_params
+    event['get_params'] = get_params_
 #     event['get_urls'] = get_urls
 #     event['get_csrf_token'] = get_csrf_token
 #     event['get_base_menus'] = BASE_CLASS.get_menus
@@ -571,8 +571,8 @@ def add_global(event):
 #     # event['get_module_menus'] = get_module_menus
 #     # event['get_module_submenus'] = get_module_submenus
 
-# # def get_params(request, params, alternate=None, settings=None):
-# #     return get_params(params, alternate, settings)
+def get_params_(params, alternate=None, settings=None):
+    return get_params(params, alternate, settings)
 
 # def get_urls(url):
 #     home = get_params('_host', "")

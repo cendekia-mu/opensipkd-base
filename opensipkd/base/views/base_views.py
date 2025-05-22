@@ -55,9 +55,9 @@ class BaseView(object):
         self.req = request
         self.ses = self.req.session
         self.db_session = DBSession
-#         self.params = self.req.params
-#         self.settings = get_settings()
-#         self.tahun = None
+        self.params = self.req.params
+        self.settings = get_settings()
+        self.tahun = None
 #         self.bulan = None
 #         self.posted = False
 #         self.awal = None
@@ -124,24 +124,24 @@ class BaseView(object):
         
         self.is_object = False
 
-#         self.init_session(request)
+        self.init_session(request)
 
-#     def init_session(self, request):
+    def init_session(self, request):
 #         # if not request.user:
 #         if "g_state" in request.cookies:
 #             request.response.delete_cookie("g_state", '/')
 
-#         now = datetime.now()
+        now = datetime.now()
 #         # self.dt_awal = self.ses["dt_awal"] if "dt_awal" in self.ses else now
 #         # self.awal = dmy(self.dt_awal)
 #         # self.dt_akhir = self.ses["dt_akhir"] if "dt_akhir" in self.ses else now
 #         # self.akhir = dmy(self.dt_akhir)
 #         # self.ses["dt_awal"] = self.dt_awal
 #         # self.ses["dt_akhir"] = self.dt_akhir
-#         self.tahun = 'tahun' in self.ses and self.ses['tahun'] \
-#             or now.strftime('%Y')
-#         self.tahun = 'tahun' in self.params and self.params['tahun'] or self.tahun
-#         self.ses['tahun'] = self.tahun
+        self.tahun = 'tahun' in self.ses and self.ses['tahun'] \
+            or now.strftime('%Y')
+        self.tahun = 'tahun' in self.params and self.params['tahun'] or self.tahun
+        self.ses['tahun'] = self.tahun
 
 #         self.bulan = 'bulan' in self.ses and self.ses['bulan'] \
 #             or now.strftime('%m')
