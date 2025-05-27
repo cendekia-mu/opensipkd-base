@@ -5,11 +5,6 @@ build-backend = 'setuptools.build_meta'
 [tool.setuptools]
 packages = ["opensipkd", "opensipkd.detable", "opensipkd.base"]
 
-#[tool.setuptools.package-dir]
-# mypkg = "lib"
-#"opensipkd.models" = "models"
-#"opensipkd.base" = "base"
-
 [tool.mypy]
 exclude = [
     'bak',
@@ -20,36 +15,31 @@ show_error_codes = true
 name = 'opensipkd_base'
 version = '5.0'
 dependencies = [
-    'sqlalchemy',
+    'deform',
     'colander',
+    'google',
+    'google-api-python-client',
     'pyramid',
     'pyramid_tm',
     "pyramid_beaker",
     "pyramid_mailer",
-    'SQLAlchemy',
-    'transaction',
-    'waitress',
-    'ziggurat-foundations',
-    'zope.sqlalchemy',
-    'pytz',
-    'deform',
-    'psycopg2-binary',
     'pyramid_chameleon',
     'pyramid_rpc',
+    'pytz',
+    'psycopg2-binary',
     'requests',
+    'sqlalchemy',
     'sqlalchemy-datatables',
-    #'py3o.template',
+    'transaction',
+    'waitress',
     'wheezy.captcha',
-    #'icecream',
-    'google-api-python-client',
-    'google',
-    #'pyjwt',
+    'ziggurat-foundations',
+    'zope.sqlalchemy',
     ]
 requires-python = '>= 3.8'
-
 authors = [
     {name='Agus Gustiana', email='aa.gustiana@gmail.com'},
-    { email = "opensipkd@gmail.com" },]
+    {email="opensipkd@gmail.com" },]
 
 maintainers = [
     { name = "Ari", email = "ariagungprasetiyo@gmail.com" },

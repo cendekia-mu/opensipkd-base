@@ -1,7 +1,7 @@
 Basis Aplikasi OpenSIPKD
 ========================
 
-Ini adalah basis dari seluruh aplikasi openSIPKD.
+Ini adalah basis dari seluruh aplikasi.
 
 
 Pemasangan
@@ -18,7 +18,7 @@ Buat Python Virtual Environment::
 
 Unduh source-nya::
 
-    $ git clone https://git.opensipkd.com/aa.gusti/opensipkd-base -b beta-4.2
+    $ git clone https://git.opensipkd.com/aa.gusti/opensipkd-base -b v5.0
 
 Pasang::
 
@@ -26,7 +26,7 @@ Pasang::
 
 Buat databasenya. Lalu salin file konfigurasi::
 
-    $ cp bphtb/development.ini live.ini
+    $ cp development.ini.tpl live.ini
 
 Sesuaikan database profile dan log file. Lalu buat tabelnya::
 
