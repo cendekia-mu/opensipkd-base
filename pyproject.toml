@@ -2,8 +2,9 @@
 requires = ['setuptools >= 64', 'wheel']
 build-backend = 'setuptools.build_meta'
 
-[tool.hatch.build]
-dev-mode-dirs = ["."]
+[tool.setuptools]
+packages = ["opensipkd", "opensipkd.detable", "opensipkd.base"]
+
 
 [tool.mypy]
 exclude = [
