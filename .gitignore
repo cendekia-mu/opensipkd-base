@@ -117,7 +117,7 @@ opensipkd/base/static/icon/*
 !opensipkd/base/static/img/postgree.png
 alembic.ini
 alembic_local.ini
+development.ini
 
 .vs*
 activate
-development.ini
