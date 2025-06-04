@@ -736,10 +736,10 @@ def main(global_config, **settings):
     return config.make_wsgi_app()
 
 
-def get_route_file(filename):
-    base_dir = os.path.split(__file__)[0]
-    fullpath = os.path.join(base_dir, 'scripts', 'data', filename)
-    return open(fullpath)
+# def get_route_file(filename):
+#     base_dir = os.path.split(__file__)[0]
+#     fullpath = os.path.join(base_dir, 'scripts', 'data', filename)
+#     return open(fullpath)
 
 
 def routes_by_array(config, routs):
@@ -749,6 +749,12 @@ def routes_by_array(config, routs):
 class BaseApp():
     def __init__(self):
         self.menus = []
+        self.base_dir = os.path.split(__file__)[0]
+
+
+    def get_route_file(self, filename="routes.csv"):
+        fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
+        return open(fullpath)
 
 
     def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views"):
@@ -816,7 +822,10 @@ class BaseApp():
                     self.route_children(p["children"], row)
 
     def route_from_csv(self, config, get_file=get_route_file, paket="opensipkd.base.views"):
-        with get_file("routes.csv") as f:
+        """
+        Get File tidak digunakan lagi 
+        """
+        with self.get_route_file("routes.csv") as f:
             rows = csv.DictReader(f)
             new_routes = []
             for row in rows:
