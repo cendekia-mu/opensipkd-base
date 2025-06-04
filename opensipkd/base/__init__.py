@@ -821,9 +821,11 @@ class BaseApp():
                 if p["children"]:
                     self.route_children(p["children"], row)
 
-    def route_from_csv(self, config, get_file=get_route_file, paket="opensipkd.base.views"):
+    def route_from_csv(self, config, paket="opensipkd.base.views"):
         """
         Get File tidak digunakan lagi 
+        gunakan self.base_dir untuk mendapatkan path pada saat init
+        self.base_dir = os.path.split(__file__)[0]
         """
         with self.get_route_file("routes.csv") as f:
             rows = csv.DictReader(f)
