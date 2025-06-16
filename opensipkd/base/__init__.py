@@ -702,7 +702,7 @@ def main(global_config, **settings):
 
     engine = engine_from_config(
         settings, 'sqlalchemy.', client_encoding='utf8',
-        max_identifier_length=30)  # , convert_unicode=True
+        max_identifier_length=30, pool_pre_ping=True)  # , convert_unicode=True
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     Base.metadata.bind = engine
