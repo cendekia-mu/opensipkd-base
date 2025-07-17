@@ -3,6 +3,7 @@ import importlib
 import inspect
 import locale
 import logging
+from math import log
 from sqlalchemy import or_
 import re
 from .routes import routes
@@ -82,6 +83,7 @@ def add_cors_headers_response_callback(event):
         origin = request.headers.get("Origin", None)
         allowed_origin = get_params("allowed_origin", None)
         if allowed_origin:
+            _logging.debug(f"Allowed Origin: {origin}")
             if origin not in allowed_origin.split('\n'):
                 origin = "null"
 
@@ -95,18 +97,33 @@ def add_cors_headers_response_callback(event):
         #     {'Access-Control-Allow-Credential': 'true',
         #      'Access-Control-Allow-Origin': "*"}
         # )
-        if origin:
-            headers['Access-Control-Allow-Origin'] = origin
-        else:
-            headers['Access-Control-Allow-Origin'] = "*"
+        # if origin:
+        #     headers['Access-Control-Allow-Origin'] = origin
+        # else:
+        headers['Access-Control-Allow-Origin'] = "*"
+        
         if 'Access-Control-Allow-Credentials' not in headers:
             headers['Access-Control-Allow-Credentials'] = 'true'
 
-        # _logging.info(f"Headers: {headers}")
+        _logging.debug(f"Headers: {headers}")
         response.headers.update(headers)
 
     event.request.add_response_callback(cors_headers)
 
+
+
+# def add_cors_headers_response_callback(event):
+#     def cors_headers(request, response):
+#         response.headers.update({
+#         'Access-Control-Allow-Origin': '*',
+#         'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
+#         'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization, userid, key, signature',
+#         'Access-Control-Allow-Credentials': 'true',
+#         'Access-Control-Max-Age': '1728000',
+#         })
+#         _logging.debug(f"Request Origin: {request.headers.get('Origin', None)}")
+#         _logging.debug(f"Response Headers: {response.headers}")
+#     event.request.add_response_callback(cors_headers)
 
 # https://groups.google.com/forum/#!topic/pylons-discuss/QIj4G82j04c
 def has_permission_(request, perm_names, context=None):
@@ -702,7 +719,7 @@ def main(global_config, **settings):
 
     engine = engine_from_config(
         settings, 'sqlalchemy.', client_encoding='utf8',
-        max_identifier_length=30, pool_pre_ping=True)  # , convert_unicode=True
+        max_identifier_length=30)  # , convert_unicode=True
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     Base.metadata.bind = engine
