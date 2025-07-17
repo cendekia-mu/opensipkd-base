@@ -1,35 +1,35 @@
-nama,singkat,kode,ibu_kota,kategori
-Aceh,Aceh,ID-AC,Banda Aceh,provinsi
-Sumatra Utara,Sumut,ID-SU,Medan,provinsi
-Sumatra Barat,Sumbar,ID-SB,Padang,provinsi
-Riau,Riau,ID-RI,Pekanbaru,provinsi
-Jambi,Jambi,ID-JA,Jambi,provinsi
-Kepulauan Riau,Kepri,ID-KR,Tanjungpinang,provinsi
-Bengkulu,Bengkulu,ID-BE,Bengkulu,provinsi
-Sumatra Selatan,Sumsel,ID-SS,Palembang,provinsi
-Kepulauan Bangka Belitung,Babel,ID-BB,Pangkalpinang,provinsi
-Lampung,Lampung,ID-LA,Bandar Lampung,provinsi
-Banten,Banten,ID-BT,Serang,provinsi
-Daerah Khusus Ibukota Jakarta,DKI Jakarta,ID-JK,Tidak ada,provinsi
-Jawa Barat,Jabar,ID-JB,Bandung,provinsi
-Jawa Tengah,Jateng,ID-JT,Semarang,provinsi
-Daerah Istimewa Yogyakarta,DIY,ID-YO,Yogyakarta,provinsi
-Jawa Timur,Jatim,ID-JI,Surabaya,provinsi
-Bali,Bali,ID-BA,Denpasar,provinsi
-Nusa Tenggara Barat,NTB,ID-NB,Mataram,provinsi
-Nusa Tenggara Timur,NTT,ID-NT,Kupang,provinsi
-Kalimantan Barat,Kalbar,ID-KS,Pontianak,provinsi
-Kalimantan Tengah,Kalteng,ID-KT,Palangka Raya,provinsi
-Kalimantan Selatan,Kalsel,ID-KS,Banjarbaru,provinsi
-Kalimantan Timur,Kaltim,ID-KI,Samarinda,provinsi
-Kalimantan Utara,Kaltara,ID-KU,Tanjung Selor,provinsi
-Sulawesi Barat,Sulbar,ID-SR,Mamuju,provinsi
-Sulawesi Selatan,Sulsel,ID-SN,Makassar,provinsi
-Sulawesi Tenggara,Sultra,ID-SG,Kendari,provinsi
-Sulawesi Tengah,Sulteng,ID-ST,Palu,provinsi
-Gorontalo,Gorontalo,ID-GO,Gorontalo,provinsi
-Sulawesi Utara,Sulut,ID-SA,Manado,provinsi
-Maluku Utara,Malut,ID-MU,Sofifi,provinsi
-Maluku,Maluku,ID-MA,Ambon,provinsi
-Papua Barat,Pabar,ID-PB,Manokwari,provinsi
-Papua,Papua,ID-PA,Jayapura,provinsi
+nama,singkat,kode,ibu_kota,kategori,status
+Aceh,Aceh,ID-AC,Banda Aceh,provinsi,1
+Sumatra Utara,Sumut,ID-SU,Medan,provinsi,1
+Sumatra Barat,Sumbar,ID-SB,Padang,provinsi,1
+Riau,Riau,ID-RI,Pekanbaru,provinsi,1
+Jambi,Jambi,ID-JA,Jambi,provinsi,1
+Kepulauan Riau,Kepri,ID-KR,Tanjungpinang,provinsi,1
+Bengkulu,Bengkulu,ID-BE,Bengkulu,provinsi,1
+Sumatra Selatan,Sumsel,ID-SS,Palembang,provinsi,1
+Kepulauan Bangka Belitung,Babel,ID-BB,Pangkalpinang,provinsi,1
+Lampung,Lampung,ID-LA,Bandar Lampung,provinsi,1
+Banten,Banten,ID-BT,Serang,provinsi,1
+Daerah Khusus Ibukota Jakarta,DKI Jakarta,ID-JK,Tidak ada,provinsi,1
+Jawa Barat,Jabar,ID-JB,Bandung,provinsi,1
+Jawa Tengah,Jateng,ID-JT,Semarang,provinsi,1
+Daerah Istimewa Yogyakarta,DIY,ID-YO,Yogyakarta,provinsi,1
+Jawa Timur,Jatim,ID-JI,Surabaya,provinsi,1
+Bali,Bali,ID-BA,Denpasar,provinsi,1
+Nusa Tenggara Barat,NTB,ID-NB,Mataram,provinsi,1
+Nusa Tenggara Timur,NTT,ID-NT,Kupang,provinsi,1
+Kalimantan Barat,Kalbar,ID-KS,Pontianak,provinsi,1
+Kalimantan Tengah,Kalteng,ID-KT,Palangka Raya,provinsi,1
+Kalimantan Selatan,Kalsel,ID-KS,Banjarbaru,provinsi,1
+Kalimantan Timur,Kaltim,ID-KI,Samarinda,provinsi,1
+Kalimantan Utara,Kaltara,ID-KU,Tanjung Selor,provinsi,1
+Sulawesi Barat,Sulbar,ID-SR,Mamuju,provinsi,1
+Sulawesi Selatan,Sulsel,ID-SN,Makassar,provinsi,1
+Sulawesi Tenggara,Sultra,ID-SG,Kendari,provinsi,1
+Sulawesi Tengah,Sulteng,ID-ST,Palu,provinsi,1
+Gorontalo,Gorontalo,ID-GO,Gorontalo,provinsi,1
+Sulawesi Utara,Sulut,ID-SA,Manado,provinsi,1
+Maluku Utara,Malut,ID-MU,Sofifi,provinsi,1
+Maluku,Maluku,ID-MA,Ambon,provinsi,1
+Papua Barat,Pabar,ID-PB,Manokwari,provinsi,1
+Papua,Papua,ID-PA,Jayapura,provinsi,1

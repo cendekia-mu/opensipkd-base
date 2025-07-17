@@ -1,28 +1,28 @@
-urut,kode,nama,ibu_kota,kategori,provinsi_id/res_provinsi.kode
-01,ID-JB.01,Kabupaten Bandung,Soreang,kabupaten,ID-JB
-02,ID-JB.02,Kabupaten Bandung Barat,Ngamprah,kabupaten,ID-JB
-03,ID-JB.03,Kabupaten Bekasi,Cikarang Pusat,kabupaten,ID-JB
-04,ID-JB.04,Kabupaten Bogor,Cibinong,kabupaten,ID-JB
-05,ID-JB.05,Kabupaten Ciamis,Ciamis,kabupaten,ID-JB
-06,ID-JB.06,Kabupaten Cianjur,Cianjur,kabupaten,ID-JB
-07,ID-JB.07,Kabupaten Cirebon,Sumber,kabupaten,ID-JB
-08,ID-JB.08,Kabupaten Garut,Tarogong Kidul,kabupaten,ID-JB
-09,ID-JB.9,Kabupaten Indramayu,Indramayu,kabupaten,ID-JB
-10,ID-JB.10,Kabupaten Karawang,Karawang Barat,kabupaten,ID-JB
-11,ID-JB.11,Kabupaten Kuningan,Kuningan,kabupaten,ID-JB
-12,ID-JB.12,Kabupaten Majalengka,Majalengka,kabupaten,ID-JB
-13,ID-JB.13,Kabupaten Pangandaran,Parigi,kabupaten,ID-JB
-14,ID-JB.14,Kabupaten Purwakarta,Purwakarta,kabupaten,ID-JB
-15,ID-JB.15,Kabupaten Subang,Subang,kabupaten,ID-JB
-16,ID-JB.16,Kabupaten Sukabumi,Palabuhanratu,kabupaten,ID-JB
-17,ID-JB.17,Kabupaten Sumedang,Sumedang Utara,kabupaten,ID-JB
-18,ID-JB.18,Kabupaten Tasikmalaya,Singaparna,kabupaten,ID-JB
-19,ID-JB.19,Kota Bandung,Bandung,kota,ID-JB
-20,ID-JB.20,Kota Banjar,Banjar,kota,ID-JB
-21,ID-JB.21,Kota Bekasi,Bekasi,kota,ID-JB
-22,ID-JB.22,Kota Bogor,Bogor,kota,ID-JB
-23,ID-JB.23,Kota Cimahi,Cimahi,kota,ID-JB
-24,ID-JB.24,Kota Cirebon,Cirebon,kota,ID-JB
-25,ID-JB.25,Kota Depok,Depok,kota,ID-JB
-26,ID-JB.26,Kota Sukabumi,Sukabumi,kota,ID-JB
-27,ID-JB.27,Kota Tasikmalaya,Tasikmalaya,kota,ID-JB
+urut,kode,nama,ibu_kota,kategori,provinsi_id/res_provinsi.kode,status
+01,ID-JB.01,Kabupaten Bandung,Soreang,kabupaten,ID-JB,1
+02,ID-JB.02,Kabupaten Bandung Barat,Ngamprah,kabupaten,ID-JB,1
+03,ID-JB.03,Kabupaten Bekasi,Cikarang Pusat,kabupaten,ID-JB,1
+04,ID-JB.04,Kabupaten Bogor,Cibinong,kabupaten,ID-JB,1
+05,ID-JB.05,Kabupaten Ciamis,Ciamis,kabupaten,ID-JB,1
+06,ID-JB.06,Kabupaten Cianjur,Cianjur,kabupaten,ID-JB,1
+07,ID-JB.07,Kabupaten Cirebon,Sumber,kabupaten,ID-JB,1
+08,ID-JB.08,Kabupaten Garut,Tarogong Kidul,kabupaten,ID-JB,1
+09,ID-JB.9,Kabupaten Indramayu,Indramayu,kabupaten,ID-JB,1
+10,ID-JB.10,Kabupaten Karawang,Karawang Barat,kabupaten,ID-JB,1
+11,ID-JB.11,Kabupaten Kuningan,Kuningan,kabupaten,ID-JB,1
+12,ID-JB.12,Kabupaten Majalengka,Majalengka,kabupaten,ID-JB,1
+13,ID-JB.13,Kabupaten Pangandaran,Parigi,kabupaten,ID-JB,1
+14,ID-JB.14,Kabupaten Purwakarta,Purwakarta,kabupaten,ID-JB,1
+15,ID-JB.15,Kabupaten Subang,Subang,kabupaten,ID-JB,1
+16,ID-JB.16,Kabupaten Sukabumi,Palabuhanratu,kabupaten,ID-JB,1
+17,ID-JB.17,Kabupaten Sumedang,Sumedang Utara,kabupaten,ID-JB,1
+18,ID-JB.18,Kabupaten Tasikmalaya,Singaparna,kabupaten,ID-JB,1
+19,ID-JB.19,Kota Bandung,Bandung,kota,ID-JB,1
+20,ID-JB.20,Kota Banjar,Banjar,kota,ID-JB,1
+21,ID-JB.21,Kota Bekasi,Bekasi,kota,ID-JB,1
+22,ID-JB.22,Kota Bogor,Bogor,kota,ID-JB,1
+23,ID-JB.23,Kota Cimahi,Cimahi,kota,ID-JB,1
+24,ID-JB.24,Kota Cirebon,Cirebon,kota,ID-JB,1
+25,ID-JB.25,Kota Depok,Depok,kota,ID-JB,1
+26,ID-JB.26,Kota Sukabumi,Sukabumi,kota,ID-JB,1
+27,ID-JB.27,Kota Tasikmalaya,Tasikmalaya,kota,ID-JB,1
