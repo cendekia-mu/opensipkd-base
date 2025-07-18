@@ -230,7 +230,7 @@
         scrollX: ${ field.scroll_x },
         //scrollY: ${field.scroll_y},
         //dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
-        dom: '<"row"<"col-md-8"<"toolbar">>><"row"<"col-md-8"Bl><"col-md-4"fr>>t<"row dt-footer"<"col-md-8" i><"col-md-4"p>>',
+        dom: '<"row"<"col-md-8"<"toolbar">>><"row"<"col-md-8"Bl><"col-md-4"fr>>t<"row dt-footer"<"col-md-8 sub-foot" i><"col-md-4"p>>',
         processing: true,
         serverSide: ${ server_side },
         data: param_data,
@@ -266,6 +266,7 @@
       $("div.toolbar").html(tb);
       $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
       $("div.dt-footer").attr('style', 'margin-left: -7px;');
+      $("div.sub-foot").attr('style', 'position:unset;');
       $(".dataTables_scrollBody").attr('style', 'margin-top: -10px;');
       $('#${tableid} tbody').on('click', ':checkbox', function () {
         if (this.checked) m${tableid}CheckList.push($(this).val());
