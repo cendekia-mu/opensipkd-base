@@ -387,6 +387,7 @@ def _add_view_config(config, paket, route):
 class BaseApp():
     def __init__(self):
         self.menus = []
+        
         self.partner_doc = ""
         self.temp_files = ""
         self.allow_register = 0
