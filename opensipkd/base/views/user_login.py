@@ -40,6 +40,7 @@ from ziggurat_foundations.models.services.user import UserService
 from opensipkd.base import BASE_CLASS, DBSession, get_params, scripts
 from . import one_hour, two_minutes
 from ..models.users import User, ExternalIdentity
+from ..models import Partner
 # , Partner
 from opensipkd.tools import create_now, set_user_log, get_settings
 from opensipkd.tools.buttons import btn_cancel
