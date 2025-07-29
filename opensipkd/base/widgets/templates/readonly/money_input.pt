@@ -1,0 +1,9 @@
+<p class="form-control-static" id="${oid|field.oid}" tal:define="mask_options mask_options|'{}';"></p>
+<script type="text/javascript">
+    deform.addCallback(
+        '${oid|field.oid}',
+        function (oid) {
+            let val = parseFloat('${cstruct}');
+            $("#" + oid).html(val.toLocaleString());
+        });
+</script>

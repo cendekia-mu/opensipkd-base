@@ -1,0 +1,10 @@
+<span tal:define="name name|field.name;
+    css_class css_class|field.widget.css_class;
+    oid oid|field.oid;
+    style style|field.widget.style;
+    height height|field.widget.height;
+    width 'auto'|field.widget.width;
+    " tal:omit-tag="">
+    <img id="${oid}" style="height:${height}; width:auto; margin-bottom:5px;" src="${cstruct}">
+<!--?    <p><a href="${cstruct}">Download</a></p>-->
+</span>

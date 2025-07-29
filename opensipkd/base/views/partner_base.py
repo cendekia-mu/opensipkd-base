@@ -76,7 +76,7 @@ class NamaSchema(colander.Schema):
         colander.String(),
         validator=partner_kode_validator,
         oid="kode",
-        title="Kode",
+        title="NIK",
         width="100pt")
     nama = colander.SchemaNode(
         colander.String(),

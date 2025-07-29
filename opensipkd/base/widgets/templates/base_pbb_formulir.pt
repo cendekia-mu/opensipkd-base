@@ -1,0 +1,60 @@
+<div i18n:domain="deform"
+     tal:omit-tag=""
+     tal:define="oid oid|field.oid;
+                  name name|field.name;
+                  css_class css_class|field.widget.css_class;
+                  style style|field.widget.style;">
+  ${field.start_mapping()}
+  <div class="row">
+    <div class="col-xs-4">
+      <div class="input-group">
+        <span class="input-group-addon">
+          <input type="text" name="year" value="${year}"
+                 class="span2 form-control ${css_class or ''}"
+                 tal:attributes="style style;
+                       year_attributes|field.widget.year_attributes|{};"
+                 maxlength="4" minlength="4" placeholder="Tahun"
+                 id="${oid}"/>
+        </span>
+        <span class="input-group-addon">
+          <input type="text" name="bundle" value="${bundle}"
+                 class="span2 form-control ${css_class or ''}"
+                 tal:attributes="style style;
+             				 bundle_attributes|field.widget.bundle_attributes|{};"
+                 maxlength="4" minlength="4" placeholder="Bundle"
+                 id="${oid}-bundle"/>
+        </span>
+        <span class="input-group-addon">
+           <input type="text" name="seq" value="${seq}"
+                  class="span2 form-control ${css_class or ''}"
+                  tal:attributes="style style;
+             				 seq_attributes|field.widget.seq_attributes|{};"
+                  maxlength="3" minlength="3" placeholder="Urut"
+                  id="${oid}-seq"/>
+        </span>
+      </div>
+    </div>
+  </div>
+  <script>
+      deform.addCallback(
+         '${oid}',
+         function (oid) {
+            $("#" + oid).mask("9999",
+                 {placeholder:"_"});
+         });
+      deform.addCallback(
+         '${oid}_bundle',
+         function (oid_bundle) {
+            $("#" + oid_bundle).mask("9999",
+                 {placeholder:"_"});
+         });
+      deform.addCallback(
+         '${oid}_seq',
+         function (oid_seq) {
+            $("#" + oid_seq).mask("999",
+                 {placeholder:"_"});
+         });
+
+  </script>
+  ${field.end_mapping()}
+</div>

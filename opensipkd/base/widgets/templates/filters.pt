@@ -1,0 +1,73 @@
+<div i18n:domain="deform"
+     tal:omit-tag=""
+     tal:define="oid oid|field.oid;
+    name name|field.name;
+    oid oid|field.oid;
+    style style|field.widget.style;
+    size size|field.widget.size;
+    css_class css_class|field.widget.css_class;
+    unicode unicode|str;
+    optgroup_class optgroup_class|field.widget.optgroup_class;
+    multiple multiple|field.widget.multiple;"
+     tal:omit-tag="">
+${field.start_mapping()}
+  <div class="row">
+    <div class="col-xs-6">
+      <div class="input-group">
+        <span class="input-group-addon" i18n:translate="">Filter</span>
+        <select
+            id="${oid}-fields" name='fields'
+             tal:attributes="
+                class string: ${css_class or ''};
+            multiple multiple;
+            size size;
+            style style;
+            attributes|field.widget.attributes|{};">
+          <tal:loop tal:repeat="item values">
+            <optgroup tal:condition="isinstance(item, optgroup_class)"
+                 tal:attributes="label item.label">
+              <option tal:repeat="(value, description) item.options"
+                   tal:attributes="
+                      selected python:field.widget.get_select_value(fields, value);
+                      class css_class;
+                  label field.widget.long_label_generator and description;
+                  value value"
+                   tal:content="field.widget.long_label_generator and field.widget.long_label_generator(item.label, description) or description"/>
+            </optgroup>
+            <option tal:condition="not isinstance(item, optgroup_class)"
+                 tal:attributes="
+                selected python:field.widget.get_select_value(fields, item[0]);
+                class css_class;
+                value item[0]">${item[1]}</option>
+          </tal:loop>
+        </select>
+        <select name="equality" id="${oid}-equality">
+          <option value="eq">=</option>
+          <option value="gt" tal:attributes="
+              selected equality=='gt'">&gt;
+          </option>
+          <option value="lt" tal:attributes="
+              selected equality=='lt'">&lt;
+          </option>
+          <option value="gteq" tal:attributes="
+              selected equality=='gteq'">&gt;=
+          </option>
+          <option value="lteq" tal:attributes="
+              selected equality=='lteq'">&lt;=
+          </option>
+        </select>
+        <input type="text" name="nilai" value="${nilai}"
+               id="${oid}-value"/>
+        <select name="condition" id="${oid}-condition">
+          <option value="AND" tal:attributes="
+              selected condition=='AND'">AND
+          </option>
+          <option value="OR" tal:attributes="
+              selected condition=='OR'">OR
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+${field.end_mapping()}
+</div>
