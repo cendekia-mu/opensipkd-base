@@ -70,14 +70,6 @@ class Views(BaseView):
                     user=row)
                     # company_list=ResCompany.get_list())
 
-    # @view_config(
-    #     route_name='user', renderer='templates/table.pt',
-    #     permission='user-view')
-    # def view_list(self):
-    #     return super(Views, self).view_list()
-
-    # @view_config(
-        # route_name='user-act', renderer='json', permission='user-view')
     # def view_act(self):
         # url_dict = self.req.matchdict
         # if url_dict['act'] == 'csv':
@@ -118,91 +110,61 @@ class Views(BaseView):
     #     if "company_id" in value and not value["company_id"]:
     #         value["company_id"] = None
 
-    # def save_request(self, values, row=None):
-    #     request = self.req
-    #     values["email"] = values['email'].lower()
-    #     values["user_name"] = re.sub(' ', '', values['user_name'])  # .lower()
-    #     values["security_code_date"] = create_now()
-    #     # company_id = request.user and request.user.company_id or "company_id" in values and \
-    #     #              values["company_id"] or None
-    #     # values["company_id"] = company_id
-    #     if "company_id" not in values:
-    #         values["company_id"] = None
-    #     if 'is_api_key' in values:
-    #         values["api_key"] = generate_api_key()
-    #     insert = not row
-    #     row = self.save(values, self.req.user, row)
-    #     if insert:
-    #         remain = regenerate_security_code(row)
-    #         if 'password' in values:
-    #             data = dict(username=row.user_name)
-    #             ts = _(
-    #                 'user-added-with-password',
-    #                 default='${username} berhasil ditambahkan.', mapping=data)
-    #         else:
-    #             send_email_security_code(
-    #                 self.req, row, remain, 'Welcome new user', 'email-new-user',
-    #                 'email-new-user.tpl')
-    #             data = dict(email=row.email)
-    #             ts = _(
-    #                 'user-added',
-    #                 default='${email} berhasil ditambahkan dan email untuk ubah '
-    #                         'kata kunci sudah dikirim.',
-    #                 mapping=data)
-    #         self.ses.flash(ts)
+    def save_request(self, values, row=None):
+        request = self.req
+        values["email"] = values['email'].lower()
+        values["user_name"] = re.sub(' ', '', values['user_name'])  # .lower()
+        values["security_code_date"] = create_now()
+        # company_id = request.user and request.user.company_id or "company_id" in values and \
+        #              values["company_id"] or None
+        # values["company_id"] = company_id
+        # if "company_id" not in values:
+        #     values["company_id"] = None
+        if 'is_api_key' in values:
+            values["api_key"] = generate_api_key()
+        insert = not row
+        row = self.save(values, self.req.user, row)
+        if insert:
+            remain = regenerate_security_code(row)
+            if 'password' in values:
+                data = dict(username=row.user_name)
+                ts = _(
+                    'user-added-with-password',
+                    default='${username} berhasil ditambahkan.', mapping=data)
+            else:
+                send_email_security_code(
+                    self.req, row, remain, 'Welcome new user', 'email-new-user',
+                    'email-new-user.tpl')
+                data = dict(email=row.email)
+                ts = _(
+                    'user-added',
+                    default='${email} berhasil ditambahkan dan email untuk ubah '
+                            'kata kunci sudah dikirim.',
+                    mapping=data)
+            self.ses.flash(ts)
 
-    #     if 'password' in values:
-    #         UserService.set_password(row, values['password'])
+        if 'password' in values:
+            UserService.set_password(row, values['password'])
 
-    #     DBSession.add(row)
-    #     DBSession.flush()
+        DBSession.add(row)
+        DBSession.flush()
 
-    #     existing = user_group_set(row)
-    #     unused = existing - values['groups']
-    #     if unused:
-    #         q = DBSession.query(UserGroup).filter_by(user_id=row.id).filter(
-    #             UserGroup.group_id.in_(unused))
-    #         q.delete(synchronize_session=False)
-    #         for gid in unused:
-    #             reduce_member_count(gid)
-    #     new = values['groups'] - existing
-    #     for gid in new:
-    #         ug = UserGroup()
-    #         ug.user_id = row.id
-    #         ug.group_id = gid
-    #         DBSession.add(ug)
-    #         add_member_count(gid)
-    #     return row
-
-    # @view_config(
-    #     route_name='user-add', renderer='templates/form.pt',
-    #     permission='user-view')
-    # def view_add(self):
-    #     return super(Views, self).view_add()
-    #     # user, remain = insert(request, values)
-
-    # def get_values(self, row, istime=False):
-    #     d = super(Views, self).get_values(row, istime)
-    #     d["groups"] = user_group_set(row)
-    #     return d
-
-    # @view_config(
-    #     route_name='user-edit', renderer='templates/form.pt',
-    #     permission='user-edit')
-    # def view_edit(self):
-    #     return super(Views, self).view_edit()
-
-    # @view_config(
-    #     route_name='user-view', renderer='templates/form.pt',
-    #     permission='user-view')
-    # def view_view(self):
-    #     return super(Views, self).view_view()
-
-    # @view_config(
-    #     route_name='user-delete', renderer='templates/form.pt',
-    #     permission='user-edit')
-    # def view_delete(self):
-    #     return super(Views, self).view_delete()
+        existing = user_group_set(row)
+        unused = existing - values['groups']
+        if unused:
+            q = DBSession.query(UserGroup).filter_by(user_id=row.id).filter(
+                UserGroup.group_id.in_(unused))
+            q.delete(synchronize_session=False)
+            for gid in unused:
+                reduce_member_count(gid)
+        new = values['groups'] - existing
+        for gid in new:
+            ug = UserGroup()
+            ug.user_id = row.id
+            ug.group_id = gid
+            DBSession.add(ug)
+            add_member_count(gid)
+        return row
 
     # def delete_msg(self, row):
     #     data = dict(uid=row.id, email=row.email)
@@ -211,10 +173,10 @@ class Views(BaseView):
     #         default='User ${email} ID ${uid} has been deleted',
     #         mapping=data)
 
-    # def before_delete(self, row):
-    #     gid_list = user_group_set(row)
-    #     for gid in gid_list:
-    #         reduce_member_count(gid)
+    def before_delete(self, row):
+        gid_list = user_group_set(row)
+        for gid in gid_list:
+            reduce_member_count(gid)
 
     # def query_id(self):
     #     q = DBSession.query(User).filter_by(id=self.req.matchdict['id'])
