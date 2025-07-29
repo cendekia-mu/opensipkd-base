@@ -5,14 +5,18 @@ import importlib
 import csv
 import re
 import datetime
+import deform
 import decimal
+import xlsx_dict_reader
+from openpyxl import load_workbook
+from opensipkd.tools import get_settings, DefaultTimeZone, dmy, dmyhms, get_ext
+from pkg_resources import resource_filename
 from pyramid.renderers import JSON
 from pyramid_beaker import session_factory_from_settings
 from pyramid.config import Configurator
 from pyramid.events import NewRequest, BeforeRender, subscriber
 from pyramid_mailer import mailer_factory_from_settings
 
-from opensipkd.tools import get_settings, DefaultTimeZone, dmy, dmyhms
 from .security import MySecurityPolicy, get_user
 from sqlalchemy import engine_from_config
 from  .models.base import DBSession
@@ -20,11 +24,9 @@ from .models.handlers import LogDBSession
 from .models.meta import Base
 from .models.users import init_model
 
-from pkg_resources import resource_filename
 # from deform import ZPTRendererFactory, Form
 # from deform.widget import default_resource_registry
 
-import deform
 _logging = logging.getLogger(__name__)
 
 # version 2.0.0 digunakan untuk change default template
@@ -320,7 +322,7 @@ def main(global_config, **settings):
     init_db(settings=settings)
     config = get_config(settings=settings)
 
-    BASE_CLASS.route_from_csv(config)
+    BASE_CLASS.route_from_csv(config, filename="routes.xlsx")
     BASE_CLASS.route_from_list(config)
     BASE_CLASS.static_view(config, settings=settings)
     config.scan()
@@ -497,24 +499,57 @@ class BaseApp():
                 if p["children"]:
                     self.route_children(p["children"], row)
 
+
+    def route_from_csv_(self, config, paket="tangsel.base.views", rows=[]):
+        new_routes = []
+        for row in rows:
+            status = row.get("status", 0)
+            if not row["kode"] or not int(status):
+                continue
+
+            status = int(status)
+            row["children"] = []
+            parent_id = row.get("parent_id") or row.get(
+                "parent_id/routes.kode")
+            if parent_id:
+                self.route_children(new_routes, row)
+            else:
+                new_routes.append(row)
+
+        self.add_menu(config, new_routes, None, paket)
+      
     def route_from_csv(self, config, paket="opensipkd.base.views", filename="routes.csv"):
-        with self.get_route_file(filename) as f:
-            rows = csv.DictReader(f)
-            new_routes = []
-            for row in rows:
-                status = row.get("status", 0)
-                if not row["kode"] or not int(status):
-                    continue
+        fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
+        if get_ext(filename) == ".csv":
+            with  open(fullpath) as f:
+                rows = csv.DictReader(f, skipinitialspace=True)
+                self.route_from_csv_(config, paket, rows=rows)
+            
+        else:
+            wb= load_workbook(fullpath, data_only=True)
+            ws = wb.active
+            rows = xlsx_dict_reader.DictReader(ws) #skip_blank=True
+            self.route_from_csv_(config, paket, rows=rows)
 
-                status = int(status)
-                row["children"] = []
-                parent_id = row.get("parent_id") or row.get("parent_id/routes.kode")
-                if parent_id:
-                    self.route_children(new_routes, row)
-                else:
-                    new_routes.append(row)
+        # with self.get_route_file(filename) as f:
 
-            self.add_menu(config, new_routes, None, paket)
+        #     rows = csv.DictReader(f)
+            
+        #     new_routes = []
+        #     for row in rows:
+        #         status = row.get("status", 0)
+        #         if not row["kode"] or not int(status):
+        #             continue
+
+        #         status = int(status)
+        #         row["children"] = []
+        #         parent_id = row.get("parent_id") or row.get("parent_id/routes.kode")
+        #         if parent_id:
+        #             self.route_children(new_routes, row)
+        #         else:
+        #             new_routes.append(row)
+
+        #     self.add_menu(config, new_routes, None, paket)
 
     def route_from_list(self, config, routs=[], paket="opensipkd.base.views"):
         new_routes = []
