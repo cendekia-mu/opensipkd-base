@@ -36,3 +36,6 @@ base-groups-edit,/groups/{id}/edit,base,groups,,,,admin,base-groups,Groups Edit,
 base-groups-view,/groups/{id}/view,base,groups,,,,admin,base-groups,Groups View,1,0,,,form6.pt,
 base-groups-delete,/groups/{id}/delete,base,groups,,,,admin,base-groups,Groups Delete,1,0,,,form6.pt,
 base-groups-upload,/groups/upload,base,groups,,,,admin,base-groups,Groups Uload,1,0,,,form6.pt,
+base-upload-logo,/upload/logo,,,,,,admin,base-admin,Upload Logo,1,0,,1,upload.pt,1
+googleOauth2,/googleOauth2,,,,,,,,Google Oauth2,1,1,,0,json,
+googlesignin,/googlesignin,base,,,,1,,,GoogleSignIn,1,1,,0,json,

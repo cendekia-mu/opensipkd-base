@@ -7,8 +7,6 @@ import re
 import datetime
 import deform
 import decimal
-import xlsx_dict_reader
-from openpyxl import load_workbook
 from opensipkd.tools import get_settings, DefaultTimeZone, dmy, dmyhms, get_ext
 from pkg_resources import resource_filename
 from pyramid.renderers import JSON
@@ -321,8 +319,8 @@ def main(global_config, **settings):
 
     init_db(settings=settings)
     config = get_config(settings=settings)
-
-    BASE_CLASS.route_from_csv(config, filename="routes.xlsx")
+    routes_file = settings.get("route_files") or "routes.csv"
+    BASE_CLASS.route_from_csv(config, filename=routes_file)
     BASE_CLASS.route_from_list(config)
     BASE_CLASS.static_view(config, settings=settings)
     config.scan()
@@ -526,6 +524,8 @@ class BaseApp():
                 self.route_from_csv_(config, paket, rows=rows)
             
         else:
+            import xlsx_dict_reader
+            from openpyxl import load_workbook
             wb= load_workbook(fullpath, data_only=True)
             ws = wb.active
             rows = xlsx_dict_reader.DictReader(ws) #skip_blank=True
