@@ -69,7 +69,11 @@ class Views(BaseView):
                     api_key_list=api_key_list,
                     user=row)
                     # company_list=ResCompany.get_list())
-
+    def get_values(self, row, **kw):
+        d = super().get_values(row, kw)
+        d["groups"] = existing = user_group_set(row)
+        return d
+    
     # def view_act(self):
         # url_dict = self.req.matchdict
         # if url_dict['act'] == 'csv':
