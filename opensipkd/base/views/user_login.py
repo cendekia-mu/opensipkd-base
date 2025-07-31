@@ -481,25 +481,25 @@ class ViewPassword(BaseView):
    
 
     
-    # def view_recreate_api_key(self):
-    #     request = self.req
-    #     if not request.user.api_key:
-    #         return HTTPNotFound()
-    #     schema = APIKey()
-    #     btn_submit = Button('recreate', _('Buat ulang'))
-    #     btn_cancel = Button('cancel', _('Batalkan'))
-    #     buttons = (btn_submit, btn_cancel)
-    #     form = Form(schema, buttons=buttons)
-    #     if not request.POST:
-    #         d = dict(api_key=request.user.api_key)
-    #         return dict(form=form.render(appstruct=d))
-    #     if 'recreate' not in request.POST:
-    #         return HTTPFound(location=f"{request.home}")
-    #     request.user.api_key = api_key = generate_api_key()
-    #     DBSession.add(request.user)
-    #     msg = 'API Key Anda yang baru {}'.format(api_key)
-    #     request.session.flash(msg)
-    #     return HTTPFound(location=f"{request.home}")
+    def view_recreate_api_key(self):
+        request = self.req
+        if not request.user.api_key:
+            return HTTPNotFound()
+        schema = APIKey()
+        btn_submit = Button('recreate', _('Buat ulang'))
+        btn_cancel = Button('cancel', _('Batalkan'))
+        buttons = (btn_submit, btn_cancel)
+        form = Form(schema, buttons=buttons)
+        if not request.POST:
+            d = dict(api_key=request.user.api_key)
+            return dict(form=form.render(appstruct=d))
+        if 'recreate' not in request.POST:
+            return HTTPFound(location=f"{request.home}")
+        request.user.api_key = api_key = generate_api_key()
+        DBSession.add(request.user)
+        msg = 'API Key Anda yang baru {}'.format(api_key)
+        request.session.flash(msg)
+        return HTTPFound(location=f"{request.home}")
 
 class ChangePasswordRequest(colander.Schema):
     new_password = colander.SchemaNode(

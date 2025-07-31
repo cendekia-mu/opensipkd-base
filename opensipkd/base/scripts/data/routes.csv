@@ -7,7 +7,7 @@ base-password,/password,base,user_login,ViewPassword,change_password,1,view,,Cha
 base-password-request,/password/{code}/request,base,user_login,ViewPassword,change_password_request,1,,,Change Password,1,0,,0,form8.pt,
 base-profile,/profile,base,register,,view_profile,,,,Profile,1,0,,0,form8.pt,
 base-register,/register,base,register,,view_register,,,,Register,1,0,,0,form8.pt,
-base-recreate-api-key,/recreate-api-key,base,register,ViewPassword,recreate-api-key,,,,Get Api Key,1,0,,0,recreate-api-key.pt,
+base-recreate-api-key,/recreate-api-key,base,user_login,ViewPassword,recreate-api-key,,,,Get Api Key,1,0,,0,recreate-api-key.pt,
 base-admin,#,base,,,,,view,,Administrator,1,0,,1,,
 base-user,/user,base,user,,view_list,,user-view,base-admin,User,1,0,,1,form.pt,
 base-user-act,/user/{act}/act,base,user,,,,user-view,base-user,User Action,1,0,,,json,
