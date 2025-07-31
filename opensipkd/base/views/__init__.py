@@ -1,4 +1,6 @@
 import logging
+
+from translationstring import TranslationStringFactory
 import colander
 from pyramid.httpexceptions import (
     HTTPFound, HTTPForbidden, HTTPNotFound, HTTPInternalServerError,
@@ -16,6 +18,7 @@ from .common import ColumnDT, DataTables
 from opensipkd.tools import mem_tmp_store
 from deform import (
     Form, ValidationFailure, widget, Button, FileData)
+_ = TranslationStringFactory('user')
 
 one_hour = timedelta(1.0 / 24)
 two_minutes = timedelta(1.0 / 24 / 60)
