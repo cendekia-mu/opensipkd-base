@@ -17,7 +17,7 @@ from pyramid_mailer import mailer_factory_from_settings
 
 from .security import MySecurityPolicy, get_user
 from sqlalchemy import engine_from_config
-from  .models.base import DBSession
+from .models.base import DBSession
 from .models.handlers import LogDBSession
 from .models.meta import Base
 from .models.users import init_model
@@ -43,7 +43,6 @@ static_route = []
 titles = {}
 
 
-
 def get_params(params, alternate=None, settings=None):
     """
     Digunakan untuk mengambil nilai dari konfigurasi sesuai params yang disebut
@@ -62,6 +61,7 @@ def get_params(params, alternate=None, settings=None):
     _logging.debug(
         f"get_params: {params}, Alternate: {alternate} Settings: {not settings == None} Result: {result}")
     return result and result.strip() or alternate
+
 
 def add_cors_headers_response_callback(event):
     def cors_headers(request, response):
@@ -93,8 +93,10 @@ def add_cors_headers_response_callback(event):
 
     event.request.add_response_callback(cors_headers)
 
+
 def get_app_name(request):
     return get_params('app_name', 'openSIPKD Application')
+
 
 def get_menus(request):
     """
@@ -160,19 +162,24 @@ def get_menus(request):
 
     return result
 
+
 def get_home(request):
     return request.route_url('base-home')[:-1]
+
 
 def get_host(request):
     host = get_params('_host', "")
     return host and host or get_home(request)
 
+
 def get_title(request):
     route_name = request.matched_route.name
     return titles[route_name]
 
+
 def get_company(request):
     return get_params('company', 'openSIPKD').upper()
+
 
 def format_datetime(v):
     if v.time() != datetime.time(0, 0):
@@ -197,8 +204,10 @@ def json_rpc():
     json_r.add_adapter(decimal.Decimal, lambda v, request: str(v))
     return json_r
 
+
 def allow_register(request):
     return BASE_CLASS.allow_register
+
 
 def google_signin_client_ids(request):
     ids = get_params('google-signin-client-id', '')
@@ -241,9 +250,9 @@ def get_config(settings):
     #     config.add_request_method(thousand, 'thousand', reify=True)
     #     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(google_signin_client_id,
-                                'google_signin_client_id', reify=True)
+                              'google_signin_client_id', reify=True)
     config.add_request_method(google_signin_client_ids,
-                                  'google_signin_client_ids', reify=True)
+                              'google_signin_client_ids', reify=True)
     config.add_request_method(allow_register, 'allow_register', reify=True)
     #     config.add_request_method(disable_responsive, 'disable_responsive',
     #                               reify=True)
@@ -274,7 +283,7 @@ def get_config(settings):
     #         os.makedirs(partner_files)
 
     config.add_static_view('static', 'opensipkd.base:static',
-                            cache_max_age=3600)
+                           cache_max_age=3600)
 
     config.add_static_view('deform_static', 'deform:static')
 
@@ -292,10 +301,11 @@ def get_config(settings):
 
     return config
 
+
 def init_db(settings):
     engine = engine_from_config(
-    settings, 'sqlalchemy.', client_encoding='utf8',
-    max_identifier_length=30)  # , convert_unicode=True
+        settings, 'sqlalchemy.', client_encoding='utf8',
+        max_identifier_length=30)  # , convert_unicode=True
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     Base.metadata.bind = engine
@@ -315,7 +325,7 @@ def main(global_config, **settings):
         settings['timezone'] = DefaultTimeZone
     # settings["captcha_files"] = "c:\\tmp\\captcha\\"
     tmp = get_params("temp_files", "/tmp", settings=settings)
-    settings["captcha_files"] = os.path.join(tmp , "captcha") + os.sep
+    settings["captcha_files"] = os.path.join(tmp, "captcha") + os.sep
 
     init_db(settings=settings)
     config = get_config(settings=settings)
@@ -377,17 +387,15 @@ def _add_view_config(config, paket, route):
         config.add_view(views, **params)
 
     except Exception as e:
-        _logging.error("Add View Config :{code} Kode {error}"\
+        _logging.error("Add View Config :{code} Kode {error}"
                        .format(code=route["kode"], error=str(e)))
     _logging.debug(f"Route: {route.get('kode')} {route.get('path')}")
-
-
 
 
 class BaseApp():
     def __init__(self):
         self.menus = []
-        
+
         self.partner_doc = ""
         self.temp_files = ""
         self.allow_register = 0
@@ -413,7 +421,7 @@ class BaseApp():
             "temp_files", '/tmp', settings=settings)
         if not os.path.exists(self.temp_files):
             os.makedirs(self.temp_files)
-        
+
         # Registrasi
         self.allow_register = get_params(
             "allow_register", 0, settings=settings)
@@ -430,8 +438,8 @@ class BaseApp():
             'captcha', self.captcha_files, cache_max_age=0)
 
         self.login_tpl = get_params("login_tpl", "", settings=settings)
-        self.login_captcha = int(get_params("login_captcha", 0, settings=settings))
-        
+        self.login_captcha = int(get_params(
+            "login_captcha", 0, settings=settings))
 
     def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views"):
         route_names = []
@@ -442,7 +450,7 @@ class BaseApp():
             route["route_name"] = [route["kode"]]
             route["permission"] = route.get("permission", "")
             route["icon"] = route.get("icon", None)
-            route_typ = route.get("typ", 0)
+            route_typ = route.get("typ", 0) or route.get("type", 0) or 0
             if route_typ == "" or route_typ == None:
                 route_typ = 0
             else:
@@ -497,7 +505,6 @@ class BaseApp():
                 if p["children"]:
                     self.route_children(p["children"], row)
 
-
     def route_from_csv_(self, config, paket="tangsel.base.views", rows=[]):
         new_routes = []
         for row in rows:
@@ -515,26 +522,26 @@ class BaseApp():
                 new_routes.append(row)
 
         self.add_menu(config, new_routes, None, paket)
-      
+
     def route_from_csv(self, config, paket="opensipkd.base.views", filename="routes.csv"):
         fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
         if get_ext(filename) == ".csv":
-            with  open(fullpath) as f:
+            with open(fullpath) as f:
                 rows = csv.DictReader(f, skipinitialspace=True)
                 self.route_from_csv_(config, paket, rows=rows)
-            
+
         else:
             import xlsx_dict_reader
             from openpyxl import load_workbook
-            wb= load_workbook(fullpath, data_only=True)
+            wb = load_workbook(fullpath, data_only=True)
             ws = wb.active
-            rows = xlsx_dict_reader.DictReader(ws) #skip_blank=True
+            rows = xlsx_dict_reader.DictReader(ws)  # skip_blank=True
             self.route_from_csv_(config, paket, rows=rows)
 
         # with self.get_route_file(filename) as f:
 
         #     rows = csv.DictReader(f)
-            
+
         #     new_routes = []
         #     for row in rows:
         #         status = row.get("status", 0)
@@ -586,7 +593,7 @@ def has_permission_(request, perm_names, context=None):
 def add_global(event):
     event['has_permission'] = has_permission_
     event['get_base_menus'] = BASE_CLASS.get_menus
-    
+
 #     event['has_modules'] = has_modules_
 #     event['urlencode'] = urlencode
 #     event['quote_plus'] = quote_plus
@@ -606,6 +613,7 @@ def add_global(event):
 #     # event['get_params'] = get_params
 #     # event['get_module_menus'] = get_module_menus
 #     # event['get_module_submenus'] = get_module_submenus
+
 
 def get_params_(params, alternate=None, settings=None):
     return get_params(params, alternate, settings)

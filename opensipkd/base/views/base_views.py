@@ -1,14 +1,12 @@
 import logging
 import os
-# import re
+import re
 from datetime import datetime
-# from email.utils import parseaddr
+from email.utils import parseaddr
 
 import colander
-from opensipkd.base import BASE_CLASS
-from pyramid.csrf import new_csrf_token, get_csrf_token
 from datatables import ColumnDT
-# from dateutil.relativedelta import relativedelta
+from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
@@ -18,15 +16,18 @@ from sqlalchemy import Table
 from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string, Upload, InvalidExtension, mem_tmp_store
 from opensipkd.tools.buttons import (
-    btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv, 
+    btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv,
     btn_pdf, btn_unpost, btn_post, btn_upload)
 # from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
+from pyramid.request import Response
 from .common import DataTables
 from ..models import DBSession, Partner
 # , get_params, get_urls
 from ..scripts.initializedb import append_csv
 from ...detable import DeTable
+from opensipkd.base import BASE_CLASS
+from pyramid.csrf import new_csrf_token, get_csrf_token
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ class UploadSchema(colander.Schema):
         FileData(),
         widget=widget.FileUploadWidget(mem_tmp_store),
         title='Unggah')
+
 
 class CSRFSchema(colander.Schema):
     def after_bind(self, schema, kwargs):
@@ -64,12 +66,12 @@ class BaseView(object):
 #         self.akhir = None
 #         self.dt_awal = None
 #         self.dt_akhir = None
-#         self.tahun_awal = None 
-#         self.tahun_akhir = None 
+#         self.tahun_awal = None
+#         self.tahun_akhir = None
 #         self.departemen_kd = None
 #         self.departemen_nm = None
 #         self.departemen_id = None
-#         self.jenis = None 
+#         self.jenis = None
         self.list_route = 'home'
 #         self.list_col_defs = ""
 #         self.list_cols = ""
@@ -96,8 +98,8 @@ class BaseView(object):
         self.html_buttons = {}
         self.new_buttons = {}
 
-        self.list_form = None  #List dam Form
-        self.form_list = None  #Form kemudian detail list
+        self.list_form = None  # List dam Form
+        self.form_list = None  # Form kemudian detail list
 
         self.form_scripts = """
          $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
@@ -110,7 +112,7 @@ class BaseView(object):
         # self.add_schema = colander.Schema()
         # self.edit_schema = colander.Schema()
         self.upload_schema = UploadSchema
-        
+
         self.upload_exts = (".csv", ".tsv")
         self.upload_keys = ["kode"]
 
@@ -121,15 +123,15 @@ class BaseView(object):
         self.bindings = {}
         self.autocomplete = 'on'
 #         self.report_file = ""
-        
+
         self.is_object = False
 
         self.init_session(request)
 
     def init_session(self, request):
-#         # if not request.user:
-#         if "g_state" in request.cookies:
-#             request.response.delete_cookie("g_state", '/')
+        #         # if not request.user:
+        #         if "g_state" in request.cookies:
+        #             request.response.delete_cookie("g_state", '/')
 
         now = datetime.now()
 #         # self.dt_awal = self.ses["dt_awal"] if "dt_awal" in self.ses else now
@@ -216,7 +218,26 @@ class BaseView(object):
 #             'jenis'] or self.jenis
 #         self.ses['jenis'] = self.jenis
 
+    def form2dict(self, field):
+        children = []
+        for c in field.children:
+            children.append(self.form2dict(c))
+        value = hasattr(field, "cstruct") and field.cstruct or ""
+        if type(value) in (colander.null, colander._null):
+            value = ""
+        if type(value) == dict:
+            for k, v in value.items():
+                if type(v) in (colander.null, colander._null):
+                    value[k] = ""
+        d = {
+            "id": field.oid,
+            "name": field.name,
+            "error": {"msg": field.error and field.error.msg or ""},
+            "children": children,
+            "value": value
+        }
 
+        return d
 #     def query_register(self, **kwargs):
 #         pass
 
@@ -238,19 +259,16 @@ class BaseView(object):
 
         if not list_url:
             list_url = self.req.route_url(self.list_route, **kwargs)
-        
+
         log.debug(list_url)
 
         if self.headers:
             return HTTPFound(
                 location=self.req.route_url(self.list_route),
-                # location=get_urls(list_url),
-                             headers=self.headers)
+                headers=self.headers)
         else:
             return HTTPFound(
-                location=self.req.route_url(self.list_route),
-                # location=get_urls(list_url)
-                )
+                location=self.req.route_url(self.list_route))
 
     def form_validator(self, form, value):
         pass
@@ -568,6 +586,11 @@ class BaseView(object):
         return self.route_list(**kwargs)
 
     def returned_form(self, form, table=None, **kwargs):
+        if self.req.is_xhr:
+            d = self.form2dict(form)
+            import json
+            return Response(json=d)
+
         resources = form.get_widget_resources()
         readonly = "readonly" in kwargs and kwargs["readonly"] or False
         kwargs["readonly"] = readonly
@@ -674,7 +697,6 @@ class BaseView(object):
 
     def view_upload(self, **kw):
         return self.view_import(**kw)
-       
 
     def view_import(self, **kw):
         exts = kw.get("exts")
@@ -699,14 +721,14 @@ class BaseView(object):
                 except:
                     self.ses.flash(f'File harus format {exts}', 'error')
                     return self.returned_form(form, table, **kw)
-              
+
                 fullpath = os.path.join(folder, file_name)
                 try:
                     self.save_upload(fullpath, **kw)
                 except Exception as e:
                     self.req.session.flash(str(e), 'error')
                     return self.returned_form(form, table, **kw)
-                
+
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
 
@@ -716,11 +738,11 @@ class BaseView(object):
 
 #     def get_file(self, filename):
 #         return open(filename)
-    
+
     def save_upload(self, file_name, **args):
         return append_csv(self.table, file_name, self.upload_keys,
-                        get_file_func=self.get_file, update_exist=True,
-                        **args)
+                          get_file_func=self.get_file, update_exist=True,
+                          **args)
 
     def before_add(self):
         return {}
@@ -853,7 +875,7 @@ class BaseView(object):
 
     def id_not_found(self, **kwargs):
         msg = f"Data yang dicari Tidak Ditemukan ID:" \
-              f" {self.req.matchdict['id']}."
+            f" {self.req.matchdict['id']}."
         self.req.session.flash(msg, 'error')
         return self.route_list(**kwargs)
 
@@ -948,7 +970,7 @@ class BaseView(object):
         Returns: Exception: Apabila ada akan menolak pennghapusan data atau gagal
                             apabila proses ada yang salah 
                  None: Apabila proses berhasil
-                 
+
         """
 
     def view_delete(self, **kwargs):
@@ -1068,7 +1090,6 @@ class BaseView(object):
 
                 if not os.path.exists(path):
                     os.makedirs(path)
-                    
                 upload = Upload(path)
                 resp = upload.save_fp(value)
                 if filename:
@@ -1128,4 +1149,3 @@ class BaseView(object):
 # def get_url_captcha(request):
 #     captcha = get_captcha(request)
 #     return os.path.join(get_urls(request.route_url('home')), 'captcha', captcha)
-
