@@ -169,13 +169,13 @@
             }
             return render_checkbox(false);
           }
-          //} 
-          //else if (${tableid}Columns[co].wg_select === true) {
-          //  ${tableid}Columns[co].render = function (value) {
-          //    if (value != null)
-          //      return ${tableid}Columns[co].wg_select_val[value];
-          //    return "";
-          //  }
+          } 
+          else if (${tableid}Columns[co].wg_select === true) {
+           ${tableid}Columns[co].render = function (value) {
+             if (value != null)
+               return ${tableid}Columns[co].wg_select_val[value];
+             return "";
+           }
         }else if (${tableid}Columns[co].hasOwnProperty("url")) {
           let url = ${tableid}Columns[co].url;
             ${tableid}Columns[co].render = function (data) {

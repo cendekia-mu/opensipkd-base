@@ -736,8 +736,8 @@ class BaseView(object):
 
         return self.returned_form(form, table, **kw)
 
-#     def get_file(self, filename):
-#         return open(filename)
+    def get_file(self, filename):
+        return open(filename)
 
     def save_upload(self, file_name, **args):
         return append_csv(self.table, file_name, self.upload_keys,
@@ -747,8 +747,11 @@ class BaseView(object):
     def before_add(self):
         return {}
 
-#     def validation_failure(self, value):
-#         return value
+    def validation_failure(self, value):
+        """Digunakan untuk memproses validasi form yang gagal"""
+        from warnings import warn
+        warn("Fungsi Ini sudah tidak digunakan", DeprecationWarning)
+        return value
 
     def cancel_act(self, **kwargs):
         return self.route_list(**kwargs)

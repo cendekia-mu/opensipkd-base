@@ -370,7 +370,7 @@ class DeTable(field.Field):
     def widget_select(self, column):
         d = {}
         d["wg_select"] = True
-        d["wg_select_val"] = column.widget.values
+        d["wg_select_val"] = type(column.widget.values) == list and dict(column.widget.values) or column.widget.values
         if column.widget.values:
             for val in column.widget.values:
                 if hasattr(column, f"color_{val}"):

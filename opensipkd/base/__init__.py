@@ -333,8 +333,9 @@ def main(global_config, **settings):
     if 'timezone' not in settings:
         settings['timezone'] = DefaultTimeZone
     # settings["captcha_files"] = "c:\\tmp\\captcha\\"
-    tmp = get_params("temp_files", "/tmp", settings=settings)
-    settings["captcha_files"] = os.path.join(tmp, "captcha") + os.sep
+    tmp = get_params("temp_files", f"{os.sep}tmp", settings=settings)
+    settings["temp_files"] = tmp
+    settings['captcha_files'] = os.path.join(tmp, "captcha") + os.sep
 
     init_db(settings=settings)
     config = get_config(settings=settings)
@@ -348,6 +349,10 @@ def main(global_config, **settings):
 
 
 def _add_route(config, route):
+    if titles.get(route.get("kode")):
+        _logging.warning(f"Route {route.get('kode')} sudah ada di titles")
+        return
+    
     if int(route.get("typ", 0)) == 0:
         config.add_route(route.get("kode"), route.get("path"))
     elif int(route.get("typ")) == 1:
@@ -404,13 +409,13 @@ def _add_view_config(config, paket, route):
 class BaseApp():
     def __init__(self):
         self.menus = []
-        self.partner_doc = ""
         self.temp_files = ""
+        self.captcha_files = ""
+        self.partner_doc = ""
         self.allow_register = 0
         self.reg_form = ""
         self.reg_id_card = 0
         self.reg_captcha = 0
-        self.captcha_files = ""
         self.login_captcha = 0
         self.base_dir = os.path.split(__file__)[0]
 
@@ -419,17 +424,24 @@ class BaseApp():
         return open(fullpath)
 
     def static_view(self, config, settings=None):
+        self.temp_files = settings.get("temp_files")
+        if not os.path.exists(self.temp_files):
+            os.makedirs(self.temp_files)
+        
+        self.captcha_files = settings.get("captcha_files")
+        if not os.path.exists(self.captcha_files):
+            os.makedirs(self.captcha_files)
+            
         self.partner_doc = get_params(
-            "partner_doc", '/tmp/docs/partner', settings=settings)+os.sep
+            "partner_doc", 
+            os.path.join(self.temp_files,'docs','partner'), 
+            settings=settings)+os.sep
         if not os.path.exists(self.partner_doc):
             os.makedirs(self.partner_doc)
         config.add_static_view(
             'docs/partner', self.partner_doc, cache_max_age=0)
-        self.temp_files = get_params(
-            "temp_files", '/tmp', settings=settings)
-        if not os.path.exists(self.temp_files):
-            os.makedirs(self.temp_files)
-
+    
+        
         # Registrasi
         self.allow_register = get_params(
             "allow_register", 0, settings=settings)
