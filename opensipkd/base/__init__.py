@@ -424,6 +424,8 @@ class BaseApp():
         return open(fullpath)
 
     def static_view(self, config, settings=None):
+        if not settings:
+            settings = get_settings()
         self.temp_files = settings.get("temp_files")
         if not os.path.exists(self.temp_files):
             os.makedirs(self.temp_files)
