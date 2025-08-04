@@ -1,25 +1,9 @@
 <!DOCTYPE html>
 <html lang="en-us" tal:define="
         home request.home;
-        user_path  ['user', 'user-add', 'user-edit', 'user-view', 'user-delete'];
-        user_area_path  ['user-area', 'user-area-add', 'user-area-edit', 'user-area-view', 'user-area-delete'];
-        user_dep_path  ['user-departemen', 'user-departemen-add', 'user-departemen-edit', 'user-departemen-view', 'user-departemen-delete'];
-        user_ext_path  ['user-ext', 'user-ext-view', 'user-ext-delete'];
-        group_path  ['group', 'group-add', 'group-edit', 'group-view', 'group-delete'];
-        param_path  ['parameter', 'parameter-add', 'parameter-edit', 'parameter-view', 'parameter-delete'];
-        dep_path ['departemen', 'departemen-add', 'departemen-edit', 'departemen-view', 'departemen-delete'];
-        partner_path ['partner', 'partner-add', 'partner-edit', 'partner-view', 'partner-delete'];
-        company_path ['company', 'company-add', 'company-edit', 'company-view', 'company-delete'];
-        part_dep_path ['partner-departemen', 'partner-departemen-add', 'partner-departemen-edit', 'partner-departemen-view', 'partner-departemen-delete'];
-        jabatan_path ['jabatan', 'jabatan-add', 'jabatan-edit', 'jabatan-view', 'jabatan-delete'];
-        eselon_path ['eselon', 'eselon-add', 'eselon-edit', 'eselon-view', 'eselon-delete'];
-        provinsi_path ['provinsi', 'provinsi-add', 'provinsi-edit', 'provinsi-view', 'provinsi-delete'];
-        dati2_path ['dati2', 'dati2-add', 'dati2-edit', 'dati2-view', 'dati2-delete'];
-        kecamatan_path ['kecamatan', 'kecamatan-add', 'kecamatan-edit', 'kecamatan-view', 'kecamatan-delete'];
-        desa_path ['desa', 'desa-add', 'desa-edit', 'desa-view', 'desa-delete'];
+        route_name route_name|request.matched_route.name;
         css css|[];
         js js|[];
-        route_name route_name|request.matched_route.name;
         ">
 
 <head>
@@ -99,7 +83,7 @@
                     Module <i class="fa fa-angle-down"></i></span>
                 <ul tal:condition="request.user" class="dropdown-menu">
                     <li tal:repeat="menu request.menus">
-                        <a href="${home}/${menu}">${request.menus[menu]}</a>
+                        <a href="${menu}">${request.menus[menu]}</a>
                     </li>
                 </ul>
             </div>
@@ -164,7 +148,6 @@
 
             <ul metal:define-slot="navs"></ul>
             <ul style="margin-top: 0; padding-top: 0;">
-
                 <li tal:repeat="menu get_base_menus()"
                     tal:attributes="class route_name in menu['route_name'] and 'active'">
                     <a tal:condition="python:not menu['children'] and (not menu['permission'] or has_permission(request, menu['permission']))"
@@ -203,7 +186,16 @@
                     </ul>
                 </li>
             </ul>
-
+            <ul>
+                <li> <a href="#"><i class="fa fa-lg fa-fw fa-shield"></i>
+                        <span class="menu-item-parent">Module Lainnya</span></a>
+                    <ul>
+                        <li tal:repeat="menu request.menus">
+                            <a href="${menu}">${request.menus[menu]}</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
 
         </nav>
         <span class="minifyme" data-action="minifyMenu">

@@ -63,6 +63,10 @@ def get_params(params, alternate=None, settings=None):
     return result and result.strip() or alternate
 
 
+def has_modules(module_name, context=None):
+    modules = get_params("pyramid.includes").split("\n")
+    return module_name in modules
+
 def add_cors_headers_response_callback(event):
     def cors_headers(request, response):
         origin = request.headers.get("Origin", None)
@@ -122,7 +126,7 @@ def get_menus(request):
     result = {}
     for menu in menus:
         if menu.find(',') > -1:
-            key, val = menu.strip().split(',')
+            key, val = menu.strip().split(',', 2)
             key = key.strip().strip('/')
             val = re.sub('[//-]', ' ', val)
 
@@ -130,6 +134,11 @@ def get_menus(request):
             key, val = menu.strip().split(':')
             key = key.strip().strip('/')
             val = re.sub('[//-]', ' ', val)
+        elif menu.find('|') > -1:
+            key, val = menu.strip().split('|')
+            key = request.route_url(key.strip())
+            val = val.strip()
+
         else:
             key = menu.strip()
             val = key.replace('/', '-')
@@ -246,7 +255,7 @@ def get_config(settings):
     #     config.add_request_method(get_address2, 'address2', reify=True)
 
     #     config.add_request_method(get_modules, 'modules', reify=True)
-    #     config.add_request_method(has_modules_, 'has_modules', reify=True)
+    config.add_request_method(has_modules, 'has_modules', reify=True)
     #     config.add_request_method(thousand, 'thousand', reify=True)
     #     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(google_signin_client_id,
@@ -395,7 +404,6 @@ def _add_view_config(config, paket, route):
 class BaseApp():
     def __init__(self):
         self.menus = []
-
         self.partner_doc = ""
         self.temp_files = ""
         self.allow_register = 0
@@ -593,8 +601,8 @@ def has_permission_(request, perm_names, context=None):
 def add_global(event):
     event['has_permission'] = has_permission_
     event['get_base_menus'] = BASE_CLASS.get_menus
-
-#     event['has_modules'] = has_modules_
+    event['has_modules'] = has_modules
+    event['get_params'] = get_params_
 #     event['urlencode'] = urlencode
 #     event['quote_plus'] = quote_plus
 #     event['quote'] = quote
@@ -605,7 +613,6 @@ def add_global(event):
 #     event['split'] = split
 #     event['allow_register'] = allow_register
 #     event['change_unit'] = change_unit
-    event['get_params'] = get_params_
 #     event['get_urls'] = get_urls
 #     event['get_csrf_token'] = get_csrf_token
 #     event['get_base_menus'] = BASE_CLASS.get_menus
