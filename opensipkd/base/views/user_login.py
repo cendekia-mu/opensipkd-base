@@ -86,7 +86,8 @@ def login_validator(form, value):
 
 
 def get_login_headers(request, user):
-    headers = remember(request, user.id)
+    UserService.regenerate_security_code(user)
+    headers = remember(request, user.id, token=user.security_code)
     user.last_login_date = create_now()
     DBSession.add(user)
     DBSession.flush()
@@ -350,7 +351,8 @@ def redirect_login(request, user):
     request.session.flash("Sukses Login")
     next_url = request.params.get('next')
     if request.is_xhr:
-        return Response(json={"success": True}, headerlist=headers)
+        return Response(json={"success": True,
+                              "token": user.security_code}, headerlist=headers)
     
     if not next_url and request.matched_route.name == 'login':
         url = get_params('modules_default', 'base-home')
