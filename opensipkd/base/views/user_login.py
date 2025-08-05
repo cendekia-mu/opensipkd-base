@@ -299,6 +299,9 @@ class ViewAuth(BaseView):
         #                 next_url=next_url,
         #                 login=login, )
         if login_tpl:
+            if self.req.is_xhr:
+                # return Response(form.render())
+                return Response(json=self.form2dict(form))
             return render_to_response(
                 renderer_name=login_tpl,
                 request=request,
@@ -328,6 +331,10 @@ class ViewAuth(BaseView):
             request.response.headers.update(headers)
             if "g_state" in request.cookies:
                 request.response.delete_cookie("g_state", '/')
+            if self.req.is_xhr:
+                return Response(json={"success": True,
+                                      "message": "Sukses Logout"},
+                                headerlist=headers)
             form.set_appstruct({"message": "Sukses Logout"})
             request.session["login"] = False
 
@@ -342,6 +349,9 @@ def redirect_login(request, user):
     headers = get_login_headers(request, user)
     request.session.flash("Sukses Login")
     next_url = request.params.get('next')
+    if request.is_xhr:
+        return Response(json={"success": True}, headerlist=headers)
+    
     if not next_url and request.matched_route.name == 'login':
         url = get_params('modules_default', 'base-home')
         return HTTPFound(location=request.route_url(url),
