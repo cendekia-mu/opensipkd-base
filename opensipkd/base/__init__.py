@@ -95,6 +95,7 @@ def add_cors_headers_response_callback(event):
 
         # _logging.debug(f"Headers: {headers}")
         # response.headers.update(headers)
+        _logging.warning(response.headers)
 
     event.request.add_response_callback(cors_headers)
 
