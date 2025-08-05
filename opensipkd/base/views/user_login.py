@@ -87,7 +87,9 @@ def login_validator(form, value):
 
 def get_login_headers(request, user):
     UserService.regenerate_security_code(user)
-    headers = remember(request, user.id, token=user.security_code)
+    headers = remember(request, user.id)
+    headers.append(("Token", user.security_code))
+    log.debug(headers)
     user.last_login_date = create_now()
     DBSession.add(user)
     DBSession.flush()
