@@ -23,8 +23,7 @@ import os
 import re
 from datetime import timedelta, datetime
 from importlib import import_module
-from urllib import request
-
+from pyramid.request import Response
 import colander
 from deform import widget, Form, ValidationFailure, Button
 from pyramid.csrf import new_csrf_token
@@ -193,6 +192,11 @@ class ViewAuth(BaseView):
             next_url = request.home
 
         if request.authenticated_userid:  # (request):
+            message = 'Anda sudah login'
+            if self.req.is_xhr:
+                return Response(json={"success": True,
+                                      "msg": message})
+
             request.session.flash('Anda sudah login', 'error')
             return HTTPFound(location=f"{request.home}")
 
@@ -216,6 +220,9 @@ class ViewAuth(BaseView):
             except ValidationFailure as e:
                 msg = 'Login gagal'
                 set_user_log(msg, request, log, identity)
+                if self.req.is_xhr:
+                    d = self.form2dict(e.field)
+                    return Response(json=d)
                 request.session.flash(msg, 'error')
                 return HTTPFound(location=request.route_url('base-login'))
 
@@ -243,6 +250,11 @@ class ViewAuth(BaseView):
                 login = LoginUser(self.req)
                 if not login.login(values, user):
                     request.session.flash(login.message, "error")
+                    if self.req.is_xhr:
+                        return Response(json={"error": {"code": -1,
+                                                        "msg": login.message}
+                                              })
+
                     next_url = f"{request.route_url('base-login')}?next={next_url}"
                     return HTTPFound(location=next_url)
             return redirect_login(request, user)
@@ -262,6 +274,9 @@ class ViewAuth(BaseView):
             except Oauth2ParseExc as e:
                 login = ""
                 request.session.flash(str(e), "error")
+                if self.req.is_xhr:
+                    # return Response(form.render())
+                    return Response(json=self.form2dict(form))
                 return render_to_response(
                     login_tpl, dict(
                         form=form,
