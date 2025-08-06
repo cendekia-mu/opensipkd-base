@@ -103,6 +103,7 @@ class AddSchema(colander.Schema):
     def after_bind(self, schema, kw):
         request = kw.get("request")
         is_id_card = BASE_CLASS.reg_id_card
+        _logging.debug(f"after_bind: is_id_card={is_id_card}")
         user = request.user
         external_user = user and user.external_identities.count() > 0 or False
         if user:
