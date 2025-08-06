@@ -175,7 +175,8 @@ def get_menus(request):
 
 
 def get_home(request):
-    return request.route_url('base-home')[:-1]
+    return request.route_url('base-home')
+    #[:-1]
 
 
 def get_host(request):
