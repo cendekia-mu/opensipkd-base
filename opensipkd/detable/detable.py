@@ -121,6 +121,7 @@ class DeTable(field.Field):
             scroll_y=False,
             **kw
     ):
+        kw.pop("parent", None)  
         super().__init__(schema, **kw)
         self.request = kw.get("request")
         self.rows = kw.get("rows")

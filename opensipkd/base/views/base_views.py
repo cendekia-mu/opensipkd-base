@@ -396,7 +396,14 @@ class BaseView(object):
                 action_suffix += f'?parent_id={parent.id}'
 
             schema = self.list_schema()
-            schema = schema.bind(request=self.req)
+            if "bindings" in kwargs and kwargs["bindings"]:
+                bindings = kwargs["bindings"]
+            elif self.bindings:
+                bindings = self.bindings
+            else:
+                bindings = self.get_bindings()
+                
+            schema = schema.bind(request=self.req, **bindings)
 
             if not new_buttons:
                 new_buttons = self.new_buttons
@@ -651,7 +658,7 @@ class BaseView(object):
         if not values:
             return self.route_list(msg="Nilai Data tidak ditemukan", error="error")
         form.set_appstruct(values)
-        table = self.get_item_table(row)
+        table = self.get_item_table(parent=row)
         kwargs["readonly"] = True
         return self.returned_form(form, table, **kwargs)
 
@@ -933,7 +940,7 @@ class BaseView(object):
             self.bindings = self.get_bindings(row)
 
         form = self.get_form(self.edit_schema, **kwargs)
-        table = self.get_item_table(row)
+        table = self.get_item_table(parent=row)
         values = self.get_values(row)
         if request.POST:
             if 'save' in request.POST:
@@ -1002,20 +1009,20 @@ class BaseView(object):
             return self.route_list()
         form = self.get_form(
             self.edit_schema, buttons=(btn_delete, btn_cancel))
-        table = self.get_item_table(row)
+        table = self.get_item_table(parent=row)
 
         resources = form.get_widget_resources()
         form.set_appstruct(self.get_values(row))
         kwargs["readonly"] = True
         return self.returned_form(form, table, **kwargs)
 
-    def query_id(self):
-        q = self.db_session.query(self.table).filter_by(
-            id=self.req.matchdict['id'])
+    def query_id(self, id=None):
+        id=id or self.req.matchdict['id']
+        return self.table.query_id(id)
         # if self.req.user:
         #     if hasattr(self.table, 'company_id') and self.req.user.company_id:
         #         q = q.filter_by(company_id=self.req.user.company_id)
-        return q
+        # return q
 
 #     def filter_company(self, query):
 #         if self.req.user.company_id:

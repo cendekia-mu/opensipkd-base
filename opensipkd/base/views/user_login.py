@@ -62,7 +62,7 @@ class Login(CSRFSchema):
     )
     password = colander.SchemaNode(
         colander.String(), widget=widget.PasswordWidget())
-    
+
     def after_bind(self, schema, kwargs):
         request = kwargs["request"]
         csrf_token = new_csrf_token(request)
@@ -209,7 +209,7 @@ class ViewAuth(BaseView):
         if BASE_CLASS.allow_register:
             buttons += (Button('register', _('Register')),)
         buttons += (Button('reset', _('Reset')), btn_cancel,)
-        
+
         form = Form(schema, buttons=buttons)
         message = ""
         if 'cancel' in request.POST:
@@ -301,10 +301,10 @@ class ViewAuth(BaseView):
         #                 url=get_urls(request.route_url('login')),
         #                 next_url=next_url,
         #                 login=login, )
+        if self.req.is_xhr:
+            return Response(json=self.form2dict(form))
         if login_tpl:
-            if self.req.is_xhr:
-                # return Response(form.render())
-                return Response(json=self.form2dict(form))
+
             return render_to_response(
                 renderer_name=login_tpl,
                 request=request,
@@ -313,8 +313,8 @@ class ViewAuth(BaseView):
                            url=request.route_url('base-login'),
                            next_url=next_url,
                            login=login, ),
-        )
-        return dict(form=form.render(),scripts="")
+            )
+        return dict(form=form.render(), scripts="")
 
     def view_logout(self):
         request = self.req
@@ -342,7 +342,7 @@ class ViewAuth(BaseView):
             request.session["login"] = False
 
         return dict(form=form.render())
-    
+
 
 def redirect_login(request, user):
     set_user_log("Login Sukses", request, log, user.user_name)
@@ -355,7 +355,7 @@ def redirect_login(request, user):
     if request.is_xhr:
         return Response(json={"success": True,
                               "token": user.security_code}, headerlist=headers)
-    
+
     if not next_url and request.matched_route.name == 'login':
         url = get_params('modules_default', 'base-home')
         return HTTPFound(location=request.route_url(url),
@@ -379,8 +379,7 @@ btn_home = Button("home", css_class="btn-success")
 
 
 # class ViewLogout(BaseView):
-    # @view_config(route_name='logout', renderer="templates/logout.pt", require_csrf=False)
-
+# @view_config(route_name='logout', renderer="templates/logout.pt", require_csrf=False)
 
 
 class ViewPassword(BaseView):
@@ -406,7 +405,7 @@ class ViewPassword(BaseView):
                 return resp
             remain = regenerate_security_code(user)
             set_user_log("Reset password to {}".format(user.email), request, log,
-                        user.user_name)
+                         user.user_name)
             send_email_security_code(
                 request, user, remain, 'Reset password', 'reset-password-body',
                 'reset-password-body.tpl')
@@ -415,10 +414,9 @@ class ViewPassword(BaseView):
             return HTTPFound(location=request.home)
         elif 'cancel' in request.POST:
             return HTTPFound(location=request.route_url('base-login'))
-        
+
         resp['form'] = form.render()
         return resp
-    
 
     def change_password(self):
         """
@@ -436,7 +434,7 @@ class ViewPassword(BaseView):
         form = Form(schema, buttons=buttons)
         if not request.POST:
             return dict(form=form.render(), scripts="")
-        
+
         if 'save' not in request.POST:
             return HTTPFound(location=request.route_url('base-login'))
 
@@ -445,13 +443,13 @@ class ViewPassword(BaseView):
             c = form.validate(items)
         except ValidationFailure as e:
             return dict(form=e.render())
-        
+
         user = request.user
         user.security_code = None
         if not UserService.check_password(user, c['password']):
             request.session.flash('Password lama tidak sesuai', 'error')
             return HTTPFound(location=request.route_url('base-password'))
-        
+
         UserService.set_password(user, c['new_password'])
         self.db_session.add(user)
         self.db_session.flush()
@@ -459,7 +457,6 @@ class ViewPassword(BaseView):
         request.session.flash('Password baru Anda sudah disimpan.')
         set_user_log("Change Password", request, log)
         return HTTPFound(location=f"{request.home}", headers=headers)
-
 
     def change_password_request(self):
         """
@@ -480,7 +477,7 @@ class ViewPassword(BaseView):
         if not user or now - user.security_code_date > one_hour:
             request.session.flash('Security code expired', 'error')
             return HTTPFound(location=request.route_url('base-login'))
-        
+
         schema = ChangePasswordRequest(validator=change_password_validator)
         btn_save = Button('save', _('Simpan'))
         btn_cancel = Button('cancel', _('Batalkan'))
@@ -490,14 +487,12 @@ class ViewPassword(BaseView):
             return dict(form=form.render(), scripts="")
         if 'save' not in request.POST:
             return HTTPFound(location=request.route_url('base-login'))
-        
 
         items = request.POST.items()
         try:
             c = form.validate(items)
         except ValidationFailure as e:
             return dict(form=e.render())
-        
 
         user.security_code = None
         UserService.set_password(user, c['new_password'])
@@ -507,9 +502,6 @@ class ViewPassword(BaseView):
         set_user_log("Change Password", request, log)
         return HTTPFound(location=f"{request.home}", headers=headers)
 
-   
-
-    
     def view_recreate_api_key(self):
         request = self.req
         if not request.user.api_key:
@@ -530,6 +522,7 @@ class ViewPassword(BaseView):
         request.session.flash(msg)
         return HTTPFound(location=f"{request.home}")
 
+
 class ChangePasswordRequest(colander.Schema):
     new_password = colander.SchemaNode(
         colander.String(), widget=widget.CheckedPasswordWidget())
@@ -539,8 +532,8 @@ class ChangePassword(ChangePasswordRequest):
     new_password = colander.SchemaNode(
         colander.String(), widget=widget.CheckedPasswordWidget())
     password = colander.SchemaNode(colander.String(),
-    widget=widget.PasswordWidget(),
-    title=_("Old Password"))
+                                   widget=widget.PasswordWidget(),
+                                   title=_("Old Password"))
 
 
 def change_password_validator(form, value):
@@ -557,9 +550,6 @@ def change_password_validator(form, value):
     # raise exc
 
 
-
-
-
 ######################
 # Buat ulang API Key #
 ######################
@@ -570,9 +560,6 @@ class APIKey(colander.Schema):
 
 def generate_api_key():
     return UserService.generate_random_string(64)
-
-
-
 
 
 ##################
@@ -668,9 +655,3 @@ def regenerate_security_code(user, hour=1.0):
     log.debug("Security code: %s", user.security_code)
     DBSession.add(user)
     return hour
-
-
-
-
-
-
