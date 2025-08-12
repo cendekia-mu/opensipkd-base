@@ -26,7 +26,7 @@ def auth_from(request, field=None):
         raise JsonRpcInvalidLoginError
 
     # bypass cek authentication for development
-    if http_userid == 'admin' and request.devel:
+    if http_userid == 'admin' and log.parent.level==logging.DEBUG:
         return user
 
     time_stamp = validate_time(request)
@@ -87,9 +87,6 @@ def get_user_device(request, user_id):
         user_device.kode = request.environ["HTTP_USER_AGENT"]
     # user_device = renew_token(user_device)
     return user_device
-
-
-
 
 def auth_device(request):
     env = request.environ
