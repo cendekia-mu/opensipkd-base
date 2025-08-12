@@ -424,6 +424,7 @@ class BaseApp():
         self.reg_captcha = 0
         self.login_captcha = 0
         self.base_dir = os.path.split(__file__)[0]
+        self.reg_nip = 0
 
     def get_route_file(self, filename="routes.csv"):
         fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
@@ -456,6 +457,7 @@ class BaseApp():
         self.reg_form = get_params("reg_form", 'base-register')
         self.reg_id_card = get_params(
             "reg_id_card", 0, settings=settings)
+        self.reg_nip = int(settings.get("reg_nip", 0))
         self.reg_captcha = get_params(
             "reg_captcha", 0, settings=settings)
         self.captcha_files = os.path.join(self.temp_files, "captcha")+os.sep

@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 lima_menit = 300
 
-#
+
 def auth_from(request, field=None):
     global lima_menit
     env = request.environ

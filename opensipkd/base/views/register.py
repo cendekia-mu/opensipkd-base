@@ -124,6 +124,15 @@ class AddSchema(colander.Schema):
                 title=_("ID Card"),
                 validator=image_validator)
 
+        if BASE_CLASS.reg_nip:
+            self["nip"] = colander.SchemaNode(
+                colander.String(),
+                title=_("NIP"),
+                validator=colander.Length(max=18, min=18),
+                missing=colander.drop,
+                oid="nip")
+
+
         if not request.user and BASE_CLASS.reg_captcha:
             self["captcha"] = colander.SchemaNode(
                 colander.String(),
