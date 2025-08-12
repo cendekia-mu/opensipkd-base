@@ -102,7 +102,7 @@ def auth_device(request):
     if not user or user.status == 0:
         raise JsonRpcInvalidLoginError
 
-    if http_userid == 'admin' and request.devel:
+    if http_userid == 'admin' and log.parent.level==logging.DEBUG:
         return user
 
     user_device = get_user_device(request, user)
