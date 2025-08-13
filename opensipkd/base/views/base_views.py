@@ -62,12 +62,12 @@ class BaseView(object):
         self.tahun = None
 #         self.bulan = None
 #         self.posted = False
-#         self.awal = None
-#         self.akhir = None
-#         self.dt_awal = None
-#         self.dt_akhir = None
-#         self.tahun_awal = None
-#         self.tahun_akhir = None
+        self.awal = None
+        self.akhir = None
+        self.dt_awal = None
+        self.dt_akhir = None
+        self.tahun_awal = None
+        self.tahun_akhir = None
 #         self.departemen_kd = None
 #         self.departemen_nm = None
 #         self.departemen_id = None
@@ -134,12 +134,12 @@ class BaseView(object):
         #             request.response.delete_cookie("g_state", '/')
 
         now = datetime.now()
-#         # self.dt_awal = self.ses["dt_awal"] if "dt_awal" in self.ses else now
-#         # self.awal = dmy(self.dt_awal)
-#         # self.dt_akhir = self.ses["dt_akhir"] if "dt_akhir" in self.ses else now
-#         # self.akhir = dmy(self.dt_akhir)
-#         # self.ses["dt_awal"] = self.dt_awal
-#         # self.ses["dt_akhir"] = self.dt_akhir
+        self.dt_awal = self.ses["dt_awal"] if "dt_awal" in self.ses else now
+        self.awal = dmy(self.dt_awal)
+        self.dt_akhir = self.ses["dt_akhir"] if "dt_akhir" in self.ses else now
+        self.akhir = dmy(self.dt_akhir)
+        self.ses["dt_awal"] = self.dt_awal
+        self.ses["dt_akhir"] = self.dt_akhir
         self.tahun = 'tahun' in self.ses and self.ses['tahun'] \
             or now.strftime('%Y')
         self.tahun = 'tahun' in self.params and self.params['tahun'] or self.tahun
@@ -165,38 +165,38 @@ class BaseView(object):
 #                 (posted == 'false' or posted == '0') and 0) or 0
 #         self.ses['posted'] = self.posted
 
-#         self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
-#         awal = 'awal' in self.params and self.params['awal'] or self.awal
-#         try:
-#             self.dt_awal = date_from_str(awal)
-#             self.awal = awal
-#         except:
-#             self.dt_awal = date_from_str(self.awal)
+        self.awal = 'awal' in self.ses and self.ses['awal'] or dmy(now)
+        awal = 'awal' in self.params and self.params['awal'] or self.awal
+        try:
+            self.dt_awal = date_from_str(awal)
+            self.awal = awal
+        except:
+            self.dt_awal = date_from_str(self.awal)
 
-#         self.ses['awal'] = self.awal
-#         self.ses['dt_awal'] = self.dt_awal
+        self.ses['awal'] = self.awal
+        self.ses['dt_awal'] = self.dt_awal
 
-#         self.akhir = 'akhir' in self.ses and self.ses['akhir'] or dmy(now)
-#         akhir = 'akhir' in self.params and self.params['akhir'] or self.akhir
+        self.akhir = 'akhir' in self.ses and self.ses['akhir'] or dmy(now)
+        akhir = 'akhir' in self.params and self.params['akhir'] or self.akhir
 
-#         try:
-#             self.dt_akhir = date_from_str(akhir)
-#             self.akhir = akhir
-#         except:
-#             self.dt_akhir = date_from_str(self.akhir)
-#         self.ses['akhir'] = self.akhir
-#         self.ses['dt_akhir'] = self.dt_akhir
+        try:
+            self.dt_akhir = date_from_str(akhir)
+            self.akhir = akhir
+        except:
+            self.dt_akhir = date_from_str(self.akhir)
+        self.ses['akhir'] = self.akhir
+        self.ses['dt_akhir'] = self.dt_akhir
 
-#         self.tahun_awal = 'tahun_awal' in self.ses and self.ses['tahun_awal'] or self.tahun
-#         self.tahun_awal = 'tahun_awal' in self.params and self.params[
-#             'tahun_awal'] or self.tahun_awal
-#         self.ses['tahun_awal'] = self.tahun_awal
+        self.tahun_awal = 'tahun_awal' in self.ses and self.ses['tahun_awal'] or self.tahun
+        self.tahun_awal = 'tahun_awal' in self.params and self.params[
+            'tahun_awal'] or self.tahun_awal
+        self.ses['tahun_awal'] = self.tahun_awal
 
-#         self.tahun_akhir = 'tahun_akhir' in self.ses and self.ses[
-#             'tahun_akhir'] or self.tahun_awal
-#         self.tahun_akhir = 'tahun_akhir' in self.params and self.params[
-#             'tahun_akhir'] or self.tahun_akhir
-#         self.ses['tahun_akhir'] = self.tahun_akhir
+        self.tahun_akhir = 'tahun_akhir' in self.ses and self.ses[
+            'tahun_akhir'] or self.tahun_awal
+        self.tahun_akhir = 'tahun_akhir' in self.params and self.params[
+            'tahun_akhir'] or self.tahun_akhir
+        self.ses['tahun_akhir'] = self.tahun_akhir
 
 #         self.departemen_kd = 'departemen_kd' in self.ses and self.ses[
 #             'departemen_kd'] or '0.0.00'
