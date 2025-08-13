@@ -225,7 +225,7 @@ class ViewAuth(BaseView):
                 set_user_log(msg, request, log, identity)
                 if self.req.is_xhr:
                     d = self.form2dict(e.field)
-                    return Response(json=d)
+                    return Response(json=d["children"])
                 request.session.flash(msg, 'error')
                 return HTTPFound(location=request.route_url('base-login'))
 
@@ -279,7 +279,8 @@ class ViewAuth(BaseView):
                 request.session.flash(str(e), "error")
                 if self.req.is_xhr:
                     # return Response(form.render())
-                    return Response(json=self.form2dict(form))
+                    d = self.form2dict(form)
+                    return Response(json=d["children"])
                 return render_to_response(
                     login_tpl, dict(
                         form=form,
@@ -302,7 +303,10 @@ class ViewAuth(BaseView):
         #                 next_url=next_url,
         #                 login=login, )
         if self.req.is_xhr:
-            return Response(json=self.form2dict(form))
+            d = self.form2dict(form)
+            d = d["children"]
+            # d["permission"]=user.get_permissions()
+            return Response(json=d)
         if login_tpl:
 
             return render_to_response(
@@ -353,8 +357,11 @@ def redirect_login(request, user):
     request.session.flash("Sukses Login")
     next_url = request.params.get('next')
     if request.is_xhr:
-        return Response(json={"success": True,
-                              "token": user.security_code}, headerlist=headers)
+        return Response(json={
+            "success": True,
+            "permission": user.get_permissions(),
+            "token": user.security_code
+        }, headerlist=headers)
 
     if not next_url and request.matched_route.name == 'login':
         url = get_params('modules_default', 'base-home')

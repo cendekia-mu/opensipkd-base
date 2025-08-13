@@ -229,7 +229,6 @@ class BaseView(object):
             for k, v in value.items():
                 if type(v) in (colander.null, colander._null):
                     value[k] = ""
-        return children
         d = {
             "id": field.oid,
             "name": field.name,
@@ -597,7 +596,7 @@ class BaseView(object):
         if self.req.is_xhr:
             d = self.form2dict(form)
             import json
-            return Response(json=d)
+            return Response(json=d["children"])
 
         resources = form.get_widget_resources()
         readonly = "readonly" in kwargs and kwargs["readonly"] or False

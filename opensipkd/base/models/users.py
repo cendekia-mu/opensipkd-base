@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from click import group
 import pytz
 import sqlalchemy as sa
 from opensipkd.tools import as_timezone
@@ -146,6 +147,16 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
     def get_list(cls):
         qry = cls.query_list()
         return qry.all()
+
+    def get_permissions(self):
+        groups = UserGroup.get_by_user(self)
+        perm_names=[]
+        for g in groups:
+            group_permissions = DBSession.query(GroupPermission).filter_by(group_id=g).all()
+            for gp in group_permissions:
+                if gp.perm_name not in perm_names:
+                    perm_names.append(gp.perm_name)
+        return perm_names
 
     # @classmethod
     # def get_departemen_id(cls, user_id):
