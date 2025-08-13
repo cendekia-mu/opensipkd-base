@@ -229,6 +229,7 @@ class BaseView(object):
             for k, v in value.items():
                 if type(v) in (colander.null, colander._null):
                     value[k] = ""
+        return children
         d = {
             "id": field.oid,
             "name": field.name,
