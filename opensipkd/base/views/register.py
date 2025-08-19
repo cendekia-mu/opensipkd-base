@@ -122,6 +122,7 @@ class AddSchema(colander.Schema):
                 FileData(),
                 widget=widget.FileUploadWidget(mem_tmp_store),
                 title=_("ID Card"),
+                missing=colander.drop,
                 validator=image_validator)
 
         if BASE_CLASS.reg_nip:

@@ -1,4 +1,5 @@
 import logging
+from math import tan
 import os
 import re
 from datetime import datetime
@@ -87,7 +88,7 @@ class BaseView(object):
         self.allow_delete = True
         self.allow_post = False
         self.allow_unpost = False
-        self.allow_check = False
+        self.allow_check = False  
         self.check_field = ""
         self.state_save = False
         self.server_side = True
@@ -592,21 +593,23 @@ class BaseView(object):
         """
         return self.route_list(**kwargs)
 
-    def returned_form(self, form, table=None, **kwargs):
+    def returned_form(self, form, **kwargs):
+        table = kwargs.get("table", None)
         if self.req.is_xhr:
             d = self.form2dict(form)
-            import json
             return Response(json=d["children"])
 
         resources = form.get_widget_resources()
         readonly = "readonly" in kwargs and kwargs["readonly"] or False
         kwargs["readonly"] = readonly
         is_object = kwargs.get("is_object", self.is_object)
+        kwargs.pop("table", None)
         if dict == type(table):
             resources["js"].extend(set(table["js"]) - set(resources["js"]))
             resources["css"].extend(set(table["css"]) - set(resources["css"]))
             table = table["form"]
         if is_object:
+
             return dict(form=form,
                         table=table and table.render() or None,
                         scripts=self.form_scripts,
@@ -798,6 +801,7 @@ class BaseView(object):
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
         table = self.get_item_table(**kwargs)
+        kwargs["table"] = table
         self.ses["readonly"] = False
         if self.req.POST:
             if 'save' in self.req.POST:
@@ -822,12 +826,13 @@ class BaseView(object):
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
             else:
-                return self.next_add(form, table=table, resources=resources, **kwargs)
+                return self.next_add(form, resources=resources, **kwargs)
 
             return self.route_list(**kwargs)
         values = self.before_add()
         form.set_appstruct(values)
-        return self.returned_form(form, table, **kwargs)
+        kwargs["table"] = table
+        return self.returned_form(form, **kwargs)
 
     def save(self, values, user, row=None):
         log.debug("Save")
@@ -941,6 +946,7 @@ class BaseView(object):
 
         form = self.get_form(self.edit_schema, **kwargs)
         table = self.get_item_table(parent=row)
+        kwargs["table"] = table
         values = self.get_values(row)
         if request.POST:
             if 'save' in request.POST:
@@ -958,10 +964,15 @@ class BaseView(object):
                             e.cstruct[f.name] = self.get_captcha_url()
                     values = self.update_value(values, e.cstruct)
                     form.set_appstruct(values)
-                    return self.returned_form(form, table, **kwargs)
+                    return self.returned_form(form, **kwargs)
 
                 c = dict(controls)
                 self.save_request(c, row)
+                if self.req.is_xhr:
+                    form.set_appstruct(c)
+                    d = self.form2dict(form)
+                    return Response(json=d["children"])
+
                 return self.after_edit(row=row, **kwargs)
 
             return self.next_edit(form, row=row)
@@ -969,7 +980,7 @@ class BaseView(object):
         form.set_appstruct(values)
         form = self.before_edit(form)
 
-        return self.returned_form(form, table, **kwargs)
+        return self.returned_form(form, **kwargs)
 
     def delete_msg(self, row):
         return f'Data ID {row.id} sudah dihapus.'
