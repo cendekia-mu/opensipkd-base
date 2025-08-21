@@ -361,6 +361,7 @@ def _add_route(config, route):
     
     if int(route.get("typ", 0)) == 0:
         config.add_route(route.get("kode"), route.get("path"))
+
     elif int(route.get("typ")) == 1:
         config.add_jsonrpc_endpoint(route.get("kode"), route.get("path"),
                                     default_renderer="json_rpc")
@@ -399,10 +400,13 @@ def _add_view_config(config, paket, route):
         params = dict(attr=f"{attr}",
                       route_name=route.get("kode"),
                       renderer=template)
+        
         if route.get("permission"):
             params["permission"] = route.get("permission")
         if route.get("crsf"):
             params["require_csrf"] = True
+        if route.get("request_method"):
+            params["request_method"] = route.get("request_method")
 
         config.add_view(views, **params)
 

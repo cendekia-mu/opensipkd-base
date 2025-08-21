@@ -116,15 +116,30 @@ class AddSchema(colander.Schema):
                 colander.String(),
                 widget=widget.TextInputWidget(),
                 title=_("ID Number"),
-                # missing=colander.drop,
                 oid="kode")
+            
             self["idcard"] = colander.SchemaNode(
                 FileData(),
                 widget=widget.FileUploadWidget(mem_tmp_store),
                 title=_("ID Card"),
                 missing=colander.drop,
-                validator=image_validator)
+                    validator=image_validator)
+            # if request.is_xhr:
+            #      if request.POST:
+            #         self["idcard"] = colander.SchemaNode(
+            #         FileData(),
+            #         title=_("ID Card"),
+            #         validator=image_validator)
+            #      else:
+            #         self["idcard"] = colander.SchemaNode(
+            #             colander.String(),
+            #             title=_("ID Card"),
+            #             missing=colander.drop)
 
+
+            # else:
+
+               
         if BASE_CLASS.reg_nip:
             self["nip"] = colander.SchemaNode(
                 colander.String(),
@@ -313,6 +328,11 @@ class Views(BaseView):
                     user, value['password']):
                 err_login()
 
+        # if self.req.is_xhr:
+        #     if "upload" in value and value["upload"]:
+        #         value["idcard"] = value["upload"]
+
+
         if "idcard" in value and value["idcard"]:
             idcard = value["idcard"]
             if "fp" in idcard and idcard["fp"] and idcard["fp"] != b'':
@@ -418,20 +438,19 @@ class Views(BaseView):
                       "idcard"]
             for f in fields:
                 d[f] = hasattr(partner, f) and getattr(partner, f) or ""
-            if "idcard" in d:
-                if d["idcard"]:
-                    filename = d["idcard"]
-                    preview_url = "/".join(
-                        [self.req.static_url(BASE_CLASS.partner_doc),
-                         filename])
-                    d["idcard"] = {"uid": filename.split(".")[0],
-                                   "filename": filename,
-                                   "preview_url": preview_url
-                                   }
-                else:
-                    d.pop("idcard")
-            else:
-                d.pop("idcard")
+            filename = d.get("idcard", "")
+            d.pop("idcard")
+            preview_url = "/".join(
+                [self.req.static_url(BASE_CLASS.partner_doc),
+                 filename])
+            # if self.req.is_xhr: # Penambahan jika XHR tidak di parsing
+            #     d["idcard"] = filename and preview_url or ""
+            # else:
+            if filename:
+                d["idcard"] = {"uid": filename.split(".")[0],
+                            "filename": filename,
+                            "preview_url": preview_url
+                            }
         return d
 
     # def before_add(self):
@@ -451,28 +470,30 @@ class Views(BaseView):
         return resp
 
 
-#     def next_add(self, form, **kwargs):
-#         table = kwargs.get("table")
-#         kwargs.pop("table", None)
-#         resources = kwargs.get("resources")
-#         if 'register' in self.req.POST:
-#             controls = self.req.POST.items()
-#             try:
-#                 c = form.validate(controls)
-#             except ValidationFailure as e:
-#                 value = self.before_add()
-#                 for f in e.field.children:
-#                     if isinstance(f.typ, colander.Date):
-#                         e.cstruct[f.name] = date_from_str(
-#                             e.cstruct[f.name])
-#                     if f.name == "captcha":
-#                         e.cstruct[f.name] = self.get_captcha_url()
-#                 value.update(e.cstruct)
-#                 form.set_appstruct(e.cstruct)
-#                 return self.returned_form(form, table, **kwargs)
+"""
+    def next_add(self, form, **kwargs):
+        table = kwargs.get("table")
+        kwargs.pop("table", None)
+        resources = kwargs.get("resources")
+        if 'register' in self.req.POST:
+            controls = self.req.POST.items()
+            try:
+                c = form.validate(controls)
+            except ValidationFailure as e:
+                value = self.before_add()
+                for f in e.field.children:
+                    if isinstance(f.typ, colander.Date):
+                        e.cstruct[f.name] = date_from_str(
+                            e.cstruct[f.name])
+                    if f.name == "captcha":
+                        e.cstruct[f.name] = self.get_captcha_url()
+                value.update(e.cstruct)
+                form.set_appstruct(e.cstruct)
+                return self.returned_form(form, table, **kwargs)
 
-#                 #            js=resources["js"])
-#             values = dict(c)
-#             row = self.save_request(values)
-#             self.after_add(row=row, values=values)
-#         return self.route_list()
+                #            js=resources["js"])
+            values = dict(c)
+            row = self.save_request(values)
+            self.after_add(row=row, values=values)
+        return self.route_list()
+"""

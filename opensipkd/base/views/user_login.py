@@ -47,7 +47,7 @@ from opensipkd.tools.buttons import btn_cancel
 from .base_views import CSRFSchema, BaseView
 from pyramid.i18n import TranslationStringFactory
 from ..widgets import widget_os
-
+import json
 _ = TranslationStringFactory('login')
 
 log = __import__("logging").getLogger(__name__)
@@ -197,8 +197,10 @@ class ViewAuth(BaseView):
         if request.authenticated_userid:  # (request):
             message = 'Anda sudah login'
             if self.req.is_xhr:
-                return Response(json={"success": True,
-                                      "msg": message})
+                return Response(json={"error": 
+                                      {"code": "0000",
+                                      "msg": message},
+                                      "data":[]})
 
             request.session.flash('Anda sudah login', 'error')
             return HTTPFound(location=f"{request.home}")
@@ -224,8 +226,10 @@ class ViewAuth(BaseView):
                 msg = 'Login gagal'
                 set_user_log(msg, request, log, identity)
                 if self.req.is_xhr:
-                    d = self.form2dict(e.field)
-                    return Response(json=d["children"])
+                    d = {"error": e.error.asdict()}
+                    return Response(json=d)
+                    # d = self.form2dict(e.field)
+                    # return Response(json={"data": d["children"]})
                 request.session.flash(msg, 'error')
                 return HTTPFound(location=request.route_url('base-login'))
 
@@ -255,8 +259,8 @@ class ViewAuth(BaseView):
                     request.session.flash(login.message, "error")
                     if self.req.is_xhr:
                         return Response(json={"error": {"code": -1,
-                                                        "msg": login.message}
-                                              })
+                                                        "msg": login.message},
+                                              "data":[]})
 
                     next_url = f"{request.route_url('base-login')}?next={next_url}"
                     return HTTPFound(location=next_url)
@@ -280,7 +284,7 @@ class ViewAuth(BaseView):
                 if self.req.is_xhr:
                     # return Response(form.render())
                     d = self.form2dict(form)
-                    return Response(json=d["children"])
+                    return Response(json={"data": d["children"]})
                 return render_to_response(
                     login_tpl, dict(
                         form=form,
@@ -303,10 +307,12 @@ class ViewAuth(BaseView):
         #                 next_url=next_url,
         #                 login=login, )
         if self.req.is_xhr:
-            d = self.form2dict(form)
-            d = d["children"]
+            return self.resp_xhr({"data": [form.cstruct]})
+
+            # d = self.form2dict(form)
+            # d = d["children"]
             # d["permission"]=user.get_permissions()
-            return Response(json=d)
+            return Response(json={"data": d})
         if login_tpl:
 
             return render_to_response(
@@ -340,7 +346,8 @@ class ViewAuth(BaseView):
                 request.response.delete_cookie("g_state", '/')
             if self.req.is_xhr:
                 return Response(json={"success": True,
-                                      "message": "Sukses Logout"},
+                                      "message": "Sukses Logout",
+                                      "data": []},
                                 headerlist=headers)
             form.set_appstruct({"message": "Sukses Logout"})
             request.session["login"] = False
@@ -359,8 +366,13 @@ def redirect_login(request, user):
     if request.is_xhr:
         return Response(json={
             "success": True,
-            "permission": user.get_permissions(),
-            "token": user.security_code
+            "data": [
+                {
+                    "permission": user.get_permissions(),
+                    "token": user.security_code
+                }
+            ],
+
         }, headerlist=headers)
 
     if not next_url and request.matched_route.name == 'login':
