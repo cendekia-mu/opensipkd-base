@@ -29,6 +29,7 @@ from .common import DataTables
 from ..models import DBSession, Partner
 # , get_params, get_urls
 from ..scripts.initializedb import append_csv
+from ..tools import obj2json
 from ...detable import DeTable
 from opensipkd.base import BASE_CLASS
 from pyramid.csrf import new_csrf_token, get_csrf_token
@@ -936,23 +937,13 @@ class BaseView(object):
     def edit_restrict(self, row):
         return False
 
-    def obj2json(self, values):
-        for key, val in values.items():
-            if isinstance(val, datetime):
-                values[key] = val.strftime('%Y-%m-%d %H:%M:%S')
-            elif isinstance(val, date):
-                values[key] = val.strftime('%Y-%m-%d')
-            elif isinstance(val, Decimal):
-                values[key] = float(val)
-            elif isinstance(val, colander._null):
-                values[key] = ""
-        return values
+
     
     def resp_xhr(self, values):
         if values.get("data"):
             data = []
             for val  in values["data"]:
-                data.append(self.obj2json(val))
+                data.append(obj2json(val))
             values["data"] = data
 
         return Response(json=values)

@@ -23,6 +23,7 @@ import os
 import re
 from datetime import timedelta, datetime
 from importlib import import_module
+from opensipkd.base.tools import obj2json
 from pyramid.request import Response
 import colander
 from deform import widget, Form, ValidationFailure, Button
@@ -363,17 +364,23 @@ def redirect_login(request, user):
     headers = get_login_headers(request, user)
     request.session.flash("Sukses Login")
     next_url = request.params.get('next')
-    if request.is_xhr:
-        return Response(json={
-            "success": True,
-            "data": [
-                {
-                    "permission": user.get_permissions(),
-                    "token": user.security_code
-                }
-            ],
+    partner = Partner.query_email(user.email).first()
+    mobile = partner and partner.mobile or ""
+    nama = partner and partner.nama or ""
+    data = {
+        "data": [
+            {
+                "permission": user.get_permissions(),
+                "token": user.security_code,
+                "mobile": mobile,
+                "email": user.email,
+                "nama": nama,
+            }
+        ],
 
-        }, headerlist=headers)
+    }
+    if request.is_xhr:
+        return Response(json=data, headerlist=headers)
 
     if not next_url and request.matched_route.name == 'login':
         url = get_params('modules_default', 'base-home')

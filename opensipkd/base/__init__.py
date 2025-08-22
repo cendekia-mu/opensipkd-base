@@ -542,7 +542,7 @@ class BaseApp():
     def route_from_csv_(self, config, paket="tangsel.base.views", rows=[]):
         new_routes = []
         for row in rows:
-            status = row.get("status", 0)
+            status = row.get("status", 0) or 0
             if not row["kode"] or not int(status):
                 continue
 
