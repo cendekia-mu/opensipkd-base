@@ -370,6 +370,7 @@ def redirect_login(request, user):
     data = {
         "data": [
             {
+                "user_id": user.user_name,
                 "permission": user.get_permissions(),
                 "token": user.security_code,
                 "mobile": mobile,
