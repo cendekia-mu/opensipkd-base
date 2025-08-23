@@ -7,7 +7,7 @@ from opensipkd.base.models import DBSession
 from opensipkd.tools.pbb import FixSppt
 from opensipkd.tools.buttons import btn_save, btn_cancel
 from . import api_messages
-
+from ..tools import obj2json
 
 
 class ApiViews:
@@ -24,6 +24,9 @@ class ApiViews:
         self.bindings = {}
         self.form_widget = None
         self.autocomplete = True
+
+    def obj2json(self, obj):
+        return obj2json(obj)
     
     def get_bindings(self, row=None):
         """Get form bindings for the specified row."""
@@ -92,6 +95,10 @@ class ApiViews:
         return query
     
     def success(self, data=[], msg=None):
+        if type(data) is not list:
+            data = [data]
+        for i, item in enumerate(data):
+            data[i] = self.obj2json(item)
         data = {"data": data}
         if msg:
             data.update(msg)
