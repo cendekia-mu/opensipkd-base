@@ -94,6 +94,18 @@ class ApiViews:
 
         return query
     
+    def query_id(self, **kw):
+        table = kw.get("table", self.table)
+        orders = kw.get("orders", self.get_orders)
+        if hasattr(table, "query_id") and self.id:
+            query = table.query_id(self.id)
+            query = orders(query, table=table)
+            query = query.limit(self.psize).offset(
+                (self.page - 1) * self.psize)
+            return query
+
+        return self.query(**kw)
+    
     def success(self, data=[], msg=None):
         if type(data) is not list:
             data = [data]
