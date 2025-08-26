@@ -26,8 +26,10 @@
 # 4. Form edit registrasi http://server/register/{uid}/edit
 # 5. Form Upload template
 # """
+from calendar import c
 import logging
 from datetime import datetime
+import re
 
 import colander
 from deform import (widget, FileData, ValidationFailure, Button)
@@ -156,6 +158,12 @@ class AddSchema(colander.Schema):
                     request=request,
                     url=request.static_url(BASE_CLASS.captcha_files)),
                 oid="captcha", title=_("Captcha"))
+            if request.is_xhr:
+                self["captcha_text"] = colander.SchemaNode(
+                    colander.String(),
+                    widget = widget.TextInputWidget(),
+                    missing=colander.drop,
+                    )
 
         if request.user and request.user.id and not external_user:
             self["password"] = colander.SchemaNode(
@@ -355,6 +363,12 @@ class Views(BaseView):
                 nama=" ".join([result["given_name"], result["family_name"]])))
         # if BASE_CLASS.reg_captcha:
             # result.update(dict(captcha=self.req.static_url(BASE_CLASS.captcha_files)))
+        if self.req.is_xhr:
+            url = self.req.static_url(BASE_CLASS.captcha_files)
+            kode_captcha, file_name = widget_os.img_captcha(self.req)
+            self.ses["captcha"] = kode_captcha
+            result.update(dict(captcha=url+file_name,
+                               captcha_text=kode_captcha))
         return result
 
 #     # def after_save(self, row, values):

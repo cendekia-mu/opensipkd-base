@@ -671,7 +671,8 @@ class BaseView(object):
         form.set_appstruct(values)
         table = self.get_item_table(parent=row)
         kwargs["readonly"] = True
-        return self.returned_form(form, table, **kwargs)
+        kwargs["table"] = table
+        return self.returned_form(form, **kwargs)
 
     def after_view(self, **kwargs):
         """Digunakan untuk customize Proses
@@ -776,6 +777,8 @@ class BaseView(object):
 
     def after_add(self, row=None, **kwargs):
         """Digunakan untuk memproses setelah data tersimpan ke database"""
+        if self.req.is_xhr:
+            return self.resp_xhr({"data": {"status": "success"}})
         return self.route_list(**kwargs)
 
     def after_edit(self, row=None, **kwargs):
@@ -814,10 +817,28 @@ class BaseView(object):
         if self.req.POST:
             if 'save' in self.req.POST:
                 controls = self.req.POST.items()
+                if self.req.is_xhr:
+                    cloned = self.req.POST.items()
+                    controls = []
+                    for ctrl in cloned:
+                        if isinstance(ctrl[1], FieldStorage):
+                            controls.append(
+                                ("__start__", f"{ctrl[0]}:mapping"))
+                            controls.append(("upload", ctrl[1]))
+                            controls.append(("uid", ""))
+                            controls.append(("__end__", f"{ctrl[0]}:mapping"))
+                            log.debug(f"Control: {ctrl}")
+                        else:
+                            controls.append(ctrl)
                 try:
                     c = form.validate(controls)
                 except ValidationFailure as e:
                     value = self.before_add()
+                    if self.req.is_xhr:
+                        error = e.error.asdict()
+                        error.update(value)
+                        return self.resp_xhr({"error": error})
+
                     for f in e.field.children:
                         if isinstance(f.typ, colander.Date):
                             e.cstruct[f.name] = date_from_str(
@@ -826,7 +847,8 @@ class BaseView(object):
                             e.cstruct[f.name] = self.get_captcha_url()
                     value = self.update_value(value, e.cstruct)
                     form.set_appstruct(value)
-                    return self.returned_form(form, table, **kwargs)
+                    kwargs["table"]=table
+                    return self.returned_form(form, **kwargs)
 
                 values = dict(c)
                 row = self.save_request(values)
@@ -942,6 +964,8 @@ class BaseView(object):
     def resp_xhr(self, values):
         if values.get("data"):
             data = []
+            if values and type(values["data"]) is not list:
+                values["data"] = [values["data"]]
             for val  in values["data"]:
                 data.append(obj2json(val))
             values["data"] = data
