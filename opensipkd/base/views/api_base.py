@@ -4,7 +4,6 @@ from deform import Form
 from pyramid.response import Response
 from pyramid.exceptions import HTTPNotFound
 from opensipkd.base.models import DBSession
-from opensipkd.tools.pbb import FixSppt
 from opensipkd.tools.buttons import btn_save, btn_cancel
 from . import api_messages
 from ..tools import obj2json
@@ -66,11 +65,8 @@ class ApiViews:
 
         return Form(schema, buttons=buttons, autocomplete=self.autocomplete)
 
-    def filter_ids(self, query, **kw):
-        # table = kw.get("table", self.table)
-        ids = FixSppt(self.id).row_dotted.split(".")
-        filters = dict(zip(self.pkey, ids))
-        return query.filter_by(**filters)
+    def get_filters(self, query, **kw):
+        return query
 
     def get_orders(self, query, **kw):
         table = kw.get("table", self.table)
@@ -80,26 +76,39 @@ class ApiViews:
         query = query.order_by(*(getattr(table, k) for k in self.orders))
         return query
     
+    def get_joins(self, query, **kw):
+        return query
+    
+    def get_groups(self, query, **kw):
+        return query
+    
     def query(self, **kw):
         table = kw.get("table", self.table)
-        filter_ids = kw.get("filters", self.filter_ids)
-        orders = kw.get("orders", self.get_orders)
+        get_filters = kw.get("filters", self.get_filters)
+        get_joins = kw.get("joins", self.get_joins)
+        get_groups = kw.get("groups", self.get_groups)
+        get_orders = kw.get("orders", self.get_orders)
         query = self.db_session.query(table)
-        if self.id:
-            query = filter_ids(query, table=table)
-        else:
-            query = orders(query, table=table)
-            query = query.limit(self.psize).offset(
-                (self.page - 1) * self.psize)
-
+        query = get_joins(query, table=table)
+        query = get_groups(query, table=table)
+        query = get_filters(query, table=table)
+        query = get_orders(query, table=table)
+        query = query.limit(self.psize).offset((self.page - 1) * self.psize)
         return query
     
     def query_id(self, **kw):
         table = kw.get("table", self.table)
-        orders = kw.get("orders", self.get_orders)
+        get_joins = kw.get("joins", self.get_joins)
+        get_groups = kw.get("groups", self.get_groups)
+        get_filters = kw.get("filters", self.get_filters)
+        get_orders = kw.get("orders", self.get_orders)
+
         if hasattr(table, "query_id") and self.id:
             query = table.query_id(self.id)
-            query = orders(query, table=table)
+            query = get_joins(query, table=table)
+            query = get_groups(query, table=table)
+            query = get_filters(query, table=table)
+            query = get_orders(query, table=table)
             query = query.limit(self.psize).offset(
                 (self.page - 1) * self.psize)
             return query
