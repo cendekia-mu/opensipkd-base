@@ -409,6 +409,7 @@ def _add_view_config(config, paket, route):
             params["request_method"] = route.get("request_method")
 
         config.add_view(views, **params)
+        
 
     except Exception as e:
         _logging.error("Add View Config :{code} Kode {error}"
