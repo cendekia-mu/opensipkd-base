@@ -89,10 +89,10 @@ class ApiViews:
         get_groups = kw.get("groups", self.get_groups)
         get_orders = kw.get("orders", self.get_orders)
         query = self.db_session.query(table)
-        query = get_joins(query, table=table)
-        query = get_groups(query, table=table)
-        query = get_filters(query, table=table)
-        query = get_orders(query, table=table)
+        query = get_joins(query,  **kw)
+        query = get_groups(query,  **kw)
+        query = get_filters(query, **kw)
+        query = get_orders(query, **kw)
         query = query.limit(self.psize).offset((self.page - 1) * self.psize)
         return query
     
@@ -102,13 +102,12 @@ class ApiViews:
         get_groups = kw.get("groups", self.get_groups)
         get_filters = kw.get("filters", self.get_filters)
         get_orders = kw.get("orders", self.get_orders)
-
         if hasattr(table, "query_id") and self.id:
             query = table.query_id(self.id)
-            query = get_joins(query, table=table)
-            query = get_groups(query, table=table)
-            query = get_filters(query, table=table)
-            query = get_orders(query, table=table)
+            query = get_joins(query, **kw)
+            query = get_groups(query, **kw)
+            query = get_filters(query, **kw)
+            query = get_orders(query, **kw)
             query = query.limit(self.psize).offset(
                 (self.page - 1) * self.psize)
             return query
