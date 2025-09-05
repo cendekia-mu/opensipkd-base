@@ -8,21 +8,34 @@ from opensipkd.tools.buttons import btn_save, btn_cancel
 from . import api_messages
 from ..tools import obj2json
 
+from pyramid.response import Response
 
-class ApiViews:
-    def __init__(self, request):
-        self.request = request
-        self.id = self.request.matchdict.get("id")
+from pyramid_restful.views import APIView
+
+
+class ApiViews(APIView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.request = kwargs.get("request", None)
         self.db_session = DBSession
+        self.buttons = (btn_save, btn_cancel)
         self.table = None
         self.pkey = ("id")
         self.orders = None
-        self.psize = int(request.params.get("size", 25))
-        self.page = int(request.params.get("page", 1))
-        self.buttons = (btn_save, btn_cancel)
         self.bindings = {}
-        self.form_widget = None
+        self.id = -1
         self.autocomplete = True
+        self.form_widget = None
+
+
+        self.psize = 25
+
+
+        self.page =1
+        
+    # def __init__(self, request):
+    #     self.request = request
+    #     self.id = self.request.matchdict.get("id")
 
     def obj2json(self, obj):
         return obj2json(obj)
@@ -83,6 +96,9 @@ class ApiViews:
         return query
     
     def query(self, **kw):
+        self.psize = int(self.request.params.get("size", 25))
+        self.page = int(self.request.params.get("page", 1))
+
         table = kw.get("table", self.table)
         get_filters = kw.get("filters", self.get_filters)
         get_joins = kw.get("joins", self.get_joins)
@@ -108,14 +124,15 @@ class ApiViews:
             query = get_groups(query, **kw)
             query = get_filters(query, **kw)
             query = get_orders(query, **kw)
-            query = query.limit(self.psize).offset(
-                (self.page - 1) * self.psize)
             return query
 
         return self.query(**kw)
     
-    def success(self, data=[], msg=None):
-        if type(data) is not list:
+    def success(self, data, msg=None):
+        """
+        Mengubah data menjadi list dan convert objek menjadi string
+        """
+        if not isinstance(data, list):
             data = [data]
         for i, item in enumerate(data):
             data[i] = self.obj2json(item)
@@ -124,7 +141,8 @@ class ApiViews:
             data.update(msg)
         return data
     
-    def get(self):
+    def get(self, request, *args, **kwargs):
+        self.request = request
         query=self.query()
         if not query.first():
             return HTTPNotFound()
@@ -140,13 +158,13 @@ class ApiViews:
             data.append(d)
         return Response(json=self.success(data=data))
 
-    def post(self, data):
-        self.request = data
+    def post(self, request, *args, **kwargs):
+        self.request = request
         return self.request
 
     def delete(self):
         query = self.db_session.query(self.table)
-        query = self.filter_ids(query)
+        # query = self.filter_ids(query)
         row = query.first()
         if not row:
             return HTTPNotFound()

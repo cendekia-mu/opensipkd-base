@@ -286,8 +286,6 @@ class Views(BaseView):
     def before_delete(self, row):
         PartnerFiles.query().filter_by(partner_id=row.id).delete()
 
-    def before_delete(self, row):
-        PartnerFiles.query().filter_by(partner_id=row.id).delete()
 
 @colander.deferred
 def partner_widget(node, kw):

@@ -359,7 +359,7 @@ def _add_route(config, route):
         _logging.warning(f"Route {route.get('kode')} sudah ada di titles")
         return
     
-    if int(route.get("typ", 0)) == 0:
+    if int(route.get("typ", 0)) in [0,2]:
         config.add_route(route.get("kode"), route.get("path"))
 
     elif int(route.get("typ")) == 1:
@@ -379,11 +379,21 @@ def _add_view_config(config, paket, route):
     # _logging.debug(f"File Name: {file_name}")
     attr = f"{route.get('func_name')}"
     try:
-        _views = importlib.import_module(file_name)
+
         class_name = route.get("class_name", None)
+        if not file_name:
+            _logging.error(f"File not found: {file_name}")
+            return
+        _views = importlib.import_module(file_name)
+        
         if not class_name:
             class_name = "Views"
-
+            
+        if not hasattr(_views, class_name):
+            _logging.error(
+                f"Class {class_name} not found in {file_name}")
+            return
+        
         views = getattr(_views, class_name)
         template = route.get("template", "form.pt")
         if not template:
@@ -407,9 +417,12 @@ def _add_view_config(config, paket, route):
             params["require_csrf"] = True
         if route.get("request_method"):
             params["request_method"] = route.get("request_method")
-
-        config.add_view(views, **params)
-        
+        if route.get("typ")==2:
+            params.pop("attr", None)
+            params.pop("renderer", None)
+            config.add_view(views.as_view(), **params)
+        else:
+            config.add_view(views, **params)
 
     except Exception as e:
         _logging.error("Add View Config :{code} Kode {error}"
