@@ -5,8 +5,10 @@ import os
 import re
 from datetime import datetime, date
 from email.utils import parseaddr
+from tarfile import data_filter
 from cgi import FieldStorage 
 from webob.multidict import MultiDict
+from opensipkd.tools.captcha import img_captcha
 
 import colander
 from datatables import ColumnDT
@@ -605,7 +607,15 @@ class BaseView(object):
     def returned_form(self, form, **kwargs):
         table = kwargs.get("table", None)
         if self.req.is_xhr:
-            return self.resp_xhr({"data": [form.cstruct]})
+            data =  form.cstruct
+            if "captcha" in form:
+                kode_captcha, file_name = img_captcha(self.req)
+                self.req.session["captcha"] = kode_captcha
+                url = self.get_captcha_url()
+                cstruct = url+file_name
+                data["captcha"] = cstruct
+
+            return self.resp_xhr({"data": data})
 
         resources = form.get_widget_resources()
         readonly = "readonly" in kwargs and kwargs["readonly"] or False
@@ -836,7 +846,7 @@ class BaseView(object):
                     value = self.before_add()
                     if self.req.is_xhr:
                         error = e.error.asdict()
-                        error.update(value)
+                        # error.update(value)
                         return self.resp_xhr({"error": error})
 
                     for f in e.field.children:
@@ -969,7 +979,8 @@ class BaseView(object):
             for val  in values["data"]:
                 data.append(obj2json(val))
             values["data"] = data
-
+        else:
+            values["error"] = obj2json(values.get("error", {}))
         return Response(json=values)
 
 

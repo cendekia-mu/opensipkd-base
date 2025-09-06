@@ -370,11 +370,13 @@ class CaptchaWidget(Widget):
     strip = True
     requirements = ()
     request = None
+    url = ""
     
     def __init__(self, **kw):
         super(CaptchaWidget, self).__init__(**kw)
 
     def serialize(self, field, cstruct, **kw):
+        file_name = ""
         if not cstruct:
             kode_captcha, file_name = img_captcha(self.request)
             self.request.session["captcha"] = kode_captcha

@@ -197,11 +197,14 @@ class ViewAuth(BaseView):
 
         if request.authenticated_userid:  # (request):
             message = 'Anda sudah login'
-            if self.req.is_xhr:
-                return Response(json={"error": 
-                                      {"code": "0000",
-                                      "msg": message},
-                                      "data":[]})
+            if request.is_xhr:
+                user = request.user
+                headers = get_login_headers(request, user)
+                return xhr_response(user, headers)
+                # return Response(json={"error": 
+                #                       {"code": "0000",
+                #                       "msg": message},
+                #                       "data":[]})
 
             request.session.flash('Anda sudah login', 'error')
             return HTTPFound(location=f"{request.home}")
@@ -313,7 +316,7 @@ class ViewAuth(BaseView):
             # d = self.form2dict(form)
             # d = d["children"]
             # d["permission"]=user.get_permissions()
-            return Response(json={"data": d})
+            # return Response(json={"data": d})
         if login_tpl:
 
             return render_to_response(
@@ -355,6 +358,24 @@ class ViewAuth(BaseView):
 
         return dict(form=form.render())
 
+def xhr_response(user, headers):
+    partner = Partner.query_email(user.email).first()
+    mobile = partner and partner.mobile or ""
+    nama = partner and partner.nama or ""
+    data = {
+        "data": 
+            [{
+                "user_id": user.user_name,
+                "permission": user.get_permissions(),
+                "token": user.security_code,
+                "mobile": mobile,
+                "email": user.email,
+                "nama": nama,
+            }]
+        
+
+    }
+    return Response(json=data, headerlist=headers)
 
 def redirect_login(request, user):
     set_user_log("Login Sukses", request, log, user.user_name)
@@ -362,26 +383,9 @@ def redirect_login(request, user):
         log.debug(f"Group: {g.id} as {g.group_name}")
 
     headers = get_login_headers(request, user)
-    request.session.flash("Sukses Login")
-    next_url = request.params.get('next')
-    partner = Partner.query_email(user.email).first()
-    mobile = partner and partner.mobile or ""
-    nama = partner and partner.nama or ""
-    data = {
-        "data": [
-            {
-                "user_id": user.user_name,
-                "permission": user.get_permissions(),
-                "token": user.security_code,
-                "mobile": mobile,
-                "email": user.email,
-                "nama": nama,
-            }
-        ],
-
-    }
     if request.is_xhr:
-        return Response(json=data, headerlist=headers)
+        return xhr_response(user, headers)
+    next_url = request.params.get('next')
 
     if not next_url and request.matched_route.name == 'login':
         url = get_params('modules_default', 'base-home')
