@@ -13,8 +13,6 @@ _logging = logging.getLogger(__name__)
 
 class MySession(Session):
     def execute(self, clause, params=None, mapper=None, **kw):
-        # Your magic with clause here
-        # print("Session:", clause, params, mapper, kw)
         return Session.execute(self, clause, params)  # , mapper
 
 
