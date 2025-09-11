@@ -81,6 +81,11 @@ class CommonModel(object):
 
 class DefaultModel(CommonModel):
     id = Column(Integer, primary_key=True)
+    
+    db_session = DBSession
+    def __init__(self):
+        super().__init__()
+        self.db_session = DBSession
 
     @classmethod
     def save(cls, values, row=None, **kwargs):
@@ -91,7 +96,7 @@ class DefaultModel(CommonModel):
 
     @classmethod
     def count(cls, db_session=DBSession):
-        return db_session.query(func.count('id')).scalar()
+        return self.db_session.query(func.count('id')).scalar()
 
     @classmethod
     def query(cls, db_session=DBSession, filters=None):

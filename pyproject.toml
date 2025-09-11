@@ -25,6 +25,7 @@ dependencies = [
     "pyramid_mailer",
     'pyramid_chameleon',
     'pyramid_rpc',
+    "pyramid-restful-framework"
     'pytz',
     'psycopg2-binary',
     'requests',

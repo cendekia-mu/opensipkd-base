@@ -1,3 +1,6 @@
+from http.client import NOT_FOUND
+
+
 SUCCESS = {
     "error": {
         "code": "0000",
@@ -16,5 +19,12 @@ PAYMENTMISMATCH = {
     "error": {
         "code": "0002",
         "msg": "Jumlah pembayaran tidak sesuai"
+    }
+}
+
+NOT_FOUND = {
+    "error": {
+        "code": "404",
+        "msg": "Data Tidak Ditemukan"
     }
 }

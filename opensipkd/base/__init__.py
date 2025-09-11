@@ -5,18 +5,18 @@ import importlib
 import csv
 import re
 import datetime
-import deform
 import decimal
-from opensipkd.tools import get_settings, DefaultTimeZone, dmy, dmyhms, get_ext
+import deform
 from pkg_resources import resource_filename
 from pyramid.renderers import JSON
 from pyramid_beaker import session_factory_from_settings
 from pyramid.config import Configurator
 from pyramid.events import NewRequest, BeforeRender, subscriber
 from pyramid_mailer import mailer_factory_from_settings
-
-from .security import MySecurityPolicy, get_user
 from sqlalchemy import engine_from_config
+
+from opensipkd.tools import get_settings, DefaultTimeZone, dmy, dmyhms, get_ext
+from .security import MySecurityPolicy, get_user
 from .models.base import DBSession
 from .models.handlers import LogDBSession
 from .models.meta import Base
@@ -427,7 +427,7 @@ def _add_view_config(config, paket, route):
     except Exception as e:
         _logging.error("Add View Config :{code} Kode {error}"
                        .format(code=route["kode"], error=str(e)))
-    _logging.debug(f"Route: {route.get('kode')} {route.get('path')}")
+    # _logging.debug(f"Route: {route.get('kode')} {route.get('path')}")
 
 
 class BaseApp():
