@@ -57,7 +57,7 @@ class ApiViews(APIView):
         select_list = {}
         list_schema = kwargs.get("list_schema")
         if not list_schema:
-            list_schema = self.list_schema and self.list_schema or self.form_list
+            list_schema = self.list_schema and self.list_schema or None
 
         if not self.columns:
             columns = []
@@ -288,9 +288,9 @@ class ApiViews(APIView):
             self.req.GET.add('length', "10")
         if "start" not in self.req.params:
             self.req.GET.add('start', "0")
-        rec_id = self.req.matchdict.get('id')
-        if rec_id:
-            self.req.GET.add('columns[0][search][value]', rec_id)
+        # rec_id = self.req.matchdict.get('id')
+        # if rec_id:
+        #     self.req.GET.add('columns[0][search][value]', rec_id)
         return self.get_list(**kwargs)
     
     def get_custom_render(self, data):
