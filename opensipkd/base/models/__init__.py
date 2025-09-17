@@ -2,6 +2,7 @@ from .meta import *
 from .common import *
 from .base import *
 from .users import *
+from .users import _User, _UserGroup
 from .wilayah import *
 from .partner import *
 from .targets import *

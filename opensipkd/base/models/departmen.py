@@ -1,10 +1,10 @@
 from sqlalchemy import (Column, Integer, ForeignKey, String, SmallInteger)
-from sqlalchemy.orm import (relationship, backref)
+from sqlalchemy.orm import (relationship, backref, declared_attr)
 from ..models import DBSession, Base
 from ..models import (NamaModel, TABLE_ARGS)
 
 
-class Departemen(Base, NamaModel):
+class _Departemen(NamaModel):
     __tablename__ = 'departemen'
     __table_args__ = (TABLE_ARGS,)
     id = Column(Integer, primary_key=True)
@@ -13,8 +13,10 @@ class Departemen(Base, NamaModel):
     alamat = Column(String(255))
     singkat = Column(String(32))
     level_id = Column(SmallInteger)
-    children = relationship(
-        "Departemen", backref=backref('parent', remote_side=[id]))
+    @declared_attr
+    def children(self):
+        return relationship(
+        "Departemen", backref=backref('parent', remote_side=[self.id]))
 
     def get_parents(self, start=False):
         allparents = []
@@ -43,3 +45,6 @@ class Departemen(Base, NamaModel):
     @classmethod
     def get_list(cls):
         return DBSession.query(cls.id, cls.nama).order_by(cls.nama).all()
+    
+class Departemen(_Departemen, Base):
+    pass

@@ -22,23 +22,28 @@ from ziggurat_foundations.models.user_group import UserGroupMixin
 from ziggurat_foundations.models.user_permission import UserPermissionMixin
 from ziggurat_foundations.models.user_resource_permission import \
     UserResourcePermissionMixin
+from sqlalchemy.ext.declarative import declared_attr
 
 from .base import CommonModel, DBSession, DefaultModel
 from .meta import Base
 from .base import TABLE_ARGS
 
-class GroupPermission(GroupPermissionMixin, Base):
+class _GroupPermission(GroupPermissionMixin):
     pass
 
 
-class UserGroup(UserGroupMixin, Base, CommonModel):
+class GroupPermission(_GroupPermission, Base):
+    pass
+
+
+class _UserGroup(UserGroupMixin, CommonModel):
     @classmethod
     def _get_by_user(cls, user):
-        return DBSession.query(cls).filter_by(user_id=user.id).all()
+        return cls.db_session.query(cls).filter_by(user_id=user.id).all()
     
     @classmethod
     def query(cls):
-        return DBSession.query(cls)
+        return cls.db_session.query(cls)
 
     @classmethod
     def get_by_user(cls, user):
@@ -47,8 +52,10 @@ class UserGroup(UserGroupMixin, Base, CommonModel):
             groups.append(g.group_id)
         return groups
 
+class UserGroup(_UserGroup, Base):
+    pass
 
-class GroupResourcePermission(GroupResourcePermissionMixin, Base):
+class _GroupResourcePermission(GroupResourcePermissionMixin):
     __table_args__ = (
         sa.PrimaryKeyConstraint(
             "group_id",
@@ -60,19 +67,32 @@ class GroupResourcePermission(GroupResourcePermissionMixin, Base):
     )
 
 
-class Resource(ResourceMixin, Base):
+class GroupResourcePermission(_GroupResourcePermission, Base):
+    pass
+    
+class _Resource(ResourceMixin):
+    pass
+
+class Resource(_Resource, Base):
     pass
 
 
-class UserPermission(UserPermissionMixin, Base):
+class _UserPermission(UserPermissionMixin):
     pass
 
 
-class UserResourcePermission(UserResourcePermissionMixin, Base):
+class UserPermission(_UserPermission, Base):
     pass
 
 
-class User(UserMixin, BaseModel, DefaultModel, Base):
+class _UserResourcePermission(UserResourcePermissionMixin):
+    pass
+
+class UserResourcePermission(_UserResourcePermission, Base):
+    pass
+
+
+class _User(UserMixin, BaseModel):
     last_login_date = Column(DateTime(timezone=True), nullable=True)
     registered_date = Column(DateTime(timezone=True),
                              nullable=False,
@@ -114,15 +134,15 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
 
     # @classmethod
     # def query(cls):
-    #     return DBSession.query(cls)
+    #     return cls.db_session.query(cls)
 
     @classmethod
     def get_by_email(cls, email):
-        return DBSession.query(cls).filter_by(email=email).first()
+        return cls.db_session.query(cls).filter_by(email=email).first()
 
     @classmethod
     def get_by_name(cls, name):
-        return DBSession.query(cls).filter_by(user_name=name).first()
+        return cls.db_session.query(cls).filter_by(user_name=name).first()
 
     @classmethod
     def get_by_identity(cls, identity):
@@ -132,7 +152,7 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
 
     @classmethod
     def get_by_token(cls, token):
-        return DBSession.query(cls).filter_by(security_code=token)
+        return cls.db_session.query(cls).filter_by(security_code=token)
 
     @classmethod
     def query_register(cls):
@@ -141,7 +161,7 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
 
     @classmethod
     def query_list(cls):
-        return DBSession.query(cls.id, cls.user_name).order_by(cls.user_name)
+        return cls.db_session.query(cls.id, cls.user_name).order_by(cls.user_name)
 
     @classmethod
     def get_list(cls):
@@ -152,7 +172,7 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
         groups = UserGroup.get_by_user(self)
         perm_names=[]
         for g in groups:
-            group_permissions = DBSession.query(GroupPermission).filter_by(group_id=g).all()
+            group_permissions = cls.db_session.query(GroupPermission).filter_by(group_id=g).all()
             for gp in group_permissions:
                 if gp.perm_name not in perm_names:
                     perm_names.append(gp.perm_name)
@@ -180,7 +200,7 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
 
     # @classmethod
     # def get_list_by_departemen(cls, departemen_id):
-    #     rows = DBSession.query(User.id, Partner.nama) \
+    #     rows = cls.db_session.query(User.id, Partner.nama) \
     #         .join(Partner, User.id == Partner.user_id) \
     #         .filter(Partner.departemen_id == departemen_id).all()
     #     result = list(((row[0], row[1]) for row in rows))
@@ -188,14 +208,17 @@ class User(UserMixin, BaseModel, DefaultModel, Base):
     #     return result
 
 
-class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
-    user = relationship(User, backref=backref("external"))
+class User(_User, DefaultModel, Base):
+    pass
+
+class _ExternalIdentity(ExternalIdentityMixin):
+
     # ,
     # overlaps = "external_identities,owner"
 
     @classmethod
     def query(cls):
-        return DBSession.query(cls)
+        return cls.db_session.query(cls)
 
     @classmethod
     def query_user(cls, user):
@@ -206,6 +229,9 @@ class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
         return cls.query_user(user).count() > 0
 
 
+class ExternalIdentity(Base, _ExternalIdentity, CommonModel):
+    user = relationship(User, backref=backref("external"))
+
 # class GroupRoutePermission(Base, CommonModel):
 #     __tablename__ = 'groups_routes_permissions'
 #     __table_args__ = {'extend_existing': True, }
@@ -215,7 +241,7 @@ class ExternalIdentity(ExternalIdentityMixin, CommonModel, Base):
 #     groups = relationship("Group", backref=backref('grouppermission'))
 
 
-class Permission(Base, CommonModel):
+class _Permission(CommonModel):
     __tablename__ = 'permissions'
     __table_args__ = (TABLE_ARGS)
     id = Column(Integer, primary_key=True)
@@ -223,14 +249,19 @@ class Permission(Base, CommonModel):
     description = Column(String(64), nullable=False, unique=True)
 
 
-class Group(GroupMixin, Base, DefaultModel):
+class Permission(Base,  _Permission):
+    pass
+
+class _Group(GroupMixin, CommonModel):
     member_count = Column(Integer, nullable=True, default=0)
 
     @classmethod
     def query_group_name(cls, group_name):
-        return DBSession.query(cls).filter_by(group_name=group_name)
+        return cls.db_session.query(cls).filter_by(group_name=group_name)
 
-
+class Group(_Group, Base, DefaultModel):
+    pass
+    
 # It is used when there is a web request.
 class RootFactory:
     def __init__(self, request):
