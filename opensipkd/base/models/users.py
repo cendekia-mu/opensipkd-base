@@ -172,7 +172,7 @@ class _User(UserMixin, BaseModel):
         groups = UserGroup.get_by_user(self)
         perm_names=[]
         for g in groups:
-            group_permissions = cls.db_session.query(GroupPermission).filter_by(group_id=g).all()
+            group_permissions = DBSession.query(GroupPermission).filter_by(group_id=g).all()
             for gp in group_permissions:
                 if gp.perm_name not in perm_names:
                     perm_names.append(gp.perm_name)
