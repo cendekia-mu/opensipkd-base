@@ -1100,7 +1100,8 @@ class BaseView(object):
         resources = form.get_widget_resources()
         form.set_appstruct(self.get_values(row))
         kwargs["readonly"] = True
-        return self.returned_form(form, table, **kwargs)
+        kwargs["table"] = table
+        return self.returned_form(form, **kwargs)
 
     def query_id(self, id=None):
         id=id or self.req.matchdict['id']

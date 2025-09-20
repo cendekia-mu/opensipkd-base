@@ -21,6 +21,7 @@ from .models.base import DBSession
 from .models.handlers import LogDBSession
 from .models.meta import Base
 from .models.users import init_model
+from .models import Route
 
 # from deform import ZPTRendererFactory, Form
 # from deform.widget import default_resource_registry
@@ -676,3 +677,48 @@ def get_params_(params, alternate=None, settings=None):
 #         else:
 #             return home + url
 #     return url
+
+
+#Depreciated modules
+def _set_routes1(config, app_id):
+    """Compatibility
+    """
+    q = DBSession.query(Route).filter(Route.path != None,
+                                      Route.module == None, Route.status == 1)
+    if not app_id:
+        q.filter(or_(Route.app_id == 0, None == Route.app_id))
+    else:
+        q.filter(Route.app_id == app_id)
+    for route in q:
+        if route.type == 0:
+            config.add_route(route.kode, route.path)
+            if route.nama:
+                titles[route.kode] = route.nama
+        elif route.type == 1:
+            config.add_jsonrpc_endpoint(route.kode, route.path,
+                                        default_renderer="json_rpc")
+
+
+def _set_routes2(config, module="base"):
+    """Compatibility
+    """
+    q = DBSession.query(Route).filter(
+        Route.module == module, Route.status == 1)
+    for route in q:
+        if route.type == 0:
+            config.add_route(route.kode, route.path)
+            if route.nama:
+                titles[route.kode] = route.nama
+        elif route.type == 1:
+            config.add_jsonrpc_endpoint(
+                route.kode, route.path, default_renderer="json_rpc")
+    return q
+
+
+def set_routes(config, app_id=None):
+    """Compatibility
+    """
+    if app_id and type(app_id) == str:
+        return _set_routes2(config, app_id)
+    else:
+        return _set_routes1(config, app_id)

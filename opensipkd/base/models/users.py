@@ -241,7 +241,7 @@ class ExternalIdentity(Base, _ExternalIdentity, CommonModel):
 #     groups = relationship("Group", backref=backref('grouppermission'))
 
 
-class _Permission(CommonModel):
+class _Permission(DefaultModel):
     __tablename__ = 'permissions'
     __table_args__ = (TABLE_ARGS)
     id = Column(Integer, primary_key=True)

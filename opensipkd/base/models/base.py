@@ -15,7 +15,6 @@ class MySession(Session):
     def execute(self, clause, params=None, mapper=None, **kw):
         return Session.execute(self, clause, params)  # , mapper
 
-
 session_factory = sessionmaker(class_=MySession)
 DBSession = scoped_session(session_factory)
 register(DBSession)
