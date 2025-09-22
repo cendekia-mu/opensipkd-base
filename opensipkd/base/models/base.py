@@ -95,12 +95,16 @@ class DefaultModel(CommonModel):
         return row
 
     @classmethod
-    def count(cls):
-        return cls.db_session.query(func.count('id')).scalar()
+    def count(cls,  db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return db_session.query(func.count('id')).scalar()
 
     @classmethod
-    def query(cls, filters=None):
-        query = cls.db_session.query(cls)
+    def query(cls, db_session=None, filters=None):
+        if not db_session:
+            db_session = cls.db_session
+        query = db_session.query(cls)
         if filters:
             filter_expressions = []
             for d in filters:
@@ -113,24 +117,32 @@ class DefaultModel(CommonModel):
         return query
 
     @classmethod
-    def query_from(cls, columns=[], filters=None):
-        query = cls.db_session.query().select_from(cls)
+    def query_from(cls, db_session=None, columns=[], filters=None):
+        if not db_session:
+            db_session = cls.db_session
+        query = db_session.query().select_from(cls)
         for c in columns:
             query = query.add_columns(c)
         return query
 
     @classmethod
-    def query_id(cls, row_id):
-        return cls.query().filter_by(id=row_id)
+    def query_id(cls, row_id, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query(db_session).filter_by(id=row_id)
 
     @classmethod
-    def delete(cls, row_id):
-        cls.query_id(row_id).delete()
+    def delete(cls, row_id, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        cls.query_id(row_id, db_session).delete()
 
     @classmethod
-    def flush(cls, row):
-        cls.db_session.add(row)
-        cls.db_session.flush()
+    def flush(cls, row, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        db_session.add(row)
+        db_session.flush()
 
 
 class StandarModel(DefaultModel):
@@ -142,85 +154,124 @@ class StandarModel(DefaultModel):
 
     # New Method
     @classmethod
-    def query_status(cls, status=0):
-        return cls.query().filter_by(status=status)
+    def query_status(cls, status=0, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query(db_session).filter_by(status=status)
 
     @classmethod
-    def disabled(cls):
-        return cls.query_status(status=0)
+    def disabled(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query_status(status=0, db_session=db_session)
 
     @classmethod
-    def active(cls):
-        return cls.query_status(status=1)
+    def active(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+
+        return cls.query_status(status=1, db_session=db_session)
 
     @classmethod
-    def draft(cls):
-        return cls.disabled()
+    def draft(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+
+        return cls.disabled(db_session=db_session)
 
     @classmethod
-    def processed(cls):
-        return cls.query_status(status=1)
+    def processed(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+
+        return cls.query_status(status=1, db_session=db_session)
 
     @classmethod
-    def canceled(cls):
-        return cls.query_status(status=9)
+    def canceled(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query_status(status=9, db_session=db_session)
 
     @classmethod
-    def get_active(cls):
-        return cls.query_status(status=1).all()
+    def get_active(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query_status(status=1, db_session=db_session).all()
 
     @classmethod
-    def get_disabled(cls):
-        return cls.query_status(status=0).all()
+    def get_disabled(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query_status(status=0, db_session=db_session).all()
 
     @classmethod
-    def get_archived(cls):
-        return cls.query_status(status=0).all()
+    def get_archived(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query_status(status=0, db_session=db_session).all()
 
 
 class KodeModel(StandarModel):
     kode = Column(String(32), nullable=False)
 
     @classmethod
-    def query_kode(cls, kode):
-        return cls.query().filter_by(kode=kode)
+    def query_kode(cls, kode, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query(db_session).filter_by(kode=kode)
 
     @classmethod
-    def get_by_kode(cls, kode):
-        return cls.query_kode(kode).first()
+    def get_by_kode(cls, kode, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query_kode(kode, db_session=db_session).first()
 
 
 class UraianModel(StandarModel):
     nama = Column(String(128))
 
     @classmethod
-    def query_nama(cls, nama):
-        return cls.query().filter_by(nama=nama)
+    def query_nama(cls, nama, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query(db_session).filter_by(nama=nama)
 
     @classmethod
-    def get_by_nama(cls, nama):
-        return cls.query_nama(nama).first()
+    def get_by_nama(cls, nama, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query_nama(nama, db_session=db_session).first()
 
     @classmethod
-    def get_list(cls):
-        return cls.db_session.query(cls.id, cls.nama).order_by(cls.nama).all()
+    def get_list(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return db_session.query(cls.id, cls.nama).order_by(cls.nama).all()
 
 
 class NamaModel(KodeModel):
     nama = Column(String(128), nullable=False)
 
     @classmethod
-    def query_nama(cls, nama):
-        return cls.query().filter_by(nama=nama)
+    def query_nama(cls, nama, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query(db_session).filter_by(nama=nama)
 
     @classmethod
-    def get_by_nama(cls, nama):
-        return cls.query_nama(nama).first()
+    def get_by_nama(cls, nama, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query_nama(nama, db_session=db_session).first()
 
     @classmethod
-    def query_list(cls):
-        return cls.db_session.query(cls.id, cls.nama).order_by(cls.nama)
+    def query_list(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return db_session.query(cls.id, cls.nama).order_by(cls.nama)
 
     @classmethod
-    def get_list(cls):
-        return cls.query_list().all()
+    def get_list(cls, db_session=None):
+        if not db_session:
+            db_session = cls.db_session
+        return cls.query_list(db_session=db_session).all()
