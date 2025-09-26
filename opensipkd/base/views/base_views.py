@@ -5,7 +5,7 @@ import os
 import re
 from datetime import datetime, date
 from email.utils import parseaddr
-# from tarfile import data_filter
+from tarfile import data_filter
 from cgi import FieldStorage 
 from webob.multidict import MultiDict
 from opensipkd.tools.captcha import img_captcha
