@@ -69,3 +69,4 @@ main = 'opensipkd.base:main'
 
 [project.scripts]
 osipkd-db-init = 'opensipkd.base.scripts.initializedb:main'
+osipkd-remove-captcha = 'opensipkd.base.scripts.cron_remove_captcha:main'

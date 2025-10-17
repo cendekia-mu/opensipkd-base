@@ -116,7 +116,7 @@ class BaseView(object):
         self.form_widget = None
 
         # self.list_schema = colander.Schema()
-        # self.add_schema = colander.Schema()
+        self.add_schema = colander.Schema()
         # self.edit_schema = colander.Schema()
         self.upload_schema = UploadSchema
 
@@ -606,7 +606,7 @@ class BaseView(object):
 
     def returned_form(self, form, **kwargs):
         table = kwargs.get("table", None)
-        if self.req.is_xhr:
+        if self.req.is_xhr and self.req.params.get("html","false")=="false":
             data =  form.cstruct
             if "captcha" in form:
                 kode_captcha, file_name = img_captcha(self.req)
@@ -853,8 +853,8 @@ class BaseView(object):
                         if isinstance(f.typ, colander.Date):
                             e.cstruct[f.name] = date_from_str(
                                 e.cstruct[f.name])
-                        if f.name == "captcha":
-                            e.cstruct[f.name] = self.get_captcha_url()
+                        # if f.name == "captcha":
+                        #     e.cstruct[f.name] = self.get_captcha_url()
                     value = self.update_value(value, e.cstruct)
                     form.set_appstruct(value)
                     kwargs["table"]=table

@@ -1,3 +1,11 @@
+5.0.1 
+- Bug Saat get captcha session tidak berfungsi dimana ditambahkan checking melalui 
+file jpg yang tersimpan dalam folder captcha files
+- Penambahan osipkd-remove-captcha yang harus dijalankan melalui cron setiap 
+end of day
+- Pemindahan alembic dari dalam scripts jadi selevel dengan scripts
+
+5.0.0 
 4.0.1 2025-08-23
 Penambahan obj2json pada api_base
 

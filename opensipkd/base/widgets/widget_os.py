@@ -1,3 +1,4 @@
+import os
 from iso8601.iso8601 import ISO8601_REGEX
 from deform.widget import string_types
 import json
@@ -13,7 +14,7 @@ from deform.widget import (
     Widget, _StrippedString, Select2Widget,  _normalize_choices, OptGroup,
     DateInputWidget as WidgetDateInputWidget, AutocompleteInputWidget)
 from opensipkd.tools.captcha import img_captcha
-
+from opensipkd.tools import get_settings
 _logging = logging.getLogger(__name__)
 
 
@@ -372,14 +373,15 @@ class CaptchaWidget(Widget):
     request = None
     url = ""
     
-    def __init__(self, **kw):
-        super(CaptchaWidget, self).__init__(**kw)
+    # def __init__(self, **kw):
+    #     super(CaptchaWidget, self).__init__(**kw)
 
     def serialize(self, field, cstruct, **kw):
         file_name = ""
         if not cstruct:
             kode_captcha, file_name = img_captcha(self.request)
             self.request.session["captcha"] = kode_captcha
+
         cstruct = cstruct or self.url+file_name
         readonly = kw.get("readonly", self.readonly)
         template = readonly and self.readonly_template or self.template
@@ -395,8 +397,18 @@ class CaptchaWidget(Widget):
             pstruct = pstruct.strip()
         if not pstruct:
             return null
-        if pstruct != self.request.session["captcha"]:
-            raise Invalid(field.schema, "Captcha tidak sesuai")
+        settings = get_settings()
+        captcha_message = "Captcha tidak sesuai"
+        captcha_session = self.request.session.get("captcha", "")
+        if captcha_session:
+            if pstruct != captcha_session:
+                raise Invalid(field.schema, captcha_message)
+        else:
+            captcha_file = os.path.join(settings['captcha_files'], pstruct)
+            captcha_exists = os.path.exists(captcha_file)
+            if not captcha_exists:
+                raise Invalid(field.schema, captcha_message)
+
         return pstruct
 
 

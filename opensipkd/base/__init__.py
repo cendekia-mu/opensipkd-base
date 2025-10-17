@@ -630,7 +630,7 @@ BASE_CLASS = BaseApp()
 
 def has_permission_(request, perm_names, context=None):
     if not perm_names:
-        return False
+        return True
     if isinstance(perm_names, str):
         perm_names = [perm_names]
     for perm_name in perm_names:

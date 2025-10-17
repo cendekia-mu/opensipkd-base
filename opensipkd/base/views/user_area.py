@@ -27,13 +27,13 @@ class ListSchema(colander.Schema):
 class AddSchema(colander.Schema):
     user_id = colander.SchemaNode(
         colander.Integer(),
-        widget=widget.SelectWidget(values=User.get_list()),
+        # widget=widget.SelectWidget(values=User.get_list()),
         oid="user_id",
         title="User",
     )
     desa_id = colander.SchemaNode(
         colander.Integer(),
-        widget=widget.SelectWidget(values=ResDesa.get_list()),
+        # widget=widget.SelectWidget(values=ResDesa.get_list()),
         oid="desa_id",
         title="Kelurahan/Desa", )
 
