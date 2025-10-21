@@ -22,6 +22,7 @@ from .models.handlers import LogDBSession
 from .models.meta import Base
 from .models.users import init_model
 from .models import Route
+import tempfile
 
 # from deform import ZPTRendererFactory, Form
 # from deform.widget import default_resource_registry
@@ -340,7 +341,7 @@ def main(global_config, **settings):
     if 'timezone' not in settings:
         settings['timezone'] = DefaultTimeZone
     # settings["captcha_files"] = "c:\\tmp\\captcha\\"
-    tmp = get_params("temp_files", f"{os.sep}tmp", settings=settings)
+    tmp = get_params("temp_files", tempfile.gettempdir(), settings=settings)
     settings["temp_files"] = tmp
     settings['captcha_files'] = os.path.join(tmp, "captcha") + os.sep
 
@@ -644,6 +645,7 @@ def add_global(event):
     event['get_base_menus'] = BASE_CLASS.get_menus
     event['has_modules'] = has_modules
     event['get_params'] = get_params_
+
 #     event['urlencode'] = urlencode
 #     event['quote_plus'] = quote_plus
 #     event['quote'] = quote

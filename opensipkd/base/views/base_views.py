@@ -1104,7 +1104,7 @@ class BaseView(object):
         return self.returned_form(form, **kwargs)
 
     def query_id(self, id=None):
-        id=id or self.req.matchdict['id']
+        id = id or self.req.matchdict['id']
         return self.table.query_id(id)
         # if self.req.user:
         #     if hasattr(self.table, 'company_id') and self.req.user.company_id:
