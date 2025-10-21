@@ -380,7 +380,9 @@ class CaptchaWidget(Widget):
         file_name = ""
         # if not cstruct:
         kode_captcha, file_name = img_captcha(self.request)
-        self.request.session["captcha"] = kode_captcha
+        self.request.session["captcha_code"] = kode_captcha
+        _logging.error(f"Generated captcha code: {kode_captcha}")
+        _logging.error(self.request.session.items())
 
         # cstruct = cstruct or self.url+file_name
         cstruct = self.url+file_name
@@ -398,7 +400,7 @@ class CaptchaWidget(Widget):
             pstruct = pstruct.strip()
         if not pstruct:
             return null
-        settings = get_settings()
+        
         captcha_message = "Captcha tidak sesuai"
         captcha_session = self.request.session.get("captcha", "")
         if captcha_session:
