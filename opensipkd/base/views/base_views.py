@@ -1,18 +1,12 @@
-from decimal import Decimal
 import logging
-from math import tan
 import os
-import re
-from datetime import datetime, date
-from email.utils import parseaddr
-from tarfile import data_filter
+from datetime import datetime
 from cgi import FieldStorage 
 from webob.multidict import MultiDict
 from opensipkd.tools.captcha import img_captcha
 
 import colander
 from datatables import ColumnDT
-from dateutil.relativedelta import relativedelta
 from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
@@ -23,7 +17,7 @@ from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string, Upload, InvalidExtension, mem_tmp_store
 from opensipkd.tools.buttons import (
     btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv,
-    btn_pdf, btn_unpost, btn_post, btn_upload)
+    btn_pdf, btn_upload)
 # from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
 from pyramid.request import Response
