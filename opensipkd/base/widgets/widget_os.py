@@ -402,7 +402,7 @@ class CaptchaWidget(Widget):
             return null
         
         captcha_message = "Captcha tidak sesuai"
-        captcha_session = self.request.session.get("captcha", "")
+        captcha_session = self.request.session.get("captcha_code", "")
         if captcha_session:
             if pstruct != captcha_session:
                 _logging.error(f"Captcha tidak sesuai: {pstruct} != {captcha_session}")
