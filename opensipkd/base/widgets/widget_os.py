@@ -378,11 +378,12 @@ class CaptchaWidget(Widget):
 
     def serialize(self, field, cstruct, **kw):
         file_name = ""
-        if not cstruct:
-            kode_captcha, file_name = img_captcha(self.request)
-            self.request.session["captcha"] = kode_captcha
+        # if not cstruct:
+        kode_captcha, file_name = img_captcha(self.request)
+        self.request.session["captcha"] = kode_captcha
 
-        cstruct = cstruct or self.url+file_name
+        # cstruct = cstruct or self.url+file_name
+        cstruct = self.url+file_name
         readonly = kw.get("readonly", self.readonly)
         template = readonly and self.readonly_template or self.template
         values = self.get_template_values(field, cstruct, kw)
