@@ -65,13 +65,14 @@ class Login(CSRFSchema):
         colander.String(), widget=widget.PasswordWidget())
 
     def after_bind(self, schema, kwargs):
+        super().after_bind(schema, kwargs)
         request = kwargs["request"]
-        csrf_token = new_csrf_token(request)
-        log.debug(csrf_token)
-        self["csrf_token"] = colander.SchemaNode(
-            colander.String(), widget=widget.HiddenWidget(),
-            default=csrf_token
-        )
+        # csrf_token = new_csrf_token(request)
+        # log.debug(csrf_token)
+        # self["csrf_token"] = colander.SchemaNode(
+        #     colander.String(), widget=widget.HiddenWidget(),
+        #     default=csrf_token
+        # )
         if BASE_CLASS.login_captcha:
             self["captcha"] = colander.SchemaNode(
                 colander.String(),
