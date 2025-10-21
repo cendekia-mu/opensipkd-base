@@ -405,7 +405,7 @@ class CaptchaWidget(Widget):
                 _logging.error(f"Captcha tidak sesuai: {pstruct} != {captcha_session}")
                 raise Invalid(field.schema, captcha_message)
         else:
-            captcha_file = os.path.join(settings['captcha_files'], pstruct)
+            captcha_file = os.path.join(settings['captcha_files'], f"{pstruct}.png")
             captcha_exists = os.path.exists(captcha_file)
             if not captcha_exists:
                 _logging.error(f"Captcha file not found: {captcha_file}")
