@@ -131,6 +131,9 @@ class ApiViews(APIView):
         #         if k in url and v:
         #             link = "/".join([self.home, nik_url, v])
         #             d[k] =f'<a href="{link}" target="_blank">View</a>'
+        if result.get("error"):
+            _log.error(result.get("error"))
+            _log.error(str(result))
         return result
 
     def not_found(self, msg=None):
