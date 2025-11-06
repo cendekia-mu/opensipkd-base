@@ -240,6 +240,9 @@ def google_signin_client_id(request):
         return ids[0].strip()
     return ''
 
+from .depreciated_base import (
+    get_company, get_departement, get_ibukota, get_address, get_address2
+)
 
 def get_config(settings):
     session_factory = session_factory_from_settings(settings)
@@ -257,10 +260,10 @@ def get_config(settings):
     config.add_request_method(get_company, 'company', reify=True)
 
     config.add_request_method(get_user, 'user', reify=True)
-    #     config.add_request_method(get_departement, 'departement', reify=True)
-    #     config.add_request_method(get_ibukota, 'ibukota', reify=True)
-    #     config.add_request_method(get_address, 'address', reify=True)
-    #     config.add_request_method(get_address2, 'address2', reify=True)
+    config.add_request_method(get_departement, 'departement', reify=True)
+    config.add_request_method(get_ibukota, 'ibukota', reify=True)
+    config.add_request_method(get_address, 'address', reify=True)
+    config.add_request_method(get_address2, 'address2', reify=True)
 
     #     config.add_request_method(get_modules, 'modules', reify=True)
     config.add_request_method(has_modules, 'has_modules', reify=True)
