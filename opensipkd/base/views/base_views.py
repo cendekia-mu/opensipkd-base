@@ -730,6 +730,7 @@ class BaseView(object):
 
         bindings = self.get_bindings()
         form = self.get_form(self.upload_schema, bindings=bindings)
+        kw["table"] = table
         if self.req.POST:
             if 'save' in self.req.POST:
                 # _here = get_params('temp_files', '/tmp')
@@ -743,21 +744,20 @@ class BaseView(object):
                     file_name = upload.save(self.req, "upload", exts)
                 except:
                     self.ses.flash(f'File harus format {exts}', 'error')
-                    return self.returned_form(form, table, **kw)
+                    return self.returned_form(form,  **kw)
 
                 fullpath = os.path.join(folder, file_name)
                 try:
                     self.save_upload(fullpath, **kw)
                 except Exception as e:
                     self.req.session.flash(str(e), 'error')
-                    return self.returned_form(form, table, **kw)
+                    return self.returned_form(form, **kw)
 
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()
 
             return self.route_list()
-
-        return self.returned_form(form, table, **kw)
+        return self.returned_form(form, **kw)
 
     def get_file(self, filename):
         return open(filename)

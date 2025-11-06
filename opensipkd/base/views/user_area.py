@@ -27,16 +27,21 @@ class ListSchema(colander.Schema):
 class AddSchema(colander.Schema):
     user_id = colander.SchemaNode(
         colander.Integer(),
-        # widget=widget.SelectWidget(values=User.get_list()),
+        widget=widget.SelectWidget(),  # (values=User.get_list()
         oid="user_id",
         title="User",
     )
     desa_id = colander.SchemaNode(
         colander.Integer(),
-        # widget=widget.SelectWidget(values=ResDesa.get_list()),
+        widget=widget.SelectWidget(),  # values=ResDesa.get_list()
         oid="desa_id",
         title="Kelurahan/Desa", )
 
+    def after_bind(self, schema, kw):
+        user_list = User.get_list()
+        desa_list = ResDesa.get_list()
+        schema['user_id'].widget.values = user_list
+        schema['desa_id'].widget.values = desa_list
 
 class EditSchema(AddSchema):
     id = colander.SchemaNode(colander.String(),
@@ -50,7 +55,7 @@ class Views(BaseView):
         self.list_schema = ListSchema
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
-        self.list_route = 'user-area'
+        self.list_route = 'base-user-area'
         self.table = UserArea
 
     def list_join(self, query, **kwargs):
@@ -86,3 +91,4 @@ class Views(BaseView):
     #              permission='user-edit')
     # def view_edit(self):
     #     return super().view_edit()
+
