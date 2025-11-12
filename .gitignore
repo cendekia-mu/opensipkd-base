@@ -25,6 +25,7 @@ sdist/
 var/
 wheels/
 inventori/
+local/*
 *.egg-info/
 .installed.cfg
 *.egg
