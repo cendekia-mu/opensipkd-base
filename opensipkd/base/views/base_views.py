@@ -1198,11 +1198,13 @@ class BaseView(object):
     def get_partner(self):
         return Partner.query_email(self.req.user.email).first()
 
+@colander.deferred
+def deferred_status(node, kw):
+    values = kw.get('daftar_status', [])
+    return widget.SelectWidget(values=values)
+
 """
-# @colander.deferred
-# def deferred_status(node, kw):
-#     values = kw.get('daftar_status', [])
-#     return widget.SelectWidget(values=values)
+
 
 
 # def email_validator(node, value):

@@ -3,6 +3,8 @@ from datetime import datetime
 
 import ziggurat_foundations.models
 from opensipkd.tools import as_timezone
+from opensipkd.tools.upload import append_csv
+
 from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, func, Numeric
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -18,6 +20,7 @@ class MySession(Session):
 session_factory = sessionmaker(class_=MySession)
 DBSession = scoped_session(session_factory)
 register(DBSession)
+
 ziggurat_foundations.models.DBSession = DBSession
 TABLE_ARGS = dict(extend_existing=True, schema="public")
 
@@ -77,6 +80,11 @@ class CommonModel(object):
     def as_timezone(self, fieldname):
         date_ = getattr(self, fieldname)
         return date_ and as_timezone(date_) or None
+    
+    @classmethod
+    def upload(cls, file, keys, **kwargs):
+        append_csv(cls, file, keys, get_file_func=get_file,
+                   db_session=cls.db_session, dbase=Base, **kwargs)
 
 
 class DefaultModel(CommonModel):

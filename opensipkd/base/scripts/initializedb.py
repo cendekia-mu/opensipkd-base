@@ -189,7 +189,7 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
     return True
 
 
-# def append_csv(table, filename, keys, get_file_func=get_file):
+# def append_csv(table, filename, keys, t_func=get_file):
 # def append_csv(table, filename, keys, get_file_func=get_file, db_session=DBSession):
 # Feb 10, 2018 by aagusti
 # penambahan parameter db_sesion apabila caller mempunyai db_sesion yang berbeda

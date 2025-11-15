@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en"
- tal:define="
-        home request._host;">
+<html lang="en" tal:define="
+        home home;">
+
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,156 +9,164 @@
   <meta name="description" content="">
   <meta name="author" content="">
   <link rel="shortcut icon" href="${home}/static/img/favicon.png">
-  <title tal:content="request.title"/>
-  <link rel="stylesheet" type="text/css"
-        href="${home}/static/v3/css/bootstrap.min.css">
+  <title tal:content="request.title" />
+  <link rel="stylesheet" type="text/css" href="${home}/static/v3/css/bootstrap.min.css">
   </link>
-  <link rel="stylesheet" type="text/css"
-        href="${home}/static/bootstrap/css/font-awesome.min.css"/>
+  <link rel="stylesheet" type="text/css" href="${home}/static/bootstrap/css/font-awesome.min.css" />
   <link rel="stylesheet" type="text/css" href="${home}/deform_static/css/typeahead.css">
-  <link rel="stylesheet" type="text/css" href="${home}/static_map/lib/ol4/ol.css"/>
-  <link rel="stylesheet" type="text/css" href="${home}/static_map/lib/ol4/ext/ol3-layerswitcher.css"/>
-  <link rel="stylesheet" type="text/css" href="${home}/static_map/lib/ol4/ext/ol3gm.css"/>
-  <link rel="stylesheet" type="text/css" href="${home}/static_map/lib/ol4/ext/ol-geocoder.css"/>
+  <link rel="stylesheet" type="text/css" href="${home}/static_map/lib/ol4/ol.css" />
+  <link rel="stylesheet" type="text/css" href="${home}/static_map/lib/ol4/ext/ol3-layerswitcher.css" />
+  <link rel="stylesheet" type="text/css" href="${home}/static_map/lib/ol4/ext/ol3gm.css" />
+  <link rel="stylesheet" type="text/css" href="${home}/static_map/lib/ol4/ext/ol-geocoder.css" />
   <link rel="stylesheet" type="text/css" href="${home}/static/css/theme.css">
   <link rel="stylesheet" type="text/css" href="${home}/static/css/navbar-fixed-top.css">
-  <link metal:define-slot="link"/>
+  <link metal:define-slot="link" />
   <style>
-      html{ height:100%;}
-      .body { height:100%;}
-      body {
-        overflow: hidden;
-        padding-top: 40px;
-      }
+    html {
+      height: 100%;
+    }
 
+    .body {
+      height: 100%;
+    }
+
+    body {
+      overflow: hidden;
+      padding-top: 40px;
+    }
   </style>
 </head>
 <script>
-var vhost='${request._host}';
-var extent_params=${request.extent};
-var bingKey = '${request.bing_key}';
-var gmapKey = '${request.gmap_key}';
+  var vhost = '${home}';
+  var extent_params = ${ request.extent };
+  var bingKey = '${request.bing_key}';
+  var gmapKey = '${request.gmap_key}';
 
 
 </script>
 
 <body class="body">
-<div class="container-fluid">
-  <div class="navbar navbar-default navbar-fixed-top" role="navigation">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <div metal:define-slot="apps">
-        <a class="navbar-brand" href="${home}">${request.app_name}</a>
+  <div class="container-fluid">
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <div metal:define-slot="apps">
+          <a class="navbar-brand" href="${home}">${request.app_name}</a>
+        </div>
+      </div>
+      <div class="navbar-collapse collapse" tal:condition="not request.user">
+        <!-- Define Tombol Navigator -->
+        <div metal:define-slot="navs"></div>
+        <!-- End Tombol Navigator -->
+        <ul class="nav navbar-nav">
+          <li><a href="${home}" class="navbar-brand"><strong>${request.company}</strong></a></li>
+        </ul>
+
+        <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown">
+            <a href="${home}/login" class="button">Masuk</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="navbar-collapse collapse" tal:condition="request.user">
+        <!-- Define Tombol Navigator -->
+        <div metal:define-slot="navs"></div>
+        <!-- End Tombol Navigator -->
+
+        <ul class="nav navbar-nav navbar-right">
+          <!-- Admin Menu -->
+          <li class="dropdown" tal:condition="request.user.user_name=='admin'"
+            tal:attributes="class request.matched_route.name in ['user', 'user-add', 'user-edit', 'user-delete', 'group', 'group-add', 'group-edit', 'group-delete'] and 'active'">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li tal:condition="has_permission(request, 'user')">
+                <a href="${home}/user">User</a>
+              </li>
+              <li tal:condition="has_permission(request, 'group')">
+                <a href="${home}/group">Group</a>
+              </li>
+              <li tal:condition="has_permission(request, 'user-group')">
+                <a href="${home}/user/group">User Group</a>
+              </li>
+              <li tal:condition="has_permission(request, 'routes')">
+                <a href="${home}/routes">Routes</a>
+              </li>
+              <li tal:condition="has_permission(request, 'group-routes')">
+                <a href="${home}/group/routes">Group Permission</a>
+              </li>
+              <li tal:condition="has_permission(request, 'upload-logo')">
+                <a href="${home}/upload/logo">Upload Logo</a>
+              </li>
+              <li tal:condition="has_permission(request, 'user-ws')">
+                <a href="${home}/user/ws">User Web Service</a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- User Login Menu-->
+          <li class="dropdown" tal:attributes="class request.path in ['${home}/password'] and 'active'">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Account <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="${home}/logout">${request.user.nice_username()} Logout</a></li>
+              <li><a href="${home}/password">Ubah password</a></li>
+              <li tal:condition="'core' in request.modules">
+                <a href="${home}/departemen/chg">Ubah Organisasi</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+    <div tal:condition="request.session.peek_flash()">
+      <div class="alert alert-success" tal:repeat="message request.session.pop_flash()">
+        <i class="fa fa-fw fa-lg fa-check-circle"></i>&nbsp;${message}
       </div>
     </div>
-    <div class="navbar-collapse collapse" tal:condition="not request.user">
-      <!-- Define Tombol Navigator -->
-      <div metal:define-slot="navs"></div>
-      <!-- End Tombol Navigator -->
-      <ul class="nav navbar-nav">
-        <li><a href="${home}" class="navbar-brand"><strong>${request.company}</strong></a></li>
-      </ul>
-
-      <ul class="nav navbar-nav navbar-right">
-        <li class="dropdown">
-          <a href="${home}/login" class="button">Masuk</a>
-        </li>
-      </ul>
-    </div>
-
-    <div class="navbar-collapse collapse" tal:condition="request.user">
-      <!-- Define Tombol Navigator -->
-      <div metal:define-slot="navs"></div>
-      <!-- End Tombol Navigator -->
-
-      <ul class="nav navbar-nav navbar-right">
-        <!-- Admin Menu -->
-        <li class="dropdown" tal:condition="request.user.user_name=='admin'"
-            tal:attributes="class request.matched_route.name in ['user', 'user-add', 'user-edit', 'user-delete', 'group', 'group-add', 'group-edit', 'group-delete'] and 'active'">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li tal:condition="has_permission(request, 'user')">
-              <a href="${home}/user">User</a></li>
-            <li tal:condition="has_permission(request, 'group')">
-              <a href="${home}/group">Group</a></li>
-            <li tal:condition="has_permission(request, 'user-group')">
-              <a href="${home}/user/group">User Group</a></li>
-            <li tal:condition="has_permission(request, 'routes')">
-              <a href="${home}/routes">Routes</a></li>
-            <li tal:condition="has_permission(request, 'group-routes')">
-              <a href="${home}/group/routes">Group Permission</a></li>
-            <li tal:condition="has_permission(request, 'upload-logo')">
-              <a href="${home}/upload/logo">Upload Logo</a></li>
-            <li tal:condition="has_permission(request, 'user-ws')">
-              <a href="${home}/user/ws">User Web Service</a></li>
-          </ul>
-        </li>
-
-        <!-- User Login Menu-->
-        <li class="dropdown" tal:attributes="class request.path in ['${home}/password'] and 'active'">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">My Account <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li><a href="${home}/logout">${request.user.nice_username()} Logout</a></li>
-            <li><a href="${home}/password">Ubah password</a></li>
-            <li tal:condition="'core' in request.modules">
-              <a href="${home}/departemen/chg">Ubah Organisasi</a></li>
-          </ul>
-        </li>
-      </ul>
-    </div><!--/.nav-collapse -->
-  </div>
-  <div tal:condition="request.session.peek_flash()">
-    <div class="alert alert-success" tal:repeat="message request.session.pop_flash()">
-      <i class="fa fa-fw fa-lg fa-check-circle"></i>&nbsp;${message}
+    <div tal:condition="request.session.peek_flash('error')">
+      <div class="alert alert-danger" tal:repeat="message request.session.pop_flash('error')">
+        <i class="fa fa-fw fa-lg fa-times-circle"></i>&nbsp;${message}
+      </div>
     </div>
   </div>
-  <div tal:condition="request.session.peek_flash('error')">
-    <div class="alert alert-danger" tal:repeat="message request.session.pop_flash('error')">
-      <i class="fa fa-fw fa-lg fa-times-circle"></i>&nbsp;${message}
+  <p>&nbsp;</p>
+  <div class="container-fluid">
+
+
+    <div metal:define-slot="contents"></div>
+    <div class="navbar-fixed-bottom" style="background-color:#CC0000; color:#FFFFFF">
+      <div id="foot-left" class="" style="float:left;">@openSIPKD 2018</div>
+      <div id="foot-right" class="" style="float:right;"></div>
     </div>
   </div>
-</div>
-<p>&nbsp;</p>
-<div class="container-fluid">
+  <script type="text/javascript" src="${home}/static/v3/js/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="${home}/static/v3/js/bootstrap/bootstrap.min.js"></script>
+  <script type="text/javascript" src="${home}/deform_static/scripts/typeahead.min.js"></script>
 
-
-  <div metal:define-slot="contents"></div>
-  <div class="navbar-fixed-bottom" style="background-color:#CC0000; color:#FFFFFF">
-    <div id="foot-left" class="" style="float:left;">@openSIPKD 2018</div>
-    <div id="foot-right" class="" style="float:right;"></div>
-  </div>
-</div>
-<script type="text/javascript"
-        src="${home}/static/v3/js/jquery-2.1.1.min.js"></script>
-<script type="text/javascript"
-        src="${home}/static/v3/js/bootstrap/bootstrap.min.js"></script>
-<script type="text/javascript"
-        src="${home}/deform_static/scripts/typeahead.min.js"></script>
-
-<script src="${home}/static_map/lib/ol4/ol.js" type="text/javascript"></script>
-<!-- <script src="${home}static_map/lib/ol4/ol-debug.js" type="text/javascript"></script> -->
-<script type="text/javascript" src="${home}/static_map/lib/ol4/ext/ol3-layerswitcher.js"></script>
-<script type="text/javascript" src="${home}/static_map/lib/ol4/ext/ol-geocoder.js"></script>
-<script type="text/javascript">
-    if (ol.Map.prototype.getLayer === undefined) {    
-        ol.Map.prototype.getLayer = function (id) {
-            var layer;
-            this.getLayers().forEach(function (lyr) {
-                if (id == lyr.get('id')) {
-                    layer = lyr;
-                }            
-            });
-            return layer;
-        }
+  <script src="${home}/static_map/lib/ol4/ol.js" type="text/javascript"></script>
+  <!-- <script src="${home}static_map/lib/ol4/ol-debug.js" type="text/javascript"></script> -->
+  <script type="text/javascript" src="${home}/static_map/lib/ol4/ext/ol3-layerswitcher.js"></script>
+  <script type="text/javascript" src="${home}/static_map/lib/ol4/ext/ol-geocoder.js"></script>
+  <script type="text/javascript">
+    if (ol.Map.prototype.getLayer === undefined) {
+      ol.Map.prototype.getLayer = function (id) {
+        var layer;
+        this.getLayers().forEach(function (lyr) {
+          if (id == lyr.get('id')) {
+            layer = lyr;
+          }
+        });
+        return layer;
+      }
     }
 
-</script>
-<div metal:define-slot="scripts"></div>
+  </script>
+  <div metal:define-slot="scripts"></div>
 </body>
+
 </html>
-    

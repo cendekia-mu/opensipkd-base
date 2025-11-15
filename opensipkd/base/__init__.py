@@ -7,6 +7,8 @@ import re
 import datetime
 import decimal
 import deform
+import mimetypes
+
 from pkg_resources import resource_filename
 from pyramid.renderers import JSON
 from pyramid_beaker import session_factory_from_settings
