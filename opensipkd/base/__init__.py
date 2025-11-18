@@ -7,15 +7,14 @@ import re
 import datetime
 import decimal
 import deform
-import mimetypes
-
+import traceback
 from pkg_resources import resource_filename
 from pyramid.renderers import JSON
 from pyramid_beaker import session_factory_from_settings
 from pyramid.config import Configurator
 from pyramid.events import NewRequest, BeforeRender, subscriber
 from pyramid_mailer import mailer_factory_from_settings
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, or_
 
 from opensipkd.tools import get_settings, DefaultTimeZone, dmy, dmyhms, get_ext
 from .security import MySecurityPolicy, get_user
@@ -383,19 +382,17 @@ def _add_view_config(config, paket, route):
         route["func_name"] = "_".join(["view", func_name])
 
     file_name = f"{paket}.{route.get('file_name')}"
+    if not file_name:
+            _logging.error(f"File not found: {file_name}")
+            return
     # _logging.debug(f"File Name: {file_name}")
     attr = f"{route.get('func_name')}"
     try:
 
         class_name = route.get("class_name", None)
-        if not file_name:
-            _logging.error(f"File not found: {file_name}")
-            return
-        _views = importlib.import_module(file_name)
-        
         if not class_name:
             class_name = "Views"
-            
+        _views = importlib.import_module(file_name)
         if not hasattr(_views, class_name):
             _logging.error(
                 f"Class {class_name} not found in {file_name}")
@@ -432,6 +429,7 @@ def _add_view_config(config, paket, route):
             config.add_view(views, **params)
 
     except Exception as e:
+        traceback.print_exc()
         _logging.error("Add View Config :{code} Kode {error}"
                        .format(code=route["kode"], error=str(e)))
     # _logging.debug(f"Route: {route.get('kode')} {route.get('path')}")

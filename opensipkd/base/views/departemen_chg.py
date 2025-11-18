@@ -25,6 +25,8 @@ class Views(BaseView):
         super().__init__(request)
         self.add_schema = AddSchema
         self.table = Departemen
+        self.next_home = self.req.route_url('base-home')
+        self.route_url = 'departemen-chg'
 
     def get_bindings(self, row=None):
         departemens = self.table.get_list()
@@ -33,9 +35,9 @@ class Views(BaseView):
     def view_change(self):
         next_url = self.req.params.get('next')
         if not next_url:
-            next_url = self.req.referrer or self.req.route_url('base-home')
+            next_url = self.req.referrer or self.next_home
 
-            return HTTPFound(self.req.route_url('departemen-chg', _query={'next': next_url}))
+            return HTTPFound(self.req.route_url(self.route_url, _query={'next': next_url}))
         if self.req.POST:
             if 'save' in self.req.POST:
                 form = self.get_form(self.add_schema)
