@@ -823,17 +823,18 @@ class BaseView(object):
                 controls = self.req.POST.items()
                 if self.req.is_xhr:
                     cloned = self.req.POST.items()
-                    controls = []
+                    control = []
                     for ctrl in cloned:
                         if isinstance(ctrl[1], FieldStorage):
-                            controls.append(
+                            control.append(
                                 ("__start__", f"{ctrl[0]}:mapping"))
-                            controls.append(("upload", ctrl[1]))
-                            controls.append(("uid", ""))
-                            controls.append(("__end__", f"{ctrl[0]}:mapping"))
+                            control.append(("upload", ctrl[1]))
+                            control.append(("uid", ""))
+                            control.append(("__end__", f"{ctrl[0]}:mapping"))
                             log.debug(f"Control: {ctrl}")
                         else:
-                            controls.append(ctrl)
+                            control.append(ctrl)
+                    controls = iter(control)
                 try:
                     c = form.validate(controls)
                 except ValidationFailure as e:
