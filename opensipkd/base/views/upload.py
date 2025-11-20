@@ -45,7 +45,8 @@ class AddSchema(CSRFSchema):
     image_for = colander.SchemaNode(
         colander.String(),
         widget=widget.SelectWidget(values=(('oth', "Other"), ('logo', "Logo"),
-                                           ('bg', "Background"))),
+                                           ('bg', "Background"),
+                                           ('mobile', "Mobile Files"),)),
         title='Peruntukan')
 
 
@@ -75,6 +76,14 @@ def view_file(request):
                 fname = f"logo{ext}"
             elif request.POST["image_for"] == "bg":
                 fname = f"background{ext}"
+            elif request.POST["image_for"] == "mobile":
+                mobile_static_path = request.registry.settings.get(
+                    'mobile_static_path', None)
+                if not mobile_static_path:
+                    request.session.flash("Mobile static path belum dikonfigurasi", 'error')
+                    return dict(form=form.render())
+                static_path = os.path.join(mobile_static_path)
+
             typ = ext == '.png' and "img" or 'icon'
             folder = os.path.join(static_path, typ)
             if not os.path.exists(folder):

@@ -1,3 +1,5 @@
+5.0.2
+Menambahkan path static 'mobi' and configuration 'mobile_static_path'
 5.0.1 
 - Bug Saat get captcha session tidak berfungsi dimana ditambahkan checking melalui 
 file jpg yang tersimpan dalam folder captcha files

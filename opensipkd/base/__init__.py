@@ -8,6 +8,7 @@ import datetime
 import decimal
 import deform
 import traceback
+import opensipkd
 from pkg_resources import resource_filename
 from pyramid.renderers import JSON
 from pyramid_beaker import session_factory_from_settings
@@ -303,9 +304,16 @@ def get_config(settings):
     #     if not os.path.exists(partner_files):
     #         os.makedirs(partner_files)
 
-    config.add_static_view('static', 'opensipkd.base:static',
-                           cache_max_age=3600)
+    config.add_static_view('static', 'opensipkd.base:static', cache_max_age=3600)
+    mobile_static_path = settings.get('mobile_static_path')
+    if not mobile_static_path:
+        mobi_path = os.path.dirname(opensipkd.base.__file__)
+        mobile_static_path = os.path.join(mobi_path, 'static', 'mobile')
 
+    if not os.path.exists(mobile_static_path):
+        mobile_static_path = os.makedirs(mobile_static_path)
+
+    config.add_static_view('mobi', mobile_static_path+os.sep, cache_max_age=3600)
     config.add_static_view('deform_static', 'deform:static')
 
     #     config.add_static_view(partner_idcard_url,
