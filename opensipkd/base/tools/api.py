@@ -1,4 +1,3 @@
-from opensipkd.base import get_params
 from opensipkd.base.models import (DBSession, User, GroupPermission, UserDeviceModel)
 
 from opensipkd.tools import (
@@ -36,6 +35,7 @@ def auth_from(request, field=None):
         header = json_rpc_header(http_userid, user.api_key, time_stamp)
 
     if header['signature'] != env['HTTP_SIGNATURE']:
+        log.warning(f"Server:{header['signature']}, Client:{env['HTTP_SIGNATURE']}")
         raise JsonRpcInvalidLoginError
 
     return user
@@ -149,5 +149,6 @@ def update_token(user):
     return dict(token=user.security_code)
 
 def config_pars_rpc_url(params, method=None):
+    from opensipkd.base import get_params
     values = get_params(params)
     return pars_rpc_url(values, method)

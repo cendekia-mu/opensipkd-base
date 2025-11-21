@@ -1,3 +1,4 @@
+from inspect import signature
 import logging
 
 # from opensipkd.tools import get_params
@@ -55,16 +56,22 @@ def get_user(request):
 
 from pyramid.authentication import AuthTktCookieHelper
 from pyramid.authorization import ACLHelper, Authenticated, Everyone
-
+from .tools.api import auth_from_rpc
 
 class MySecurityPolicy:
     def __init__(self, secret):
         self.helper = AuthTktCookieHelper(secret)
 
     def identity(self, request):
+        log.debug("MySecurityPolicy.identity")
         identity = self.helper.identify(request)
         if identity is None:
-            return None
+            try:
+                user = auth_from_rpc(request)
+                identity = {'userid': user.id}
+            except Exception as e:
+                log.warning("Failed to authenticate from RPC: %s", e)
+                return None
 
         userid = identity['userid']
         principals = group_finder(userid, request)
@@ -80,9 +87,8 @@ class MySecurityPolicy:
             return identity['userid']
 
     def permits(self, request, context, permission):
-        identity = request.identity
+        identity = request.identity                
         principals = set([Everyone])
-
         if identity is not None:
             principals.add(Authenticated)
             principals.add(identity['userid'])
