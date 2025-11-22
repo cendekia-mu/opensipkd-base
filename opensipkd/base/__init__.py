@@ -341,6 +341,31 @@ def init_db(settings):
     init_model()
 
 
+# @subscriber(BeforeRender)
+def add_global_render(event):
+    event['has_permission'] = has_permission_
+    event['get_base_menus'] = BASE_CLASS.get_menus
+    event['has_modules'] = has_modules
+    event['get_params'] = get_params_
+
+#     event['urlencode'] = urlencode
+#     event['quote_plus'] = quote_plus
+#     event['quote'] = quote
+#     event['money'] = money
+#     event['should_int'] = should_int
+#     event['thousand'] = thousand
+#     event['as_timezone'] = as_timezone
+#     event['split'] = split
+#     event['allow_register'] = allow_register
+#     event['change_unit'] = change_unit
+#     event['get_urls'] = get_urls
+#     event['get_csrf_token'] = get_csrf_token
+
+#     # event['get_params'] = get_params
+#     # event['get_module_menus'] = get_module_menus
+#     # event['get_module_submenus'] = get_module_submenus
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -363,7 +388,8 @@ def main(global_config, **settings):
     BASE_CLASS.route_from_csv(config, filename=routes_file)
     BASE_CLASS.route_from_list(config)
     BASE_CLASS.static_view(config, settings=settings)
-    config.scan()
+    config.add_subscriber(add_global_render, BeforeRender)
+        
     # _logging.debug(config)
     return config.make_wsgi_app()
 
@@ -566,7 +592,7 @@ class BaseApp():
                 if p["children"]:
                     self.route_children(p["children"], row)
 
-    def route_from_csv_(self, config, paket="tangsel.base.views", rows=[]):
+    def route_from_csv_(self, config, paket="opensipkd.base.views", rows=[]):
         new_routes = []
         for row in rows:
             status = row.get("status", 0) or 0
@@ -649,31 +675,6 @@ def has_permission_(request, perm_names, context=None):
         if request.has_permission(perm_name, context):
             return True
 
-
-@subscriber(BeforeRender)
-def add_global(event):
-    event['has_permission'] = has_permission_
-    event['get_base_menus'] = BASE_CLASS.get_menus
-    event['has_modules'] = has_modules
-    event['get_params'] = get_params_
-
-#     event['urlencode'] = urlencode
-#     event['quote_plus'] = quote_plus
-#     event['quote'] = quote
-#     event['money'] = money
-#     event['should_int'] = should_int
-#     event['thousand'] = thousand
-#     event['as_timezone'] = as_timezone
-#     event['split'] = split
-#     event['allow_register'] = allow_register
-#     event['change_unit'] = change_unit
-#     event['get_urls'] = get_urls
-#     event['get_csrf_token'] = get_csrf_token
-#     event['get_base_menus'] = BASE_CLASS.get_menus
-
-#     # event['get_params'] = get_params
-#     # event['get_module_menus'] = get_module_menus
-#     # event['get_module_submenus'] = get_module_submenus
 
 
 def get_params_(params, alternate=None, settings=None):

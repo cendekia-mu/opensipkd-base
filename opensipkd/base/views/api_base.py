@@ -114,9 +114,6 @@ class ApiViews(APIView):
         else:
             query = self.list_filter(query, **kwargs)
 
-        # log.debug(str(columns))
-        # qry = query.add_columns(*[c.sqla_expr for c in columns])
-        # log.debug(str(qry))
         row_table = DataTables(self.req.GET, query, columns)
         result = row_table.output_result()
         data = result and result.get("data") or {}
@@ -127,10 +124,6 @@ class ApiViews(APIView):
                     for r in vals:
                         if r and str(r) == str(res[k]):
                             res[k] = vals[r]
-        #     for k, v in d.items():
-        #         if k in url and v:
-        #             link = "/".join([self.home, nik_url, v])
-        #             d[k] =f'<a href="{link}" target="_blank">View</a>'
         if result.get("error"):
             _log.error(result.get("error"))
             _log.error(str(result))
@@ -288,12 +281,9 @@ class ApiViews(APIView):
         if "draw" not in self.req.params:
             self.req.GET.add('draw', "1")
         if "length" not in self.req.params:
-            self.req.GET.add('length', "10")
+            self.req.GET.add('length', "25")
         if "start" not in self.req.params:
             self.req.GET.add('start', "0")
-        # rec_id = self.req.matchdict.get('id')
-        # if rec_id:
-        #     self.req.GET.add('columns[0][search][value]', rec_id)
         return self.get_list(**kwargs)
     
     def get_custom_render(self, data):
