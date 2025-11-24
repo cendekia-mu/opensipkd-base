@@ -198,7 +198,7 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
 # masih memungkinkan update yg sudah ada dgn syarat is value dari keys masih sama
 # sperti salah route url asalkan kode msh sama
 def append_csv(table, filename, keys, get_file_func=get_file,
-               db_session=DBSession, **args):
+               db_session=DBSession, base=Base, **args):
     eng = db_session.get_bind()
 
     update_exist = args.get("update_exist")
@@ -213,7 +213,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
             delimiter = "\t"
 
     # log.debug(f"Delimiter: {delimiter}")
-    insp = inspect(DBSession.connection())
+    insp = inspect(db_session.connection())
     # print(dir(table.__table__))
     # print("____")
     schema = hasattr(
@@ -255,7 +255,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                             foreign_table = t_array[1]
                             foreign_field = t_array[2]
 
-                        foreign_table = Table(foreign_table, Base.metadata,
+                        foreign_table = Table(foreign_table, base.metadata,
                                               # autoload=True, # merubah v1.4 ke v.2
                                               autoload_with=eng,
                                               schema=schema)
@@ -285,6 +285,8 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     with eng.connect() as conn:
                         q = conn.execute(sql)
                     row = q.fetchone()
+                    if not row:
+                        raise Exception(f"Foreign key value '{value}' not found in table '{foreign_table.name}' for field '{fname}'")
                     value = row and row.id or None
                     q.close()
                     # connection.close()

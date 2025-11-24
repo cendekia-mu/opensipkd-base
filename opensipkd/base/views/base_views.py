@@ -22,7 +22,7 @@ from opensipkd.tools.buttons import (
 from opensipkd.tools.report import csv_response, file_response
 from pyramid.request import Response
 from .common import DataTables
-from ..models import DBSession, Partner
+from ..models import DBSession, Partner, Base
 # , get_params, get_urls
 from ..scripts.initializedb import append_csv
 from ..tools import obj2json
@@ -58,6 +58,7 @@ class BaseView(object):
         self.req = request
         self.ses = self.req.session
         self.db_session = DBSession
+        self.base = Base
         self.params = self.req.params
         self.settings = get_settings()
         self.tahun = None
@@ -763,8 +764,10 @@ class BaseView(object):
         return open(filename)
 
     def save_upload(self, file_name, **args):
+        args.pop("table", None)
         return append_csv(self.table, file_name, self.upload_keys,
                           get_file_func=self.get_file, update_exist=True,
+                          db_session=self.db_session, base=self.base,
                           **args)
 
     def before_add(self):
