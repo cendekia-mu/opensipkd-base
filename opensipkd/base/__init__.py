@@ -389,7 +389,7 @@ def main(global_config, **settings):
     BASE_CLASS.route_from_list(config)
     BASE_CLASS.static_view(config, settings=settings)
     config.add_subscriber(add_global_render, BeforeRender)
-        
+    config.scan()
     # _logging.debug(config)
     return config.make_wsgi_app()
 

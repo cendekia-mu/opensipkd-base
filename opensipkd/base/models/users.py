@@ -265,6 +265,12 @@ class Group(_Group, Base, DefaultModel):
 # It is used when there is a web request.
 class RootFactory:
     def __init__(self, request):
+        if not request.authenticated_userid:
+            self.__acl__ = [
+                # (Allow, Everyone, 'view'),
+            ]
+            return
+        
         gr = DBSession.query(Group).filter_by(group_name="Superuser").first()
         gr_id = gr and gr.id or 1
         self.__acl__ = [

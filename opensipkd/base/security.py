@@ -1,9 +1,7 @@
-from inspect import signature
 import logging
 
 # from opensipkd.tools import get_params
 from .models.users import (User, UserGroup, DBSession, )
-from pyramid.security import remember, forget
 
 log = logging.getLogger(__name__)
 
@@ -65,13 +63,17 @@ class MySecurityPolicy:
     def identity(self, request):
         log.debug("MySecurityPolicy.identity")
         identity = self.helper.identify(request)
-        if identity is None:
-            try:
-                user = auth_from_rpc(request)
-                identity = {'userid': user.id}
-            except Exception as e:
-                log.warning("Failed to authenticate from RPC: %s", e)
-                return None
+        if identity is None :
+            env = request.environ
+            if 'HTTP_USERID' in env and 'HTTP_SIGNATURE' in env and 'HTTP_KEY' in env:
+                try:
+                    user = auth_from_rpc(request)
+                    identity = {'userid': user.id}
+                except Exception as e:
+                    log.warning("Failed to authenticate from RPC: %s", e)
+                    return 
+            else:
+                return
 
         userid = identity['userid']
         principals = group_finder(userid, request)

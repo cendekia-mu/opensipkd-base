@@ -1,5 +1,4 @@
 import logging
-
 from translationstring import TranslationStringFactory
 import colander
 from pyramid.httpexceptions import (
@@ -9,9 +8,7 @@ from pyramid.interfaces import IRoutesMapper
 from pyramid.view import view_config
 from opensipkd.base import get_params, get_home
 from pyramid.renderers import render_to_response
-#, get_urls
 from .base_views import BaseView
-#, DataTables
 from datetime import timedelta
 from opensipkd.detable import *
 from .common import ColumnDT, DataTables
