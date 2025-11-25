@@ -196,7 +196,7 @@ class ViewAuth(BaseView):
         if not next_url:
             next_url = request.home
 
-        if request.authenticated_userid:  # (request):
+        if request.authenticated_userid and not request.is_xhr:  # (request):
             message = 'Anda sudah login'
             if request.is_xhr:
                 user = request.user
