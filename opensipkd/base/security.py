@@ -1,3 +1,4 @@
+# import inspect
 import logging
 
 # from opensipkd.tools import get_params
@@ -62,8 +63,9 @@ class MySecurityPolicy:
 
     def identity(self, request):
         log.debug("MySecurityPolicy.identity")
+        # log.debug(inspect.stack()[1])
         identity = self.helper.identify(request)
-        if identity is None :
+        if identity is None and request.matched_route!='login':
             env = request.environ
             if 'HTTP_USERID' in env and 'HTTP_SIGNATURE' in env and 'HTTP_KEY' in env:
                 try:
