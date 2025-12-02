@@ -256,7 +256,7 @@ def get_config(settings):
     config.add_subscriber(add_cors_headers_response_callback, NewRequest)
     config.add_request_method(get_app_name, 'app_name', reify=True)
     config.add_request_method(get_menus, 'menus', reify=True)
-    # config.add_request_method(get_host, '_host', reify=True)
+    config.add_request_method(get_host, '_host', reify=True)
     config.add_request_method(get_host, 'home', reify=True)
     config.add_request_method(get_title, 'title', reify=True)
     config.add_request_method(get_company, 'company', reify=True)
