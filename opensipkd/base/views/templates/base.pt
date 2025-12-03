@@ -84,14 +84,14 @@
                 <a href="${home}/user">User</a>
               </li>
               <li tal:condition="has_permission(request, ['user-view', 'user-edit'])">
-                <a href="${home}/group">Group</a>
+                <a href="${home}/groups">Group</a>
               </li>
               <!-- <li tal:condition="has_permission(request, 'routes')"><a href="${home}/routes">Routes</a></li> -->
               <li tal:condition="has_permission(request, 'upload-logo')"><a href="${home}/upload/logo">Upload Logo</a>
               </li>
-              <li tal:condition="has_permission(request, 'parameter')">
+              <!--<li tal:condition="has_permission(request, 'parameter')">
                 <a href="${home}/parameter">Parameter</a>
-              </li>
+              </li>-->
               <!-- <li tal:condition="has_permission(request, 'departemen')">
                   <a href="${home}/departemen">Departemen</a></li> -->
               <li tal:condition="has_permission(request, 'partner')">
