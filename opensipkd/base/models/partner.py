@@ -78,10 +78,10 @@ class Partner(Base, PartnerModel):
     partner_files: Mapped["PartnerFiles"] = relationship(back_populates="partner")
 
     #todo alembic
-    rpc_url = Column(String(255))
-    rpc_user = Column(String(255))
-    rpc_callback = Column(String(255))
-    rpc_password = Column(String(255))
+    # rpc_url = Column(String(255))
+    # rpc_user = Column(String(255))
+    # rpc_callback = Column(String(255))
+    # rpc_password = Column(String(255))
 
     # npwp        = Column(String(16))
     # npwpd       = Column(String(16))
