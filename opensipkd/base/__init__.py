@@ -242,9 +242,7 @@ def google_signin_client_id(request):
         return ids[0].strip()
     return ''
 
-from .depreciated_base import (
-    get_company, get_departement, get_ibukota, get_address, get_address2
-)
+from .depreciated_base import *
 
 def get_config(settings):
     session_factory = session_factory_from_settings(settings)
