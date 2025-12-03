@@ -24,3 +24,7 @@ def get_address2(request):
 
 def get_app_name(request):
     return get_params('app_name', 'openSIPKD Application')
+
+
+def is_devel(request):
+    return get_params('devel') == 'true'

@@ -1207,14 +1207,18 @@ def deferred_status(node, kw):
     values = kw.get('daftar_status', [])
     return widget.SelectWidget(values=values)
 
+from email.utils import parseaddr
+
+def email_validator(node, value):
+    name, email = parseaddr(value)
+    if not email or email.find('@') < 0:
+        raise colander.Invalid(node, 'Invalid email format')
+
 """
 
 
 
-# def email_validator(node, value):
-#     name, email = parseaddr(value)
-#     if not email or email.find('@') < 0:
-#         raise colander.Invalid(node, 'Invalid email format')
+
 
 
 # class Store(dict):
