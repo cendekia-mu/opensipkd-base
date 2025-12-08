@@ -1,4 +1,8 @@
-<link href="${home}/static/v3/js/plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css"
-      rel="stylesheet">
+<link href="${home}/deform_static/css/form.css" rel="stylesheet">
+<link href="${home}/static/v3/js/plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet">
+<script src="${home}/deform_static/scripts/deform.js"></script>
+<script src="${home}/deform_static/scripts/typeahead.min.js"></script>
+<script src="${home}/deform_static/scripts/jquery.maskMoney-3.1.1.min.js"></script>
+<script src="${home}/deform_static/tinymce/tinymce.min.js"></script>
 <script src="${home}/static/v3/js/plugin/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
 <script src="${home}/static/v3/js/plugin/bootstrap-timepicker/bootstrap-timepicker.min.js"></script>

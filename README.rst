@@ -30,7 +30,7 @@ Buat databasenya. Lalu salin file konfigurasi::
 
 Sesuaikan database profile dan log file. Lalu buat tabelnya::
 
-    $ ~/env/bin/initialize_opensipkd_db live.ini
+    $ ~/env/bin/osipkd-db-init live.ini
 
 Jalankan web server::
 
