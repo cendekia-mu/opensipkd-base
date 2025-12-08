@@ -1,0 +1,4 @@
+<link href="${home}/static/v3/js/plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css"
+      rel="stylesheet">
+<script src="${home}/static/v3/js/plugin/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+<script src="${home}/static/v3/js/plugin/bootstrap-timepicker/bootstrap-timepicker.min.js"></script>

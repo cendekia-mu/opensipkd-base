@@ -44,8 +44,7 @@
             tal:condition="css_resource[:4]!='http'">
         <link rel="stylesheet" href="${css_resource}" type="text/css" tal:condition="css_resource[:4]=='http'">
     </tal:loop>
-    <!--?    <link href="${home}/static/v3/js/plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css"-->
-    <!--?          rel="stylesheet">-->
+
     <link href="${home}/deform_static/css/form.css" rel="stylesheet">
     <!--?    <link href="${home}/static/v3/css/select2.min.css" rel="stylesheet" type="text/css">-->
     <metal:css define-slot="css_files"></metal:css>

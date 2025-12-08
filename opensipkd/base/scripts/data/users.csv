@@ -1,3 +1,4 @@
-email,status,user_name
-admin@local.host,1,admin
-guest@local.host,1,guest
+email,status,user_name,registered_date
+admin@local.host,1,admin,
+guest@local.host,1,guest,
+,,,
