@@ -9,6 +9,7 @@ import decimal
 import deform
 import traceback
 import opensipkd
+import tempfile
 from pkg_resources import resource_filename
 from pyramid.renderers import JSON
 from pyramid_beaker import session_factory_from_settings
@@ -24,7 +25,6 @@ from .models.handlers import LogDBSession
 from .models.meta import Base
 from .models.users import init_model
 from .models import Route
-import tempfile
 
 # from deform import ZPTRendererFactory, Form
 # from deform.widget import default_resource_registry
@@ -71,6 +71,7 @@ def has_modules(module_name, context=None):
     modules = get_params("pyramid.includes").split("\n")
     return module_name in modules
 
+
 def add_cors_headers_response_callback(event):
     def cors_headers(request, response):
         # pass
@@ -90,8 +91,8 @@ def add_cors_headers_response_callback(event):
         }
         # _logging.info(f"{origin} {request.is_xhr}")
         # response.headers.update(
-            # {'Access-Control-Allow-Credential': 'true',
-            #  'Access-Control-Allow-Origin': "*"}
+        # {'Access-Control-Allow-Credential': 'true',
+        #  'Access-Control-Allow-Origin': "*"}
         # )
         # if origin:
         #     headers['Access-Control-Allow-Origin'] = origin
@@ -183,7 +184,7 @@ def get_menus(request):
 
 def get_home(request):
     return request.route_url('base-home')
-    #[:-1]
+    # [:-1]
 
 
 def get_host(request):
@@ -242,7 +243,6 @@ def google_signin_client_id(request):
         return ids[0].strip()
     return ''
 
-from .depreciated_base import *
 
 def get_config(settings):
     session_factory = session_factory_from_settings(settings)
@@ -302,7 +302,8 @@ def get_config(settings):
     #     if not os.path.exists(partner_files):
     #         os.makedirs(partner_files)
 
-    config.add_static_view('static', 'opensipkd.base:static', cache_max_age=3600)
+    config.add_static_view(
+        'static', 'opensipkd.base:static', cache_max_age=3600)
     mobile_static_path = settings.get('mobile_static_path')
     if not mobile_static_path:
         mobi_path = os.path.dirname(opensipkd.base.__file__)
@@ -311,7 +312,8 @@ def get_config(settings):
     if not os.path.exists(mobile_static_path):
         mobile_static_path = os.makedirs(mobile_static_path)
 
-    config.add_static_view('mobi', mobile_static_path+os.sep, cache_max_age=3600)
+    config.add_static_view('mobi', mobile_static_path +
+                           os.sep, cache_max_age=3600)
     config.add_static_view('deform_static', 'deform:static')
 
     #     config.add_static_view(partner_idcard_url,
@@ -396,8 +398,8 @@ def _add_route(config, route):
     if titles.get(route.get("kode")):
         _logging.warning(f"Route {route.get('kode')} sudah ada di titles")
         return
-    
-    if int(route.get("typ", 0)) in [0,2]:
+
+    if int(route.get("typ", 0)) in [0, 2]:
         config.add_route(route.get("kode"), route.get("path"))
 
     elif int(route.get("typ")) == 1:
@@ -415,8 +417,8 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
 
     file_name = f"{paket}.{route.get('file_name')}"
     if not file_name:
-            _logging.error(f"File not found: {file_name}")
-            return
+        _logging.error(f"File not found: {file_name}")
+        return
     # _logging.debug(f"File Name: {file_name}")
     attr = f"{route.get('func_name')}"
     try:
@@ -429,7 +431,7 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
             _logging.error(
                 f"Class {class_name} not found in {file_name}")
             return
-        
+
         views = getattr(_views, class_name)
         template = route.get("template", "form.pt")
         if not template:
@@ -446,14 +448,14 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
         params = dict(attr=f"{attr}",
                       route_name=route.get("kode"),
                       renderer=template)
-        
+
         if route.get("permission"):
             params["permission"] = route.get("permission")
         if route.get("crsf"):
             params["require_csrf"] = True
         if route.get("request_method"):
             params["request_method"] = route.get("request_method")
-        if route.get("typ")==2:
+        if route.get("typ") == 2:
             params.pop("attr", None)
             params.pop("renderer", None)
             config.add_view(views.as_view(), **params)
@@ -492,21 +494,20 @@ class BaseApp():
         self.temp_files = settings.get("temp_files")
         if not os.path.exists(self.temp_files):
             os.makedirs(self.temp_files)
-        
+
         self.captcha_files = settings.get("captcha_files")
         if not os.path.exists(self.captcha_files):
             os.makedirs(self.captcha_files)
-            
+
         self.partner_doc = get_params(
-            "partner_doc", 
-            os.path.join(self.temp_files,'docs','partner'), 
+            "partner_doc",
+            os.path.join(self.temp_files, 'docs', 'partner'),
             settings=settings)+os.sep
         if not os.path.exists(self.partner_doc):
             os.makedirs(self.partner_doc)
         config.add_static_view(
             'docs/partner', self.partner_doc, cache_max_age=0)
-    
-        
+
         # Registrasi
         self.allow_register = get_params(
             "allow_register", 0, settings=settings)
@@ -578,7 +579,8 @@ class BaseApp():
                     parent["children"].append(route)
             if children:
                 route["route_name"].extend(
-                    self.add_menu(config, children, route, paket, template_path=template_path)
+                    self.add_menu(config, children, route, paket,
+                                  template_path=template_path)
                 )
             route_names.append(route["kode"])
         return route_names
@@ -609,7 +611,8 @@ class BaseApp():
             else:
                 new_routes.append(row)
 
-        self.add_menu(config, new_routes, None, paket, template_path=template_path)
+        self.add_menu(config, new_routes, None, paket,
+                      template_path=template_path)
 
     def route_from_csv(self, config, paket="opensipkd.base.views", filename="routes.csv",
                        template_path="views/templates/"):
@@ -617,7 +620,8 @@ class BaseApp():
         if get_ext(filename) == ".csv":
             with open(fullpath) as f:
                 rows = csv.DictReader(f, skipinitialspace=True)
-                self.route_from_csv_(config, paket, rows=rows, template_path=template_path)
+                self.route_from_csv_(
+                    config, paket, rows=rows, template_path=template_path)
 
         else:
             import xlsx_dict_reader
@@ -679,7 +683,6 @@ def has_permission_(request, perm_names, context=None):
             return True
 
 
-
 def get_params_(params, alternate=None, settings=None):
     return get_params(params, alternate, settings)
 
@@ -696,7 +699,7 @@ def get_params_(params, alternate=None, settings=None):
 #     return url
 
 
-#Depreciated modules
+# Depreciated modules
 def _set_routes1(config, app_id):
     """Compatibility
     """
@@ -739,3 +742,6 @@ def set_routes(config, app_id=None):
         return _set_routes2(config, app_id)
     else:
         return _set_routes1(config, app_id)
+
+
+from .depreciated_base import *
