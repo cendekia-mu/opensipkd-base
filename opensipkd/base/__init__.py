@@ -407,7 +407,7 @@ def _add_route(config, route):
         titles[route.get("kode")] = route.get("nama")
 
 
-def _add_view_config(config, paket, route):
+def _add_view_config(config, paket, route, template_path="views/templates/"):
     _add_route(config, route)
     if not route.get("func_name"):
         func_name = "".join(route.get("kode").split('-')[-1:])
@@ -441,7 +441,7 @@ def _add_view_config(config, paket, route):
                 template = "form.pt"
 
         if template != "json":
-            template = "views/templates/" + template
+            template = template_path + template
 
         params = dict(attr=f"{attr}",
                       route_name=route.get("kode"),
@@ -477,6 +477,7 @@ class BaseApp():
         self.reg_form = ""
         self.reg_id_card = 0
         self.reg_captcha = 0
+        self.login_tpl = ""
         self.login_captcha = 0
         self.base_dir = os.path.split(__file__)[0]
         self.reg_nip = 0
@@ -526,7 +527,8 @@ class BaseApp():
         self.login_captcha = int(get_params(
             "login_captcha", 0, settings=settings))
 
-    def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views"):
+    def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views",
+                 template_path="views/templates/"):
         route_names = []
         for route in route_menus:
             # if not int(route.get("status", 0)):
@@ -564,7 +566,8 @@ class BaseApp():
             children = route.get("children", [])
             route["children"] = []
             if route.get("file_name"):
-                _add_view_config(config, paket, route)
+                _add_view_config(config, paket, route,
+                                 template_path=template_path)
             elif route["path"] != "#":
                 _add_route(config, route)
 
@@ -575,7 +578,7 @@ class BaseApp():
                     parent["children"].append(route)
             if children:
                 route["route_name"].extend(
-                    self.add_menu(config, children, route, paket)
+                    self.add_menu(config, children, route, paket, template_path=template_path)
                 )
             route_names.append(route["kode"])
         return route_names
@@ -590,7 +593,7 @@ class BaseApp():
                 if p["children"]:
                     self.route_children(p["children"], row)
 
-    def route_from_csv_(self, config, paket="opensipkd.base.views", rows=[]):
+    def route_from_csv_(self, config, paket="opensipkd.base.views", rows=[], template_path="views/templates/"):
         new_routes = []
         for row in rows:
             status = row.get("status", 0) or 0
@@ -606,14 +609,15 @@ class BaseApp():
             else:
                 new_routes.append(row)
 
-        self.add_menu(config, new_routes, None, paket)
+        self.add_menu(config, new_routes, None, paket, template_path=template_path)
 
-    def route_from_csv(self, config, paket="opensipkd.base.views", filename="routes.csv"):
+    def route_from_csv(self, config, paket="opensipkd.base.views", filename="routes.csv",
+                       template_path="views/templates/"):
         fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
         if get_ext(filename) == ".csv":
             with open(fullpath) as f:
                 rows = csv.DictReader(f, skipinitialspace=True)
-                self.route_from_csv_(config, paket, rows=rows)
+                self.route_from_csv_(config, paket, rows=rows, template_path=template_path)
 
         else:
             import xlsx_dict_reader
@@ -621,7 +625,8 @@ class BaseApp():
             wb = load_workbook(fullpath, data_only=True)
             ws = wb.active
             rows = xlsx_dict_reader.DictReader(ws)  # skip_blank=True
-            self.route_from_csv_(config, paket, rows=rows)
+            self.route_from_csv_(config, paket, rows=rows,
+                                 template_path=template_path)
 
         # with self.get_route_file(filename) as f:
 
