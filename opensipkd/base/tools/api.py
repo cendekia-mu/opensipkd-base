@@ -12,7 +12,7 @@ lima_menit = 300
 def auth_from(request, field=None):
     global lima_menit
     env = request.environ
-    log.info(env)
+    log.debug(env)
     if not ('HTTP_USERID' in env and 'HTTP_SIGNATURE' in env and
             'HTTP_KEY' in env):
         raise JsonRpcInvalidLoginError

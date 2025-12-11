@@ -94,7 +94,7 @@ class ApiViews(APIView):
                                  search_method=search_method))
                 if hasattr(d, "widget"):
                     if d.widget:
-                        _log.debug(d.widget)
+                        # _log.debug(d.widget)
                         if type(d.widget) is SelectWidget:
                             select_list[d.name] = d.widget.values
 
@@ -189,56 +189,6 @@ class ApiViews(APIView):
 
         return Form(schema, buttons=buttons, autocomplete=self.autocomplete)
 
-    # def get_filters(self, query, **kw):
-    #     return query
-
-    # def get_orders(self, query, **kw):
-    #     table = kw.get("table", self.table)
-    #     if not self.orders:
-    #         self.orders = self.pkey
-
-    #     query = query.order_by(*(getattr(table, k) for k in self.orders))
-    #     return query
-
-    # def get_joins(self, query, **kw):
-    #     return query
-
-    # def get_groups(self, query, **kw):
-    #     return query
-
-    # def query(self, **kw):
-    #     self.psize = int(self.req.params.get("size", 25))
-    #     self.page = int(self.req.params.get("page", 1))
-
-    #     table = kw.get("table", self.table)
-    #     get_filters = kw.get("filters", self.get_filters)
-    #     get_joins = kw.get("joins", self.get_joins)
-    #     get_groups = kw.get("groups", self.get_groups)
-    #     get_orders = kw.get("orders", self.get_orders)
-    #     query = self.db_session.query(table)
-    #     query = get_joins(query,  **kw)
-    #     query = get_groups(query,  **kw)
-    #     query = get_filters(query, **kw)
-    #     query = get_orders(query, **kw)
-    #     query = query.limit(self.psize).offset((self.page - 1) * self.psize)
-    #     return query
-
-    # def query_id(self, **kw):
-    #     table = kw.get("table", self.table)
-    #     get_joins = kw.get("joins", self.get_joins)
-    #     get_groups = kw.get("groups", self.get_groups)
-    #     get_filters = kw.get("filters", self.get_filters)
-    #     get_orders = kw.get("orders", self.get_orders)
-    #     if hasattr(table, "query_id") and self.id:
-    #         query = table.query_id(self.id)
-    #         query = get_joins(query, **kw)
-    #         query = get_groups(query, **kw)
-    #         query = get_filters(query, **kw)
-    #         query = get_orders(query, **kw)
-    #         return query
-
-    #     return self.query(**kw)
-
     def json_adapter(self, obj):
         if isinstance(obj, datetime):
             return obj.strftime('%Y-%m-%d %H:%M:%S')
@@ -264,22 +214,6 @@ class ApiViews(APIView):
             data.update(msg)
         return data
 
-    # def get(self, self.req. *args, **kwargs):
-        # self.req = request
-        # query=self.query()
-        # if not query.first():
-        #     return HTTPNotFound()
-        # data = []
-        # for row in query:
-        #     d = dict(row.__dict__)
-        #     d.pop('_sa_instance_state', None)
-        #     for key, value in d.items():
-        #         if isinstance(value, datetime.datetime):
-        #             d[key] = value.isoformat()
-        #         elif isinstance(value, Decimal):
-        #             d[key] = float(value)
-        #     data.append(d)
-        # return Response(json=self.success(data=data))
     def _get(self, request, *args, **kwargs):
         self.req = request
         if "draw" not in self.req.params:

@@ -276,7 +276,7 @@ class BaseView(object):
                 location=self.req.route_url(self.list_route))
 
     def form_validator(self, form, value):
-        pass
+        """Digunakan untuk memvalidasi form sebelum disubmit"""
 
     """
     def form_validate(self, form, err_value, **kwargs):
@@ -966,8 +966,6 @@ class BaseView(object):
 
     def edit_restrict(self, row):
         return False
-
-
     
     def resp_xhr(self, values):
         if values.get("data"):
@@ -1101,9 +1099,10 @@ class BaseView(object):
         kwargs["table"] = table
         return self.returned_form(form, **kwargs)
 
-    def query_id(self, id=None):
-        id = id or self.req.matchdict['id']
-        return self.table.query_id(id)
+    def query_id(self, id_=None):
+        id_ = id_ or self.req.matchdict['id']
+        return self.table.query_id(id_)
+    
         # if self.req.user:
         #     if hasattr(self.table, 'company_id') and self.req.user.company_id:
         #         q = q.filter_by(company_id=self.req.user.company_id)

@@ -62,8 +62,8 @@ def get_params(params, alternate=None, settings=None):
         settings = get_settings()
     if settings:
         result = settings.get(params)
-    _logging.debug(
-        f"get_params: {params}, Alternate: {alternate} Settings: {not settings == None} Result: {result}")
+    # _logging.debug(
+    #     f"get_params: {params}, Alternate: {alternate} Settings: {not settings == None} Result: {result}")
     return result and result.strip() or alternate
 
 
@@ -103,7 +103,7 @@ def add_cors_headers_response_callback(event):
 
         # _logging.debug(f"Headers: {headers}")
         response.headers.update(headers)
-        _logging.warning(response.headers)
+        _logging.debug(response.headers)
 
     event.request.add_response_callback(cors_headers)
 
@@ -426,6 +426,7 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
         class_name = route.get("class_name", None)
         if not class_name:
             class_name = "Views"
+
         _views = importlib.import_module(file_name)
         if not hasattr(_views, class_name):
             _logging.error(
@@ -463,7 +464,7 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
             config.add_view(views, **params)
 
     except Exception as e:
-        traceback.print_exc()
+        # traceback.print_exc()
         _logging.error("Add View Config :{code} Kode {error}"
                        .format(code=route["kode"], error=str(e)))
     # _logging.debug(f"Route: {route.get('kode')} {route.get('path')}")
@@ -665,7 +666,7 @@ class BaseApp():
         self.add_menu(config, new_routes, paket)
 
     def get_menus(self):
-        _logging.debug(f"Menus: {self.menus}")
+        # _logging.debug(f"Menus: {self.menus}")
         return self.menus
 
 

@@ -62,7 +62,7 @@ class MySecurityPolicy:
         self.helper = AuthTktCookieHelper(secret)
 
     def identity(self, request):
-        log.debug("MySecurityPolicy.identity")
+        # log.debug("MySecurityPolicy.identity")
         # log.debug(inspect.stack()[1])
         identity = self.helper.identify(request)
         if identity is None and request.matched_route!='login':
