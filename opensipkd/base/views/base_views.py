@@ -1,7 +1,8 @@
+from email.utils import parseaddr
 import logging
 import os
 from datetime import datetime
-from cgi import FieldStorage 
+from cgi import FieldStorage
 from webob.multidict import MultiDict
 from opensipkd.tools.captcha import img_captcha
 
@@ -23,6 +24,7 @@ from opensipkd.tools.report import csv_response, file_response
 from pyramid.request import Response
 from .common import DataTables
 from ..models import DBSession, Partner, Base
+from ..widgets import widget_os
 # , get_params, get_urls
 from ..scripts.initializedb import append_csv
 from ..tools import obj2json
@@ -41,16 +43,10 @@ class UploadSchema(colander.Schema):
 
 
 class CSRFSchema(colander.Schema):
-    def after_bind(self, schema, kwargs):
-        request = kwargs["request"]
-        csrf_token = get_csrf_token(request)
-        if not csrf_token:
-            csrf_token = new_csrf_token(request)
-
-        self["csrf_token"] = colander.SchemaNode(
-            colander.String(), widget=widget.HiddenWidget(),
-            default=csrf_token
-        )
+    csrf_token = colander.SchemaNode(
+        colander.String(),
+        widget=widget_os.CSRFWidget(),
+    )
 
 
 class BaseView(object):
@@ -89,7 +85,7 @@ class BaseView(object):
         self.allow_delete = True
         self.allow_post = False
         self.allow_unpost = False
-        self.allow_check = False  
+        self.allow_check = False
         self.check_field = ""
         self.state_save = False
         self.server_side = True
@@ -221,6 +217,7 @@ class BaseView(object):
             'jenis'] or self.jenis
         self.ses['jenis'] = self.jenis
         """
+
     def form2dict(self, field):
         children = []
         for c in field.children:
@@ -246,6 +243,7 @@ class BaseView(object):
     def query_register(self, **kwargs):
         pass
     """
+
     def get_routes(self):
         """
         Digunakan untuk mendapatkan default url apabila list_url tidak ada
@@ -299,6 +297,7 @@ class BaseView(object):
     def get_params(self, params, default=None):
         return get_params(params, default)
     """
+
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel),
                  **kwargs):
         buttons = self.buttons and self.buttons or buttons
@@ -308,7 +307,7 @@ class BaseView(object):
             bindings = self.bindings
         else:
             bindings = self.get_bindings(row)
-        form_params = {}
+        form_params = {"request": self.req}
         # form_params["after_bind"] = after_bind
         if "validator" in kwargs and kwargs["validator"]:
             form_params["validator"] = kwargs["validator"]
@@ -337,6 +336,7 @@ class BaseView(object):
         del self.req.session[session_name]
         return r
     """
+
     def view_list(self, **kwargs):
         """
         custom:
@@ -409,7 +409,7 @@ class BaseView(object):
                 bindings = self.bindings
             else:
                 bindings = self.get_bindings()
-                
+
             schema = schema.bind(request=self.req, **bindings)
 
             if not new_buttons:
@@ -601,8 +601,8 @@ class BaseView(object):
 
     def returned_form(self, form, **kwargs):
         table = kwargs.get("table", None)
-        if self.req.is_xhr and self.req.params.get("html","false")=="false":
-            data =  form.cstruct
+        if self.req.is_xhr and self.req.params.get("html", "false") == "false":
+            data = form.cstruct
             if "captcha" in form:
                 kode_captcha, file_name = img_captcha(self.req)
                 self.req.session["captcha"] = kode_captcha
@@ -855,7 +855,7 @@ class BaseView(object):
                         #     e.cstruct[f.name] = self.get_captcha_url()
                     value = self.update_value(value, e.cstruct)
                     form.set_appstruct(value)
-                    kwargs["table"]=table
+                    kwargs["table"] = table
                     return self.returned_form(form, **kwargs)
 
                 values = dict(c)
@@ -966,19 +966,18 @@ class BaseView(object):
 
     def edit_restrict(self, row):
         return False
-    
+
     def resp_xhr(self, values):
         if values.get("data"):
             data = []
             if values and type(values["data"]) is not list:
                 values["data"] = [values["data"]]
-            for val  in values["data"]:
+            for val in values["data"]:
                 data.append(obj2json(val))
             values["data"] = data
         else:
             values["error"] = obj2json(values.get("error", {}))
         return Response(json=values)
-
 
     def view_edit(self, **kwargs):
         request = self.req
@@ -1004,10 +1003,11 @@ class BaseView(object):
                 controls = request.POST.items()
                 if self.req.is_xhr:
                     cloned = request.POST.items()
-                    controls=[]
+                    controls = []
                     for ctrl in cloned:
                         if isinstance(ctrl[1], FieldStorage):
-                            controls.append(("__start__", f"{ctrl[0]}:mapping"))
+                            controls.append(
+                                ("__start__", f"{ctrl[0]}:mapping"))
                             controls.append(("upload", ctrl[1]))
                             controls.append(("uid", ""))
                             controls.append(("__end__", f"{ctrl[0]}:mapping"))
@@ -1018,7 +1018,7 @@ class BaseView(object):
                     controls = items.items()
                     log.debug(controls)
                 try:
-                        controls = form.validate(controls)
+                    controls = form.validate(controls)
                 except ValidationFailure as e:
                     log.error(f"Edit Error: {str(e.error)}")
                     if self.req.is_xhr:
@@ -1039,7 +1039,6 @@ class BaseView(object):
                 if self.req.is_xhr:
                     return self.resp_xhr({"data": [c]})
 
-
                 return self.after_edit(row=row, **kwargs)
 
             return self.next_edit(form, row=row)
@@ -1047,7 +1046,6 @@ class BaseView(object):
         # if self.req.is_xhr:
         #     return self.resp_xhr({"data": [form.cstruct]})
         form.set_appstruct(values)
-
 
         form = self.before_edit(form)
 
@@ -1102,7 +1100,7 @@ class BaseView(object):
     def query_id(self, id_=None):
         id_ = id_ or self.req.matchdict['id']
         return self.table.query_id(id_)
-    
+
         # if self.req.user:
         #     if hasattr(self.table, 'company_id') and self.req.user.company_id:
         #         q = q.filter_by(company_id=self.req.user.company_id)
@@ -1201,17 +1199,18 @@ class BaseView(object):
     def get_partner(self):
         return Partner.query_email(self.req.user.email).first()
 
+
 @colander.deferred
 def deferred_status(node, kw):
     values = kw.get('daftar_status', [])
     return widget.SelectWidget(values=values)
 
-from email.utils import parseaddr
 
 def email_validator(node, value):
     name, email = parseaddr(value)
     if not email or email.find('@') < 0:
         raise colander.Invalid(node, 'Invalid email format')
+
 
 """
 

@@ -14,7 +14,8 @@ from pkg_resources import resource_filename
 from pyramid.renderers import JSON
 from pyramid_beaker import session_factory_from_settings
 from pyramid.config import Configurator
-from pyramid.events import NewRequest, BeforeRender, subscriber
+from pyramid.events import NewRequest, BeforeRender, subscriber, NewResponse
+from pyramid.csrf import new_csrf_token, get_csrf_token
 from pyramid_mailer import mailer_factory_from_settings
 from sqlalchemy import engine_from_config, or_
 
@@ -452,7 +453,7 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
 
         if route.get("permission"):
             params["permission"] = route.get("permission")
-        if route.get("crsf"):
+        if route.get("csrf"):
             params["require_csrf"] = True
         if route.get("request_method"):
             params["request_method"] = route.get("request_method")
@@ -469,6 +470,14 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
                        .format(code=route["kode"], error=str(e)))
     # _logging.debug(f"Route: {route.get('kode')} {route.get('path')}")
 
+
+@subscriber(NewResponse)
+def add_csrf_headers(event):
+    request = event.request
+    csrf = get_csrf_token(request)
+    if not csrf:
+        csrf = new_csrf_token(request)
+    event.response.headers['X-CSRF-Token'] = csrf
 
 class BaseApp():
     def __init__(self):
@@ -675,6 +684,7 @@ BASE_CLASS = BaseApp()
 
 
 def has_permission_(request, perm_names, context=None):
+    _logging.debug(f"Has Permission: {perm_names} Context: {context}")
     if not perm_names:
         return True
     if isinstance(perm_names, str):

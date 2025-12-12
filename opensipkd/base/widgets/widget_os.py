@@ -1,4 +1,4 @@
-import os
+from pyramid.csrf import new_csrf_token, get_csrf_token
 from iso8601.iso8601 import ISO8601_REGEX
 from deform.widget import string_types
 import json
@@ -14,7 +14,6 @@ from deform.widget import (
     Widget, _StrippedString, Select2Widget,  _normalize_choices, OptGroup,
     DateInputWidget as WidgetDateInputWidget, AutocompleteInputWidget)
 from opensipkd.tools.captcha import img_captcha
-from opensipkd.tools import get_settings
 _logging = logging.getLogger(__name__)
 
 
@@ -379,10 +378,11 @@ class CaptchaWidget(Widget):
     def serialize(self, field, cstruct, **kw):
         file_name = ""
         # if not cstruct:
-        kode_captcha, file_name = img_captcha(self.request)
-        self.request.session["captcha_code"] = kode_captcha
-        _logging.error(f"Generated captcha code: {kode_captcha}")
-        _logging.error(self.request.session.items())
+        request = field.parent.schema.request
+        kode_captcha, file_name = img_captcha(request)
+        request.session["captcha_code"] = kode_captcha
+        _logging.debug("Generated captcha code: %s", kode_captcha)
+        _logging.debug(self.request.session.items())
 
         # cstruct = cstruct or self.url+file_name
         cstruct = self.url+file_name
@@ -985,3 +985,25 @@ class FilterWidget(Widget):
 #     template = readonly and self.readonly_template or self.template
 #     return field.renderer(template, **tmpl_values)
 #
+
+
+
+class CSRFWidget(widget.HiddenWidget):
+    
+    def serialize(self, field, cstruct, **kw):
+        request = field.parent.schema.request
+        cstruct = get_csrf_token(request)
+        if not cstruct:
+            cstruct = new_csrf_token(request)
+        values = self.get_template_values(field, cstruct, kw)
+        return field.renderer(self.template, **values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct is null:
+            return null
+        elif not isinstance(pstruct, string_types):
+            raise Invalid(field.schema, "Pstruct is not a string")
+        if not pstruct:
+            return null
+        return pstruct
+    

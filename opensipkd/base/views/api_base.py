@@ -3,17 +3,17 @@ import logging
 from decimal import Decimal
 from deform import Form, ValidationFailure
 from pyramid.response import Response
-from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 from opensipkd.base.models import DBSession
 from opensipkd.tools.buttons import btn_save, btn_cancel
 from opensipkd.tools import get_settings
 from opensipkd.base.views.common import DataTables, ColumnDT
 from deform.widget import SelectWidget
+from pyramid.response import Response
+from pyramid.httpexceptions import *
 import colander
 from . import api_messages
 from ..tools import obj2json
 
-from pyramid.response import Response
 
 from pyramid_restful.views import APIView
 import json
@@ -40,6 +40,11 @@ class ApiViews(APIView):
         self.psize = 25
         self.settings = get_settings()
         self.page = 1
+        self.http_bad_request = HTTPBadRequest
+        self.http_not_found = HTTPNotFound
+        self.http_forbidden = HTTPForbidden
+        self.http_not_acceptable = HTTPNotAcceptable
+        self.response = Response
         
     def get_params(self, key, default=None):
         return self.settings.get(key, default)
