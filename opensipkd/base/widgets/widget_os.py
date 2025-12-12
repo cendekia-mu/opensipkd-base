@@ -845,7 +845,7 @@ class DateInputWidget(WidgetDateInputWidget):
 
 
 class MoneyInputWidget(widget.MoneyInputWidget):
-    readonly_template = "readonly/textinput"
+    readonly_template = "readonly/moneyinput.pt"
 
     def get_template_values(self, field, cstruct, kw):
         options = json.loads(kw.get("mask_options", "{}"))
