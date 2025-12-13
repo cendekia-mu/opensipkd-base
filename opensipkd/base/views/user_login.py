@@ -314,7 +314,7 @@ class ViewAuth(BaseView):
 
             struct["csrf_token"] = csrf_token 
             log.debug("CSRF Token: %s", csrf_token)
-            log.debug("Form Struct: %s", struct)
+            log.info("Form Struct: %s", struct)
             return self.resp_xhr({"data": struct})
 
             # d = self.form2dict(form)

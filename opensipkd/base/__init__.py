@@ -73,40 +73,7 @@ def has_modules(module_name, context=None):
     return module_name in modules
 
 
-def add_cors_headers_response_callback(event):
-    def cors_headers(request, response):
-        # pass
-        # origin = request.headers.get("Origin", None)
-        # allowed_origin = get_params("allowed_origin", None)
-        # if allowed_origin:
-        #     if origin not in allowed_origin.split('\n'):
-        #         origin = "null"
 
-        headers = {
-            'Access-Control-Allow-Methods': '*',
-            'Access-Control-Allow-Headers': '*',
-            'Access-Control-Allow-Origin': "*",
-            # 'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
-            # 'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
-            # 'Access-Control-Max-Age': '1728000',
-        }
-        # _logging.info(f"{origin} {request.is_xhr}")
-        # response.headers.update(
-        # {'Access-Control-Allow-Credential': 'true',
-        #  'Access-Control-Allow-Origin': "*"}
-        # )
-        # if origin:
-        #     headers['Access-Control-Allow-Origin'] = origin
-        # else:
-        #     headers['Access-Control-Allow-Origin'] = "*"
-        # if 'Access-Control-Allow-Credentials' not in headers:
-        #     headers['Access-Control-Allow-Credentials'] = 'true'
-
-        # _logging.debug(f"Headers: {headers}")
-        response.headers.update(headers)
-        _logging.debug(response.headers)
-
-    event.request.add_response_callback(cors_headers)
 
 
 def get_app_name(request):
@@ -250,9 +217,11 @@ def get_config(settings):
     config = Configurator(settings=settings,
                           root_factory='opensipkd.base.models.users.RootFactory',
                           session_factory=session_factory)
-    config.set_default_csrf_options(require_csrf=False)
+    allow_no_origin = settings.get("allow_no_origin", "false").lower() == 'true'
+    config.set_default_csrf_options(require_csrf=False,
+                                    allow_no_origin=allow_no_origin
+                                    )
     config.set_security_policy(MySecurityPolicy(settings["session.secret"]))
-    config.add_subscriber(add_cors_headers_response_callback, NewRequest)
     config.add_request_method(get_app_name, 'app_name', reify=True)
     config.add_request_method(get_menus, 'menus', reify=True)
     config.add_request_method(get_host, '_host', reify=True)
@@ -342,13 +311,6 @@ def init_db(settings):
     init_model()
 
 
-# @subscriber(BeforeRender)
-def add_global_render(event):
-    event['has_permission'] = has_permission_
-    event['get_base_menus'] = BASE_CLASS.get_menus
-    event['has_modules'] = has_modules
-    event['get_params'] = get_params_
-
 #     event['urlencode'] = urlencode
 #     event['quote_plus'] = quote_plus
 #     event['quote'] = quote
@@ -389,7 +351,6 @@ def main(global_config, **settings):
     BASE_CLASS.route_from_csv(config, filename=routes_file)
     BASE_CLASS.route_from_list(config)
     BASE_CLASS.static_view(config, settings=settings)
-    config.add_subscriber(add_global_render, BeforeRender)
     config.scan()
     # _logging.debug(config)
     return config.make_wsgi_app()
@@ -470,14 +431,61 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
                        .format(code=route["kode"], error=str(e)))
     # _logging.debug(f"Route: {route.get('kode')} {route.get('path')}")
 
+@subscriber(NewRequest)
+def add_cors_headers_response_callback(event):
+    def cors_headers(request, response):
+        _logging.warning("request headers %s", dict(request.headers))
+        _logging.warning("request session headers %s",
+                         request.session._headers)
+        _logging.warning("request post data %s",
+                         request.POST)
+        # pass
+        # origin = request.headers.get("Origin", None)
+        # allowed_origin = get_params("allowed_origin", None)
+        # if allowed_origin:
+        #     if origin not in allowed_origin.split('\n'):
+        #         origin = "null"
 
-@subscriber(NewResponse)
-def add_csrf_headers(event):
-    request = event.request
-    csrf = get_csrf_token(request)
-    if not csrf:
-        csrf = new_csrf_token(request)
-    event.response.headers['X-CSRF-Token'] = csrf
+        headers = {
+            'Access-Control-Allow-Methods': '*',
+            'Access-Control-Allow-Headers': '*',
+            'Access-Control-Allow-Origin': "*",
+            # 'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
+            # 'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
+            # 'Access-Control-Max-Age': '1728000',
+        }
+        # _logging.info(f"{origin} {request.is_xhr}")
+        # response.headers.update(
+        # {'Access-Control-Allow-Credential': 'true',
+        #  'Access-Control-Allow-Origin': "*"}
+        # )
+        # if origin:
+        #     headers['Access-Control-Allow-Origin'] = origin
+        # else:
+        #     headers['Access-Control-Allow-Origin'] = "*"
+        # if 'Access-Control-Allow-Credentials' not in headers:
+        #     headers['Access-Control-Allow-Credentials'] = 'true'
+
+        # _logging.debug(f"Headers: {headers}")
+        response.headers.update(headers)
+        _logging.debug(response.headers)
+
+    event.request.add_response_callback(cors_headers)
+
+@subscriber(BeforeRender)
+def add_global_render(event):
+    event['has_permission'] = has_permission_
+    event['get_base_menus'] = BASE_CLASS.get_menus
+    event['has_modules'] = has_modules
+    event['get_params'] = get_params_
+
+# @subscriber(NewResponse)
+# def add_csrf_headers(event):
+#     request = event.request
+#     csrf = get_csrf_token(request)
+#     if not csrf:
+#         csrf = new_csrf_token(request)
+#     event.response.headers['X-CSRF-Token'] = csrf
 
 class BaseApp():
     def __init__(self):
