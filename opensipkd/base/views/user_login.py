@@ -181,6 +181,7 @@ def oauth2_login(request, params=None):
 class ViewAuth(BaseView):
     def view_login(self):
         request = self.req
+        log.debug("Referrer: %s", request.referrer)
         request.session["login"] = True
         next_url = request.params.get('next', request.referrer)
         login_tpl = BASE_CLASS.login_tpl
@@ -302,14 +303,18 @@ class ViewAuth(BaseView):
         #                 url=get_urls(request.route_url('login')),
         #                 next_url=next_url,
         #                 login=login, )
+        
         if self.req.is_xhr:
             form.set_appstruct({})
             struct = form.cstruct
+
             csrf_token = get_csrf_token(request)
             if not csrf_token:
                 csrf_token = new_csrf_token(request)
 
             struct["csrf_token"] = csrf_token 
+            log.debug("CSRF Token: %s", csrf_token)
+            log.debug("Form Struct: %s", struct)
             return self.resp_xhr({"data": struct})
 
             # d = self.form2dict(form)
