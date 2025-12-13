@@ -23,21 +23,19 @@ import os
 import re
 from datetime import timedelta, datetime
 from importlib import import_module
-from opensipkd.base.tools import obj2json
 from pyramid.request import Response
 import colander
 from deform import widget, Form, ValidationFailure, Button
-from pyramid.csrf import new_csrf_token
+from pyramid.csrf import new_csrf_token, get_csrf_token
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.renderers import render_to_response
 from pyramid.security import remember, forget
-from pyramid.view import view_config
 from pyramid_mailer.message import Message
 from ziggurat_foundations.models.services.external_identity import \
     ExternalIdentityService
 from ziggurat_foundations.models.services.user import UserService
 
-from opensipkd.base import BASE_CLASS, DBSession, get_params, scripts
+from opensipkd.base import BASE_CLASS, DBSession, get_params
 from . import one_hour, two_minutes
 from ..models.users import User, ExternalIdentity
 from ..models import Partner
@@ -48,7 +46,6 @@ from opensipkd.tools.buttons import btn_cancel
 from .base_views import CSRFSchema, BaseView
 from pyramid.i18n import TranslationStringFactory
 from ..widgets import widget_os
-import json
 _ = TranslationStringFactory('login')
 
 log = __import__("logging").getLogger(__name__)
@@ -306,7 +303,14 @@ class ViewAuth(BaseView):
         #                 next_url=next_url,
         #                 login=login, )
         if self.req.is_xhr:
-            return self.resp_xhr({"data": [form.cstruct]})
+            form.set_appstruct({})
+            struct = form.cstruct
+            csrf_token = get_csrf_token(request)
+            if not csrf_token:
+                csrf_token = new_csrf_token(request)
+
+            struct["csrf_token"] = csrf_token 
+            return self.resp_xhr({"data": struct})
 
             # d = self.form2dict(form)
             # d = d["children"]
