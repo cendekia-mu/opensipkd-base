@@ -37,7 +37,8 @@ def route_list(request, p={}):
 tmpstore = FileUploadTempStore()
 
 
-class AddSchema(CSRFSchema):
+# class AddSchema(CSRFSchema):
+class AddSchema(colander.Schema):
     upload = colander.SchemaNode(
         FileData(),
         widget=widget.FileUploadWidget(tmpstore),
@@ -56,9 +57,12 @@ def get_form(request, schema_cls):
     return Form(schema, buttons=('simpan', 'batal'))
 
 
+# @view_config(route_name='base-upload-logo',
+#              renderer='templates/form8.pt',
+#              permission='upload-logo', require_csrf=True)
 @view_config(route_name='base-upload-logo',
              renderer='templates/form8.pt',
-             permission='upload-logo', require_csrf=True)
+             permission='upload-logo')
 def view_file(request):
     form = get_form(request, AddSchema)
     if request.POST:
