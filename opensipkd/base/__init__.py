@@ -692,7 +692,7 @@ BASE_CLASS = BaseApp()
 
 
 def has_permission_(request, perm_names, context=None):
-    _logging.debug(f"Has Permission: {perm_names} Context: {context}")
+    # _logging.debug(f"Has Permission: {perm_names} Context: {context}")
     if not perm_names:
         return True
     if isinstance(perm_names, str):
