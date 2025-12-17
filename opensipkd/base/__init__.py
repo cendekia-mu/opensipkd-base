@@ -434,11 +434,11 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
 @subscriber(NewRequest)
 def add_cors_headers_response_callback(event):
     def cors_headers(request, response):
-        _logging.warning("request headers %s", dict(request.headers))
-        _logging.warning("request session headers %s",
-                         request.session._headers)
-        _logging.warning("request post data %s",
-                         request.POST)
+        # _logging.warning("request headers %s", dict(request.headers))
+        # _logging.warning("request session headers %s",
+        #                  request.session._headers)
+        # _logging.warning("request post data %s",
+        #                  request.POST)
         # pass
         # origin = request.headers.get("Origin", None)
         # allowed_origin = get_params("allowed_origin", None)

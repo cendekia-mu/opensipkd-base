@@ -1,6 +1,7 @@
 from datetime import datetime, date
 import logging
 from decimal import Decimal
+from math import log
 from deform import Form, ValidationFailure
 from pyramid.response import Response
 from opensipkd.base.models import DBSession
@@ -159,6 +160,7 @@ class ApiViews(APIView):
             data = form.validate(controls)
             return data
         except ValidationFailure as e:
+            _log.error("Error validasi %s", str(e.error.asdict()))
             raise HTTPBadRequest(explanation=str(e.error.asdict()))
         
         return dict(data)
