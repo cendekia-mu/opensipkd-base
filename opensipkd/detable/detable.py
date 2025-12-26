@@ -160,8 +160,16 @@ class DeTable(field.Field):
                 }""" % (tableid, tableid, tableid, params),
             "view": "{window.location = o%sUri+'/'+m%sID+'/view%s';}" % (
                 tableid, tableid, params),
-            "delete": "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (
-                tableid, tableid, params),
+            "delete": not self.allow_check and "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (
+                tableid, tableid, params) or \
+                    """{
+                        var cnt = m%sCheckList.length;
+                        if (confirm('Menghapus '+cnt+' data, pastikan data yang dipilih sudah benar!')){
+                            ids = m%sCheckList.join(',');
+                            window.location = o%sUri+'/all/delete?ids='+ids;
+                        };
+                        event.stopPropagation();
+                    }""" % (tableid, tableid, tableid),
             "csv": "{window.location = o%sUri+'/csv/act%s';}" % (
                 tableid, params),
             "pdf": "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params),
@@ -191,7 +199,8 @@ class DeTable(field.Field):
                     class="btn {button.css_class}"> 
                         {button.title} </button>\n
                     """)
-            _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
+            if dict_buttons[button.name]:
+                _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
                             dict_buttons[button.name] + ');')
 
         if html_buttons:
@@ -236,7 +245,7 @@ class DeTable(field.Field):
         filter_scripts = ""
         for f in schema:
             field_index += 1
-            d = {'data': f.name, 'title': f.title}
+            d = {'data': f.name}
             data = []
             if hasattr(f, 'width'):
                 d["width"] = f.width

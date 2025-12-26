@@ -17,7 +17,7 @@ from sqlalchemy import Table
 from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string, Upload, InvalidExtension, mem_tmp_store
 from opensipkd.tools.buttons import (
-    btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv,
+    btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv, btn_edit,
     btn_pdf, btn_upload)
 # from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
@@ -48,6 +48,8 @@ class CSRFSchema(colander.Schema):
         widget=widget_os.CSRFWidget(),
     )
 
+from pyramid.interfaces import IRoutesMapper
+from pyramid.threadlocal import get_current_registry
 
 class BaseView(object):
     def __init__(self, request):
@@ -76,6 +78,7 @@ class BaseView(object):
         self.list_report = (btn_csv, btn_pdf)
         self.list_buttons = (btn_add,)
         self.list_upload = (btn_upload,)
+        self.list_view_field = None
         self.columns = None
 #         self.form_params = dict(scripts="")
         self.list_url = ""
@@ -106,9 +109,21 @@ class BaseView(object):
         });"""
         self.form_widget = None
 
-        # self.list_schema = colander.Schema()
-        self.add_schema = colander.Schema()
-        # self.edit_schema = colander.Schema()
+        self.list_schema = colander.Schema(
+            error=colander.SchemaNode(
+                colander.String, title="Override",
+                missing=colander.drop,
+                default="Silahkan buat list schema"))
+        self.add_schema = colander.Schema(
+            error=colander.SchemaNode(
+                colander.String, title="Override",
+                missing=colander.drop,
+                default="Silahkan buat add schema"))
+        self.edit_schema = colander.Schema(
+            error=colander.SchemaNode(
+                colander.String, title="Override",
+                missing=colander.drop,
+                default="Silahkan buat schema edit"))
         self.upload_schema = UploadSchema
 
         self.upload_exts = (".csv", ".tsv")
@@ -244,6 +259,11 @@ class BaseView(object):
         pass
     """
 
+    def route_found(self, route_name):
+        reg = get_current_registry()  # b/c
+        mapper = reg.getUtility(IRoutesMapper)
+        return mapper.get_route(route_name)
+    
     def get_routes(self):
         """
         Digunakan untuk mendapatkan default url apabila list_url tidak ada
@@ -542,10 +562,17 @@ class BaseView(object):
         # log.debug(str(columns))
         # qry = query.add_columns(*[c.sqla_expr for c in columns])
         # log.debug(str(qry))
+        if self.req.params.get("order[0][column]", None):
+            self.req.params["order[0][column]"]='0'
+            self.req.params["order[0][dir]"]='desc'
+
         row_table = DataTables(self.req.GET, query, columns)
         result = row_table.output_result()
         data = result and result.get("data") or {}
         for res in data:
+            if self.list_view_field:
+                list_url = self.req.route_url(self.list_route)
+                res[self.list_view_field] = f"<a href='{list_url}/{res['id']}/view'>{res[self.list_view_field]}</a>"
             for k in res:
                 if k in select_list.keys():
                     vals = select_list[k]
@@ -639,8 +666,13 @@ class BaseView(object):
                     )
 
     def view_buttons(self, row):
-        result = (btn_close,)
-        return result
+        result =[]
+        if self.route_found(self.list_route+"-edit"):
+            result.append(btn_edit)
+        if self.route_found(self.list_route+"-delete"):
+            result.append(btn_delete)
+        result.append(btn_close)
+        return tuple(result)
 
     def before_view(self, **kw):
         return False
@@ -665,6 +697,19 @@ class BaseView(object):
         form = self.get_form(self.edit_schema, buttons=buttons,
                              bindings=bindings)
         if request.POST:
+            if 'edit' in request.POST:
+                return HTTPFound(
+                    location=self.req.route_url(
+                        self.list_route+"-edit",
+                        id=row.id,
+                        act='edit'))
+            elif 'delete' in request.POST:
+                return HTTPFound(
+                    location=self.req.route_url(
+                        self.list_route+"-delete",
+                        id=row.id,
+                        act='delete'))
+
             result = self.next_view(form=form, row=row)
             if result:
                 return result
@@ -1065,7 +1110,22 @@ class BaseView(object):
 
     def view_delete(self, **kwargs):
         request = self.req
+        
         q = self.query_id()
+        if self.allow_check:
+            rcount = q.count()
+            if rcount > 1:
+                try:
+                    q.delete(synchronize_session='fetch')
+                    self.db_session.flush()
+                    request.session.flash(f"{rcount} Data berhasil dihapus.")
+                except Exception as e:
+                    request.session.flash(
+                        f"Gagal menghapus data. "
+                        f"Pastikan data tidak berelasi dengan data lain. "
+                        f"Error: {str(e)}", "error")
+                return self.route_list()
+        
         self.ses["readonly"] = True
         row = q.first()
         is_object = kwargs.get("is_object", self.is_object)
@@ -1099,6 +1159,9 @@ class BaseView(object):
 
     def query_id(self, id_=None):
         id_ = id_ or self.req.matchdict['id']
+        if id_=='all':
+            ids_ = [int(i) for i in self.req.params.get("ids").split(",")]
+            return self.table.query().filter(self.table.id.in_(ids_))
         return self.table.query_id(id_)
 
         # if self.req.user:
