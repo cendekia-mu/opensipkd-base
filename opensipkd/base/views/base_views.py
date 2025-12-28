@@ -562,9 +562,9 @@ class BaseView(object):
         # log.debug(str(columns))
         # qry = query.add_columns(*[c.sqla_expr for c in columns])
         # log.debug(str(qry))
-        if self.req.params.get("order[0][column]", None):
-            self.req.params["order[0][column]"]='0'
-            self.req.params["order[0][dir]"]='desc'
+        if self.req.params.get("order[0][column]") is None:
+            self.req.GET.add("order[0][column]",'0')
+            self.req.GET.add("order[0][dir]",'desc')
 
         row_table = DataTables(self.req.GET, query, columns)
         result = row_table.output_result()

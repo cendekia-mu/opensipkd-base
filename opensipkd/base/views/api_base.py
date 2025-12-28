@@ -161,7 +161,7 @@ class ApiViews(APIView):
             return data
         except ValidationFailure as e:
             _log.error("Error validasi %s", str(e.error.asdict()))
-            raise HTTPBadRequest(explanation=str(e.error.asdict()))
+            raise HTTPBadRequest(explanation=str(e.error.asdict())) from e
         
         return dict(data)
     
