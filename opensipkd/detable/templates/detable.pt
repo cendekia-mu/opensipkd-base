@@ -45,8 +45,8 @@
             </div>
           </div>
         </div>
-        <div tal:condition="allow_check=='true'">
-          <div class="row">
+        <!-- <div tal:condition="allow_check=='true'">
+          <div class="row"> -->
            <!--
             <div class="input-group col-md-2">
               <span class="input-group-addon">
@@ -57,13 +57,14 @@
           </div>
           -->
           
-        </div>
+        <!-- </div> -->
         <table id="${tableid}" class="table table-bordered table-hover table-condensed dataTable no-footer">
           <thead>
           <tr>
             <tal:block tal:repeat="child field">
             <th class="no-sort" tal:condition="child.name=='id'">
-              <input type="checkbox" class="${tableid}checkAll" id="${tableid}checkAll"/>
+              <input tal:condition="allow_check=='true'" type="checkbox" class="${tableid}checkAll" id="${tableid}checkAll"/>
+              <span tal:condition="allow_check!='true'">${child.title}</span>
             </th>  
             <th tal:condition="child.name!='id'">
               ${child.title}
