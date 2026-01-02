@@ -140,6 +140,8 @@ class BaseView(object):
         self.is_object = False
 
         self.init_session(request)
+        if self.allow_check and self.allow_delete:
+            self.list_buttons.append(btn_delete)
 
     def init_session(self, request):
         #         # if not request.user:

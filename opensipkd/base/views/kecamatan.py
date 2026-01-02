@@ -2,9 +2,8 @@ import colander
 from deform import (widget, )
 from opensipkd.base.views.provinsi import provinsi_widget
 from opensipkd.models import DBSession, ResKecamatan, ResDati2, ResProvinsi
-from opensipkd.tools.buttons import btn_upload, btn_close, btn_add
+from opensipkd.tools.buttons import btn_upload, btn_add, btn_delete
 from pyramid.i18n import TranslationStringFactory
-from pyramid.view import (view_config, )
 from ..widgets import widget_os
 from .dati2 import dati2_widget
 from ..views import BaseView
@@ -68,8 +67,11 @@ class Views(BaseView):
         self.edit_schema = EditSchema
         self.table = ResKecamatan
         self.list_schema = ListSchema
-        self.list_buttons = (btn_add, btn_close, btn_upload)
-
+        self.list_buttons = [btn_add, btn_delete, btn_upload]
+        self.allow_check = True
+        self.allow_view = True
+        self.allow_delete = True
+        self.list_view_field = 'nama'
     def form_validator(self, form, value):
         def err_kode():
             raise colander.Invalid(form, 'Kode %s sudah digunakan oleh %s' % (

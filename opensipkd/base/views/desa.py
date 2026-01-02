@@ -1,7 +1,7 @@
 import colander
 from deform import (widget, )
 from opensipkd.models import DBSession, ResDesa, kategori_desa, ResKecamatan, ResProvinsi, ResDati2
-from opensipkd.tools.buttons import btn_upload, btn_close, btn_add
+from opensipkd.tools.buttons import btn_upload, btn_close, btn_add, btn_delete
 from pyramid.i18n import TranslationStringFactory
 from pyramid.view import (view_config, )
 from .dati2 import dati2_widget
@@ -74,7 +74,10 @@ class Views(BaseView):
         self.edit_schema = EditSchema
         self.table = ResDesa
         self.list_schema = ListSchema
-        self.list_buttons = (btn_add, btn_close, btn_upload)
+        self.list_buttons = [btn_add, btn_delete, btn_upload]
+        self.allow_check = True
+        self.allow_view = True
+        self.list_view_field = 'nama'
 
     def form_validator(self, form, value):
         def err_kode():
@@ -140,7 +143,7 @@ class Views(BaseView):
     #     return super(ViewDesa, self).view_list()
 
     def list_join(self, query):
-        return query.outerjoin(ResKecamatan)
+        return query.outerjoin(ResKecamatan, ResKecamatan.id==ResDesa.kecamatan_id)
 
     # @view_config(route_name='desa-act', renderer='json',
     #              permission='view')

@@ -145,7 +145,7 @@
       }
 
       function render_checklist(value) {
-        return '<input type="checkbox" class="${tableid}_check" checked="' + { value } + '"></input>';
+        return '<input type="checkbox" class="${tableid}_check" checked="' + { value } + ' checked=false"></input>';
       }
 
       var mtableId = "${tableid}";
@@ -178,33 +178,33 @@
           }
         }else if (${tableid}Columns[co].data === "id") {
           ${tableid}Columns[co].render = function (id, typ, data, setting) {
-            if (${tableid}Columns[co].action === false) return ""
+            if (${tableid}Columns[co].action === false) return "";
             let result = "";
             <tal:block tal:condition="allow_check=='true'">
               var checked = "";
               if (check_field !== "") {
-                checked = data[check_field] !== null ? "checked" : "";
-                  m${tableid}CheckList.push(id);
+                //checked = data[check_field] !== null ? "checked" : "";
+                //  m${tableid}CheckList.push(id);
 
               }
-              result = '<input type="checkbox" class="' + mtableId + '_check" id="' + mtableId + '_check_' + id +'" value="' + id + '" ' + checked + ' name="' + mtableId + '_check"/>&nbsp;';
+              result = '<input type="checkbox" class="' + mtableId + '_check" id="' + mtableId + '_check_' + id +'" value="' + id + '"  name="' + mtableId + '_check"/>&nbsp;';
             </tal:block>
             <tal:block tal:condition="allow_check=='false'">
-            <tal:block tal:condition="allow_view=='true'">
-                result += '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
-            </tal:block>
-            <tal:block tal:condition="allow_edit=='true'">
-                result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true" title="Edit"></i></a>&nbsp;'
-            </tal:block>
-            <tal:block tal:condition="allow_delete=='true'">
-                result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true" title="Delete"></i></a>';
-            </tal:block>
-            <tal:block tal:condition="allow_post=='true'">
-                result += '<a href="${url}/' + id + '/post"><i class="fas fa-signs-post" aria-hidden="true" title="Post"></i></a>';
-            </tal:block>
-            <tal:block tal:condition="allow_post=='true'">
-                result += '<a href="${url}/' + id + '/unpost"><i class="fas fa-delete-left" aria-hidden="true" title="Unpost"></i></a>';
-            </tal:block>
+              <tal:block tal:condition="allow_view=='true'">
+                  result += '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
+              </tal:block>
+              <tal:block tal:condition="allow_edit=='true'">
+                  result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true" title="Edit"></i></a>&nbsp;'
+              </tal:block>
+              <tal:block tal:condition="allow_delete=='true'">
+                  result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true" title="Delete"></i></a>';
+              </tal:block>
+              <tal:block tal:condition="allow_post=='true'">
+                  result += '<a href="${url}/' + id + '/post"><i class="fas fa-signs-post" aria-hidden="true" title="Post"></i></a>';
+              </tal:block>
+              <tal:block tal:condition="allow_post=='true'">
+                  result += '<a href="${url}/' + id + '/unpost"><i class="fas fa-delete-left" aria-hidden="true" title="Unpost"></i></a>';
+              </tal:block>
             </tal:block>
             return result;
           }

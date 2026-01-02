@@ -137,6 +137,7 @@ class ApiViews(APIView):
         if result.get("error"):
             _log.error(result.get("error"))
             _log.error(str(result))
+            
         return result
 
     def not_found(self, msg=None):

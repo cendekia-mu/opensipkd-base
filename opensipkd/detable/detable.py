@@ -164,10 +164,13 @@ class DeTable(field.Field):
                 tableid, tableid, params) or \
                     """{
                         var cnt = m%sCheckList.length;
+                        if (cnt > 0){
                         if (confirm('Menghapus '+cnt+' data, pastikan data yang dipilih sudah benar!')){
                             ids = m%sCheckList.join(',');
                             window.location = o%sUri+'/all/delete?ids='+ids;
                         };
+                        }else{ alert('Pilih Baris'); }
+
                         event.stopPropagation();
                     }""" % (tableid, tableid, tableid),
             "csv": "{window.location = o%sUri+'/csv/act%s';}" % (
@@ -199,9 +202,15 @@ class DeTable(field.Field):
                     class="btn {button.css_class}"> 
                         {button.title} </button>\n
                     """)
-            if dict_buttons[button.name]:
+            if dict_buttons.get(button.name):
                 _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
                             dict_buttons[button.name] + ');')
+            else:
+                url =  "{window.location = o%sUri+'/" % tableid
+                url += f"{button.name}';"+"}"  
+                _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
+                                url  + 
+                                ');')
 
         if html_buttons:
             for html in html_buttons:
