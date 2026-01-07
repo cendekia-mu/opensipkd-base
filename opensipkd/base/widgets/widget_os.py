@@ -366,12 +366,12 @@ class CaptchaWidget(Widget):
     """
 
     template = "opensipkd.base:widgets/templates/captcha.pt"
-    readonly_template = "textinput"
+    readonly_template = "opensipkd.base:widgets/templates/captcha.pt"
     strip = True
     requirements = ()
     request = None
     url = ""
-    
+
     # def __init__(self, **kw):
     #     super(CaptchaWidget, self).__init__(**kw)
 
@@ -400,22 +400,22 @@ class CaptchaWidget(Widget):
             pstruct = pstruct.strip()
         if not pstruct:
             return null
-        
-        captcha_message = "Captcha tidak sesuai"
+
         captcha_session = self.request.session.get("captcha_code", "")
         if captcha_session:
+            captcha_message = "Captcha tidak sesuai"
             if pstruct != captcha_session:
-                _logging.error(f"Captcha tidak sesuai: {pstruct} != {captcha_session}")
-                raise Invalid(field.schema, captcha_message)
+                _logging.error(
+                    "Captcha tidak sesuai terkirim: %s session %s", pstruct, captcha_session)
+                _logging.error(self.request.session.items())
+                self.request.session.pop("captcha_code", None)
+                raise Invalid(field.schema, msg=captcha_message)
         else:
-            # captcha_file = os.path.join(settings['captcha_files'], f"{pstruct}.png")
-            # captcha_exists = os.path.exists(captcha_file)
-            # if not captcha_exists:
-            #     _logging.error(f"Captcha file not found: {captcha_file}")
-            _logging.error(f"Captcha session not found for input: {pstruct}")
+            captcha_message = "Captcha tidak ditemukan"
+            _logging.error("Captcha session not found for input: %s", pstruct)
             _logging.error(self.request.session.items())
 
-            raise Invalid(field.schema, captcha_message)
+            raise Invalid(field.schema, msg=captcha_message)
 
         return pstruct
 
@@ -987,9 +987,8 @@ class FilterWidget(Widget):
 #
 
 
-
 class CSRFWidget(widget.HiddenWidget):
-    
+
     def serialize(self, field, cstruct, **kw):
         request = field.parent.schema.request
         cstruct = get_csrf_token(request)
@@ -1006,4 +1005,3 @@ class CSRFWidget(widget.HiddenWidget):
         if not pstruct:
             return null
         return pstruct
-    

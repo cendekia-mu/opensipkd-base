@@ -634,10 +634,14 @@ class BaseView(object):
             data = form.cstruct
             if "captcha" in form:
                 kode_captcha, file_name = img_captcha(self.req)
-                self.req.session["captcha"] = kode_captcha
+                self.req.session["captcha_code"] = kode_captcha
                 url = self.get_captcha_url()
                 cstruct = url+file_name
                 data["captcha"] = cstruct
+            error = kwargs.get("error", "")
+            if error:
+                error["data"]=data
+                return self.resp_xhr({"error": error})
 
             return self.resp_xhr({"data": data})
 
@@ -881,7 +885,7 @@ class BaseView(object):
                             control.append(("upload", ctrl[1]))
                             control.append(("uid", ""))
                             control.append(("__end__", f"{ctrl[0]}:mapping"))
-                            log.debug(f"Control: {ctrl}")
+                            log.debug("Control: %s", ctrl)
                         else:
                             control.append(ctrl)
                     controls = iter(control)
@@ -892,7 +896,9 @@ class BaseView(object):
                     if self.req.is_xhr:
                         error = e.error.asdict()
                         # error.update(value)
-                        return self.resp_xhr({"error": error})
+                        # return self.resp_xhr({"error": error})
+                        form.set_appstruct(e.cstruct)
+                        return self.returned_form(form, error=error)
 
                     for f in e.field.children:
                         if isinstance(f.typ, colander.Date):
@@ -1243,7 +1249,7 @@ class BaseView(object):
             if "fp" in value and value["fp"] and value["fp"] != b'':
                 if not path:
                     path = BASE_CLASS.temp_files
-                    path = os.join(path, "upload")
+                    path = os.path.join(path, "upload")
 
                 if not os.path.exists(path):
                     os.makedirs(path)

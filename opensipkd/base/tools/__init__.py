@@ -12,4 +12,9 @@ def obj2json(values):
                 values[key] = float(val)
             elif isinstance(val, colander._null):
                 values[key] = ""
+            elif isinstance(val, dict):
+                if 'fp' in val:
+                    values[key] = "FILEBLOB"
+                else:
+                    values[key] = obj2json(val)
         return values
