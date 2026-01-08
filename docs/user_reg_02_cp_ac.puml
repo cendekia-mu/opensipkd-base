@@ -1,0 +1,20 @@
+@startuml
+title Set Password Activity Diagram
+
+start
+
+:User is on the "Set Password" page after email verification;
+:User enters a new password and confirms it;
+:User submits the form;
+
+if (Do the passwords match and meet complexity requirements?) then (yes)
+  :System saves the new, hashed password to the user's account;
+  :Display a success message: "Password successfully set!";
+  :Redirect user to the login page;
+  stop
+else (no)
+  :Display an error message (e.g., "Passwords do not match or are not strong enough");
+  --> User enters a new password and confirms it;
+endif
+
+@enduml

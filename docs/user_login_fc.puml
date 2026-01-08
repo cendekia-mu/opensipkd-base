@@ -1,0 +1,25 @@
+@startuml
+title Login Flowchart
+
+start
+
+:User navigates to Login Page;
+:User enters Username and Password;
+:User clicks Login button;
+
+if (Are inputs valid?) then (yes)
+  :System checks credentials against Database;
+  if (Are credentials correct?) then (yes)
+    :Create session;
+    :Redirect to Dashboard;
+    stop
+  else (no)
+    :Show "Invalid credentials" error;
+    --> User enters Username and Password;
+  endif
+else (no)
+  :Show "Input required" error;
+  --> User enters Username and Password;
+endif
+
+@enduml

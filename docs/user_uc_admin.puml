@@ -1,0 +1,38 @@
+@startuml uc_admin
+
+left to right direction
+
+actor Admin
+
+rectangle "User Management Use Case" {
+  note "All use cases except Login require Admin permission" as N
+
+  usecase (Create User) as UC_CreateUser
+  usecase (Manage Users) as UC_ManageUsers
+  usecase (Assign Group) as UC_AssignGroup
+  usecase (Delete User) as UC_DeleteUser
+  usecase (Create Group) as UC_CreateGroup
+  usecase (Manage Group Members) as UC_ManageGroupMembers
+  usecase (Assign Roles) as UC_AssignRoles
+  usecase (Delete Group) as UC_DeleteGroup
+  usecase (Login) as UC_Login
+  Admin -- UC_CreateUser
+  Admin -- UC_ManageUsers
+  Admin -- UC_AssignGroup
+  Admin -- UC_DeleteUser
+  Admin -- UC_CreateGroup
+  Admin -- UC_ManageGroupMembers
+  Admin -- UC_AssignRoles
+  Admin -- UC_DeleteGroup
+  UC_CreateUser ..> UC_Login : includes
+  UC_ManageUsers ..> UC_Login : includes
+  UC_AssignGroup ..> UC_Login : includes
+  UC_DeleteUser ..> UC_Login : includes
+  UC_CreateGroup ..> UC_Login : includes
+  UC_ManageGroupMembers ..> UC_Login: includes
+  UC_AssignRoles ..> UC_Login: includes
+  UC_DeleteGroup ..> UC_Login : includes
+
+}
+
+@enduml

@@ -1,0 +1,20 @@
+@startuml
+title Login Activity Diagram
+
+start
+partition "User" {
+  :Enter username and password;
+  :Click login button;
+}
+partition "System" {
+  :Validate credentials;
+  if (Credentials are valid?) then (yes)
+    :Log in successful;
+    :Redirect to dashboard;
+    stop
+  else (no)
+    :Display error message;
+  endif
+}
+@enduml
+

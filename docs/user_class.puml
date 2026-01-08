@@ -1,0 +1,42 @@
+@startuml
+title User, Group, and Permission Class Diagram
+
+class User {
+  +id: int
+  +user_name: string
+  +user_password: string
+  +email: string
+  +status: int 
+  +last_login_date: datetime
+  --
+  +login()
+  +logout()
+  +has_permission(permission_name): bool
+}
+
+class Group {
+  +id: int
+  +group_name: string
+  --
+  +add_user(user: User)
+  +remove_user(user: User)
+  +grant_permission(permission: Permission)
+  +revoke_permission(permission: Permission)
+}
+
+class Permission {
+  +perm_name: string
+  +description: string
+}
+
+' --- Relationships ---
+
+' A User can be a member of multiple Groups.
+' A Group can have multiple Users.
+User "many" -- "many" Group : (is member of)
+
+' A Group can have multiple Permissions.
+' A Permission can be granted to multiple Groups.
+Group "many" -- "many" Permission : (has)
+
+@enduml

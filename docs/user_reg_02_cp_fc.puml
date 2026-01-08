@@ -1,0 +1,21 @@
+@startuml
+title Set Password Flowchart
+
+start
+
+:User is redirected to the "Set Password" page;
+:User enters a new password and confirms it;
+:User clicks the 'Set Password' button;
+
+if (Do the passwords match and meet complexity requirements?) then (yes)
+  :System securely hashes the password;
+  :System saves the hashed password to the user's record in the database;
+  :Display a success message: "Your password has been set successfully!";
+  :Redirect the user to the login page;
+  stop
+else (no)
+  :Display an error message (e.g., "Passwords do not match" or "Password does not meet requirements");
+  --> User enters a new password and confirms it;
+endif
+
+@enduml

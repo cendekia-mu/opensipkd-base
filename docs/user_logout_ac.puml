@@ -1,0 +1,18 @@
+@startuml
+title Logout Activity Diagram
+
+start
+:User clicks the logout button;
+:System prompts for logout confirmation;
+if (User confirms logout?) then (yes)
+  :Proceed with logout;
+else (no)
+  :Cancel logout;
+  :The user redirected to the dashboard;
+  stop
+endif
+:The system terminates the user's session;
+:The user is redirected to the login page;
+stop
+
+@enduml

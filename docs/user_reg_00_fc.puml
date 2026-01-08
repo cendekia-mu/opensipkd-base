@@ -1,0 +1,26 @@
+@startuml
+title User Registration Flowchart
+
+start
+
+:User navigates to the registration page;
+:User fills out the registration form with details like username and email;
+:User clicks the 'Register' button;
+
+if (Are all required fields filled correctly?) then (yes)
+  :System checks if the username or email already exists in the database;
+  if (Does the user already exist?) then (yes)
+    :Display an error message: "User already exists.";
+    --> User fills out the registration form;
+  else (no)
+    :System saves the new user's information to the database (status: unverified);
+    :System sends a verification email to the user;
+    :Display a success message: "Registration successful! Please check your email to verify your account.";
+    stop
+  endif
+else (no)
+  :Display an error message indicating which fields are invalid;
+  --> User fills out the registration form;
+endif
+
+@enduml

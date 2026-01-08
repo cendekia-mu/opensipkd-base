@@ -1,0 +1,52 @@
+@startuml
+title User Profile Update Sequence Diagram
+
+actor User
+participant "Web Browser" as Browser
+participant "Web Server" as Server
+database "Database" as DB
+
+User -> Browser : Edits profile information, enters current password, and submits form
+Browser -> Server : POST /profile/update (profile data, password)
+activate Server
+
+Server -> DB : Verify current password for user
+activate DB
+DB --> Server : Password is correct (or not)
+deactivate DB
+
+alt Password is correct
+    Server -> Server : Validate incoming profile data
+
+    alt Data is valid
+        Server -> DB : SELECT * FROM partner WHERE email = ?
+        activate DB
+        DB --> Server : Partner record (or null)
+        deactivate DB
+
+        alt Partner record exists
+            Server -> DB : UPDATE partner SET ... WHERE email = ?
+            activate DB
+            DB --> Server : Confirmation
+            deactivate DB
+        else Partner record does not exist
+            Server -> DB : INSERT INTO partner (email, ...) VALUES (...)
+            activate DB
+            DB --> Server : Confirmation
+            deactivate DB
+        end
+
+        Server --> Browser : HTTP 200 OK (Profile updated successfully)
+        Browser -> User : Displays success message
+    else Data is invalid
+        Server --> Browser : HTTP 400 Bad Request (Validation errors)
+        Browser -> User : Displays error messages
+    end
+else Password is incorrect
+    Server --> Browser : HTTP 401 Unauthorized (Incorrect password)
+    Browser -> User : Displays "Incorrect password" error
+end
+
+deactivate Server
+
+@enduml

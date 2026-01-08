@@ -1,0 +1,46 @@
+@startuml
+title Email Verification and Password Setup Sequence Diagram
+
+actor User
+participant "Web Browser" as Browser
+participant "Web Server" as Server
+database "Database" as DB
+
+User -> Browser : Clicks verification link from email
+Browser -> Server : GET /verify?token=...
+activate Server
+
+Server -> DB : Find user by verification token
+activate DB
+DB --> Server : User record (or null)
+deactivate DB
+
+alt Token is valid and user found
+    Server --> Browser : HTTP 302 Found (Redirect to /set-password)
+    deactivate Server
+    Browser -> User : Displays "Set Password" page
+    User -> Browser : Enters and confirms new password
+    Browser -> Server : POST /set-password (password, token)
+    activate Server
+
+    Server -> Server : Validate password complexity and match
+    
+    alt Password is valid and matches
+        Server -> DB : Update user's password (hashed)
+        activate DB
+        DB --> Server : Confirmation
+        deactivate DB
+        Server --> Browser : HTTP 200 OK (Password set)
+        Browser -> User : Displays "Password set successfully" / Redirects to login
+    else Password is not valid or does not match
+        Server --> Browser : HTTP 400 Bad Request (e.g., "Password does not meet requirements")
+        Browser -> User : Displays error message
+    end
+else Token is invalid or expired
+    Server --> Browser : HTTP 400 Bad Request (Invalid token)
+    Browser -> User : Displays error message
+end
+
+deactivate Server
+
+@enduml

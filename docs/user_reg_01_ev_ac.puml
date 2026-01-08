@@ -1,0 +1,19 @@
+@startuml
+title Email Verification Activity Diagram
+
+start
+
+:User clicks the verification link sent to their email;
+:System receives the verification request with a unique token;
+
+if (Is the token valid and not expired?) then (yes)
+  :System marks the user's email as verified in the database;
+  :Display a success message: "Your email has been verified!";
+  :Redirect the user to the "Set Password" page;
+  stop
+else (no)
+  :Display an error message: "Invalid or expired verification link.";
+  stop
+endif
+
+@enduml

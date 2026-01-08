@@ -1,0 +1,28 @@
+@startuml
+title Login Sequence Diagram
+
+actor User
+participant "Web Browser" as Browser
+participant "Web Server" as Server
+database "Database" as DB
+
+User -> Browser : Enters username and password
+Browser -> Server : POST /login (username, password)
+activate Server
+
+Server -> DB : SELECT user WHERE username = ? AND password = ?
+activate DB
+DB --> Server : User record (or null)
+deactivate DB
+
+alt Credentials are valid
+    Server -> Browser : HTTP 200 OK (Login Success)
+    Browser -> User : Displays success message / redirects
+else Credentials are invalid
+    Server -> Browser : HTTP 401 Unauthorized (Login Failed)
+    Browser -> User : Displays error message
+end
+
+deactivate Server
+
+@enduml

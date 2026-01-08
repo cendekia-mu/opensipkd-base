@@ -1,0 +1,30 @@
+@startuml
+title User Profile Update Activity Diagram
+
+start
+
+:User navigates to the "Edit Profile" page;
+:User modifies their profile information;
+:User enters their current password for verification;
+:User submits the form;
+
+if (Is the current password correct?) then (yes)
+  if (Is the new profile data valid?) then (yes)
+    :System checks if a 'partner' record exists for the user's email;
+    if (Record exists?) then (yes)
+      :Update the existing partner record in the database;
+    else (no)
+      :Insert a new partner record into the database;
+    endif
+    :Display "Profile updated successfully" message;
+    stop
+  else (no)
+    :Display validation errors for the profile data;
+    --> User modifies their profile information;
+  endif
+else (no)
+  :Display "Incorrect password" error message;
+  --> User modifies their profile information;
+endif
+
+@enduml

@@ -1,0 +1,18 @@
+@startuml
+title Logout Flowchart
+
+start
+
+:User clicks Logout button;
+:System displays confirmation prompt;
+if (User confirms logout?) then (yes)
+  :Proceed with logout;
+  :System destroys the session;
+:Redirect to Login Page;
+
+else (no)
+  :Cancel logout;
+  :Redirect to Dashboard;
+endif
+stop
+@enduml

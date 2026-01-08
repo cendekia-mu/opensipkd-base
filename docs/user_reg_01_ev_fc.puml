@@ -1,0 +1,19 @@
+@startuml
+title Email Verification Flowchart
+
+start
+
+:User clicks the verification link in their email;
+:System receives the request with a verification token;
+
+if (Is the token valid and not expired?) then (yes)
+  :System updates the user's account status to 'verified' in the database;
+  :Display a success message: "Your email has been verified successfully!";
+  :Redirect the user to the "Set Password" page;
+  stop
+else (no)
+  :Display an error message: "Invalid or expired verification link.";
+  stop
+endif
+
+@enduml

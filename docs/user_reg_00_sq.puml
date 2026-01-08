@@ -1,0 +1,41 @@
+@startuml
+title User Registration Sequence Diagram
+
+actor User
+participant "Web Browser" as Browser
+participant "Web Server" as Server
+database "Database" as DB
+participant "Email Service" as Email
+
+User -> Browser : Fills out registration form (username, email)
+Browser -> Server : POST /register (username, email)
+activate Server
+
+Server -> Server : Validate input data
+
+alt Input is invalid
+    Server --> Browser : HTTP 400 Bad Request (Validation errors)
+    Browser -> User : Displays validation errors
+else Input is valid
+    Server -> DB : SELECT user WHERE username = ? OR email = ?
+    activate DB
+    DB --> Server : (null)
+    deactivate DB
+
+    alt User does not exist
+        Server -> DB : INSERT into users (username, email, status: unverified)
+        activate DB
+        DB --> Server : New user record
+        deactivate DB
+        Server -> Email : Send verification email
+        Server --> Browser : HTTP 201 Created (Registration successful)
+        Browser -> User : Displays "Please check your email to verify your account."
+    else User already exists
+        Server --> Browser : HTTP 409 Conflict (User already exists)
+        Browser -> User : Displays "User already exists" error
+    end
+end
+
+deactivate Server
+
+@enduml

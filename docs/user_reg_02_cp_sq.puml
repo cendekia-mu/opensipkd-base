@@ -1,0 +1,29 @@
+@startuml
+title Set Password Sequence Diagram
+
+actor User
+participant "Web Browser" as Browser
+participant "Web Server" as Server
+database "Database" as DB
+
+User -> Browser : Enters and confirms new password on "Set Password" page
+Browser -> Server : POST /set-password (password, confirmation, token)
+activate Server
+
+Server -> Server : Validate password (e.g., complexity, match)
+
+alt Password is valid and matches
+    Server -> DB : Update user's password (hashed) using token
+    activate DB
+    DB --> Server : Confirmation
+    deactivate DB
+    Server --> Browser : HTTP 200 OK (Password set)
+    Browser -> User : Displays "Password set successfully" / Redirects to login
+else Password is not valid or does not match
+    Server --> Browser : HTTP 400 Bad Request (e.g., "Passwords do not match or meet requirements")
+    Browser -> User : Displays error message
+end
+
+deactivate Server
+
+@enduml

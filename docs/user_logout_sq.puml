@@ -1,0 +1,21 @@
+@startuml
+title Logout Sequence Diagram
+
+actor User
+participant "Web Browser" as Browser
+participant "Web Server" as Server
+
+User -> Browser : Clicks "Logout"
+Browser -> Server : GET /logout
+Server -> Browser : HTTP 200 OK (Logout Confirmation)
+Browser ->  User : Displays Logout Confirmation Page
+User -> Browser : Clicks "Confirm Logout"
+Browser -> Server : POST /logout/confirm
+activate Server
+Server -> Server : Invalidate user session
+Server -> Browser : HTTP 302 Found (Redirect to /login)
+deactivate Server
+
+Browser -> User : Displays Login Page
+
+@enduml

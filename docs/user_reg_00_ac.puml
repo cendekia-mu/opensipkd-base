@@ -1,0 +1,38 @@
+@startuml
+title User Registration Activity Diagram
+
+start
+
+:User navigates to Registration Page;
+:User fills in registration form (e.g., username, email, password);
+:User submits the form;
+
+if (Input validation fails?) then (yes)
+  :Display validation errors;
+  --> User fills in registration form;
+else (no)
+  :Check if user already exists in Database;
+  if (User exists?) then (yes)
+    :Display "User already exists" error;
+    --> User fills in registration form;
+  else (no)
+    :Create new user record in the Database;
+    :Display registration success message;
+    :Sent confirmation email;
+    :Receive confirmation link click;
+    :Activate user account;
+    :Redirect to Password Setup Page;
+    :User fill password;
+    :Submit form;
+    :Validate password strength;
+    if (Password valid?) then (no)
+      :Display password error message;
+      --> User fill password;
+    else (yes)
+      :Update user record with password;
+      :Display password setup success message;
+    stop
+  endif
+endif
+
+@enduml
