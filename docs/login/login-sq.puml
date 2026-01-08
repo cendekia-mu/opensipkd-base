@@ -1,0 +1,23 @@
+@startuml
+title Login Sequence
+
+actor User
+participant "Login Screen" as Login
+participant "Authentication Service" as AuthService
+database "User Database" as DB
+
+User -> Login: Enters credentials
+Login -> AuthService: Sends credentials for verification
+AuthService -> DB: Queries user data
+DB --> AuthService: Returns user data
+
+alt Credentials match
+    AuthService -> Login: Authentication successful
+    Login -> User: Redirects to main page
+else Credentials do not match
+    AuthService -> Login: Authentication failed
+    Login -> User: Shows error message
+end
+
+@enduml
+

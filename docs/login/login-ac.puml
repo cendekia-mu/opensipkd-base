@@ -1,0 +1,17 @@
+@startuml
+title Login Activity
+
+start
+:User provides credentials;
+:System authenticates;
+if (Authentication successful?) then (yes)
+  :Grant access to system;
+  :Display main page;
+else (no)
+  :Display error message;
+endif
+:End;
+stop
+
+@enduml
+

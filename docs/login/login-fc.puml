@@ -1,0 +1,17 @@
+@startuml
+title Login Flowchart
+
+start
+:User enters username and password;
+:System validates credentials;
+if (Credentials valid?) then (yes)
+  :Redirect to main page;
+  stop
+else (no)
+  :Display error message;
+  :Return to login page;
+  stop
+endif
+
+@enduml
+
