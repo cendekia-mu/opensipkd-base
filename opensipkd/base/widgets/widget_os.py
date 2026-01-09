@@ -995,13 +995,18 @@ class CSRFWidget(widget.HiddenWidget):
         if not cstruct:
             cstruct = new_csrf_token(request)
         values = self.get_template_values(field, cstruct, kw)
+        _logging.debug("CSRF Token session: %s", cstruct)
         return field.renderer(self.template, **values)
 
     def deserialize(self, field, pstruct):
+        request = field.parent.schema.request
+        cstruct = get_csrf_token(request)
         if pstruct is null:
             return null
         elif not isinstance(pstruct, string_types):
             raise Invalid(field.schema, "Pstruct is not a string")
         if not pstruct:
             return null
+        _logging.debug("CSRF Token received: %s", pstruct)
+        _logging.debug("CSRF Token session: %s", cstruct)
         return pstruct
