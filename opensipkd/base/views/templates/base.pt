@@ -70,6 +70,13 @@
       <!-- </ul> -->
       <!-- </div> -->
 
+      <div class="navbar-collapse collapse" tal:condition="not request.user">
+        <ul class="nav navbar-nav navbar-right" style="margin-right:0px;">
+          <li>
+            <a href="${request.route_url('base-login')}">Login</a>
+          </li>
+        </ul>
+      </div>
       <div class="navbar-collapse collapse" tal:condition="request.user">
         <!-- Define Tombol Navigator -->
         <div metal:define-slot="navs"></div>
@@ -122,6 +129,7 @@
             </ul>
           </li>
         </ul>
+
       </div><!--/.nav-collapse -->
     </div>
   </div>

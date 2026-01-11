@@ -1,0 +1,14 @@
+<html>
+
+<head>
+    <title>Test HTTP</title>
+</head>
+
+<body>
+    <h1>Test HTTP Endpoint</h1>
+    <p>This is a test endpoint to verify that the HTTP server is functioning correctly.</p>
+    <p>If you can see this page, the server is up and running!</p>
+    <div tal:content="structure form"></div>
+</body>
+
+</html>

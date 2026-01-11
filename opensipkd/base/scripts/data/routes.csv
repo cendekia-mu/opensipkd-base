@@ -81,5 +81,5 @@ base-user-area-add,/user/area/add,base,user_area,,,,admin,base-user-area,User-ar
 base-user-area-edit,/user/area/{id}/edit,base,user_area,,,,admin,base-user-area,User-area Edit,1,0,,,form6.pt,
 base-user-area-view,/user/area/{id}/view,base,user_area,,,,admin,base-user-area,User-area View,1,0,,,form6.pt,
 base-user-area-delete,/user/area/{id}/delete,base,user_area,,,,admin,base-user-area,User-area Delete,1,0,,,form6.pt,
-
+base-test,/test,base,web_test_http,,view_add,,,,Test HTTP,1,0,,,test.pt
 

@@ -1,10 +1,9 @@
-from email.utils import parseaddr
 import logging
 import os
 from datetime import datetime
 from cgi import FieldStorage
+from email.utils import parseaddr
 from webob.multidict import MultiDict
-from opensipkd.tools.captcha import img_captcha
 
 import colander
 from datatables import ColumnDT
@@ -14,6 +13,7 @@ from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from sqlalchemy import Table
 
 # from opensipkd.base.views.upload import tmpstore
+from opensipkd.tools.captcha import img_captcha
 from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string, Upload, InvalidExtension, mem_tmp_store
 from opensipkd.tools.buttons import (
