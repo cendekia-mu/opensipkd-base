@@ -23,6 +23,7 @@ import os
 import re
 from datetime import timedelta, datetime
 from importlib import import_module
+
 from pyramid.request import Response
 import colander
 from deform import widget, Form, ValidationFailure, Button
@@ -121,17 +122,72 @@ class Oauth2ParseExc(Exception):
 class Oauth2UserExc(Exception):
     """Error User Found"""
 
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
+def verify_android_token(token, web_client_id):
+    """
+    Verifies a Google ID token from an Android client on the backend.
+    
+    Args:
+        token (str): The ID token string received from the Android app.
+        web_client_id (str): The Client ID for your *web application* in 
+                             Google Cloud Console.
+
+    Returns:
+        dict: The decoded user information (claims) if the token is valid.
+        Raises: ValueError if the token is invalid or unverified.
+    """
+    try:
+        # Create a request object for making HTTP requests to Google's servers
+        request = requests.Request()
+
+        # Verify the token against Google's public keys
+        # The function automatically checks the token's signature, expiry, 
+        # and if it was issued by accounts.google.com.
+        id_info = id_token.verify_oauth2_token(
+            token, 
+            request, 
+            web_client_id
+        )
+
+        # Optional: Check if the token belongs to a specific Google Workspace domain (if required)
+        # if id_info.get('hd') != 'yourdomain.com':
+        #     raise ValueError('Not a valid hosted domain.')
+
+        # Extract user information
+        user_id = id_info['sub']
+        email = id_info.get('email')
+        
+        print(f"Token verified for User ID: {user_id}, Email: {email}")
+        return id_info
+
+    except ValueError as e:
+        # Invalid token (e.g., signature mismatch, expired, wrong audience)
+        print(f"Invalid token: {e}")
+        raise
+    
 
 def oauth2_login(request, params=None):
     provider_name = params and params["provider_name"] or request.params["provider_name"]
     if provider_name == "google":
-        from .base_google import googlesignin
-        try:
-            id_info = googlesignin(request, params)
-        except Exception as e:
-            raise Oauth2ParseExc(str(e))
+        client_platform = params and params.get("platform") or request.params.get("platform") or "web"
+        web_client_id = request.google_signin_client_id
+        if client_platform == "android":
+            id_info = verify_android_token(
+                params and params["id_token"] or request.params["id_token"],
+                web_client_id
+            )
+        else:
+
+            from .base_google import googlesignin
+            try:
+                id_info = googlesignin(request, params)
+            except Exception as e:
+                raise Oauth2ParseExc(str(e))
 
         request.session["id_info"] = id_info
+    
     else:
         id_info = None
 

@@ -23,10 +23,8 @@ class PartnerModel(NamaModel):
     fax = Column(String(16))
     mobile = Column(String(16))
     website = Column(String(64))
-    # pic = Column(String(16))
-    # pic_mobile = Column(String(16))
-    # pic_email = Column(String(16))
-    # pic_jabatan = Column(String(16))
+    is_vendor = Column(SmallInteger, nullable=False, )
+    is_customer = Column(SmallInteger, nullable=False, )
 
     @classmethod
     def query_email(cls, email):
@@ -43,8 +41,7 @@ class Partner(Base, PartnerModel):
     kecamatan = Column(String(128))
     kota = Column(String(128))
     provinsi = Column(String(128))
-    is_vendor = Column(SmallInteger, nullable=False, )
-    is_customer = Column(SmallInteger, nullable=False, )
+
     # bank = Column(String(16))
     # bank_accnt = Column(String(16))
     # user_id = Column(Integer, ForeignKey(User.id), nullable=True)  # referensi ke login
