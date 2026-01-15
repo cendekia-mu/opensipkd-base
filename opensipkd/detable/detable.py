@@ -225,11 +225,11 @@ class DeTable(field.Field):
                     """
             header_buttons.insert(0, button)
         edit_buttons = []
-        if allow_check:
-            button = f"""
-            <input type="checkbox" class="{tableid}checkAll form-control"> All</input>
-            """
-            edit_buttons.append(button)
+        # if allow_check:
+        #     button = f"""
+        #     <input type="checkbox" class="{tableid}checkAll form-control"> All</input>
+        #     """
+        #     edit_buttons.append(button)
 
         self.buttons = "','".join(header_buttons).replace('\n', ""). \
             replace(';', ';\n')

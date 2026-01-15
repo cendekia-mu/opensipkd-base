@@ -1121,18 +1121,18 @@ class BaseView(object):
         
         q = self.query_id()
         if self.allow_check:
-            rcount = q.count()
-            if rcount > 1:
-                try:
-                    q.delete(synchronize_session='fetch')
-                    self.db_session.flush()
-                    request.session.flash(f"{rcount} Data berhasil dihapus.")
-                except Exception as e:
-                    request.session.flash(
-                        f"Gagal menghapus data. "
-                        f"Pastikan data tidak berelasi dengan data lain. "
-                        f"Error: {str(e)}", "error")
-                return self.route_list()
+            q=self.query_delete()
+            rcount=q.count()
+            try:
+                q.delete(synchronize_session='fetch')
+                self.db_session.flush()
+                request.session.flash(f"{rcount} Data berhasil dihapus.")
+            except Exception as e:
+                request.session.flash(
+                    f"Gagal menghapus data. "
+                    f"Pastikan data tidak berelasi dengan data lain. "
+                    f"Error: {str(e)}", "error")
+            return self.route_list()
         
         self.ses["readonly"] = True
         row = q.first()
@@ -1164,12 +1164,17 @@ class BaseView(object):
         kwargs["readonly"] = True
         kwargs["table"] = table
         return self.returned_form(form, **kwargs)
+    
+    def query_delete(self):
+        id_ = self.req.matchdict['id']
+        if id_ == 'all':
+            ids_ = [int(i) for i in self.req.params.get("ids").split(",")]
+            return self.table.query().filter(self.table.id.in_(ids_))
+        return self.table.query_id(id_)
+
 
     def query_id(self, id_=None):
         id_ = id_ or self.req.matchdict['id']
-        if id_=='all':
-            ids_ = [int(i) for i in self.req.params.get("ids").split(",")]
-            return self.table.query().filter(self.table.id.in_(ids_))
         return self.table.query_id(id_)
 
         # if self.req.user:
