@@ -687,7 +687,7 @@ def send_email_security_code(
     if 'mail.sender_name' not in settings or 'mail.username' not in settings:
         return
 
-    url = '{}/password/{}/request'.format(
+    url = '{}/password/{}/request?key={}'.format(
         request.home, user.security_code, password)
 
     minutes = int(time_remain.seconds / 60)
