@@ -2,6 +2,7 @@ kode,path,module,file_name,class_name,func_name,order_id,permission,parent_id/ro
 base-home,/,base,__init__,Home,view_home,1,,,Home,1,0,,0,home.pt,
 base-login,/login,base,user_login,ViewAuth,view_login,1,,,Login,1,0,,0,form6.pt,1
 base-logout,/logout,base,user_login,ViewAuth,view_logout,1,,,Logout,1,0,,0,logout.pt,
+base-passcode,/passcode,,user_login,ViewPassword,get_passcode,,view,,Get Passcode,1,0,,0,json,
 base-password-reset,/password/reset,base,user_login,ViewPassword,reset_password,,,,Reset Password,1,0,,0,form6.pt,
 base-password,/password,base,user_login,ViewPassword,change_password,1,view,,Change Password,1,0,,0,form8.pt,
 base-password-request,/password/{code}/request,base,user_login,ViewPassword,change_password_request,1,,,Change Password,1,0,,0,form8.pt,

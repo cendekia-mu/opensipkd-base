@@ -20,6 +20,7 @@ Perubahan Mendasar dari fungsi login adalah:
     result object dari fungsi tersebut harus berupa class User()
 """
 import os
+from random import Random
 import re
 from datetime import timedelta, datetime
 from importlib import import_module
@@ -28,7 +29,7 @@ from pyramid.request import Response
 import colander
 from deform import widget, Form, ValidationFailure, Button
 from pyramid.csrf import new_csrf_token, get_csrf_token
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound, HTTPNotAcceptable
 from pyramid.renderers import render_to_response
 from pyramid.security import remember, forget
 from pyramid_mailer.message import Message
@@ -197,7 +198,7 @@ def oauth2_login(request, params=None):
     log.debug("Users : %s", user)
     log.debug("IdInfo : %s", id_info)
     if id_info and not user:
-        # Insert ke tabel user dan external identity
+        # Insert ke
         values = {'email': id_info['email'],
                   "user_name": id_info["email"],
                   "status": 1,
@@ -614,6 +615,28 @@ class ViewPassword(BaseView):
         request.session.flash(msg)
         return HTTPFound(location=f"{request.home}")
 
+    def get_passcode(self):
+        if not self.req.authenticated_userid:
+            return HTTPNotFound("Anda harus login dahulu")
+        
+        if "mail.sender_name" not in self.settings or 'mail.username' not in self.settings:
+            return HTTPNotAcceptable("Anda harus login dahulu")
+
+        user = self.req.user
+        user.security_code = Random().randint(10000, 99999)
+        DBSession.add(user)
+        DBSession.flush()
+        minutes = two_minutes
+        data = dict(passcode=user.security_code, minutes=minutes)
+        here = os.path.abspath(os.path.dirname(__file__))
+        body_file = os.path.join(here, 'passcode-body.tpl')
+        with open(body_file, encoding='utf-8') as f:
+            body_tpl = f.read()
+        subject = f'{user.security_code} Verifikasi Passcode'
+        body_msg_id = 'passcode-body'
+        body = _(body_msg_id, default=body_tpl, mapping=data)
+        sending_mail(self.req, user, subject, body)
+        return dict(data={"message": "Passcode sudah dikirim ke email Anda"})
 
 class ChangePasswordRequest(colander.Schema):
     new_password = colander.SchemaNode(

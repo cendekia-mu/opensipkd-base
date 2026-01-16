@@ -165,7 +165,7 @@ class AddSchema(colander.Schema):
                     missing=colander.drop,
                     )
 
-        if request.user and request.user.id and not external_user:
+        if request.user and request.user.id:
             self["password"] = colander.SchemaNode(
                 colander.String(),
                 widget=widget.PasswordWidget(),
@@ -332,9 +332,19 @@ class Views(BaseView):
                 err_nik()
 
         if 'password' in value:
-            if not user or not UserService.check_password(
-                    user, value['password']):
-                err_login()
+            external_user = user and user.external_identities.count() > 0 or False
+            if external_user:
+                ext_user = UserService.by_user_name_and_security_code(
+                    user.user_name, value['password'])
+                if not ext_user:
+                    err_login()
+                user.security_code = None
+                DBSession.add(user)
+                DBSession.flush()
+            else:
+                if not user or not UserService.check_password(
+                        user, value['password']):
+                    err_login()
 
         # if self.req.is_xhr:
         #     if "upload" in value and value["upload"]:
