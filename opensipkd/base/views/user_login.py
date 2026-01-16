@@ -197,17 +197,18 @@ def oauth2_login(request, params=None):
     log.debug("Users : %s", user)
     log.debug("IdInfo : %s", id_info)
     if id_info and not user:
+        # Insert ke tabel user dan external identity
         values = {'email': id_info['email'],
                   "user_name": id_info["email"],
                   "status": 1,
                   "registered_date": datetime.now()}
         user = User.get_by_identity(values.get("email"))
-        partner = Partner.query_email(values.get("email")).first()
-        log.debug("User  : %s", user)
-        log.debug("Partner : %s", partner)
-        if user or partner:
-            raise Oauth2UserExc(
-                "Email sudah terdaftar silahkan login standard")
+        # partner = Partner.query_email(values.get("email")).first()
+        # log.debug("User  : %s", user)
+        # log.debug("Partner : %s", partner)
+        # if user or partner:
+        #     raise Oauth2UserExc(
+        #         "Email sudah terdaftar silahkan login standard")
 
         user = User()
         user.from_dict(values)

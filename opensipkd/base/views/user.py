@@ -1,13 +1,12 @@
 import os
 import re
-
 import colander
 from deform import (widget, )
-from opensipkd.tools import create_now
 from pyramid.i18n import TranslationStringFactory
-from pyramid.view import view_config
 from sqlalchemy import (func, )
 from ziggurat_foundations.models.services.user import UserService
+from opensipkd.tools import create_now
+from opensipkd.tools.buttons import btn_delete
 
 from . import BaseView
 # from .company import company_widget
@@ -45,11 +44,13 @@ class Views(BaseView):
         self.table = User
         self.edit_schema = EditSchema
         self.add_schema = AddSchema
-        self.list_buttons = self.list_buttons + self.list_report
+        self.list_buttons = (btn_delete,)+self.list_buttons + self.list_report
         path = os.path.dirname(__file__)
         path = os.path.dirname(path)
-
         self.report_file = os.path.join(path, 'reports', 'users.jrxml')
+        self.allow_check = True
+        self.list_view_field = 'email'
+
 
     def get_bindings(self, row=None):
         status_list = (

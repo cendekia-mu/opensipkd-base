@@ -1,25 +1,15 @@
-import email
 import logging
 import colander
-from deform import (
-    widget, Button,
-)
-# from opensipkd.base import get_id_card_folder
-from ..models import DBSession, Partner, PartnerFiles
-# from ..models import (
-#     ResProvinsi, ResDati2, ResKecamatan, ResDesa)
-# from opensipkd.models.common import ResCompany
-from opensipkd.tools import Upload, img_exts
+from deform import (widget,)
 from pyramid.i18n import TranslationStringFactory
-from pyramid.view import (
-    view_config,
-)
+from opensipkd.tools import Upload
+from opensipkd.tools.buttons import btn_delete
 
-# from .company import company_widget
-from .partner_base import PartnerSchema
-# from .. import partner_idcard_url
-from . import BaseView
+from ..models import DBSession, Partner, PartnerFiles
 from .. import BASE_CLASS
+
+from .partner_base import PartnerSchema
+from . import BaseView
 
 
 log = logging.getLogger(__name__)
@@ -116,8 +106,10 @@ class Views(BaseView):
         self.edit_schema = EditSchema
         self.table = Partner
         self.list_schema = ListSchema
-        self.list_buttons=self.list_buttons+self.list_upload+self.list_report
+        self.list_buttons=(btn_delete,)+self.list_buttons+self.list_upload+self.list_report
         self.save_state = True
+        self.allow_check = True
+        self.list_view_field = 'nama'
 
     ########
     # List #
