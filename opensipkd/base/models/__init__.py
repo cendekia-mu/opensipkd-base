@@ -7,4 +7,4 @@ from .wilayah import *
 from .partner import *
 from .targets import *
 from .user_area import *
-from .departmen import *
+from .departmen import _Departemen, Departemen

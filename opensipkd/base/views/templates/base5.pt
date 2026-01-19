@@ -101,12 +101,14 @@
             <!-- end fullscreen button -->
 
             <!-- User info -->
-            <ul tal:condition="not request.user" class="header-dropdown-list hidden-xs">
+
+            <ul tal:condition="not request.user" class="header-dropdown-list">
                 <li>
                     <a href="${home}/login" class="dropdown-toggle"><i class="fa fa-lg fa-fw fa-user"></i>Login</a>
                 </li>
             </ul>
-            <ul tal:condition="request.user" class="header-dropdown-list hidden-xs">
+            
+            <ul tal:condition="request.user" class="header-dropdown-list">
                 <li>
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-lg fa-fw fa-user"></i>
                         <span style="text-transform:capitalize"> ${request.user and request.user.nice_username() or ""}

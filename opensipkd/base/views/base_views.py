@@ -1244,6 +1244,10 @@ class BaseView(object):
 #         self.form_error(form, error)
 
     def save_file(self, values, field, path=None, filename=None):
+        """digunakan untuk menyimpan file upload dari form
+        Args:
+        
+        """
         if field in values and values[field]:
             value = values[field]
             file_name = value["filename"]

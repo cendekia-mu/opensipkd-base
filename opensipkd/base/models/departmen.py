@@ -5,7 +5,6 @@ from ..models import (NamaModel, TABLE_ARGS)
 
 
 class _Departemen(NamaModel):
-    __tablename__ = 'departemen'
     __table_args__ = (TABLE_ARGS,)
     id = Column(Integer, primary_key=True)
     parent_id = Column(Integer, ForeignKey('public.departemen.id'))
@@ -13,6 +12,7 @@ class _Departemen(NamaModel):
     alamat = Column(String(255))
     singkat = Column(String(32))
     level_id = Column(SmallInteger)
+    __tablename__ = 'departemen'
     @declared_attr
     def children(self):
         return relationship(
@@ -47,4 +47,4 @@ class _Departemen(NamaModel):
         return DBSession.query(cls.id, cls.nama).order_by(cls.nama).all()
     
 class Departemen(_Departemen, Base):
-    pass
+    db_session = DBSession
