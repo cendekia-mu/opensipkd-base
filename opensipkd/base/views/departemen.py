@@ -1,17 +1,8 @@
-from datetime import datetime
 import colander
 from deform import (widget, )
-from opensipkd.models import DBSession, Departemen, Partner
-# , PartnerDepartemen
-# , ResCompany
-from opensipkd.tools import (get_settings)
+from opensipkd.models import DBSession, Departemen
 from opensipkd.tools.buttons import btn_upload
-from pyramid.view import (view_config, )
-from sqlalchemy import func
-from sqlalchemy.orm import aliased
-# from .company import company_widget
-from .. import get_params
-from ..views import ColumnDT, DataTables, BaseView
+from ..views import BaseView
 # , get_urls
 SESS_ADD_FAILED = 'Tambah departemen gagal'
 SESS_EDIT_FAILED = 'Edit departemen gagal'
@@ -71,7 +62,9 @@ class AddSchema(colander.Schema):
     #                                  widget=company_widget,
     #                                  missing=colander.drop,
     #                                  oid="company_id")
-    status = colander.SchemaNode(colander.Boolean(), oid="status")
+    status = colander.SchemaNode(colander.Integer(), 
+                                 widget=widget.CheckboxWidget(true_val="1", false_val="0"),
+                                 oid="status")
 
     def after_bind(self, schema, kwargs):
         request = kwargs["request"]
@@ -99,9 +92,12 @@ class ListSchema(colander.Schema):
                                  widget=widget.CheckboxWidget())
     level_id = colander.SchemaNode(
         colander.Integer(), title="Level", width='40pt')
-    parent = colander.SchemaNode(colander.String(), title="Induk")
+    parent_id = colander.SchemaNode(colander.String(), title="Induk")
     # company_nm = colander.SchemaNode(colander.String(), title="Company")
-
+    def after_bind(self, schema, kw):
+        request = kw.get('request')
+        schema["parent_id"].widget = widget.Select2Widget(
+            values=get_departemen_list())
 
 class Views(BaseView):
     def __init__(self, request):
@@ -188,11 +184,25 @@ class Views(BaseView):
 
     # @view_config(route_name='departemen-act', renderer='json',
     #              permission='view')
-    # def view_act(self):
-    #     request = self.req
-    #     ses = request.session
-    #     params = request.params
-    #     url_dict = request.matchdict
+    def next_act(self):
+        request = self.req
+        params = request.params
+        url_dict = request.matchdict
+        if url_dict['act'] == 'hon':
+            term = params.get('term', '')
+            q = DBSession.query(Departemen). \
+                filter(Departemen.status == 1,
+                       Departemen.nama.ilike(f'%{term}%')) \
+                .order_by(Departemen.nama)
+            rows = q.all()
+            r = []
+            for k in rows:
+                d = dict(id=k.id, value=k.nama, kode=k.kode, nama=k.nama,
+                         level_id=k.level_id)
+                r.append(d)
+            return r
+
+    
     #     dep_alias = aliased(Departemen)
     #     if url_dict['act'] == 'grid':
     #         columns = [ColumnDT(Departemen.id, mData='id'),
@@ -209,22 +219,7 @@ class Views(BaseView):
     #         query = self.filter_company(query)
     #         row_table = DataTables(request.GET, query, columns)
     #         return row_table.output_result()
-    #     elif url_dict['act'] == 'hon':
-    #         term = 'term' in params and params['term'] or ''
-    #         q = DBSession.query(Departemen). \
-    #             filter(Departemen.status == 1,
-    #                    Departemen.nama.ilike('%%%s%%' % term)) \
-    #             .order_by(
-    #             Departemen.nama)
-    #         if self.req.user.company_id:
-    #             q = q.filter(Departemen.company_id == self.req.user.company_id)
-    #         rows = q.all()
-    #         r = []
-    #         for k in rows:
-    #             d = dict(id=k.id, value=k.nama, kode=k.kode, nama=k.nama,
-    #                      level_id=k.level_id)
-    #             r.append(d)
-    #         return r
+    #     el
     #     elif url_dict['act'] == 'honk':
     #         term = 'term' in params and params['term'] or ''
     #         q = DBSession.query(Departemen) \
