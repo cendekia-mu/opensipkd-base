@@ -14,8 +14,8 @@ class ListSchema(colander.Schema):
         colander.String(),)
     ruang = colander.SchemaNode(
         colander.String(),)
-    tunjangan = colander.SchemaNode(
-        colander.Integer(),)
+    # tunjangan = colander.SchemaNode(
+    #     colander.Integer(),)
     status = colander.SchemaNode(
         colander.Integer(), widget=widget.CheckboxWidget(),)
 

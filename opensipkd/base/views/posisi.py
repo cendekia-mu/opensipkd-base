@@ -14,15 +14,18 @@ class AddSchema(colander.Schema):
     nama_widget = widget.AutocompleteInputWidget(
         size=60,
         min_length=2,
-        style="z-index: 100000 !important;")
+        # style="z-index: 100001 !important;"
+        )
     departemen_widget = widget.AutocompleteInputWidget(
         size=60,
         min_length=2,
-        style="z-index: 100001 !important;")
+        # style="z-index: 100000 !important;"
+        )
     jabatan_widget = widget.AutocompleteInputWidget(
         size=60,
         min_length=2,
-        style="z-index: 99999 !important;")
+        # style="z-index: 99999 !important;"
+        )
     partner_id = colander.SchemaNode(
         colander.Integer(),
         oid="partner_id",

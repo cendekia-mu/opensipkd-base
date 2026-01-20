@@ -106,7 +106,6 @@ class Views(BaseView):
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
         self.table = Departemen
-        # self.list_url = 'departemen'
         self.list_route = 'base-departemen'
         self.form_scripts = ""
         self.list_buttons = self.list_buttons + (btn_upload,)
@@ -170,26 +169,28 @@ class Views(BaseView):
             values["parent_id"] = None
         row = super().save_request(values, row)
         return row
+    def view_act(self):
+        request = self.req
+        params = request.params
+        url_dict = request.matchdict
+        if url_dict['act'] == 'grid':
+            query = Departemen.cte_get()
+            data = [{"id": d.id, "kode": d.kode, "nama": d.nama, "status": d.status,
+                     "level_id":d.level, "parent_id": d.parent_id} for d in query]
+            return {
+                
+                "data": data}
+        else:
+            return self.next_act()
 
-    # @view_config(route_name='departemen-view',
-    #              renderer='templates/form.pt', permission='departemen')
-    # def view_view(self):
-    #     return super(ViewDepartemen, self).view_view()
-
-    # @view_config(route_name='departemen',
-    #              renderer='templates/table.pt',
-    #              permission='departemen')
-    # def view_list(self):
-    #     return super().view_list()
-
-    # @view_config(route_name='departemen-act', renderer='json',
-    #              permission='view')
     def next_act(self):
         request = self.req
         params = request.params
         url_dict = request.matchdict
         if url_dict['act'] == 'hon':
             term = params.get('term', '')
+            # q = Departemen.cte_get(search=term)
+
             q = DBSession.query(Departemen). \
                 filter(Departemen.status == 1,
                        Departemen.nama.ilike(f'%{term}%')) \
@@ -197,166 +198,12 @@ class Views(BaseView):
             rows = q.all()
             r = []
             for k in rows:
-                d = dict(id=k.id, value=k.nama, kode=k.kode, nama=k.nama,
+                d = dict(id=k.id, value=f"{k.kode}:{k.nama}", kode=k.kode, nama=k.nama,
                          level_id=k.level_id)
                 r.append(d)
             return r
 
     
-    #     dep_alias = aliased(Departemen)
-    #     if url_dict['act'] == 'grid':
-    #         columns = [ColumnDT(Departemen.id, mData='id'),
-    #                    ColumnDT(Departemen.kode, mData='kode'),
-    #                    ColumnDT(Departemen.nama, mData='nama'),
-    #                    ColumnDT(dep_alias.nama, mData='parent'),
-    #                    ColumnDT(Departemen.status, mData='status'),
-    #                    ColumnDT(Departemen.level_id, mData='level_id'),
-    #                    ColumnDT(ResCompany.nama, mData='company_nm'), ]
-    #         query = DBSession.query().select_from(Departemen).outerjoin(
-    #             dep_alias, Departemen.parent_id == dep_alias.id).outerjoin(
-    #             ResCompany, self.table.company_id == ResCompany.id
-    #         )
-    #         query = self.filter_company(query)
-    #         row_table = DataTables(request.GET, query, columns)
-    #         return row_table.output_result()
-    #     el
-    #     elif url_dict['act'] == 'honk':
-    #         term = 'term' in params and params['term'] or ''
-    #         q = DBSession.query(Departemen) \
-    #             .filter(Departemen.status == 1,
-    #                     func.concat(Departemen.nama, ';',
-    #                                 Departemen.kode)
-    #                     .ilike('%%%s%%' % term)) \
-    #             .order_by(Departemen.nama)
-    #         q = self.filter_company(q)
-    #         rows = q.all()
-    #         r = []
-    #         for k in rows:
-    #             d = dict(id=k.id, value=k.nama + ';' + k.kode, kode=k.kode,
-    #                      nama=k.nama, level_id=k.level_id)
-    #             r.append(d)
-    #         return r
-    #     elif url_dict['act'] == 'hon_level':
-    #         # todo Check ulang untuk hon
-    #         term = 'term' in params and params['term'] or ''
-    #         settings = get_settings()
-    #         level_id = get_params('departemen_chg_id', 0)
-    #         q = DBSession.query(Departemen).filter(Departemen.status == 1,
-    #                                                Departemen.nama.ilike(
-    #                                                    '%%%s%%' %
-    #                                                    term)).order_by(
-    #             Departemen.nama)
-    #         if self.req.user.company_id:
-    #             q = q.filter(Departemen.company_id == self.req.user.company_id)
-    #         if int(level_id) > 0:
-    #             q = q.filter(Departemen.level_id == int(level_id))
-    #         if request.user.id > 1 and not request.has_permission(
-    #                 "departemen-all"):
-    #             partner = Partner.query_id(request.user.id).first()
-    #             if partner:
-    #                 PartnerDepartemen.query_jabatan(partner.id, datetime.now())
-    #             user_dep = PartnerDepartemen.query_user_id().first()
-    #             if not user_dep:
-    #                 return []
-    #             kode = user_dep.departemen.kode
-    #             if user_dep.sub_departemen:
-    #                 q = q.filter(Departemen.kode.ilike('{}%'.format(kode)))
-    #             else:
-    #                 q = q.filter(Departemen.kode == kode)
-    #         rows = q.all()
-    #         r = []
-    #         for k in rows:
-    #             d = dict(id=k.id, value=k.nama, kode=k.kode, nama=k.nama,
-    #                      level_id=k.level_id)
-    #             r.append(d)
-    #         return r
-    #     elif url_dict['act'] == 'hon_all':
-    #         term = 'term' in params and params['term'] or ''
-    #         settings = get_settings()
-    #         level_id = 'departemen_chg_id' in settings and settings[
-    #             'departemen_chg_id'] or 0
-    #         q = DBSession.query(Departemen).filter(Departemen.status == 1,
-    #                                                Departemen.nama.ilike(
-    #                                                    '%%%s%%' %
-    #                                                    term)).order_by(
-    #             Departemen.nama)
-    #         if self.req.user.company_id:
-    #             q = q.filter(Departemen.company_id == self.req.user.company_id)
-    #         if int(level_id) > 0:
-    #             q = q.filter(Departemen.level_id == int(level_id))
-    #         rows = q.all()
-    #         r = []
-    #         for k in rows:
-    #             d = dict(id=k.id, value=k.nama, kode=k.kode, nama=k.nama,
-    #                      level_id=k.level_id)
-    #             r.append(d)
-    #         return r
-
-    # def get_bindings(self, row=None):
-    #     return {"company_list": ResCompany.get_list()}
-
-    # @view_config(route_name='departemen-add', renderer='templates/form.pt',
-    #              permission='departemen')
-    # def view_add(self):
-    #     return super(ViewDepartemen, self).view_add()
-
-    # @view_config(route_name='departemen-edit',
-    #              renderer='templates/form.pt', permission='departemen')
-    # def view_edit(self):
-    #     return super(ViewDepartemen, self).view_edit()
-
-    # @view_config(route_name='departemen-delete',
-    #              renderer='templates/form.pt', permission='departemen')
-    # def view_delete(self):
-    #     return super(ViewDepartemen, self).view_delete()
-
-    # @view_config(route_name='departemen-upload',
-    #              renderer='templates/form.pt',
-    #              permission='departemen')
-    # def view_upload(self):
-    #     return super().view_upload(exts=('.csv', '.tsv'), delimiter="\t")
-        # request = self.req
-        # form = self.get_form(UploadSchema)
-        # if request.POST:
-        #     if 'save' in request.POST:
-        #         input_file = request.POST['upload'].file
-        #         filename = request.POST['upload'].filename
-        #         ext = get_ext(filename)
-        #         if ext.lower() != '.csv':
-        #             request.session.flash('File harus format csv', 'error')
-        #             return dict(form=form.render())
-        #         if not input_file:
-        #             return dict(form=form.render())
-        #         input_file.seek(0)
-        #         temp_file_path = '/tmp/' + get_random_string(10) + '.csv'
-        #
-        #         with open(temp_file_path, 'wb') as output_file:
-        #             shutil.copyfileobj(input_file, output_file)
-        #
-        #         with open(temp_file_path) as f:
-        #             c = csv.DictReader(f)
-        #             for csv_row in c:
-        #                 kode = csv_row['kode']
-        #                 if kode:
-        #                     xcode = kode.split(".")
-        #                     for r in range(len(xcode)):
-        #                         xc = xcode[r] and int(xcode[r])
-        #                         if not xc and type(xc) == int:
-        #                             code = ""
-        #                             for t in range(r):
-        #                                 code += xcode[t] + '.'
-        #
-        #                             if code:
-        #                                 code = code[:-1]
-        #                                 self.save_upload(code, csv_row)
-        #
-        #                     self.save_upload(kode, csv_row)
-        #
-        #             DBSession.flush()
-        #         os.remove(temp_file_path)
-        #
-        #     return self.route_list()
-        # return dict(form=form.render())
 
     def get_values(self, row, values=None):
         if not values:

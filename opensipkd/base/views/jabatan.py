@@ -11,8 +11,7 @@ from pyramid.i18n import TranslationStringFactory
 from ..views import BaseView
 
 _ = TranslationStringFactory("opensipkd")
-SESS_ADD_FAILED = 'Tambah jabatan gagal'
-SESS_EDIT_FAILED = 'Edit jabatan gagal'
+
 JENIS = ((1, _('structural', default='Structural')),
          (2, _('functional', default='Functional')),
          (3, _('finance', default='Finance')),
@@ -89,8 +88,7 @@ class Views(BaseView):
     def __init__(self, request):
         super().__init__(request)
         self.form_params = dict(scripts="")
-        self.list_url = 'jabatan'
-        self.list_route = 'jabatan'
+        self.list_route = 'base-jabatan'
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
         self.table = Jabatan
