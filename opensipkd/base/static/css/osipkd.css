@@ -36,7 +36,7 @@ legend {
 }
 .twitter-typeahead .tt-hint {
   color: #a1a1a1;
-  z-index: 1;
+  z-index: auto;
   padding: 3px 6px;
   border: 1px solid transparent;
 }

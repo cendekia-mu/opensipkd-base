@@ -29,7 +29,7 @@ class AddSchema(colander.Schema):
     partner_id = colander.SchemaNode(
         colander.Integer(),
         oid="partner_id",
-        widget=widget.HiddenWidget(),
+        # widget=widget.HiddenWidget(),
     )
     nama = colander.SchemaNode(
         colander.String(),
@@ -38,7 +38,7 @@ class AddSchema(colander.Schema):
     departemen_id = colander.SchemaNode(
         colander.Integer(),
         oid="departemen_id",
-        widget=widget.HiddenWidget(),
+        # widget=widget.HiddenWidget(),
     )
     departemen = colander.SchemaNode(
         colander.String(),
@@ -57,6 +57,12 @@ class AddSchema(colander.Schema):
         colander.String(),
         oid="selesai",
         widget=widget_os.BootStrapDateInputWidget()
+    )
+    widget = widget.FormWidget(
+
+        requirements=(("deform", None), 
+                      {
+                      "js": "opensipkd.base:static/js/form/posisi.js"}),
     )
 
     def after_bind(self, schema, kw):
