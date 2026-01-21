@@ -1,20 +1,27 @@
-@startuml uc_user
+@startuml uc_users
 
 left to right direction
 
 actor User
 
 rectangle "User Use Case" {
-  User -- (Register)
-  User -- (Login)
-  User -- (Request Password Reset)
-  User -- (Update Profile)
-  User -- (Logout)
-  User -- (Change Password)
-  (Update Profile)..> (Login):include
-  (Logout)..> (Login):include
-  (Change Password)..> (Login):include
-
+  (Home) as home
+  (Password Reset) as passwordReset
+  (Change Password) as changePassword
+  (Login) as login
+  (Logout) as logout
+  (Update Profile) as updateProfile
+  (Register) as register
 }
+passwordReset ..> changePassword : extend
+changePassword ..> login:include
+User -- passwordReset
+User -- changePassword
+User -- register
+User -- login
+User -- updateProfile
+User -- logout
+User -- home
+
 
 @enduml

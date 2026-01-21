@@ -439,7 +439,7 @@ div.col-md-6 {
       position: absolute;
       top: 0;
       left: 0;
-      z-index:2;
+      z-index:auto;
   }
 
   .twitter-typeahead .tt-query, .twitter-typeahead .tt-hint {
@@ -450,7 +450,7 @@ div.col-md-6 {
       position: absolute;
       top: 0;
       left: 0;
-      z-index:2;
+      z-index:auto;
   }
   .table-responsive {
 

@@ -11,10 +11,11 @@ partition "System" {
   if (Credentials are valid?) then (yes)
     :Log in successful;
     :Redirect to dashboard;
-    stop
   else (no)
     :Display error message;
   endif
+    stop
+
 }
 @enduml
 

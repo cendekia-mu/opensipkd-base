@@ -95,6 +95,7 @@ class DeTable(field.Field):
 
     css_class = "deform"  # bw compat only; pass a widget to override
 
+
     def __init__(
             self,
             schema,
@@ -121,7 +122,7 @@ class DeTable(field.Field):
             scroll_y=False,
             **kw
     ):
-        kw.pop("parent", None)  
+        kw.pop("parent", None)
         super().__init__(schema, **kw)
         self.request = kw.get("request")
         self.rows = kw.get("rows")
@@ -161,8 +162,8 @@ class DeTable(field.Field):
             "view": "{window.location = o%sUri+'/'+m%sID+'/view%s';}" % (
                 tableid, tableid, params),
             "delete": not self.allow_check and "{window.location = o%sUri+'/'+m%sID+'/delete%s';}" % (
-                tableid, tableid, params) or \
-                    """{
+                tableid, tableid, params) or
+            """{
                         var cnt = m%sCheckList.length;
                         if (cnt > 0){
                         if (confirm('Menghapus '+cnt+' data, pastikan data yang dipilih sudah benar!')){
@@ -204,12 +205,12 @@ class DeTable(field.Field):
                     """)
             if dict_buttons.get(button.name):
                 _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
-                            dict_buttons[button.name] + ');')
+                                dict_buttons[button.name] + ');')
             else:
-                url =  "{window.location = o%sUri+'/" % tableid
-                url += f"{button.name}';"+"}"  
+                url = "{window.location = o%sUri+'/" % tableid
+                url += f"{button.name}';"+"}"
                 _scripts.append(f'$("#{tableid + button.name}").click(function ()' +
-                                url  + 
+                                url +
                                 ');')
 
         if html_buttons:
@@ -389,7 +390,8 @@ class DeTable(field.Field):
     def widget_select(self, column):
         d = {}
         d["wg_select"] = True
-        d["wg_select_val"] = type(column.widget.values) == list and dict(column.widget.values) or column.widget.values
+        d["wg_select_val"] = type(column.widget.values) == list and dict(
+            column.widget.values) or column.widget.values
         if column.widget.values:
             for val in column.widget.values:
                 if hasattr(column, f"color_{val}"):
