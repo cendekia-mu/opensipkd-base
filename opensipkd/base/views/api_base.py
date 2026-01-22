@@ -2,7 +2,8 @@ from datetime import datetime, date
 import logging
 from decimal import Decimal
 from math import log
-from deform import Form, ValidationFailure
+from deform import Form, ValidationFailure, form
+from opensipkd.webr.models.users import User
 from pyramid.response import Response
 from opensipkd.base.models import DBSession
 from opensipkd.tools.buttons import btn_save, btn_cancel
@@ -240,9 +241,26 @@ class ApiViews(APIView):
         d = self.get_custom_render(d)
         return Response(json=json.loads(json.dumps(d, default=self.json_adapter)))
 
+    def form_validator(self, form, controls):
+        """Get Validator Form"""
+
     def post(self, request, *args, **kwargs):
         self.req = request
-        return self.req
+        form = self.get_form(self.add_schema, validator=self.form_validator)
+        controls = self.req.POST.items()
+        try:
+            data = self.form_validate(form, controls)
+        except ValidationFailure as e:
+            return Response(json={"errors": e.error.asdict()}, status=400)
+        if data.get("id", None):
+            row = self.table.query.get(data.get("id"))
+        else:
+            row = None
+        user = User.get_by_request(self.request.user)
+        row = self.table.save(data, row, user=user)
+        d = row.__dict__
+        d.pop("_sa_instance_state", None)
+        return Response(json=self.success(d))
 
     def delete(self):
         query = self.db_session.query(self.table)
