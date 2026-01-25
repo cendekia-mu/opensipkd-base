@@ -412,7 +412,7 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    # Base.metadata.create_all(bind=engine)
     alembic_run(config_uri, "alembic_base")
     # base_alembic_run(config_uri)
 
