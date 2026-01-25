@@ -384,7 +384,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id', name=op.f('pk_partner_files'))
     )
    
-    op.drop_table('alembic_version')
     # ### end Alembic commands ###
 
 

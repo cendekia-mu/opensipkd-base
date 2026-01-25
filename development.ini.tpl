@@ -80,8 +80,6 @@ menus = login:Login
 ;change_unit = False
 ;departemen_chg_id = 3
 
-
-
 # digunakan jika akan menggunakan form registrasi sendiri
 
 ; PROXY
