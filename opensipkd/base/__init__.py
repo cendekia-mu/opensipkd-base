@@ -280,7 +280,7 @@ def get_config(settings):
         mobile_static_path = os.path.join(mobi_path, 'static', 'mobile')
 
     if not os.path.exists(mobile_static_path):
-        mobile_static_path = os.makedirs(mobile_static_path)
+        os.makedirs(mobile_static_path)
 
     config.add_static_view('mobi', mobile_static_path +
                            os.sep, cache_max_age=3600)
