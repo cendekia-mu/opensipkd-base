@@ -3,7 +3,7 @@ import logging
 from decimal import Decimal
 from math import log
 from deform import Form, ValidationFailure, form
-from opensipkd.webr.models.users import User
+from opensipkd.models import User
 from pyramid.response import Response
 from opensipkd.base.models import DBSession
 from opensipkd.tools.buttons import btn_save, btn_cancel
