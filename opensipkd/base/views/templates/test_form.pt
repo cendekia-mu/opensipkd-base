@@ -1,0 +1,107 @@
+<html metal:use-macro="load: ./base3.1.pt" tal:define="
+      scripts scripts|scripts;
+      readonly readonly|readonly;">
+<div metal:fill-slot="content">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title"><i class="fa fa-fw fa-plus"></i>&nbsp;${request.title}</h3>
+    </div>
+    <div class="panel-body">
+      <div tal:content="structure form"></div>
+    </div>
+  </div>
+</div>
+
+<div metal:fill-slot="scripts">
+  <script>
+    $(document).ready(function () {
+      $(".readonly").attr("readonly", true);
+      $(".date").attr("readonly", true);
+      function convertFormToJSON(form) {
+        const array = $(form).serializeArray(); // Encodes form elements as an array of names and values.
+        const json = {};
+        $.each(array, function () {
+          // Handle multiple inputs with the same name (e.g., checkboxes)
+          if (json[this.name]) {
+            if (!json[this.name].push) {
+              json[this.name] = [json[this.name]];
+            }
+            json[this.name].push(this.value || '');
+          } else {
+            json[this.name] = this.value || '';
+          }
+        });
+        return json;
+      }
+      var submitType = 'POST';
+      $('form button[type="submit"]').on('click', function () {
+        // Remove any previously added hidden inputs for this form
+        if ($(this).val() === 'cancel') {
+          location.href = "${request.route_url('base-xhr-test')}";
+          return false;
+        } else if ($(this).val() === 'delete') {
+          submitType = 'DELETE';
+        }
+
+      });
+      $('form').on('submit', function (event) {
+        event.preventDefault();
+        console.log('Form submitted!');
+        var id = "${request.matchdict.get('id', '')}";
+        const formObject = convertFormToJSON(this);
+        if (id) {
+          formObject['id'] = id;
+        }
+        var message = '';
+        if (submitType == 'POST' && id) {
+          submitType = 'PUT';
+          message = 'Mengubah';
+        } else if (submitType === 'DELETE') {
+          message = 'Menghapus';
+        } else {
+          message = 'Menambah';
+        }
+
+        // Convert the JavaScript object to a JSON string
+        const formData = JSON.stringify(formObject);
+        var url = "${request.route_url('base-xhr-test-api')}";
+        $.ajax({
+          url: url,
+          type: submitType,
+          data: formData,
+          contentType: 'application/json',
+          success: function (response) {
+            console.log('Success:', response);
+            if (submitType === 'DELETE') {
+              location.href = "${request.route_url('base-xhr-test')}";
+              return;
+            }
+            data = response.data;
+            if (Array.isArray(data)) {
+              data = data[0];
+            }
+            id = data.id;
+            $("#success").html('Sukses: ' + message + ' data ID ' + id);
+            $("#success").show();
+          },
+          error: function (error) {
+            if (error.code === 404) {
+              location.href = "${request.route_url('base-xhr-test')}";
+              return;
+            }
+            console.error('Error:', error);
+            $("#errors").html('Error: ' + message + ' ' + error.responseText);
+            $("#errors").show();
+          }
+        });
+      });
+
+      ${structure:scripts}
+
+
+    });
+  </script>
+  <div metal:define-slot="scripts"></div>
+</div>
+
+</html>

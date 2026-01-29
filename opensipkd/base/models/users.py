@@ -1,3 +1,4 @@
+from calendar import c
 from datetime import datetime
 
 from click import group
@@ -178,6 +179,24 @@ class _User(UserMixin, BaseModel):
                     perm_names.append(gp.perm_name)
         return perm_names
 
+
+    @classmethod
+    def get_by_objek(cls, user: object):
+        """Berguna jika user berbeda database dengan database session.
+        Misal user dari database opensipkd.base.models.users.User"""
+        if not user:
+            raise Exception("Parameter user is None")
+        
+        resp = User.get_by_email(user.email)
+        if not resp:
+            resp = User.get_by_name(user.user_name)
+        return resp
+    
+    @classmethod
+    def get_by_request(cls, request_user: object):
+        """Berguna jika user berbeda database dengan database session.
+        Misal user dari database opensipkd.base.models.users.User"""
+        return cls.get_by_objek(request_user)
     # @classmethod
     # def get_departemen_id(cls, user_id):
     #     partner = Partner.query_user_id(user_id).first()
