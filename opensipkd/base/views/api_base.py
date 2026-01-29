@@ -48,6 +48,10 @@ class ApiViews(APIView):
         self.http_forbidden = HTTPForbidden
         self.http_not_acceptable = HTTPNotAcceptable
         self.response = Response
+        self.list_permission = None
+        self.add_permission = None
+        self.edit_permission = None
+        self.delete_permission = None
         
     def get_params(self, key, default=None):
         return self.settings.get(key, default)
@@ -56,6 +60,12 @@ class ApiViews(APIView):
         return query
 
     def list_filter(self, query, **kw):
+        id_ = kw.get("id", 0)
+        kode = kw.get("kode", 0)
+        if id_:
+            query = query.filter(self.table.id == int(id_))
+        elif kode:
+            query = query.filter(self.table.kode == kode)
         return query
 
     def get_list(self, **kwargs):
@@ -237,6 +247,10 @@ class ApiViews(APIView):
         return data
     
     def get(self, request, *args, **kwargs):
+        if self.list_permission:
+            if not request.has_permission(self.list_permission):
+                raise HTTPForbidden("You do not have permission to view this resource.")
+            
         d = self._get(request, *args, **kwargs)
         d = self.get_custom_render(d)
         return Response(json=json.loads(json.dumps(d, default=self.json_adapter)))
@@ -251,6 +265,10 @@ class ApiViews(APIView):
         return data
     
     def post(self, request, *args, **kwargs):
+        if self.add_permission:
+            if not request.has_permission(self.add_permission):
+                raise HTTPForbidden("You do not have permission to add this resource.")
+            
         self.req = request
         return self._update()
 
@@ -277,6 +295,10 @@ class ApiViews(APIView):
         return Response(json=self.success(d))
 
     def put(self, request, *args, **kwargs):
+        if self.edit_permission:
+            if not request.has_permission(self.edit_permission):
+                raise HTTPForbidden("You do not have permission to edit this resource.")
+            
         data = request.json_body
         id_ = data.get("id") or self.req.matchdict.get("id")
         if not id_:
@@ -284,6 +306,10 @@ class ApiViews(APIView):
         return self._update(id_)
 
     def delete(self, request, *args, **kwargs):
+        if self.delete_permission:
+            if not request.has_permission(self.delete_permission):
+                raise HTTPForbidden("You do not have permission to delete this resource.")
+            
         self.req = request
         data = self.req.json_body
         if "id" not in data:
