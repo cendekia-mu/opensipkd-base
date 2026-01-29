@@ -1,18 +1,17 @@
 from datetime import datetime, date
 import logging
+import colander
 from decimal import Decimal
-from math import log
-from deform import Form, ValidationFailure, form
+from deform import Form, ValidationFailure
 from opensipkd.webr.models.users import User
 from pyramid.response import Response
 from opensipkd.base.models import DBSession
-from opensipkd.tools.buttons import btn_save, btn_cancel
-from opensipkd.tools import get_settings
-from opensipkd.base.views.common import DataTables, ColumnDT
 from deform.widget import SelectWidget
 from pyramid.response import Response
 from pyramid.httpexceptions import *
-import colander
+from opensipkd.tools.buttons import btn_save, btn_cancel
+from opensipkd.tools import get_settings
+from opensipkd.base.views.common import DataTables, ColumnDT
 from . import api_messages
 from ..tools import obj2json
 
@@ -241,12 +240,11 @@ class ApiViews(APIView):
         d = self.get_custom_render(d)
         return Response(json=json.loads(json.dumps(d, default=self.json_adapter)))
 
-    def form_validator(self, form, controls):
-        """Get Validator Form"""
-
+    
     def post(self, request, *args, **kwargs):
         self.req = request
         form = self.get_form(self.add_schema, validator=self.form_validator)
+        # TODO: harus mengakomodir data dari json juga
         controls = self.req.POST.items()
         try:
             data = self.form_validate(form, controls)
