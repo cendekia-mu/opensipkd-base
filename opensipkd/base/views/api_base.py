@@ -3,7 +3,7 @@ import logging
 import colander
 from decimal import Decimal
 from deform import Form, ValidationFailure
-from opensipkd.webr.models.users import User
+from opensipkd.models import User
 from pyramid.response import Response
 from opensipkd.base.models import DBSession
 from deform.widget import SelectWidget
