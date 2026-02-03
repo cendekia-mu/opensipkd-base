@@ -107,3 +107,10 @@ base-eselon-add,/eselon/add,base,eselon,,,,admin,base-eselon,Eselon Add,1,0,,,fo
 base-eselon-edit,/eselon/{id}/edit,base,eselon,,,,admin,base-eselon,Eselon Edit,1,0,,,form6.pt,
 base-eselon-view,/eselon/{id}/view,base,eselon,,,,admin,base-eselon,Eselon View,1,0,,,form6.pt,
 base-eselon-delete,/eselon/{id}/delete,base,eselon,,,,admin,base-eselon,Eselon Delete,1,0,,,form6.pt,
+base-xhr-test,/xhr/test,,xhr_test,,view_list,,admin,base-admin,Test,1,0,,1,test_list.pt
+base-xhr-test-act,/xhr/test/{act}/act,base,xhr_test,,,,admin,base-test,Test Action,1,0,,,json,
+base-xhr-test-add,/xhr/test/add,base,xhr_test,,,,admin,base-test,Test Add,1,0,,,test_form.pt,
+base-xhr-test-edit,/xhr/test/{id}/edit,base,xhr_test,,,,admin,base-test,Test Edit,1,0,,,test_form.pt,
+base-xhr-test-view,/xhr/test/{id}/view,base,xhr_test,,,,admin,base-test,Test View,1,0,,,test_form.pt,
+base-xhr-test-delete,/xhr/test/{id}/delete,base,xhr_test,,,,admin,base-test,Test Delete,1,0,,,test_form.pt,
+base-xhr-test-api,/xhr/test/api,,xhr_test,ViewsApi,,,admin,,API Test,1,2,,,

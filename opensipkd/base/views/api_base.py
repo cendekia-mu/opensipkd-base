@@ -1,18 +1,18 @@
 from datetime import datetime, date
 import logging
-
-from urllib3 import request
 import colander
 from decimal import Decimal
-from deform import Form, ValidationFailure
-from opensipkd.models import User
+from math import e, exp, log
 from pyramid.response import Response
-from opensipkd.base.models import DBSession
-from deform.widget import SelectWidget
 from pyramid.response import Response
 from pyramid.httpexceptions import *
+import colander
+from deform import Form, ValidationFailure
+from deform.widget import SelectWidget
+from opensipkd.base.models import DBSession
 from opensipkd.tools.buttons import btn_save, btn_cancel
 from opensipkd.tools import get_settings
+from opensipkd.models import User
 from opensipkd.base.views.common import DataTables, ColumnDT
 from . import api_messages
 from ..tools import obj2json
@@ -27,6 +27,7 @@ class ApiViews(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.req = kwargs.get("request", None)
+        self.user = User
         self.db_session = DBSession
         self.buttons = (btn_save, btn_cancel)
         self.table = None
@@ -60,8 +61,8 @@ class ApiViews(APIView):
         return query
 
     def list_filter(self, query, **kw):
-        id_ = kw.get("id", None)
-        kode = kw.get("kode", None)
+        id_ = kw.get("id", 0)
+        kode = kw.get("kode", 0)
         if id_:
             query = query.filter(self.table.id == int(id_))
         elif kode:
@@ -174,9 +175,8 @@ class ApiViews(APIView):
             return data
         except ValidationFailure as e:
             _log.error("Error validasi %s", str(e.error.asdict()))
-            raise HTTPBadRequest(explanation=str(e.error.asdict())) from e
+            raise HTTPNotAcceptable(json_body=str(e.error.asdict())) from e
         
-        return dict(data)
     
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel),
                  **kwargs):
@@ -255,50 +255,77 @@ class ApiViews(APIView):
         d = self._get(request, *args, **kwargs)
         d = self.get_custom_render(d)
         return Response(json=json.loads(json.dumps(d, default=self.json_adapter)))
+    
+    def post_data(self, *args, **kwargs):
+        # digunakan untuk mengambil data post dari request
+        try:
+            data = self.req.json_body.items()
 
+        except Exception:
+            data = self.req.POST.items()
+        return data
     
     def post(self, request, *args, **kwargs):
         if self.add_permission:
             if not request.has_permission(self.add_permission):
                 raise HTTPForbidden("You do not have permission to add this resource.")
         self.req = request
+        return self._update()
+
+    def _update(self, id_=None):
         form = self.get_form(self.add_schema, validator=self.form_validator)
         controls = self.req.POST.items()
         try:
-            data = self.form_validate(form, controls)
-        except ValidationFailure as e:
-            return Response(json={"errors": e.error.asdict()}, status=400)
-        if data.get("id", None):
-            row = self.table.query.get(data.get("id"))
+            controls = self.req.json_body.items()
+        except Exception:
+            controls = self.req.POST.items()
+        data = self.form_validate(form, controls)
+
+        # Response(json={"errors": e.error.asdict()}, status=400)
+        if id_:
+            row = self.table.query().get(id_)
         else:
             row = None
-        user = User.get_by_request(self.request.user)
+        user = self.user.get_by_request(self.req.user)
         row = self.table.save(data, row, user=user)
+        self.db_session.add(row)
+        self.db_session.flush()
         d = row.__dict__
         d.pop("_sa_instance_state", None)
+        d.pop("db_session", None)
         return Response(json=self.success(d))
+
+
+    def put(self, request, *args, **kwargs):
+        if self.edit_permission:
+            if not request.has_permission(self.edit_permission):
+                raise HTTPForbidden("You do not have permission to edit this resource.")
+            
+        data = request.json_body
+        id_ = data.get("id") or self.req.matchdict.get("id")
+        if not id_:
+            return HTTPBadRequest(explanation="ID is required")
+        return self._update(id_)
 
     def delete(self, request, *args, **kwargs):
         if self.delete_permission:
             if not request.has_permission(self.delete_permission):
                 raise HTTPForbidden("You do not have permission to delete this resource.")
-
-        query = self.db_session.query(self.table)
-        # query = self.filter_ids(query)
-        row = query.first()
-        if not row:
-            return HTTPNotFound()
-
-        return Response(json=self.success())
-
-    def put(self, request, *args, **kwargs):
-        if self.edit_permission:
-            if not request.has_permission(self.edit_permission):
-                raise HTTPForbidden("You do not have permission to view this resource.")
-
+            
         self.req = request
-        return self.req
-
+        data = self.req.json_body
+        if "id" not in data:
+            return HTTPBadRequest(explanation="ID is required")
+        
+        query = self.table.query().filter_by(id=data.get("id"))
+        if not query.first():
+            return HTTPNotFound(explanation="Data not found")
+        query.delete()
+        self.db_session.flush()
+        self.req.session.flash("Data deleted")
+        return Response(json=self.success({}, msg={"message": "Data deleted"}))
+    
+    
     def patch(self, data):
         self.req = data
         return self.req

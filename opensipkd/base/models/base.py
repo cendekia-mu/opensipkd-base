@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 
+from opensipkd.base.models.meta import Base
 import ziggurat_foundations.models
 from opensipkd.tools import as_timezone
 from opensipkd.tools.upload import append_csv
@@ -99,7 +100,9 @@ class DefaultModel(CommonModel):
     def save(cls, values, row=None, **kwargs):
         if not row:
             row = cls()
-        row.from_dict(values)
+        for k, v in values.items():
+            if hasattr(row, k):
+                setattr(row, k, v)
         return row
 
     @classmethod
@@ -155,11 +158,26 @@ class DefaultModel(CommonModel):
 
 class StandarModel(DefaultModel):
     status = Column(SmallInteger, nullable=False, default=0)
-    created = Column(DateTime, nullable=True, default=datetime.utcnow)
+    created = Column(DateTime, nullable=True, default=datetime.now().astimezone())
     updated = Column(DateTime, nullable=True)
     create_uid = Column(Integer, nullable=True, default=1)
     update_uid = Column(Integer, nullable=True)
 
+    @classmethod
+    def save(cls, values, row=None, **kwargs):
+        user = kwargs.get("user", None) 
+        if not row:
+            values['created'] = datetime.now().astimezone()
+            if user:
+                values['create_uid'] = user.id
+            status  = values.get('status', None)
+            if status is None:
+                values['status'] = 0
+        else:
+            values['updated'] = datetime.now().astimezone()
+            if user:
+                values['update_uid'] = user.id
+        return super().save(values, row, **kwargs)
     # New Method
     @classmethod
     def query_status(cls, status=0, db_session=None):
@@ -283,3 +301,8 @@ class NamaModel(KodeModel):
         if not db_session:
             db_session = cls.db_session
         return cls.query_list(db_session=db_session).all()
+    
+class TestModel(NamaModel, Base):
+    __tablename__ = 'test_model'
+    __table_args__ = TABLE_ARGS
+    description = Column(String(256), nullable=True)
