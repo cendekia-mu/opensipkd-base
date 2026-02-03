@@ -1,5 +1,7 @@
 from datetime import datetime, date
 import logging
+
+from urllib3 import request
 import colander
 from decimal import Decimal
 from deform import Form, ValidationFailure
@@ -46,6 +48,10 @@ class ApiViews(APIView):
         self.http_forbidden = HTTPForbidden
         self.http_not_acceptable = HTTPNotAcceptable
         self.response = Response
+        self.list_permission = None
+        self.add_permission = None
+        self.edit_permission = None
+        self.delete_permission = None
         
     def get_params(self, key, default=None):
         return self.settings.get(key, default)
@@ -54,6 +60,12 @@ class ApiViews(APIView):
         return query
 
     def list_filter(self, query, **kw):
+        id_ = kw.get("id", None)
+        kode = kw.get("kode", None)
+        if id_:
+            query = query.filter(self.table.id == int(id_))
+        elif kode:
+            query = query.filter(self.table.kode == kode)
         return query
 
     def get_list(self, **kwargs):
@@ -236,15 +248,21 @@ class ApiViews(APIView):
         return data
     
     def get(self, request, *args, **kwargs):
+        if self.list_permission:
+            if not request.has_permission(self.list_permission):
+                raise HTTPForbidden("You do not have permission to view this resource.")
+            
         d = self._get(request, *args, **kwargs)
         d = self.get_custom_render(d)
         return Response(json=json.loads(json.dumps(d, default=self.json_adapter)))
 
     
     def post(self, request, *args, **kwargs):
+        if self.add_permission:
+            if not request.has_permission(self.add_permission):
+                raise HTTPForbidden("You do not have permission to add this resource.")
         self.req = request
         form = self.get_form(self.add_schema, validator=self.form_validator)
-        # TODO: harus mengakomodir data dari json juga
         controls = self.req.POST.items()
         try:
             data = self.form_validate(form, controls)
@@ -260,7 +278,11 @@ class ApiViews(APIView):
         d.pop("_sa_instance_state", None)
         return Response(json=self.success(d))
 
-    def delete(self):
+    def delete(self, request, *args, **kwargs):
+        if self.delete_permission:
+            if not request.has_permission(self.delete_permission):
+                raise HTTPForbidden("You do not have permission to delete this resource.")
+
         query = self.db_session.query(self.table)
         # query = self.filter_ids(query)
         row = query.first()
@@ -269,8 +291,12 @@ class ApiViews(APIView):
 
         return Response(json=self.success())
 
-    def put(self, data):
-        self.req = data
+    def put(self, request, *args, **kwargs):
+        if self.edit_permission:
+            if not request.has_permission(self.edit_permission):
+                raise HTTPForbidden("You do not have permission to view this resource.")
+
+        self.req = request
         return self.req
 
     def patch(self, data):
