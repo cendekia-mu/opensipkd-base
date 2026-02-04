@@ -95,7 +95,6 @@ class DeTable(field.Field):
 
     css_class = "deform"  # bw compat only; pass a widget to override
 
-
     def __init__(
             self,
             schema,
@@ -485,37 +484,20 @@ class DeTable(field.Field):
                 html += f'name="{col_id}" id="{col_id}-max" /></span>'
                 html += f'</div>'
                 html += f'</div>'
-            """
-            awal
+        elif getattr(f, "search_method", None) == "yadcf_range_number":
             html += f'<div class="form-group" {txt}>'
-            html += f'<div class="input-group">'
-            html += f'<span class="input-group-addon">{f.title}</span>'
-            html += f'<span class="input-group-addon"><input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
-            html += f'data-index={field_index} placeholder="{f.title} Awal" '
-            html += f'name="{col_id}" id="{col_id}-min"/></span>'
-            html += f'<span class="input-group-addon"><input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
-            html += f'data-index={field_index} placeholder="{f.title} Akhir" '
+            html += f'<label class="form-label" style="font-size:12px">{f.title}</label>'
+            html += f'<div class="input-group" style="padding: 3px 0px 7px !important;">'
+            html += f'<input type="number" class="form-control {self.tableid}-control-filter"'
+            html += f'data-index={field_index} placeholder="{f.title} Min" '
+            html += f'name="{col_id}" id="{col_id}-min"/>'
+            html += f'<div class="input-group-addon">-</div>'
+            html += f'<input type="number" class="form-control {self.tableid}-control-filter"'
+            html += f'data-index={field_index} placeholder="{f.title} Max" '
             html += f'name="{col_id}" id="{col_id}-max" /></span>'
             html += f'</div>'
             html += f'</div>'
-            
-            """
 
-            # html += """
-            #   <script type="text/javascript">
-            #        deform.addCallback(
-            #         '%s',
-            #          function deform_cb(oid) {
-            #            $('#'+oid).datepicker();
-            #              }
-            #            );
-            #           </script>
-            #     """ % self.tableid
-            #     requirements = f.widget.requirements
-            #     for requirement in requirements:
-            #         if type(requirement) == dict and "js" in requirement:
-            #             for req in requirement:
-            #
         else:
             html += f'<input type="text" class="form-control {self.tableid}-control-filter"'
             html += f'placeholder="{f.title}" {txt}/>'

@@ -1152,6 +1152,7 @@ class BaseView(object):
                 q.delete()
                 self.db_session.flush()
                 request.session.flash(msg)
+                
             return self.route_list()
         form = self.get_form(
             self.edit_schema, buttons=(btn_delete, btn_cancel))

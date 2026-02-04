@@ -226,6 +226,9 @@
         dom: '<"row"<"col-md-8"<"toolbar">>><"row"<"col-md-8"Bl><"col-md-4"fr>>t<"row dt-footer"<"col-md-8 sub-foot" i><"col-md-4"p>>',
         processing: true,
         serverSide: ${ server_side },
+        <tal:block tal:condition="filter_columns">
+        deferLoading: 0,
+        </tal:block>
         data: param_data,
         ajax: param_ajax,
         stateSave: ${ state_save },
@@ -422,6 +425,37 @@
                   //&& min_val !== "" && max_val !== ""
             }
           }
+          else if ($(this).attr("type") === 'number') {
+            value = this.value;
+            localStorage.setItem(col_id, value);
+            var splitted = col_id.split('-');
+            if (splitted[splitted.length - 1] !== "min" && splitted[splitted.length - 1] !== "max"){
+              o${tableid}.column($(this).data('index')).search(value)
+            }
+            else{
+              var min_val = undefined;
+              var max_val = undefined;
+              if (splitted[splitted.length - 1] === "min") {
+                min_val = this.value;
+                splitted.length = splitted.length - 1;
+                col_id = splitted.join("-");
+                max_val = $("#" + col_id + '-max').val()
+              }
+              else {
+                max_val = this.value;
+                splitted.length = splitted.length - 1;
+                col_id = splitted.join("-");
+                min_val = $("#" + col_id + '-min').val();
+              }
+              if (min_val === undefined && max_val !== undefined) min_val = max_val;
+              if (max_val === undefined && min_val !== undefined) max_val = min_val;
+              if (max_val !== undefined && min_val !== undefined && min_val !== null && max_val !== null)
+                o${tableid}
+                  .column($(this).data('index'))
+                  .search(min_val + '-yadcf_delim-' + max_val, true);
+                  //&& min_val !== "" && max_val !== ""
+            }
+          }
           else {
             col_id = this.id;
             value = this.value;
@@ -448,7 +482,7 @@
         if (typ === "select") filter_table();
 
         var typ = $(this).attr("type").toLowerCase();
-        if (typ === "date") filter_table();
+        if (typ in ("date", "number")) filter_table();
       });
 
       console.log("Read Data");
