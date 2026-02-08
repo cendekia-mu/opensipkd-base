@@ -1,4 +1,3 @@
-from tkinter import N
 from sqlalchemy import func
 from opensipkd.base.models import Parameter
 
