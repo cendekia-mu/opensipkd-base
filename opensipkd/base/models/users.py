@@ -1,10 +1,8 @@
-from calendar import c
 from datetime import datetime
-
-from click import group
+import logging
+from math import log
 import pytz
 import sqlalchemy as sa
-from opensipkd.tools import as_timezone
 from pyramid.authorization import (Allow, Authenticated, ALL_PERMISSIONS)
 from sqlalchemy import (
     Column, Integer, DateTime, String)
@@ -23,12 +21,13 @@ from ziggurat_foundations.models.user_group import UserGroupMixin
 from ziggurat_foundations.models.user_permission import UserPermissionMixin
 from ziggurat_foundations.models.user_resource_permission import \
     UserResourcePermissionMixin
-from sqlalchemy.ext.declarative import declared_attr
+from opensipkd.tools import as_timezone
 
 from .base import CommonModel, DBSession, DefaultModel
 from .meta import Base
 from .base import TABLE_ARGS
 
+log = logging.getLogger(__name__)
 class _GroupPermission(GroupPermissionMixin):
     pass
 
@@ -298,6 +297,7 @@ class RootFactory:
         for gp in DBSession.query(GroupPermission):
             acl_name = 'group:{}'.format(gp.group_id)
             self.__acl__.append((Allow, acl_name, gp.perm_name))
+        # log.debug(f"RootFactory ACL: {self.__acl__}")
 
 
 def init_model():

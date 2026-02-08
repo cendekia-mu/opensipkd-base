@@ -16,9 +16,6 @@ Anda tidak berhak mengakses halaman <span style="color:red;">${url}</span><br>
 <b>Silahkan Hubungi Administrator</b><br>
 <a href="${request.referer}" tal:condition=request.referer>Kembali ke Halaman Sebelumnya</a>
 <a href="${home}/" tal:condition="not request.referer">Kembali ke Halaman Utama</a>
-
-
-</div>
 </body>
 
 </html>

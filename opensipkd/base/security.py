@@ -91,6 +91,7 @@ class MySecurityPolicy:
             return identity['userid']
 
     def permits(self, request, context, permission):
+        # log.debug(f"MySecurityPolicy.permits: permission={permission}")
         identity = request.identity                
         principals = set([Everyone])
         if identity is not None:

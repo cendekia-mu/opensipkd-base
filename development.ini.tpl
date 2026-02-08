@@ -14,8 +14,11 @@ pyramid.debug_notfound = true
 pyramid.debug_routematch = true
 pyramid.debug_templates = true
 default_locale_name = id
-sqlalchemy.url = postgresql://aagusti:a@localhost:5432/demo2
-session.url = postgresql://aagusti:a@localhost:5432/demo2
+sqlalchemy.url = postgresql://user:pass@server:port/db
+sqlalchemy.pool_pre_ping = True
+sqlalchemy.pool_size = 20
+sqlalchemy.echo = False
+session.url = postgresql://user:pass@server:port/db
 pyramid.includes =
     pyramid_tm
     pyramid_beaker

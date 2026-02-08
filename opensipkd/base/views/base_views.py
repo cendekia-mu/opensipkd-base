@@ -999,7 +999,8 @@ class BaseView(object):
 
         return values
 
-    def get_item_table(self, parent=None, **kwargs):
+    def get_item_table(self, **kwargs):
+        parent = kwargs.get("parent", None)
         if not self.form_list:
             return None
         self.list_schema = self.form_list

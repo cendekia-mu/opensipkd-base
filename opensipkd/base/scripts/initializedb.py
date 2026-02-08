@@ -1,4 +1,5 @@
 import csv
+import datetime
 import logging
 import os
 import subprocess
@@ -279,7 +280,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     # merubah v1.4 ke v.2
                     # sql = select([foreign_table]).where(foreign_field == value)
                     sql = select(foreign_table).where(foreign_field == value)
-                    # log.debug(f"Query Foreignkey: {str(sql)}")
+                    log.debug(f"Query Foreignkey: {str(sql)}")
                     # merubah v1.4 ke v.2
                     # q = Base.metadata.bind.execute(sql)
                     with eng.connect() as conn:
@@ -320,6 +321,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                 if fname_orig == "user_password":
                     user = True
                     password = val
+                
                 else:
                     if fname_orig in fields and type(fields[fname_orig]) is BOOLEAN:
                         val = (val == 'true' or val ==
@@ -330,6 +332,10 @@ def append_csv(table, filename, keys, get_file_func=get_file,
             for c in columns_table:
                 # if (not c["nullable"] and c["name"] not in data and c["name"] != "id"):
                 if (not c["nullable"] and c["name"] not in data and c["name"] != "id") and c["default"] is None:
+                    if c["name"]=="registered_date":
+                        setattr(row, c["name"], datetime.datetime.now())
+                        continue
+
                     # update: tambah periksa nilai default.
                     # Jika default=None berarti wajib ada nilainya
                     # by tatang 2024-10-12
@@ -460,3 +466,6 @@ def main(argv=sys.argv):
 #                 transaction.abort()
 #     except Exception as e:
 #         print(str(e))
+
+if __name__ == '__main__':
+    main(sys.argv)
