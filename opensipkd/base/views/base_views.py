@@ -887,8 +887,9 @@ class BaseView(object):
                         else:
                             control.append(ctrl)
                     controls = iter(control)
+                c = form.validate(controls)
                 try:
-                    c = form.validate(controls)
+                    pass
                 except ValidationFailure as e:
                     log.error(f"Add Error: {e.field}")
                     log.error(f"Add Error: {e.cstruct}")
