@@ -890,7 +890,9 @@ class BaseView(object):
                 try:
                     c = form.validate(controls)
                 except ValidationFailure as e:
-                    log.error(f"Edit Error: {str(e.error)}")
+                    log.error(f"Add Error: {e.field}")
+                    log.error(f"Add Error: {e.cstruct}")
+                    log.error(f"Add Error: {str(e.error)}")
                     value = self.before_add()
                     if self.req.is_xhr:
                         error = e.error.asdict()
