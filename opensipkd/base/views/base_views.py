@@ -892,7 +892,7 @@ class BaseView(object):
                 except ValidationFailure as e:
                     log.error(f"Add cstruct: {e.cstruct}")
                     log.error(f"Add Error: {str(e.error)}")
-                    log.error(f"Add Error: {str(e.messages)}")
+                    log.error(f"Add Error: {str(e.asdict())}")
                     value = self.before_add()
                     if self.req.is_xhr:
                         error = e.error.asdict()
