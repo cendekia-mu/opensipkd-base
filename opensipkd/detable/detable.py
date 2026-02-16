@@ -434,7 +434,7 @@ class DeTable(field.Field):
         html += '<div class="form-group">'
         if isinstance(f.widget, deform_widget.CheckboxWidget):
             wg_check_val = [f.widget.true_val, f.widget.false_val]
-            radio_val = [["", 'Semua'], [wg_check_val[0],
+            radio_val = [["", f'Semua {f.title}'], [wg_check_val[0],
                                          'Aktif'], [wg_check_val[1], 'Pasif']]
             html += '<label class="" for="' + col_id + '">' + f.title + '</label>'
             html += '<div class="input-group" id="' + col_id + '">'
@@ -454,7 +454,7 @@ class DeTable(field.Field):
             wg_select_val = f.widget.values
             html += f'<select class="form-control {self.tableid}-control-filter"'
             html += f'placeholder="{f.title}" {txt}/>'
-            html += '<option value="">Semua</option>'
+            html += f'<option value="">Semua {f.title}</option>'
             if type(wg_select_val) == list:
                 wg_select_val = dict(wg_select_val)
 

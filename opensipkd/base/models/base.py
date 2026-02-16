@@ -84,6 +84,7 @@ class CommonModel(object):
     
     @classmethod
     def upload(cls, file, keys, **kwargs):
+        get_file = kwargs.get("get_file", None)
         append_csv(cls, file, keys, get_file_func=get_file,
                    db_session=cls.db_session, dbase=Base, **kwargs)
 

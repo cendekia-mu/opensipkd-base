@@ -507,15 +507,11 @@ class BaseView(object):
         if not self.columns:
             columns = []
             for d in list_schema():
-                global_search = True
+                global_search = getattr(d, "global_search", False)
                 search_method = hasattr(d, "search_method") \
                     and getattr(d, "search_method") or "string_contains"
-                if hasattr(d, "global_search"):
-                    if d.global_search == False:
-                        global_search = False
-
                 if hasattr(d, "field"):
-                    if type(d.field) == str:
+                    if isinstance(d.field, str):
                         columns.append(
                             ColumnDT(getattr(self.table, d.field),
                                      mData=d.name,
@@ -535,8 +531,8 @@ class BaseView(object):
                                  search_method=search_method))
                 if hasattr(d, "widget"):
                     if d.widget:
-                        log.debug(d.widget)
-                        if type(d.widget) is SelectWidget:
+                        # log.debug(d.widget)
+                        if isinstance(d.widget, SelectWidget):
                             select_list[d.name] = d.widget.values
 
                 if hasattr(d, "url"):
