@@ -22,7 +22,7 @@
   </video>
 
   <embed tal:condition="ext=='pdf'" src="${preview_url}" style="${style}" id="preview-${oid}">
-
+    <br>
   <a id="a-preview-${oid}" class="label label-default" href="${structure: preview_url}" target="_blank"><i
       class="fa fa-search"></i> View</a>
 </div>
