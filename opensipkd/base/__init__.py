@@ -19,7 +19,8 @@ from pyramid.csrf import new_csrf_token, get_csrf_token
 from pyramid_mailer import mailer_factory_from_settings
 from sqlalchemy import engine_from_config, or_
 
-from opensipkd.tools import get_settings, DefaultTimeZone, dmy, dmyhms, get_ext
+from opensipkd.tools import (
+    get_settings, DefaultTimeZone, dmy, dmyhms, get_ext, thousand)
 from .security import MySecurityPolicy, get_user
 from .models.base import DBSession
 from .models.handlers import LogDBSession
@@ -311,22 +312,6 @@ def init_db(settings):
     init_model()
 
 
-#     event['urlencode'] = urlencode
-#     event['quote_plus'] = quote_plus
-#     event['quote'] = quote
-#     event['money'] = money
-#     event['should_int'] = should_int
-#     event['thousand'] = thousand
-#     event['as_timezone'] = as_timezone
-#     event['split'] = split
-#     event['allow_register'] = allow_register
-#     event['change_unit'] = change_unit
-#     event['get_urls'] = get_urls
-#     event['get_csrf_token'] = get_csrf_token
-
-#     # event['get_params'] = get_params
-#     # event['get_module_menus'] = get_module_menus
-#     # event['get_module_submenus'] = get_module_submenus
 
 
 def main(global_config, **settings):
@@ -478,6 +463,24 @@ def add_global_render(event):
     event['get_base_menus'] = BASE_CLASS.get_menus
     event['has_modules'] = has_modules
     event['get_params'] = get_params_
+    
+    #     event['urlencode'] = urlencode
+    #     event['quote_plus'] = quote_plus
+    #     event['quote'] = quote
+    #     event['money'] = money
+    #     event['should_int'] = should_int
+    event['thousand'] = thousand
+    #     event['as_timezone'] = as_timezone
+    #     event['split'] = split
+    #     event['allow_register'] = allow_register
+    #     event['change_unit'] = change_unit
+    #     event['get_urls'] = get_urls
+    #     event['get_csrf_token'] = get_csrf_token
+
+    #     # event['get_params'] = get_params
+    #     # event['get_module_menus'] = get_module_menus
+    #     # event['get_module_submenus'] = get_module_submenus
+
 
 # @subscriber(NewResponse)
 # def add_csrf_headers(event):
