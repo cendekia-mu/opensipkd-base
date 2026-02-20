@@ -1,17 +1,15 @@
-from pyreportjasper import PyReportJasper
-from opensipkd.tools import get_random_string
-from opensipkd.base import get_settings, get_params
-from platform import python_version
-import logging
 import os
+import logging
+from pyreportjasper import PyReportJasper
+from platform import python_version
+from opensipkd.tools import get_random_string
 from opensipkd.tools.report import *
+from opensipkd.base import get_params
 log = logging.getLogger(__name__)
 log.warning("Opensipkd.base.tools.pbb depreciated use opensipkd.tools.pbb")
 
-# -*- coding: utf-8 -*-
 
 db_driver_port = {
-    # "jdbc:postgresql://localhost:5432/pjdl_ciamis"
     "postgresql": ["postgres", "5432", "org.postgresql.Driver", ],
     "oracle": ["oracle", "1521", "oracle.jdbc.driver.OracleDriver"],
 
@@ -19,10 +17,6 @@ db_driver_port = {
 
 
 def jasper_compile(input_file):
-    # REPORTS_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'reports')
-    # input_file = os.path.join(input_file)
-    # file_ext = os.path.splitext(input_file)
-    # output_file = os.path.join(REPORTS_DIR, 'csv')
     pyreportjasper = PyReportJasper()
     pyreportjasper.compile(write_jasper=True)
 
@@ -32,9 +26,7 @@ def jasper_db_conn(db_schema=None, dburl="sqlalchemy.url"):
     db_driver, db_user, db_password = db[0].split(':')
     db_servers, db_name = db[1].split('/')
     # db_user, db_password = db_users.split(":")
-
     # db_host = db_server
-
     # if not jdbc_dir:
     #     java_home = os.getenv("JAVA_HOME")
     # jdbc_dir = os.path.join(java_home, 'lib', db_driver_port[db_driver][2])

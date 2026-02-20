@@ -336,7 +336,7 @@ def main(global_config, **settings):
     BASE_CLASS.route_from_csv(config, filename=routes_file)
     BASE_CLASS.route_from_list(config)
     BASE_CLASS.static_view(config, settings=settings)
-    config.scan()
+    config.scan(".")
     # _logging.debug(config)
     return config.make_wsgi_app()
 
