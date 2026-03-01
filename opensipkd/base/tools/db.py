@@ -6,8 +6,8 @@ def column_concat(*args):
     cols = []
     for arg in args:
         if type(arg) == list:
-            for a in arg:
-                cols.append(a)
+            # for a in arg:
+            cols.extend(arg)
         else:
             cols.append(arg)
 
@@ -20,7 +20,7 @@ def column_concat(*args):
     # saat ini menggunakan recursive spertinya ada syntax pythonic
     # func.concat(cols[i], for col in cols)
     # lambda_concat = lambda args: func.concat(x, y) for x, y in zip(args[:-1], args[1:])
-    return func.concat(cols[0], column_concat(*cols[1:]))
+    return func.concat(cols[0], column_concat(*cols[1:])) # pylint: disable=not-callable
 
 
 def column_date(field, dt_format='YYYY-MM-DD HH:MI:SS'):

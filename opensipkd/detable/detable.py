@@ -116,9 +116,14 @@ class DeTable(field.Field):
             allow_unpost=False,
             allow_check=False,
             check_field=False,
+            check_value=False,
+            check_sum=False,
+            check_sum_field="",
             filter_columns=False,
             scroll_x=False,
             scroll_y=False,
+            list_paging=True,
+            list_info=True,
             **kw
     ):
         kw.pop("parent", None)
@@ -135,9 +140,14 @@ class DeTable(field.Field):
         self.allow_unpost = json.dumps(allow_unpost)
         self.allow_check = json.dumps(allow_check)
         self.check_field = json.dumps(check_field)
+        self.check_value = json.dumps(check_value)
+        self.check_sum = json.dumps(check_sum)
+        self.check_sum_field = json.dumps(check_sum_field)
         self.filter_columns = filter_columns
         self.scroll_x = json.dumps(scroll_x)
         self.scroll_y = json.dumps(scroll_y)
+        self.paging = json.dumps(list_paging)
+        self.list_info = json.dumps(list_info)
 
         # self.widget = None
         # Button yang dikirim sebagai tambahan

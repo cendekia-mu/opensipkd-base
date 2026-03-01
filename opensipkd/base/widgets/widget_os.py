@@ -174,13 +174,13 @@ class BlokKavNoWidget(Widget):
 
             result = "|".join([blok_kav_no, rt, rw])
 
-            if not rt:
+            if not rt or not rt.isdigit() or len(rt) < 3:
                 raise Invalid(
-                    field.schema, "RT harus diisi. Minimal 000", result)
+                    field.schema, "RT harus angka. Minimal 000", result)
 
-            if not rw:
+            if not rw or not rw.isdigit() or len(rw) < 2:
                 raise Invalid(
-                    field.schema, "RW harus diisi. Minimal 00", result)
+                    field.schema, "RW harus angka. Minimal 00", result)
 
             # if not blok_kav_no or not rt or not rw:
             #     raise Invalid(field.schema, "Blok Kav No RT/RW tidak lengkap",

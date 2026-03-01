@@ -87,7 +87,13 @@ class BaseView(object):
         self.allow_post = False
         self.allow_unpost = False
         self.allow_check = False
+        # Digunakan untuk menentukan operasi spesific check 
+        self.check_sum = False
+        self.check_sum_field = ""
         self.check_field = ""
+        self.check_value = ""
+        self.list_paging = True
+        self.list_info = True
         self.state_save = False
         self.server_side = True
         self.scroll_y = False
@@ -380,8 +386,13 @@ class BaseView(object):
         allow_post = kwargs.get("allow_post", self.allow_post)
         allow_unpost = kwargs.get("allow_unpost", self.allow_unpost)
         allow_check = kwargs.get("allow_check", self.allow_check)
+        
+        check_sum = kwargs.get("check_sum", self.check_sum)
+        check_sum_field = kwargs.get("check_sum_field", self.check_sum_field)
         check_field = kwargs.get("check_field", self.check_field)
-
+        check_value = kwargs.get("check_value", self.check_value)
+        list_info = kwargs.get("list_info") or self.list_info
+        kwargs.pop("list_info", None)
         state_save = kwargs.get("state_save", self.state_save)
         filter_columns = kwargs.get("filter_columns", self.filter_columns)
         if "server_side" in kwargs:
@@ -398,6 +409,9 @@ class BaseView(object):
         html_buttons = kwargs.get("html_buttons", self.html_buttons)
         parent = kwargs.get("parent")
 
+        list_paging = kwargs.get("list_paging") or self.list_paging
+
+
         kwargs.pop("allow_view", None)
         kwargs.pop("allow_edit", None)
         kwargs.pop("allow_delete", None)
@@ -405,6 +419,9 @@ class BaseView(object):
         kwargs.pop("allow_unpost", None)
         kwargs.pop("allow_check", None)
         kwargs.pop("check_field", None)
+        kwargs.pop("list_paging", None)
+        kwargs.pop("list_filter", None)
+
         kwargs.pop("state_save", None)
         kwargs.pop("filter_columns", None)
         kwargs.pop("server_side", None)
@@ -453,7 +470,10 @@ class BaseView(object):
                             allow_post=allow_post,
                             allow_unpost=allow_unpost,
                             allow_check=allow_check,
+                            check_sum=check_sum,
+                            check_sum_field=check_sum_field,
                             check_field=check_field,
+                            check_value=check_value,
                             state_save=state_save,
                             new_buttons=new_buttons,
                             filter_columns=filter_columns,
@@ -461,6 +481,8 @@ class BaseView(object):
                             scroll_y=scroll_y,
                             scroll_x=scroll_x,
                             html_buttons=html_buttons,
+                            list_paging=list_paging,
+                            list_info=list_info,
                             **kwargs
                             )
             resources = table.get_widget_resources()

@@ -49,6 +49,7 @@ class Views(BaseView):
         path = os.path.dirname(path)
         self.report_file = os.path.join(path, 'reports', 'users.jrxml')
         self.allow_check = True
+        self.check_field = "id"
         self.list_view_field = 'email'
 
 
