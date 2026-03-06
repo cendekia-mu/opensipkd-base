@@ -39,7 +39,7 @@ def jasper_db_conn(db_schema=None, dburl="sqlalchemy.url"):
     jdbc_dir = get_params("jdbc_dir", "")
     jdbc_driver = db_driver_port[db_driver][2]
     db_driver = db_driver_port[db_driver][0]
-    log.debug(jdbc_dir)
+    log.debug('JDBCDir: %s', jdbc_dir)
     return {
         'driver': db_driver,
         'username': db_user.strip('/'),

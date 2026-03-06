@@ -1007,9 +1007,6 @@ class BaseView(object):
     def get_values(self, row, istime=False, null=False):
         d = dict(row.__dict__)
         d.pop('_sa_instance_state', None)
-        # d = row.to_dict(null=null)
-        # if 'tanggal' in d and d['tanggal']:
-        #     d["tanggal"] = dmy(row.tanggal)
         values = {}
         for f in d:
             if type(d[f]) is str:

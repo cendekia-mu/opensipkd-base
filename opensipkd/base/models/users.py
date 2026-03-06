@@ -93,6 +93,7 @@ class UserResourcePermission(_UserResourcePermission, Base):
 
 
 class _User(UserMixin, BaseModel):
+    db_session = DBSession
     last_login_date = Column(DateTime(timezone=True), nullable=True)
     registered_date = Column(DateTime(timezone=True),
                              nullable=False,
@@ -118,7 +119,7 @@ class _User(UserMixin, BaseModel):
     password = property(_get_password, _set_password)
 
     def get_groups(self):
-        return UserGroup.get_by_user(self)
+        return self.user_group.get_by_user(self)
 
     def last_login_date_tz(self):
         return as_timezone(self.last_login_date)
@@ -233,6 +234,7 @@ class _ExternalIdentity(ExternalIdentityMixin):
 
     # ,
     # overlaps = "external_identities,owner"
+    db_session = DBSession
 
     @classmethod
     def query(cls):
