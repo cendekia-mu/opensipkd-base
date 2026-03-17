@@ -121,10 +121,12 @@ class LoginUser(object):
                 self.user, values["password"]):
             self.message = "Login Gagal"
             set_user_log(self.message, self.request, log, values["username"])
-            self.ses["login_failed"] += self.ses.get("login_failed", 0) + 1
+            self.ses["login_failed"] = self.login_failed + 1
             if self.ses["login_failed"] > 3:
                 self.ses["login_blocked"] = datetime.now() + \
                     timedelta(minutes=int(settings.get("login_blocked_minutes", 1)))
+                self.message= 'Login Gagal, terlalu banyak percobaan, silahkan coba lagi setelah {}'\
+                    .format(dmyhms(self.ses["login_blocked"]))
             return
         self.ses["login_failed"] = 0
         self.ses["login_blocked"] = None
