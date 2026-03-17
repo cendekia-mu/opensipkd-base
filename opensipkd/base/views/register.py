@@ -362,6 +362,8 @@ class Views(BaseView):
                 value.pop("idcard")
         value["groups"] = "Guest"
 
+        super().form_validator(form, value)
+
     def before_add(self):
         result = {}
         # email = self.req.user and self.req.user.email or ""

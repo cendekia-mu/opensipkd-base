@@ -128,6 +128,8 @@ class Views(BaseView):
             err_departemen()
         elif not value['partner_id']:
             err_partner()
+        super().form_validator(form, value)
+
 
     def save_request(self, values, row=None):
         request = self.req

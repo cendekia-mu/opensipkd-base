@@ -146,6 +146,8 @@ class Views(BaseView):
         #         err_nama()
         # elif found:
         #     err_nama()
+        super().form_validator(form, value)
+
 
     def update_children(self, children):
         for child in children:

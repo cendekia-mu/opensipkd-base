@@ -102,6 +102,7 @@ class Views(BaseView):
                 err_nama()
         elif found:
             err_nama()
+        super().form_validator(form, value)
 
 
 

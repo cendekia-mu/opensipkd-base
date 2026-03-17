@@ -94,6 +94,9 @@ class Views(BaseView):
         elif found:
             err_nama()
 
+        super().form_validator(form, value)
+
+
     def view_upload(self):
         return super().view_upload(exts=(".csv", ".tsv"))
     

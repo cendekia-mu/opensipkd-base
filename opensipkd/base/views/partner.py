@@ -229,6 +229,8 @@ class Views(BaseView):
 
             else:
                 value.pop("idcard")
+        super().form_validator(form, value)
+
 
     def get_bindings(self, row=None):
         result = super().get_bindings(row)
