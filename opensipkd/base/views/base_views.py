@@ -968,7 +968,7 @@ class BaseView(object):
                 try:    
                     values[k] = lxml.html.fromstring(v).text_content()
                 except Exception as e:
-                    msg = f"Error cleaning HTML for key {k}: {e}"
+                    msg = f"Error cleaning HTML for key {k}: {v} is {e}"
                     log.error(msg)
                     raise Exception(msg) from e
                 
@@ -1024,7 +1024,7 @@ class BaseView(object):
                 try:    
                     values[k] = lxml.html.fromstring(v).text_content()
                 except Exception as e:
-                    msg = f"Error cleaning HTML for key {k}: {e}"
+                    msg = f"Error cleaning HTML for key {k}: {v} is {e}"
                     log.error(msg)
                     raise Exception(msg) from e
                 
