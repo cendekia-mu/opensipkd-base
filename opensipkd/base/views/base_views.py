@@ -3,6 +3,7 @@ from cgi import FieldStorage
 import os
 from datetime import datetime
 from email.utils import parseaddr
+import lxml
 from webob.multidict import MultiDict
 
 import colander
@@ -146,6 +147,8 @@ class BaseView(object):
         self.init_session(request)
         if self.allow_check and self.allow_delete:
             self.list_buttons.append(btn_delete)
+
+        self.html_tag_cleaner = True
 
     def init_session(self, request):
         #         # if not request.user:
@@ -995,6 +998,11 @@ class BaseView(object):
             if k not in values:
                 if v:
                     values[k] = v
+                    
+        for k, v in values.items():
+            if v and self.html_tag_cleaner and isinstance(v, str) and v != "":
+                values[k] = lxml.html.fromstring(v).text_content()
+    
         log.debug(f"Base save_request: {values}")
         return self.save(values, self.req.user, row)
 
