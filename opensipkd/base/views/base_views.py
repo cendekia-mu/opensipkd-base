@@ -963,6 +963,15 @@ class BaseView(object):
         log.debug(values)
         values.pop("id", None)
         self.ses["old_email"] = user and user.email or None
+        for k, v in values.items():
+            if v and self.html_tag_cleaner and isinstance(v, str) and v != "":
+                try:    
+                    values[k] = lxml.html.fromstring(v).text_content()
+                except Exception as e:
+                    msg = f"Error cleaning HTML for key {k}: {e}"
+                    log.error(msg)
+                    raise Exception(msg) from e
+                
         if not row:
             row = self.table()
             row.created = datetime.now()
@@ -1009,7 +1018,16 @@ class BaseView(object):
             if k not in values:
                 if v:
                     values[k] = v
-
+            
+        for k, v in values.items():
+            if v and self.html_tag_cleaner and isinstance(v, str) and v != "":
+                try:    
+                    values[k] = lxml.html.fromstring(v).text_content()
+                except Exception as e:
+                    msg = f"Error cleaning HTML for key {k}: {e}"
+                    log.error(msg)
+                    raise Exception(msg) from e
+                
         return self.save(values, self.req.user, row)
 
 
