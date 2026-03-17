@@ -82,16 +82,7 @@ class Login(CSRFSchema):
 def login_validator(form, value):
     exc = colander.Invalid(form, 'Terlalu banyak percobaan')
     request = form.request
-    if request.session.get("login_failed", 0) > 3:
-        # message = "Login Gagal, terlalu banyak percobaan"
-        login_blocked = request.session.ses["login_blocked"]
-        if login_blocked and login_blocked > datetime.now():
-            exc = colander.Invalid(
-                form,
-                'Login Gagal, terlalu banyak percobaan, silahkan coba lagi setelah {}'
-                .format(dmyhms(login_blocked))
-            )
-            raise exc
+    
 
 
 def get_login_headers(request, user):
@@ -113,11 +104,18 @@ class LoginUser(object):
         self.message = "Sukses Login"
         self.user = None
         self.ses = request.session
-        self.ses["login_failed"] = self.ses.get("login_failed", 0)
-        self.ses["login_blocked"] = self.ses.get("login_blocked")
+        self.login_failed = self.ses.get("login_failed", 0)
+        self.login_blocked = self.ses.get("login_blocked", None)
 
     def login(self, values, user=None):
         settings = get_settings()
+        if self.login_failed > 3:
+            # message = "Login Gagal, terlalu banyak percobaan"
+            if self.login_blocked and self.login_blocked > datetime.now():
+                self.message= 'Login Gagal, terlalu banyak percobaan, silahkan coba lagi setelah {}'\
+                    .format(dmyhms(self.login_blocked))
+                return 
+            
         self.user = user and user or User.get_by_identity(values["username"])
         if not self.user or not UserService.check_password(
                 self.user, values["password"]):
@@ -126,7 +124,7 @@ class LoginUser(object):
             self.ses["login_failed"] += self.ses.get("login_failed", 0) + 1
             if self.ses["login_failed"] > 3:
                 self.ses["login_blocked"] = datetime.now() + \
-                    timedelta(minutes=settings.get("login_blocked_minutes", 1))
+                    timedelta(minutes=int(settings.get("login_blocked_minutes", 1)))
             return
         self.ses["login_failed"] = 0
         self.ses["login_blocked"] = None

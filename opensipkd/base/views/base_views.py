@@ -12,7 +12,7 @@ from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.request import Response
-from sqlalchemy import Table, values
+from sqlalchemy import Table
 
 # from opensipkd.base.views.upload import tmpstore
 from opensipkd.tools.captcha import img_captcha
@@ -21,6 +21,7 @@ from opensipkd.tools import dmy, get_settings, get_ext, \
 from opensipkd.tools.buttons import (
     btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv, btn_edit,
     btn_pdf, btn_upload)
+
 # from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response
 from opensipkd.base import BASE_CLASS
@@ -214,10 +215,10 @@ class BaseView(object):
             'tahun_awal'] or self.tahun_awal
         self.ses['tahun_awal'] = self.tahun_awal
 
-        self.tahun_akhir = 'tahun_akhir' in self.ses and self.ses[
-            'tahun_akhir'] or self.tahun_awal
-        self.tahun_akhir = 'tahun_akhir' in self.params and self.params[
-            'tahun_akhir'] or self.tahun_akhir
+        self.tahun_akhir = 'tahun_akhir' in self.ses and \
+            self.ses['tahun_akhir'] or self.tahun_awal
+        self.tahun_akhir = 'tahun_akhir' in self.params and \
+            self.params['tahun_akhir'] or self.tahun_akhir
         self.ses['tahun_akhir'] = self.tahun_akhir
 
         """
