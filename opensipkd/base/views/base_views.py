@@ -12,7 +12,7 @@ from deform import (widget, Form, ValidationFailure, FileData, )
 from deform.widget import SelectWidget
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.request import Response
-from sqlalchemy import Table
+from sqlalchemy import Table, values
 
 # from opensipkd.base.views.upload import tmpstore
 from opensipkd.tools.captcha import img_captcha
@@ -304,6 +304,17 @@ class BaseView(object):
 
     def form_validator(self, form, value):
         """Digunakan untuk memvalidasi form sebelum disubmit"""
+        exc = colander.Invalid(form, "Form tidak valid")
+        for k, v in value.items():
+            if v and self.html_tag_cleaner and isinstance(v, str) and v != "":
+                try:    
+                    value[k] = lxml.html.fromstring(v).text_content()
+                except Exception as e:
+                    msg = f"Error cleaning HTML for key {k}: {e}"
+                    log.error(msg)
+                    exc[k] = msg
+                    raise exc from e
+
 
     """
     def form_validate(self, form, err_value, **kwargs):
@@ -998,13 +1009,9 @@ class BaseView(object):
             if k not in values:
                 if v:
                     values[k] = v
-                    
-        for k, v in values.items():
-            if v and self.html_tag_cleaner and isinstance(v, str) and v != "":
-                values[k] = lxml.html.fromstring(v).text_content()
-    
-        log.debug(f"Base save_request: {values}")
+
         return self.save(values, self.req.user, row)
+
 
     def id_not_found(self, **kwargs):
         msg = f"Data yang dicari Tidak Ditemukan ID:" \
