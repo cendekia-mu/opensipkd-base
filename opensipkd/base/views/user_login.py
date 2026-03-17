@@ -66,7 +66,7 @@ class Login(CSRFSchema):
     def after_bind(self, schema, kwargs):
         # super().after_bind(schema, kwargs)
         request = kwargs["request"]
-        if BASE_CLASS.login_captcha:
+        if BASE_CLASS.login_captcha and not request.is_xhr:
             self["captcha"] = colander.SchemaNode(
                 colander.String(),
                 widget=widget_os.CaptchaWidget(
