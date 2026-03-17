@@ -306,7 +306,7 @@ class BaseView(object):
         """Digunakan untuk memvalidasi form sebelum disubmit"""
         exc = colander.Invalid(form, "Form tidak valid")
         for k, v in value.items():
-            if v and self.html_tag_cleaner and isinstance(v, str) and v != "":
+            if v and self.html_tag_cleaner and isinstance(v, str) and v.strip() != "":
                 try:    
                     value[k] = lxml.html.fromstring(v).text_content()
                 except Exception as e:
@@ -964,7 +964,7 @@ class BaseView(object):
         values.pop("id", None)
         self.ses["old_email"] = user and user.email or None
         for k, v in values.items():
-            if v and self.html_tag_cleaner and isinstance(v, str) and v != "":
+            if v and self.html_tag_cleaner and isinstance(v, str) and v.strip() != "":
                 try:    
                     values[k] = lxml.html.fromstring(v).text_content()
                 except Exception as e:
@@ -1020,7 +1020,7 @@ class BaseView(object):
                     values[k] = v
             
         for k, v in values.items():
-            if v and self.html_tag_cleaner and isinstance(v, str) and v != "":
+            if v and self.html_tag_cleaner and isinstance(v, str) and v.strip() != "":
                 try:    
                     values[k] = lxml.html.fromstring(v).text_content()
                 except Exception as e:
