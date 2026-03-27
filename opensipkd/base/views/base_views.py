@@ -314,7 +314,8 @@ class BaseView(object):
                     msg = f"Error cleaning HTML for key {k}: {e}"
                     log.error(msg)
                     exc[k] = msg
-                    raise exc from e
+                    value[k]  = v
+                    # raise exc from e
 
 
     """
@@ -890,6 +891,8 @@ class BaseView(object):
                 if k not in value:
                     value[k] = {}
                 value[k] = self.update_value(value[k], val)
+            elif type(val) is list:
+                pass
             elif val:
                 value[k] = cstruct.get(k)
         return value
@@ -971,7 +974,8 @@ class BaseView(object):
                 except Exception as e:
                     msg = f"Error cleaning HTML for key {k}: {v} is {e}"
                     log.error(msg)
-                    raise Exception(msg) from e
+                    # raise Exception(msg) from e
+                    values[k] = v
                 
         if not row:
             row = self.table()
@@ -1027,7 +1031,8 @@ class BaseView(object):
                 except Exception as e:
                     msg = f"Error cleaning HTML for key {k}: {v} is {e}"
                     log.error(msg)
-                    raise Exception(msg) from e
+                    # raise Exception(msg) from e
+                    values[k] = v
                 
         return self.save(values, self.req.user, row)
 

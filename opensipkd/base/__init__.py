@@ -765,5 +765,20 @@ def set_routes(config, app_id=None):
     else:
         return _set_routes1(config, app_id)
 
+from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
+from pyramid.security import forget
+from pyramid.view import exception_view_config
+
+@exception_view_config(HTTPBadRequest)
+def bad_request_view(exc, request):
+    # Bersihkan sesi autentikasi (logout)
+    headers = forget(request)
+
+    # Arahkan ulang ke halaman login (misalnya route 'login')
+    request.session.flash("Permintaan tidak valid. Silakan ulangi kembali.")
+    referrer = request.referrer or request.route_url('base-home')
+    response = HTTPFound(location=referrer)
+    response.headers.extend(headers)
+    return response
 
 from .depreciated_base import *
