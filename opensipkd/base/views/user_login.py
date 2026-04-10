@@ -263,6 +263,8 @@ def oauth2_login(request, params=None):
 class ViewAuth(BaseView):
     def view_login(self):
         request = self.req
+        log.debug("Login form rendered xhr: %s", self.req.is_xhr)
+
         log.debug("Referrer: %s", request.referrer)
         request.session["login"] = True
         next_url = request.params.get('next', request.referrer)
@@ -393,7 +395,6 @@ class ViewAuth(BaseView):
         #                 url=get_urls(request.route_url('login')),
         #                 next_url=next_url,
         #                 login=login, )
-        log.debug("Login form rendered xhr: %s", self.req.is_xhr)
         if self.req.is_xhr:
             form.set_appstruct({})
             struct = form.cstruct
