@@ -296,6 +296,8 @@ class ViewAuth(BaseView):
         if 'cancel' in request.POST:
             return HTTPFound(location=request.home)
         elif 'login' in request.POST:
+            for key, value in request.headers.items():
+                log.debug(f"{key}: {value}")
             identity = request.POST.get('username')
             user = schema.user = User.get_by_identity(identity)
             controls = request.POST.items()
@@ -333,6 +335,7 @@ class ViewAuth(BaseView):
                     return HTTPFound(location=request.route_url('base-login'))
 
             else:
+               
                 login = LoginUser(self.req)
                 if not login.login(values, user):
                     request.session.flash(login.message, "error")
@@ -476,6 +479,7 @@ def redirect_login(request, user):
         log.debug(f"Group: {g.id} as {g.group_name}")
 
     headers = get_login_headers(request, user)
+    log.debug(request.headers)
     if request.is_xhr:
         return xhr_response(user, headers)
     next_url = request.params.get('next')
