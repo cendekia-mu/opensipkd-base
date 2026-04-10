@@ -2,8 +2,6 @@ from datetime import datetime, date
 import logging
 import colander
 from decimal import Decimal
-from math import e, exp, log
-from pyramid.response import Response
 from pyramid.response import Response
 from pyramid.httpexceptions import *
 import colander

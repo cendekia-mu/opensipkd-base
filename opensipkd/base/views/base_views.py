@@ -979,8 +979,10 @@ class BaseView(object):
                 
         if not row:
             row = self.table()
-            row.created = datetime.now()
-            row.create_uid = user and user.id or None
+            if hasattr(row, "created"):
+                row.created = datetime.now()
+            if hasattr(row, "create_uid") and user:
+                row.create_uid = user.id
         else:
             row.updated = datetime.now()
             row.update_uid = user and user.id or None

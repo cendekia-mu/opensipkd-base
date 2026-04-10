@@ -343,6 +343,11 @@ class ViewAuth(BaseView):
 
                     next_url = f"{request.route_url('base-login')}?next={next_url}"
                     return HTTPFound(location=next_url)
+                # elif self.req.is_xhr:
+                #     user = login.user
+                #     headers = get_login_headers(request, user)
+                #     return xhr_response(user, headers)
+                
             return redirect_login(request, user)
 
         elif 'register' in request.POST:
