@@ -54,6 +54,9 @@ from pyramid.threadlocal import get_current_registry
 class BaseView(object):
     def __init__(self, request):
         self.req = request
+        for key, value in request.headers.items():
+            log.debug(f"{key}: {value}")
+            
         self.ses = self.req.session
         self.db_session = DBSession
         self.base = Base
