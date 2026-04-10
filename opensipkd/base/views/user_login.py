@@ -393,7 +393,7 @@ class ViewAuth(BaseView):
         #                 url=get_urls(request.route_url('login')),
         #                 next_url=next_url,
         #                 login=login, )
-
+        log.debug("Login form rendered xhr: %s", self.req.is_xhr)
         if self.req.is_xhr:
             form.set_appstruct({})
             struct = form.cstruct
@@ -404,7 +404,7 @@ class ViewAuth(BaseView):
 
             struct["csrf_token"] = csrf_token
             log.debug("CSRF Token: %s", csrf_token)
-            log.info("Form Struct: %s", struct)
+            log.debug("Form Struct: %s", struct)
             return self.resp_xhr({"data": struct})
 
             # d = self.form2dict(form)
