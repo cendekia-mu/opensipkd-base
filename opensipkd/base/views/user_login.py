@@ -263,7 +263,6 @@ def oauth2_login(request, params=None):
 class ViewAuth(BaseView):
     def view_login(self):
         request = self.req
-        log.debug("Login form rendered xhr: %s", self.req.is_xhr)
 
         log.debug("Referrer: %s", request.referrer)
         request.session["login"] = True

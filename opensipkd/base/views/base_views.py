@@ -56,7 +56,7 @@ class BaseView(object):
         self.req = request
         for key, value in request.headers.items():
             log.debug(f"{key}: {value}")
-            
+        log.debug("Init xhr: %s", self.req.is_xhr)
         self.ses = self.req.session
         self.db_session = DBSession
         self.base = Base
