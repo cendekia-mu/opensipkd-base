@@ -34,7 +34,34 @@ from ...detable import DeTable
 
 log = logging.getLogger(__name__)
 
+# SEARCH_METHODS = {
+#     'none': lambda expr, value: None,
+#     'string_contains': lambda expr, value: expr.ilike('%' + value + '%'),
+#     'ilike': lambda expr, value: expr.ilike(value),
+#     'like': lambda expr, value: expr.like(value),
+#     'numeric': numeric_query,
+#     'date': date_query,
+#     'yadcf_text': lambda expr, value: expr.ilike('%' + value + '%'),
+#     'yadcf_autocomplete': lambda expr, value: expr == value,
+#     'yadcf_select': lambda expr, value: expr.ilike('%' + value + '%'),
+#     'yadcf_multi_select': yadcf_multi_select,
+#     'yadcf_range_number': yadcf_range_number,
+#     'yadcf_range_number_slider': yadcf_range_number,
+#     'yadcf_range_date': yadcf_range_date
+# }
+# search_operators = {
+#     '=': lambda expr, value: expr == value,
+#     '>': lambda expr, value: expr > value,
+#     '>=': lambda expr, value: expr >= value,
+#     '<': lambda expr, value: expr < value,
+#     '<=': lambda expr, value: expr <= value,
+# }
 
+class AddSchema(colander.Schema):
+    kode = colander.SchemaNode(colander.String(), title="Kode", validator=colander.Length(max=50),
+                               search_method = "string_contains",
+                               searchable = True,
+                               )
 class UploadSchema(colander.Schema):
     upload = colander.SchemaNode(
         FileData(),
@@ -153,6 +180,8 @@ class BaseView(object):
             self.list_buttons.append(btn_delete)
 
         self.html_tag_cleaner = True
+        # 2026-04-13
+        self.use_ajax = False
 
     def init_session(self, request):
         #         # if not request.user:
@@ -373,7 +402,7 @@ class BaseView(object):
         if row:
             schema.deserialize(row)
 
-        return Form(schema, buttons=buttons, autocomplete=self.autocomplete)
+        return Form(schema, buttons=buttons, autocomplete=self.autocomplete, use_ajax=self.use_ajax)
 
     """    
     def session_failed(self, session_name):
@@ -665,20 +694,20 @@ class BaseView(object):
 
     def returned_form(self, form, **kwargs):
         table = kwargs.get("table", None)
-        if self.req.is_xhr and self.req.params.get("html", "false") == "false":
-            data = form.cstruct
-            if "captcha" in form:
-                kode_captcha, file_name = img_captcha(self.req)
-                self.req.session["captcha_code"] = kode_captcha
-                url = self.get_captcha_url()
-                cstruct = url+file_name
-                data["captcha"] = cstruct
-            error = kwargs.get("error", "")
-            if error:
-                error["data"]=data
-                return self.resp_xhr({"error": error})
+        # if self.req.is_xhr and self.req.params.get("html", "false") == "false":
+        #     data = form.cstruct
+        #     if "captcha" in form:
+        #         kode_captcha, file_name = img_captcha(self.req)
+        #         self.req.session["captcha_code"] = kode_captcha
+        #         url = self.get_captcha_url()
+        #         cstruct = url+file_name
+        #         data["captcha"] = cstruct
+        #     error = kwargs.get("error", "")
+        #     if error:
+        #         error["data"]=data
+        #         return self.resp_xhr({"error": error})
 
-            return self.resp_xhr({"data": data})
+        #     return self.resp_xhr({"data": data})
 
         resources = form.get_widget_resources()
         readonly = "readonly" in kwargs and kwargs["readonly"] or False

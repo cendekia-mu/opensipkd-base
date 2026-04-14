@@ -508,7 +508,7 @@
         if (typ === "select") filter_table();
 
         var typ = $(this).attr("type").toLowerCase();
-        if (typ in ("date", "number")) filter_table();
+        if (("date", "number").indexOf(typ) > -1) filter_table();
       });
 
       console.log("Read Data");
