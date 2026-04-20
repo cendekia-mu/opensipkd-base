@@ -1,2 +1,3 @@
 email,status,user_name,registered_date
+admin@localhost,1,admin,
 guest@local.host,1,guest,

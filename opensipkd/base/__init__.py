@@ -777,9 +777,7 @@ def bad_request_view(exc, request):
     # Arahkan ulang ke halaman login (misalnya route 'login')
     request.session.flash("Permintaan tidak valid. Silakan ulangi kembali. atau origin tidak diizinkan.", "error")
     _logging.debug(f"Bad Request: {exc} from {request.url}")
-    _logging.debug(
-        f"RFeferrer: {request.referrer} or {request.route_url('base-home')}")
-    referrer = request.referrer or request.route_url('base-home')
+    referrer = request.route_url('base-home')
     response = HTTPFound(location=referrer)
     response.headers.extend(headers)
     return response
