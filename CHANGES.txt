@@ -1,5 +1,12 @@
+5.0.3 2026-04-28
+- Penambahan field session_id pada table users digunakan untuk membatasi jumlah 
+  login hanya bisa ada pada satu device
+- Penambahan parameter single_device
+- Penambahan module change password saat menggunakan external-uim
+
 5.0.2
 Menambahkan path static 'mobi' and configuration 'mobile_static_path'
+
 5.0.1 
 - Bug Saat get captcha session tidak berfungsi dimana ditambahkan checking melalui 
 file jpg yang tersimpan dalam folder captcha files

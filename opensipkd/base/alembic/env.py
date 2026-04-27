@@ -26,6 +26,11 @@ target_metadata = Base.metadata
 # ... etc.
 
 
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "table" and name != "users":
+        return False
+    return True
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -44,8 +49,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        version_table='alembic_base'
-        
+        version_table='alembic_base',
+        include_object=include_object
     )
 
     with context.begin_transaction():

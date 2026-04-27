@@ -6,7 +6,7 @@ from pyramid.httpexceptions import (
     HTTPSeeOther)
 from pyramid.interfaces import IRoutesMapper
 from pyramid.view import view_config
-from opensipkd.base import get_params, get_home
+from opensipkd.base import get_params
 from pyramid.renderers import render_to_response
 from .base_views import BaseView
 from datetime import timedelta

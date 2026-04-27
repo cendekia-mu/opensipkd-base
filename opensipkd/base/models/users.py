@@ -1,11 +1,13 @@
 from datetime import datetime
 import logging
 from math import log
+
+from requests import session
 import pytz
 import sqlalchemy as sa
 from pyramid.authorization import (Allow, Authenticated, ALL_PERMISSIONS)
 from sqlalchemy import (
-    Column, Integer, DateTime, String)
+    Column, Integer, DateTime, SmallInteger, String)
 from sqlalchemy.orm import (relationship, backref)
 from ziggurat_foundations import ziggurat_model_init
 from ziggurat_foundations.models.base import BaseModel
@@ -107,7 +109,8 @@ class _User(UserMixin, BaseModel):
     api_key = Column(String(256))
     partner_id = Column(Integer)  # , ForeignKey(Partner.id))
     company_id = Column(Integer)  # , ForeignKey(Partner.id))
-
+    session_id = Column(String(256))
+    multi_device = Column(SmallInteger)
     # partners = relationship(Partner, backref=backref('users'))
 
     def _get_password(self):

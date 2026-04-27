@@ -86,13 +86,23 @@ def login_validator(form, value):
 
 
 def get_login_headers(request, user):
+    if not request.is_xhr and BASE_CLASS.single_device and \
+        not user.multi_device:
+        # if user.session_id and user.session_id != request.session.id:
+        #         from beaker.session import Session
+        #         Session(request.headers, id=user.session_id).delete()
+
+        user.session_id = request.session.id
+        User.db_session.add(user)
+        User.db_session.flush()
+
     UserService.regenerate_security_code(user)
     headers = remember(request, user.id)
     headers.append(("Token", user.security_code))
     log.debug(headers)
     user.last_login_date = create_now()
-    DBSession.add(user)
-    DBSession.flush()
+    User.db_session.add(user)
+    User.db_session.flush()
     return headers
 
 
@@ -237,9 +247,9 @@ def oauth2_login(request, params=None):
 
         user = User()
         user.from_dict(values)
-        DBSession.add(user)
-        DBSession.flush()
-        DBSession.refresh(user)
+        User.db_session.add(user)
+        User.db_session.flush()
+        User.db_session.refresh(user)
         values = {'external_id': id_info['sub'],
                   'external_user_name': id_info["name"],
                   'external_email': id_info["email"],
@@ -248,8 +258,8 @@ def oauth2_login(request, params=None):
                   "status": 1}
         external = ExternalIdentity()
         external.from_dict(values)
-        DBSession.add(external)
-        DBSession.flush()
+        User.db_session.add(external)
+        User.db_session.flush()
     if user and user.status != 1:
         raise Oauth2UserExc(
             "User anda masih menunggu verifikasi atau lagi di blokir")
@@ -320,7 +330,7 @@ class ViewAuth(BaseView):
             # start cek external module
             pckgs = get_params('external-uim')
             if user:
-                external_user = DBSession.query(ExternalIdentity).\
+                external_user = self.db_session.query(ExternalIdentity).\
                     filter_by(local_user_id=user.id,
                               external_user_name=identity).first()
                 pckgs = external_user and pckgs or None
@@ -334,9 +344,7 @@ class ViewAuth(BaseView):
                     log.warn(str(e))
                     request.session.flash(str(e), "error")
                     return HTTPFound(location=request.route_url('base-login'))
-
-            else:
-               
+            else:               
                 login = LoginUser(self.req)
                 if not login.login(values, user):
                     request.session.flash(login.message, "error")
@@ -475,8 +483,8 @@ def xhr_response(user, headers):
 
 def redirect_login(request, user):
     set_user_log("Login Sukses", request, log, user.user_name)
-    for g in user.groups:
-        log.debug(f"Group: {g.id} as {g.group_name}")
+    # for g in user.groups:
+    #     log.debug(f"Group: {g.id} as {g.group_name}")
 
     headers = get_login_headers(request, user)
     log.debug(request.headers)
@@ -524,7 +532,7 @@ class ViewPassword(BaseView):
         if 'submit' in request.POST:
             controls = request.POST.items()
             identity = request.POST.get('email')
-            q = DBSession.query(User).filter_by(email=identity)
+            q = self.db_session.query(User).filter_by(email=identity)
             schema.user = user = q.first()
             try:
                 c = form.validate(controls)
@@ -599,7 +607,7 @@ class ViewPassword(BaseView):
             request.session.flash('Anda sudah login', 'error')
             return HTTPFound(location=f"{request.home}")
         code = request.matchdict['code']
-        q = DBSession.query(User).filter_by(security_code=code)
+        q = self.db_session.query(User).filter_by(security_code=code)
         user = q.first()
         now = create_now()
         if not user or now - user.security_code_date > one_hour:
@@ -624,7 +632,7 @@ class ViewPassword(BaseView):
 
         user.security_code = None
         UserService.set_password(user, c['new_password'])
-        DBSession.add(user)
+        self.db_session.add(user)
         headers = get_login_headers(request, user)
         request.session.flash('Password baru Anda sudah disimpan.')
         set_user_log("Change Password", request, log)
@@ -645,7 +653,7 @@ class ViewPassword(BaseView):
         if 'recreate' not in request.POST:
             return HTTPFound(location=f"{request.home}")
         request.user.api_key = api_key = generate_api_key()
-        DBSession.add(request.user)
+        self.db_session.add(request.user)
         msg = 'API Key Anda yang baru {}'.format(api_key)
         request.session.flash(msg)
         return HTTPFound(location=f"{request.home}")
@@ -659,8 +667,8 @@ class ViewPassword(BaseView):
 
         user = self.req.user
         user.security_code = Random().randint(10000, 99999)
-        DBSession.add(user)
-        DBSession.flush()
+        self.db_session.add(user)
+        self.db_session.flush()
         minutes = two_minutes
         data = dict(passcode=user.security_code, minutes=minutes)
         here = os.path.abspath(os.path.dirname(__file__))
@@ -788,7 +796,7 @@ def send_email_pending(
 
     here = os.path.abspath(os.path.dirname(__file__))
     body_file = os.path.join(here, body_default_file)
-    with open(body_file) as f:
+    with open(body_file, encoding='utf-8') as f:
         body_tpl = f.read()
     body = _(body_msg_id, default=body_tpl)
     sending_mail(request, user, subject, body)
@@ -804,5 +812,5 @@ def regenerate_security_code(user, hour=1.0):
     UserService.regenerate_security_code(user)
     user.security_code_date = create_now()
     log.debug("Security code: %s", user.security_code)
-    DBSession.add(user)
+    User.db_session.add(user)
     return hour

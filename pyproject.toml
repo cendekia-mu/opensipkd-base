@@ -15,7 +15,7 @@ show_error_codes = true
 
 [project]
 name = 'opensipkd_base'
-version = '5.0'
+version = '5.0.1'
 dependencies = [
     'deform',
     'colander',

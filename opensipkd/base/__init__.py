@@ -336,6 +336,8 @@ def main(global_config, **settings):
     BASE_CLASS.route_from_csv(config, filename=routes_file)
     BASE_CLASS.route_from_list(config)
     BASE_CLASS.static_view(config, settings=settings)
+    BASE_CLASS.single_device = settings.get(
+        "single_device", "false").lower() == "true"
     config.scan(".")
     # _logging.debug(config)
     return config.make_wsgi_app()
@@ -457,6 +459,16 @@ def add_cors_headers_response_callback(event):
 
     event.request.add_response_callback(cors_headers)
 
+@subscriber(NewRequest)
+def check_single_device_session(event):
+    request = event.request
+    if request.user and BASE_CLASS.single_device:
+        if request.user.session_id != request.session.id:
+            request.session.invalidate()
+            request.session.flash("Sesi Anda telah berakhir karena login dari perangkat lain.", "error")
+            raise HTTPFound(location=request.route_url('base-login'), headers=forget(request))
+
+
 @subscriber(BeforeRender)
 def add_global_render(event):
     event['has_permission'] = has_permission_
@@ -504,6 +516,7 @@ class BaseApp():
         self.login_captcha = 0
         self.base_dir = os.path.split(__file__)[0]
         self.reg_nip = 0
+        self.single_device = "false"
 
     def get_route_file(self, filename="routes.csv"):
         fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
