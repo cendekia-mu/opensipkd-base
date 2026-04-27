@@ -462,8 +462,9 @@ def add_cors_headers_response_callback(event):
 @subscriber(NewRequest)
 def check_single_device_session(event):
     request = event.request
-    if request.user and BASE_CLASS.single_device:
-        if request.user.session_id != request.session.id:
+    user = request.user
+    if BASE_CLASS.single_device and user and not user.multi_device:
+        if user.session_id != request.session.id:
             request.session.invalidate()
             request.session.flash("Sesi Anda telah berakhir karena login dari perangkat lain.", "error")
             raise HTTPFound(location=request.route_url('base-login'), headers=forget(request))
