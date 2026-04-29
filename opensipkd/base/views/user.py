@@ -1,9 +1,12 @@
 import os
 import re
+
+from shapely import node
 import colander
 from deform import (widget, )
+from opensipkd.base import BASE_CLASS
 from pyramid.i18n import TranslationStringFactory
-from sqlalchemy import (func, )
+from sqlalchemy import (func, true, )
 from ziggurat_foundations.models.services.user import UserService
 from opensipkd.tools import create_now
 from opensipkd.tools.buttons import btn_delete
@@ -34,6 +37,13 @@ class ListSchema(colander.Schema):
     registered = colander.SchemaNode(colander.String(), width=100,
                                      field="registered_date",
                                      searchable=False)
+    multi_device = colander.SchemaNode(colander.Integer(), width=50,
+                                       widget=widget.CheckboxWidget(),
+                                       searchable=False
+    )
+    def after_bind(self, node, kw):
+        if not BASE_CLASS.single_device:
+            del node['multi_device']
 
 
 class Views(BaseView):
@@ -309,18 +319,21 @@ class AddSchema(colander.Schema):
     is_api_key = colander.SchemaNode(
         colander.String(), widget=api_key_widget, title=_('API Key'),
         missing=colander.drop)
+    multi_device = colander.SchemaNode(colander.Integer(), title=_('Multi Device'),
+                                       widget=widget.CheckboxWidget(true_val="1", false_val="0"),)
     password = colander.SchemaNode(
         colander.String(), widget=widget.CheckedPasswordWidget(),
         missing=colander.drop)
-    # company_id = colander.SchemaNode(
-    #     colander.Integer(), widget=company_widget,
-    #     title="Company",
-    #     missing=colander.drop)
+    status = colander.SchemaNode(
+        colander.String(), widget=widget.CheckboxWidget(true_val="1", false_val="0"), title=_('Status'))
+    def after_bind(self, node, kw):
+        if not BASE_CLASS.single_device:
+            del node['multi_device']
 
 
 class EditSchema(AddSchema):
-    status = colander.SchemaNode(
-        colander.String(), widget=widget.CheckboxWidget(true_val="1", false_val="0"), title=_('Status'))
+    id = colander.SchemaNode(colander.Integer(), missing=colander.drop,
+                             widget=widget.HiddenWidget())
 
 
 def get_group_list():

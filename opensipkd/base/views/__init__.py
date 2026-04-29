@@ -1,4 +1,5 @@
 import logging
+import stat
 from translationstring import TranslationStringFactory
 import colander
 from pyramid.httpexceptions import (
@@ -114,3 +115,20 @@ class Home(BaseView):
                 request=request
             )
         return dict(modules=modules, logo=logo, submodules=[])
+
+
+class KodeSchema(colander.Schema):
+    kode = colander.SchemaNode(
+        colander.String(),
+        validator = colander.Length(max=32),
+        title="Kode",
+        global_search=True
+    )
+
+class NamaSchema(KodeSchema):
+    nama = colander.SchemaNode(
+        colander.String(),
+        validator = colander.Length(max=100),
+        title="Nama",
+        global_search=True
+    )

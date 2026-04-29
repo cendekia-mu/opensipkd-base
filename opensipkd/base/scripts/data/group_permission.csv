@@ -2,4 +2,4 @@ group_id/groups.group_name,perm_name
 Superuser,admin
 Web Service,web-service
 Pindah Departemen,departemen-all
-Guest," ""guest"""
+Guest,"guest"

@@ -14,6 +14,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+tables = ["text_printers"]
+#alembic revision --autogenerate -m "Initial table creation"
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
@@ -27,7 +29,7 @@ target_metadata = Base.metadata
 
 
 def include_object(object, name, type_, reflected, compare_to):
-    if type_ == "table" and name != "users":
+    if tables and type_ == "table" and name not in tables:
         return False
     return True
 
@@ -73,7 +75,8 @@ def run_migrations_online() -> None:
     with connectable.connect() as connection:
         context.configure(
             connection=connection, target_metadata=target_metadata,
-            version_table='alembic_base'
+            version_table='alembic_base',
+            include_object=include_object
         )
 
         with context.begin_transaction():
