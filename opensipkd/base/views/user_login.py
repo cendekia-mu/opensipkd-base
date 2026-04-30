@@ -578,10 +578,26 @@ class ViewPassword(BaseView):
         try:
             c = form.validate(items)
         except ValidationFailure as e:
-            return dict(form=e.render())
+            return dict(form=e.render(), scripts="")
 
         user = request.user
         user.security_code = None
+        
+        if get_params('external-uim'):
+            pckgs = get_params('external-uim')
+            m = import_module(pckgs)
+            try:
+                m.change_password(user.user_name, c['password'], c['new_password'])
+            except Exception as e:
+                log.warn(str(e))
+                request.session.flash(str(e), "error")
+                return HTTPFound(location=request.route_url('base-password'))  
+            headers = forget(request)
+            request.session.delete()
+            request.response.headers.update(headers)
+            request.session.flash("Password berhasil diubah, Silahkan login ulang")
+            return HTTPFound(location=request.route_url('base-login'), headers=headers)
+        
         if not UserService.check_password(user, c['password']):
             request.session.flash('Password lama tidak sesuai', 'error')
             return HTTPFound(location=request.route_url('base-password'))
