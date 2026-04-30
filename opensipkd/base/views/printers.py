@@ -1,5 +1,7 @@
 import logging
 import re
+from turtle import title
+from wsgiref.validate import validator
 import colander
 from deform import (widget,)
 from pyramid.i18n import TranslationStringFactory
@@ -15,7 +17,109 @@ SESS_ADD_FAILED = 'Tambah partner gagal'
 SESS_EDIT_FAILED = 'Edit partner gagal'
 
 
+def print_text(user, text):
+    from opensipkd.base.models import TextPrinters
+    printer = TextPrinters.query().filter_by(create_uid=user.id, status=1).first()
+    if not printer:
+        log.error(
+            f"User {user.id} does not have an active printer configured.")
+        raise Exception("No active printer configured for the user.")
+
+    # Replace with your printer's IP
+    hostname = printer.kode if printer else "127.0.0.1"
+    queue = printer.queue if printer else "lp"          # Common default queue name
+    port = printer.port if printer else 515            # Default LPR port
+    timeout = printer.timeout if printer else 10          # Timeout in seconds
+    # Set to True if the printer is an Epson model that requires specific control codes
+    is_epson = printer.is_epson if printer else False
+    from pylpr import LprClient
+    with LprClient(
+        hostname=hostname,
+        port=port,
+        timeout=timeout,
+        queue=queue,
+        #  recv_buffer=args.recv_buffer,
+        #  username=args.username,
+        #  job_name=args.job_name,
+        #  file_name=getattr(args.print_file, 'name', None) if hasattr(
+        #      args, 'print_file') and args.print_file else None,
+        #  label=args.label,
+        #  use_reserved_port=args.use_reserved_port
+        ) as lpr:
+        #    if args.print_queue:
+        #         # Send the 'Print any waiting jobs' command (0x01) to the specified queue
+        #         lpr._send_lpr_command(1, queue.encode('ascii'))
+        #         print(
+        #             f"Sent 'Print any waiting jobs' command to queue '{args.queue}'")
+        #         return
+        #     if args.status:
+        #         lpr._send_lpr_command(
+        #             3, (args.queue + " " + args.status).encode('ascii'), noreceive=True)
+        #         print(
+        #             f"Sent 'Send queue state (short)' command with attributes '{args.status}' to queue '{args.queue}'")
+        #         # Receive and print the response from the printer
+        #         response = lpr.receive()
+        #         print("Received queue state (short) response:")
+        #         print(response.decode('utf-8', errors='replace'))
+        #         return
+        #     if args.longstatus:
+        #         lpr._send_lpr_command(
+        #             4, (args.queue + " " + args.longstatus).encode('ascii'), noreceive=True)
+        #         print(
+        #             f"Sent 'Send queue state (long)' command with attributes '{args.longstatus}' to queue '{args.queue}'")
+        #         # Receive and print the response from the printer
+        #         response = lpr.receive()
+        #         print("Received queue state (long) response:")
+        #         print(response.decode('utf-8', errors='replace'))
+        #         return
+        #     if args.remove:
+        #         # Send the 'Remove jobs' command (0x05) to the specified queue
+        #         lpr._send_lpr_command(
+        #             5, (args.queue + " " + args.remove).encode('ascii'))
+        #         print(
+        #             f"Sent 'Remove jobs' command with attributes '{args.remove}' to queue '{args.queue}'")
+        #         return
+            if is_epson:
+                lpr.send(
+                    lpr.EXIT_PACKET_MODE
+                    + lpr.INITIALIZE_PRINTER
+                    + text.encode('utf-8')
+                    + lpr.FF
+                )
+            else:
+                lpr.send(text.encode('utf-8'))
+            # lpr.send(text.encode('utf-8'))
+
 class AddSchema(NamaSchema):
+    nama = colander.SchemaNode(
+        colander.String(),
+        title="Nama Printer",
+        validator=colander.Length(max=64)
+    )
+    kode = colander.SchemaNode(
+        colander.String(),
+        title="IP Address",
+        widget=widget.TextInputWidget(mask="999.999.999.999",))
+
+    port = colander.SchemaNode(
+        colander.Integer(),
+        title="Port",
+        default=515)
+    is_epson = colander.SchemaNode(
+        colander.Integer(),
+        widget=widget.CheckboxWidget(true_val="1", false_val="0"),
+        title="Epson Printer",
+        default=0)
+    queue = colander.SchemaNode(
+        colander.String(),
+        validator=colander.Length(max=16),
+        title="Queue Name",
+        default='lp')
+    timeout = colander.SchemaNode(
+        colander.Integer(),
+        title="Timeout",
+        default=10)
+
     status = colander.SchemaNode(
         colander.Integer(),
         widget=widget.CheckboxWidget(true_val="1", false_val="0"),
@@ -63,7 +167,6 @@ class Views(BaseView):
         if not self.req.has_permission('admin'):
             query = query.filter_by(create_uid=self.req.user.id)
         return query
-    
 
     def form_validator(self, form, value):
         exc = colander.Invalid(form, None)
@@ -84,11 +187,11 @@ class Views(BaseView):
         if err:
             exc['kode'] = '\n'.join(err)
             raise exc
-        
+
     def after_save(self, values, row):
         self.db_session.flush()
         if values['status'] == 1:
-            printers  = TextPrinters.query().filter_by(create_uid=row.create_uid).all()
+            printers = TextPrinters.query().filter_by(create_uid=row.create_uid).all()
             for printer in printers:
                 if printer.id == row.id:
                     continue
