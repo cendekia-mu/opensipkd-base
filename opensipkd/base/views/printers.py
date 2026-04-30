@@ -1,7 +1,5 @@
 import logging
 import re
-from turtle import title
-from wsgiref.validate import validator
 import colander
 from deform import (widget,)
 from pyramid.i18n import TranslationStringFactory
