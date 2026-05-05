@@ -9,3 +9,4 @@ class TextPrinters(Base, NamaModel):
     queue = Column(String(16), default='lp')
     port = Column(Integer(), default=515)
     timeout = Column(Integer(), default=10)
+    user_id = Column(Integer(), nullable=False)

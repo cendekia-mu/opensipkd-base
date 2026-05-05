@@ -982,6 +982,7 @@ class BaseView(object):
 
                 values = dict(c)
                 row = self.save_request(values)
+                kwargs["values"] = values
                 return self.after_add(row=row, **kwargs)
             elif "cancel" in self.req.POST or 'batal' in self.req.POST or "close" in self.req.POST:
                 self.cancel_act()

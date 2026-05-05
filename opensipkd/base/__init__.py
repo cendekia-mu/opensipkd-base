@@ -338,6 +338,7 @@ def main(global_config, **settings):
     BASE_CLASS.static_view(config, settings=settings)
     BASE_CLASS.single_device = settings.get(
         "single_device", "false").lower() == "true"
+    BASE_CLASS.is_pylpr = settings.get("is_pylpr", "false").lower() == "true"
     config.scan(".")
     # _logging.debug(config)
     return config.make_wsgi_app()
@@ -518,6 +519,7 @@ class BaseApp():
         self.base_dir = os.path.split(__file__)[0]
         self.reg_nip = 0
         self.single_device = "false"
+        self.is_pylpr = False
 
     def get_route_file(self, filename="routes.csv"):
         fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
