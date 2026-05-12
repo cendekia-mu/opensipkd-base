@@ -360,7 +360,8 @@ class Views(BaseView):
                 value["idcard"] = upload.save_fp(idcard)
             else:
                 value.pop("idcard")
-        value["groups"] = "Guest"
+        if not self.req.user:
+            value["groups"] = "Guest"
 
         super().form_validator(form, value)
 

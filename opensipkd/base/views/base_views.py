@@ -928,6 +928,50 @@ class BaseView(object):
             elif val:
                 value[k] = cstruct.get(k)
         return value
+    
+    def form_validation(self, form, **kwargs):
+        table = kwargs.get("table", None)
+        controls = self.req.POST.items()
+        if self.req.is_xhr:
+            cloned = self.req.POST.items()
+            control = []
+            for ctrl in cloned:
+                if isinstance(ctrl[1], FieldStorage):
+                    control.append(
+                        ("__start__", f"{ctrl[0]}:mapping"))
+                    control.append(("upload", ctrl[1]))
+                    control.append(("uid", ""))
+                    control.append(("__end__", f"{ctrl[0]}:mapping"))
+                    log.debug("Control: %s", ctrl)
+                else:
+                    control.append(ctrl)
+            controls = iter(control)
+        try:
+            c = form.validate(controls)
+        except ValidationFailure as e:
+            log.error(f"Add cstruct: {e.cstruct}")
+            log.error(f"Add Error: {str(e.error)}")
+            # log.error(f"Add Error: {str(e.asdict)}")
+            value = self.before_add()
+            if self.req.is_xhr:
+                error = e.error.asdict()
+                # error.update(value)
+                # return self.resp_xhr({"error": error})
+                form.set_appstruct(e.cstruct)
+                return self.returned_form(form, error=error)
+
+            for f in e.field.children:
+                if isinstance(f.typ, colander.Date):
+                    e.cstruct[f.name] = date_from_str(
+                        e.cstruct[f.name])
+                # if f.name == "captcha":
+                #     e.cstruct[f.name] = self.get_captcha_url()
+            value = self.update_value(value, e.cstruct)
+            form.set_appstruct(value)
+            kwargs["table"] = table
+            return self.returned_form(form, **kwargs)
+        return dict(c)
+        
 
     def view_add(self, **kwargs):
         # bindings = self.get_bindings()
