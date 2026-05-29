@@ -708,6 +708,7 @@ class BaseView(object):
     #     return response.write(output.read())
 
     def xls_data(self, **kwargs):
+        self.req.GET["length"] = "-1"
         resp = self.get_list(**kwargs)
         data = resp.get("data", [])
         if not data:
