@@ -20,10 +20,10 @@ from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string, Upload, InvalidExtension, mem_tmp_store
 from opensipkd.tools.buttons import (
     btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv, btn_edit,
-    btn_pdf, btn_upload)
+    btn_pdf, btn_upload, btn_xls)
 
 # from opensipkd.tools.captcha import get_captcha
-from opensipkd.tools.report import csv_response, file_response
+from opensipkd.tools.report import csv_response, file_response, xls_response
 from opensipkd.base import BASE_CLASS
 from .common import DataTables
 from ..models import DBSession, Partner, Base
@@ -74,9 +74,11 @@ class CSRFSchema(colander.Schema):
         colander.String(),
         widget=widget_os.CSRFWidget(),
     )
-
+import re
 from pyramid.interfaces import IRoutesMapper
 from pyramid.threadlocal import get_current_registry
+import io
+import xlsxwriter
 
 class BaseView(object):
     def __init__(self, request):
@@ -557,6 +559,9 @@ class BaseView(object):
 
         elif url_dict['act'] == 'pdf':
             return self.pdf_response(**kwargs)
+        
+        elif url_dict['act'] == 'xls':
+            return self.xls_response(**kwargs)
 
         else:
             return self.next_act(**kwargs)
@@ -677,6 +682,59 @@ class BaseView(object):
             'rows': rows,
         }
         return csv_response(self.req, value, filename)
+
+    def remove_tags(self, text):
+        # Regular expression pattern to match HTML tags
+        clean_text = re.sub(r'<[^>]+>', '', text)
+        return clean_text
+    
+    # def render_xls(self, header, rows):
+    #     output = io.BytesIO()
+        
+    #     workbook = xlsxwriter.Workbook(output)
+    #     worksheet = workbook.add_worksheet("Sheet 1")
+    #     for col_num, header in enumerate(header):
+    #         worksheet.write_row(0, col_num, header)
+    #     for row_num, row in enumerate(rows, start=1):
+    #         for col_num, cell_value in enumerate(row):
+    #             worksheet.write_row(row_num, col_num, cell_value)
+    #     workbook.close()
+    #     output.seek(0)
+
+    #     filename = f"{get_random_string(16)}.xlsx"
+    #     response = self.req.response
+    #     response.content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    #     response.content_disposition = 'filename=' + filename
+    #     return response.write(output.read())
+
+    def xls_data(self, **kwargs):
+        resp = self.get_list(**kwargs)
+        data = resp.get("data", [])
+        if not data:
+            raise HTTPNotFound("No data to export")
+        
+        header = list(data[0].keys())
+        list_schema = self.list_schema()
+        for i, h in enumerate(header):
+            for d in list_schema:
+                if d.name == h and hasattr(d, "title"):
+                    header[i] = d.title
+        rows = [list(item.values()) for item in data]
+        for row in rows:
+            for i, value in enumerate(row):
+                if isinstance(value, str):
+                    row[i] = self.remove_tags(value)
+                    
+        value = {
+            'header': header,
+            'rows': rows,
+        }
+        return value
+
+
+    def xls_response(self, **kwargs):
+        value = self.xls_data()
+        return xls_response(self.req, value)
 
     def get_bindings(self, row=None):
         return {"row": row}

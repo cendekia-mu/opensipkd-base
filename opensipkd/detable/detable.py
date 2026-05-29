@@ -160,7 +160,7 @@ class DeTable(field.Field):
             close_url = self.action.split("/")
             close_url = "/".join(close_url[:-1])
             close_url.replace(":/", "://")
-        params = params and f"?{params}" or ""
+        params = params and f"?{params}" or "?"
         dict_buttons = {
             "close": "{window.location = '" + close_url + "'; return false;}",
             "add": "{window.location = o%sUri+'/add%s';}" % (tableid, params),
@@ -183,8 +183,20 @@ class DeTable(field.Field):
 
                         event.stopPropagation();
                     }""" % (tableid, tableid, tableid),
-            "csv": "{window.location = o%sUri+'/csv/act%s';}" % (
-                tableid, params),
+            "csv": """{
+                params = o%s.ajax.params();
+                paramString = $.param(params);
+                console.log(params);
+                window.location = o%sUri+'/csv/act%s&'+paramString;}
+            """ % (
+                tableid, tableid, params),
+            "xls": """{
+                params = o%s.ajax.params();
+                paramString = $.param(params);
+                console.log(params);
+                window.location = o%sUri+'/xls/act%s&'+paramString;}
+            """ % (
+                tableid, tableid, params),
             "pdf": "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params),
             "upload": "{window.location = o%sUri+'/upload%s';}" % (
                 tableid, params),
