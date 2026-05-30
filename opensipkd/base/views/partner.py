@@ -70,15 +70,18 @@ class ListSchema(colander.Schema):
         validator=colander.Length(max=32),
         oid="kode",
         title="Kode",
-        width="100pt")
+        width="100pt",
+        global_search=True)
     nama = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=64),
-        oid="nama")
+        oid="nama",
+        global_search=True)
 
     email = colander.SchemaNode(
         colander.String(),
-        oid="email")
+        oid="email",
+        global_search=True)
     idcard = colander.SchemaNode(
         colander.String(),
         oid="idcard",

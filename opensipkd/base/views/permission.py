@@ -18,12 +18,14 @@ class ListSchema(colander.Schema):
     perm_name = colander.SchemaNode(
         colander.String(),
         oid="perm_name",
-        title="Nama")
+        title="Nama",
+        global_search=True)
     description = colander.SchemaNode(
         colander.String(),
         missing=colander.drop,
         oid="description",
-        title="Diskripsi")
+        title="Diskripsi",
+        global_search=True)
     
 class EditSchema(ListSchema):
     pass

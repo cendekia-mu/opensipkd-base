@@ -1,18 +1,16 @@
 import os
 import re
 
-from shapely import node
 import colander
 from deform import (widget, )
 from opensipkd.base import BASE_CLASS
 from pyramid.i18n import TranslationStringFactory
-from sqlalchemy import (func, true, )
+from sqlalchemy import (func )
 from ziggurat_foundations.models.services.user import UserService
 from opensipkd.tools import create_now
 from opensipkd.tools.buttons import btn_delete
 
 from . import BaseView
-# from .company import company_widget
 from .user_login import (
     regenerate_security_code, send_email_security_code, generate_api_key, )
 from ..models.users import (DBSession, User, Group, UserGroup,)
@@ -25,9 +23,11 @@ class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.String(),
                              title="Action",
                              searchable=False)
-    email = colander.SchemaNode(colander.String())
+    email = colander.SchemaNode(colander.String(),
+                                global_search=True)
     user_name = colander.SchemaNode(colander.String(),
-                                    title=_("user-name", default="User Name"))
+                                    title=_("user-name", default="User Name"),
+                                    global_search=True)
     status = colander.SchemaNode(colander.Integer(),
                                  widget=widget.CheckboxWidget(),
                                  width=50, searchable=False)

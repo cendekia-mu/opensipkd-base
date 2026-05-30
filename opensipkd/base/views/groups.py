@@ -42,8 +42,10 @@ class EditSchema(AddSchema):
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.Integer(), visible=False, title="Action")
     group_name = colander.SchemaNode(
-        colander.String(), )
-    description = colander.SchemaNode(colander.String())
+        colander.String(),
+         global_search=True, )
+    description = colander.SchemaNode(colander.String(),
+                                      global_search=True,)
 
 
 class Views(BaseView):

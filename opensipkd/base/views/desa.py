@@ -43,12 +43,15 @@ class AddSchema(colander.Schema):
                                        oid="kecamatan_id",
                                        title="Kecamatan")
     kode = colander.SchemaNode(colander.String(),
-                               validator=colander.Length(max=32), oid="kode")
+                               validator=colander.Length(max=32), oid="kode",
+         global_search=True,)
     kategori = colander.SchemaNode(colander.String(),
                                    widget=widget.SelectWidget(
                                        values=kategori_desa),
-                                   validator=colander.Length(max=32), oid="kode")
-    nama = colander.SchemaNode(colander.String(), oid="nama")
+                                   validator=colander.Length(max=32), oid="kode",
+                                   global_search=True,)
+    nama = colander.SchemaNode(colander.String(), oid="nama",
+                               global_search=True,)
 
 
 class EditSchema(AddSchema):

@@ -125,12 +125,15 @@ class AddSchema(NamaSchema):
     nama = colander.SchemaNode(
         colander.String(),
         title="Nama Printer",
-        validator=colander.Length(max=64)
+        validator=colander.Length(max=64),
+        global_search=True,
     )
     kode = colander.SchemaNode(
         colander.String(),
         title="IP Address",
-        widget=widget.TextInputWidget(mask="999.999.999.999",))
+        widget=widget.TextInputWidget(mask="999.999.999.999",),
+        global_search=True,
+    )
 
     port = colander.SchemaNode(
         colander.Integer(),
@@ -145,6 +148,7 @@ class AddSchema(NamaSchema):
         colander.String(),
         validator=colander.Length(max=16),
         title="Queue Name",
+        global_search=True,
         default='lp')
     timeout = colander.SchemaNode(
         colander.Integer(),
@@ -154,6 +158,9 @@ class AddSchema(NamaSchema):
         colander.Integer(),
         widget=widget.SelectWidget(),
         title="User ID",
+        global_search=False,
+        searchable=True,
+        search_method="numeric",
         default=10)
     
     status = colander.SchemaNode(
@@ -199,6 +206,7 @@ class Views(BaseView):
         self.save_state = True
         self.allow_check = True
         self.list_view_field = 'nama'
+        self.filter_columns = True
 
     def list_filter(self, query, **kwargs):
         if not self.req.has_permission('admin'):

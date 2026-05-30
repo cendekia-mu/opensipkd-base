@@ -32,17 +32,21 @@ class AddSchema(colander.Schema):
     kode = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=32),
-        oid="kode")
+        oid="kode", 
+        global_search=True,)
     nama = colander.SchemaNode(
         colander.String(),
-        oid="nama")
+        oid="nama",
+        global_search=True,)
     nama_pendek = colander.SchemaNode(
         colander.String(),
         oid="nama_pendek",
+        global_search=True,
         missing=colander.drop)
     nama_lain = colander.SchemaNode(
         colander.String(),
         oid="nama_lain",
+        global_search=True,
         missing=colander.drop)
     jenis = colander.SchemaNode(
         colander.Integer(),

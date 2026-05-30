@@ -15,12 +15,11 @@ from pyramid.request import Response
 from sqlalchemy import Table
 
 # from opensipkd.base.views.upload import tmpstore
-from opensipkd.tools.captcha import img_captcha
 from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string, Upload, InvalidExtension, mem_tmp_store
 from opensipkd.tools.buttons import (
     btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv, btn_edit,
-    btn_pdf, btn_upload, btn_xls)
+    btn_pdf, btn_upload)
 
 # from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response, xls_response
@@ -77,8 +76,6 @@ class CSRFSchema(colander.Schema):
 import re
 from pyramid.interfaces import IRoutesMapper
 from pyramid.threadlocal import get_current_registry
-import io
-import xlsxwriter
 
 class BaseView(object):
     def __init__(self, request):
