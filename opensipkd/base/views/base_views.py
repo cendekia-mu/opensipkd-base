@@ -19,7 +19,7 @@ from opensipkd.tools import dmy, get_settings, get_ext, \
     date_from_str, get_random_string, Upload, InvalidExtension, mem_tmp_store
 from opensipkd.tools.buttons import (
     btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv, btn_edit,
-    btn_pdf, btn_upload)
+    btn_pdf, btn_upload, btn_xls)
 
 # from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response, xls_response
@@ -104,7 +104,9 @@ class BaseView(object):
         self.list_route = 'home'
 #         self.list_col_defs = ""
 #         self.list_cols = ""
-        self.list_report = (btn_csv, btn_pdf)
+        self.list_report = (btn_csv, btn_xls)
+        self.list_csvpdf = (btn_csv, btn_pdf)
+        self.list_pdf = (btn_pdf,)
         self.list_buttons = (btn_add,)
         self.list_upload = (btn_upload,)
         self.list_view_field = None
@@ -553,7 +555,8 @@ class BaseView(object):
 
         elif url_dict['act'] == 'csv':
             return self.csv_response(**kwargs)
-
+        elif url_dict['act'] == 'csv1':
+            return self.csv1_response(**kwargs)
         elif url_dict['act'] == 'pdf':
             return self.pdf_response(**kwargs)
         
@@ -668,7 +671,7 @@ class BaseView(object):
         filename = jasper_export(self.report_file)
         return file_response(self.req, filename=filename[0])
 
-    def csv_response(self, **kwargs):
+    def csv1_response(self, **kwargs):
         query = self.table.query_register()
         row = query.first()
         header = row._mapping.keys()
@@ -722,6 +725,12 @@ class BaseView(object):
             for i, value in enumerate(row):
                 if isinstance(value, str):
                     row[i] = self.remove_tags(value)
+                elif isinstance(value, datetime):
+                    is_aware_utc = value.tzinfo is not None \
+                        and value.tzinfo.utcoffset(value) is not None
+                    if is_aware_utc:
+                        value = value.astimezone().replace(tzinfo=None)
+                    row[i] = value
                     
         value = {
             'header': header,
@@ -729,10 +738,13 @@ class BaseView(object):
         }
         return value
 
-
     def xls_response(self, **kwargs):
         value = self.xls_data()
         return xls_response(self.req, value)
+
+    def csv_response(self, **kwargs):
+        value = self.xls_data()
+        return csv_response(self.req, value)
 
     def get_bindings(self, row=None):
         return {"row": row}
