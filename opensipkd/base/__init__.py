@@ -520,14 +520,17 @@ class BaseApp():
         self.reg_nip = 0
         self.single_device = "false"
         self.is_pylpr = False
+        self.ws_print_url = ""
+        self.ws_print_id = ""
 
     def get_route_file(self, filename="routes.csv"):
         fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
-        return open(fullpath)
+        return open(fullpath, encoding="utf-8")
 
     def static_view(self, config, settings=None):
-        if not settings:
-            settings = get_settings()
+        settings = settings or config.registry.settings
+        # if not settings:
+        #     settings = get_settings()
         self.temp_files = settings.get("temp_files")
         if not os.path.exists(self.temp_files):
             os.makedirs(self.temp_files)
@@ -564,6 +567,8 @@ class BaseApp():
         self.login_tpl = get_params("login_tpl", "", settings=settings)
         self.login_captcha = int(get_params(
             "login_captcha", 0, settings=settings))
+        self.ws_print_url = settings.get("ws_print_url", "")
+        self.ws_print_id = settings.get("ws_print_id", "")
 
     def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views",
                  template_path="views/templates/"):
@@ -784,18 +789,33 @@ def set_routes(config, app_id=None):
 from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
 from pyramid.security import forget
 from pyramid.view import exception_view_config
-
+from pyramid.response import Response
+import json
 @exception_view_config(HTTPBadRequest)
 def bad_request_view(exc, request):
-    # Bersihkan sesi autentikasi (logout)
-    headers = forget(request)
+    if request.matched_route.name=='base-login' :
+        # Bersihkan sesi autentikasi (logout)
+        headers = forget(request)
 
-    # Arahkan ulang ke halaman login (misalnya route 'login')
-    request.session.flash("Permintaan tidak valid. Silakan ulangi kembali. atau origin tidak diizinkan.", "error")
-    _logging.debug(f"Bad Request: {exc} from {request.url}")
-    referrer = request.route_url('base-home')
-    response = HTTPFound(location=referrer)
-    response.headers.extend(headers)
-    return response
+        # Arahkan ulang ke halaman login (misalnya route 'login')
+        request.session.flash("Permintaan tidak valid. Silakan ulangi kembali. atau origin tidak diizinkan.", "error")
+        _logging.debug(f"Bad Request: {exc} from {request.url}")
+        referrer = request.route_url('base-login')
+        response = HTTPFound(location=referrer)
+        response.headers.extend(headers)
+        return response
+    elif request.is_xhr:
+        payload = {
+            "status": "error",
+            "message": exc.detail or str(exc)
+        }
+        return Response(
+        json_body=payload,
+        status=400,
+        content_type='application/json'
+    )
+        
+       
+    return exc
 
 from .depreciated_base import *
