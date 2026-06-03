@@ -520,8 +520,9 @@ class BaseApp():
         self.reg_nip = 0
         self.single_device = "false"
         self.is_pylpr = False
-        self.ws_print_url = ""
-        self.ws_print_id = ""
+        self.wsp_url = ""
+        self.wsp_client_id = ""
+        self.wsp_client_key = ""
 
     def get_route_file(self, filename="routes.csv"):
         fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
@@ -567,8 +568,9 @@ class BaseApp():
         self.login_tpl = get_params("login_tpl", "", settings=settings)
         self.login_captcha = int(get_params(
             "login_captcha", 0, settings=settings))
-        self.ws_print_url = settings.get("ws_print_url", "")
-        self.ws_print_id = settings.get("ws_print_id", "")
+        self.wsp_url = settings.get("wsp_url", "")
+        self.wsp_client_id = settings.get("wsp_client_id", "")
+        self.wsp_client_key = settings.get("wsp_client_key", "")
 
     def add_menu(self, config, route_menus, parent=None, paket="opensipkd.base.views",
                  template_path="views/templates/"):

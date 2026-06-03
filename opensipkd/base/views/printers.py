@@ -97,7 +97,7 @@ class AddSchema(colander.Schema):
         epson_values = [
             ("0", "Other"),
             ("1", "Epson Type"),]
-        if BASE_CLASS.ws_print_url:
+        if BASE_CLASS.wsp_url:
                 epson_values.append(("2", "Web Socket"))
         schema["is_epson"].widget.values = epson_values
 
@@ -220,7 +220,7 @@ class Views(BaseView):
 
 
 async def print_text(user_id=None, print_id=None, text=None, filename=None,
-                     ws_url=BASE_CLASS.ws_print_url):
+                     ws_url=BASE_CLASS.wsp_url):
     if not user_id and not print_id:
         log.error("User ID or Print ID must be provided.")
         raise Exception("User ID or Print ID must be provided.")
@@ -236,8 +236,8 @@ async def print_text(user_id=None, print_id=None, text=None, filename=None,
     timeout = printer.timeout if printer else 10          # Timeout in seconds
     if is_ws:
         printer_name = printer.nama if printer else "unknown"
-        printer_name = BASE_CLASS.ws_print_id+'_'+ printer_name
-        ws_url = ws_url or BASE_CLASS.ws_print_url
+        printer_name = BASE_CLASS.wsp_client_id+'_'+ printer_name
+        ws_url = ws_url or BASE_CLASS.wsp_url
         if not ws_url:
             log.error("WebSocket URL is not configured.")
             raise Exception("WebSocket URL is not configured.")
@@ -246,10 +246,29 @@ async def print_text(user_id=None, print_id=None, text=None, filename=None,
             async with websockets.connect(ws_url) as websocket:
                 # Send user on connect
                 log.info(f"Connected to server at {ws_url} as {printer_name}")
-                data = {"login": BASE_CLASS.ws_print_id}
+                # data = {"action": "print",
+                #         "printer": self.printer,
+                #         "message": message
+                #         }
+                data = {
+                    "action": "login",
+                    "client_id": BASE_CLASS.wsp_client_id,
+                    "api_key": BASE_CLASS.wsp_client_key,
+                    "printer": BASE_CLASS.wsp_client_id
+                }
                 await websocket.send(json.dumps(data))
                 text = await websocket.recv()
                 log.info(f"Received from server: {text}")
+                try:
+                    resp = json.loads(text)
+                except json.JSONDecodeError as e:
+                    log.error(f"Failed to decode server response: {e}")
+                    raise Exception(f"Invalid response from server: {text}") from e
+                
+                if resp.get("status") != True:
+                    log.error(
+                        f"Login failed: {resp.get('message', 'No message provided')}")
+                    raise Exception(f"Login failed: {resp.get('message', 'No message provided')}")
                 # Wait for server to process login
 
                 if filename and os.path.isfile(filename):
