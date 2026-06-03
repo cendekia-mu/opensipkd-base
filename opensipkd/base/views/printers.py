@@ -221,6 +221,7 @@ class Views(BaseView):
 
 async def print_text(user_id=None, print_id=None, text=None, filename=None,
                      ws_url=BASE_CLASS.wsp_url):
+    log.debug(f"Starting print_text with user_id={user_id}, print_id={print_id}, filename={filename}")
     if not user_id and not print_id:
         log.error("User ID or Print ID must be provided.")
         raise Exception("User ID or Print ID must be provided.")
@@ -299,8 +300,9 @@ async def print_text(user_id=None, print_id=None, text=None, filename=None,
                 return data
 
         except (websockets.ConnectionClosed, ConnectionRefusedError, OSError) as e:
-            raise Exception(
-                f"Failed to connect to WebSocket server: {e}") from e
+            msg = f"Failed to connect to WebSocket server at {ws_url}: {e}"
+            log.error(msg)
+            raise Exception(msg) from e
 
     # Replace with your printer's IP
     ip = printer.kode if printer else "127.0.0.1"
