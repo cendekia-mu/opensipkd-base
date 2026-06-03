@@ -194,7 +194,7 @@ class Views(BaseView):
     def after_save(self, values, row):
         self.db_session.flush()
         if values['status'] == 1:
-            printers = TextPrinters.query().filter_by(create_uid=row.create_uid).all()
+            printers = TextPrinters.query().filter_by(user_id=row.user_id).all()
             for printer in printers:
                 if printer.id == row.id:
                     continue
