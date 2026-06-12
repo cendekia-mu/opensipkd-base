@@ -369,12 +369,17 @@ class Views(BaseView):
         user = self.req.user
         
         if not self.req.POST and user and user.external_identities.count() > 0:
+            from datetime import timedelta
             remain = regenerate_security_code(user)
-            send_email_security_code(
-                self.req, user, remain, 'Request profile change', 'email-profile-password',
-                'email-profile-password.tpl')
+            five_minutes = timedelta(1.0 / 24 / 60)
+
+
+            if remain>299:
+                send_email_security_code(
+                    self.req, user, remain, 'Request profile change', 'email-profile-password',
+                    'email-profile-password.tpl')
             self.req.session.flash(
-                "Security code/password update profile sudah dikirimkan ke %s" % user.email)
+                "Security code/password update profile sudah dikirimkan ke %s \n Jika tidak ditemukan cari dalam SPAM" % user.email)
         
     def before_add(self):
         result = {}
