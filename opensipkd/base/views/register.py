@@ -374,7 +374,7 @@ class Views(BaseView):
             five_minutes = timedelta(1.0 / 24 / 60)
 
 
-            if remain>299:
+            if remain.seconds>299:
                 send_email_security_code(
                     self.req, user, remain, 'Request profile change', 'email-profile-password',
                     'email-profile-password.tpl')
