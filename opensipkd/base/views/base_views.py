@@ -346,8 +346,11 @@ class BaseView(object):
                 except Exception as e:
                     msg = f"Error cleaning HTML for key {k}: {e}"
                     log.error(msg)
-                    exc[k] = msg
-                    value[k]  = v
+                    try:
+                        exc[k] = msg
+                        value[k]  = v
+                    except:
+                        pass
                     # raise exc from e
 
 
