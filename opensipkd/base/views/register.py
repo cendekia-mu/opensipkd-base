@@ -367,7 +367,8 @@ class Views(BaseView):
 
     def send_profile_password(self):
         user = self.req.user
-        if user and user.external_identities.count() > 0:
+        
+        if not self.req.POST and user and user.external_identities.count() > 0:
             remain = regenerate_security_code(user)
             send_email_security_code(
                 self.req, user, remain, 'Request profile change', 'email-profile-password',
