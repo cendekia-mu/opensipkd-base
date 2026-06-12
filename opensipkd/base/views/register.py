@@ -400,7 +400,7 @@ class Views(BaseView):
         self.bindings = dict(user=None)
         if "g_state" in self.req.cookies:
             if "id_info" not in self.ses or not self.ses["id_info"]:
-                return HTTPFound(location=self.req.route_url("login"))
+                return HTTPFound(location=self.req.route_url("base-login"))
 
         reg_form = BASE_CLASS.reg_form
         if reg_form != "base-register":
