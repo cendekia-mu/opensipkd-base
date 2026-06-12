@@ -57,7 +57,7 @@ def jasper_db_conn(db_schema=None, dburl="sqlalchemy.url"):
 def jasper_export(input_file, output_file=None, schema=None,
                   output_formats=["pdf"], dburl="sqlalchemy.url",
                   parameters={}, db_schema=None, report_locale="en_US", use_db=True,
-                  out_file=None):
+                  out_file=None, jvm_maxmem='1024M'):
 
     module_file = None
     input_file = input_file.split(":") 
@@ -111,6 +111,7 @@ def jasper_export(input_file, output_file=None, schema=None,
         parameters=parameters,
         locale=report_locale
     )
+    pyreportjasper.config.jvm_maxmem = jvm_maxmem
 
     try:
         log.debug(input_file)
