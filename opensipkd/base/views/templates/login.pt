@@ -85,7 +85,7 @@
                   <label class=" checkbox checkbox-inline">
                     <input id="show_password" type="checkbox" style="left: 20px;">Show Password</label>
                   <div class="note">
-                    <a href="${home}/reset-password" id="lupa">Lupa Password?</a>
+                    <a href="${home}/password/reset" id="lupa">Lupa Password?</a>
                   </div>
                 </div>
               </section>
