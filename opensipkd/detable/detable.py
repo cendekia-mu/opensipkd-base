@@ -190,6 +190,14 @@ class DeTable(field.Field):
                 window.location = o%sUri+'/csv/act%s&'+paramString;}
             """ % (
                 tableid, tableid, params),
+
+            "csv2": """{
+                params = o%s.ajax.params();
+                paramString = $.param(params);
+                console.log(params);
+                window.location = o%sUri+'/csv2/act%s&'+paramString;}
+            """ % (
+                tableid, tableid, params),
             "xls": """{
                 params = o%s.ajax.params();
                 paramString = $.param(params);

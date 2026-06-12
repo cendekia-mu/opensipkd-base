@@ -1,3 +1,18 @@
+5.0.4 2026-06-01
+1. Penambahan parameter
+- ws_print_url
+- is_pylpr
+
+2. Penambahan Table
+- tabel text_printer
+3. Penambahan URL 
+- printer
+- printer-add
+- printer-edit
+- printer-edit
+- printer-delete
+
+
 5.0.3 2026-04-28
 - Penambahan field session_id pada table users digunakan untuk membatasi jumlah 
   login hanya bisa ada pada satu device

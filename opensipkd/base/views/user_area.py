@@ -14,14 +14,16 @@ class ListSchema(colander.Schema):
     user_name = colander.SchemaNode(
         colander.String(),
         field=User.user_name,
-        title="User"
+        title="User",
+        global_search=True,
     )
     desa_kd = colander.SchemaNode(
         colander.String(),
         field=ResDesa.kode)
     desa_name = colander.SchemaNode(
         colander.String(),
-        field=ResDesa.nama)
+        field=ResDesa.nama,
+        global_search=True,)
 
 
 class AddSchema(colander.Schema):

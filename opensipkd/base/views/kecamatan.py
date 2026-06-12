@@ -41,8 +41,10 @@ class AddSchema(colander.Schema):
         oid="dati2_id")
     kode = colander.SchemaNode(
         colander.String(),
-        validator=colander.Length(max=32), oid="kode")
-    nama = colander.SchemaNode(colander.String(), oid="nama")
+        validator=colander.Length(max=32), oid="kode",
+        global_search=True,)
+    nama = colander.SchemaNode(colander.String(), oid="nama",
+                               global_search=True,)
 
 
 class EditSchema(AddSchema):

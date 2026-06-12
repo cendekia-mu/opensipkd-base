@@ -86,8 +86,10 @@ class EditSchema(AddSchema):
 
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.String(), title="Action", visible=False)
-    kode = colander.SchemaNode(colander.String(), title="Kode")
-    nama = colander.SchemaNode(colander.String(), title="Nama")
+    kode = colander.SchemaNode(colander.String(), title="Kode",
+                               global_search=True,)
+    nama = colander.SchemaNode(colander.String(), title="Nama",
+                               global_search=True,)
     status = colander.SchemaNode(colander.Boolean(), title="Status", width='50pt',
                                  widget=widget.CheckboxWidget())
     level_id = colander.SchemaNode(

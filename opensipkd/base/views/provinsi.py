@@ -27,14 +27,17 @@ def provinsi_widget(node, kw):
 class AddSchema(colander.Schema):
     kode = colander.SchemaNode(colander.String(),
                                oid="kode",
-                               validator=colander.Length(max=32), )
+                               validator=colander.Length(max=32),
+                               global_search=True, )
     kategori = colander.SchemaNode(colander.String(),
                                    widget=widget.SelectWidget(
                                        values=kategori_provinsi),
                                    validator=colander.Length(max=32), oid="kode")
-    nama = colander.SchemaNode(colander.String(), oid="nama")
+    nama = colander.SchemaNode(colander.String(), oid="nama",
+                               global_search=True,)
     ibu_kota = colander.SchemaNode(
-        colander.String(), oid="nama", missing=colander.drop)
+        colander.String(), oid="nama", missing=colander.drop,
+        global_search=True,)
 
 
 class EditSchema(AddSchema):

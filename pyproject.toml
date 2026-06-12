@@ -38,6 +38,8 @@ dependencies = [
     'wheezy.captcha',
     'ziggurat-foundations',
     'zope.sqlalchemy',
+    'websockets',
+    "asyncio",
     ]
 requires-python = '>= 3.8'
 authors = [

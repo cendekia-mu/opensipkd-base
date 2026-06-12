@@ -30,13 +30,16 @@ class AddSchema(colander.Schema):
                                       validator=colander.Length(max=32),
                                       oid="kode")
     kode = colander.SchemaNode(colander.String(),
-                               validator=colander.Length(max=32), oid="kode")
+                               validator=colander.Length(max=32), oid="kode",
+                               global_search=True,)
     kategori = colander.SchemaNode(colander.String(),
                                    widget=widget.SelectWidget(
                                        values=kategori_dati2),
                                    validator=colander.Length(max=32),
-                                   oid="kode")
-    nama = colander.SchemaNode(colander.String(), oid="nama")
+                                   oid="kode",
+                                   global_search=True,)
+    nama = colander.SchemaNode(colander.String(), oid="nama",
+                               global_search=True,)
 
 
 class EditSchema(AddSchema):
