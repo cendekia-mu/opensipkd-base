@@ -369,11 +369,8 @@ class Views(BaseView):
         user = self.req.user
         
         if not self.req.POST and user and user.external_identities.count() > 0:
-            from datetime import timedelta
             remain = regenerate_security_code(user)
-            five_minutes = timedelta(1.0 / 24 / 60)
-
-
+            _logging.debug(remain.seconds)
             if remain.seconds>299:
                 send_email_security_code(
                     self.req, user, remain, 'Request profile change', 'email-profile-password',
