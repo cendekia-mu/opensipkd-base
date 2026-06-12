@@ -365,6 +365,16 @@ class Views(BaseView):
 
         super().form_validator(form, value)
 
+    def send_profile_password(self):
+        user = self.req.user
+        if user and user.external_identities.count() > 0:
+            remain = regenerate_security_code(user)
+            send_email_security_code(
+                self.req, user, remain, 'Request profile change', 'email-profile-password',
+                'email-profile-password.tpl')
+            self.req.session.flash(
+                "Security code/password update profile sudah dikirimkan ke %s" % user.email)
+        
     def before_add(self):
         result = {}
         # email = self.req.user and self.req.user.email or ""
@@ -374,8 +384,11 @@ class Views(BaseView):
             result = self.ses["id_info"]
             result.update(dict(
                 nama=" ".join([result["given_name"], result["family_name"]])))
+            self.send_profile_password()
+
         # if BASE_CLASS.reg_captcha:
             # result.update(dict(captcha=self.req.static_url(BASE_CLASS.captcha_files)))
+
         if self.req.is_xhr:
             url = self.req.static_url(BASE_CLASS.captcha_files)
             kode_captcha, file_name = widget_os.img_captcha(self.req)
@@ -398,7 +411,7 @@ class Views(BaseView):
             return HTTPFound(location=request.route_url("base-profile"))
 
         self.bindings = dict(user=None)
-        if "g_state" in self.req.cookies:
+        if "g_state" in self.req.cookies and self.req.cookies.get("g_state", None)!='{':
             if "id_info" not in self.ses or not self.ses["id_info"]:
                 return HTTPFound(location=self.req.route_url("base-login"))
 
@@ -455,9 +468,9 @@ class Views(BaseView):
 
 #     def id_not_found(self, **kwargs):
 #         return
-
     def get_values(self, row, istime=False):
         d = super().get_values(row, istime)
+        self.send_profile_password()
         partner = DBSession.query(Partner). \
             filter(Partner.email == self.req.user.email).first()
         if partner:

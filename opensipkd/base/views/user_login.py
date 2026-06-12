@@ -775,7 +775,7 @@ def send_email_security_code(
         request.home, user.security_code, password)
 
     minutes = int(time_remain.seconds / 60)
-    data = dict(url=url, minutes=minutes)
+    data = dict(url=url, minutes=minutes, password=user.security_code)
     here = os.path.abspath(os.path.dirname(__file__))
     body_file = os.path.join(here, body_default_file)
     with open(body_file) as f:
