@@ -27,7 +27,7 @@ from .models.handlers import LogDBSession
 from .models.meta import Base
 from .models.users import init_model
 from .models import Route
-
+# from .models import TABLE_ARGS 
 # from deform import ZPTRendererFactory, Form
 # from deform.widget import default_resource_registry
 
@@ -302,10 +302,24 @@ def get_config(settings):
     return config
 
 
+# def get_schema_for_dialect(engine_dialect_name: str) -> str | None:
+#     """Returns 'public' for PostgreSQL or None for Oracle to match native defaults."""
+#     if "postgresql" in engine_dialect_name.lower():
+#         return "public"
+#     return None  # Triggers default user-schema fallback on Oracle
+
+
 def init_db(settings):
     engine = engine_from_config(
         settings, 'sqlalchemy.', client_encoding='utf8',
         max_identifier_length=30)  # , convert_unicode=True
+
+
+    # global TABLE_ARGS
+    # # Resolve the target schema namespace dynamically based on active engine
+    # TABLE_ARGS = dict(extend_existing=True,
+    #                   schema=get_schema_for_dialect(engine.dialect.name))
+
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     Base.metadata.bind = engine
