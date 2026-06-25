@@ -179,8 +179,8 @@ class Views(BaseView):
         url_dict = request.matchdict
         if url_dict['act'] == 'grid':
             query = Departemen.cte_get()
-            data = [{"id": d.id, "kode": d.kode, "nama": d.nama, "status": d.status,
-                     "level_id":d.level, "parent_id": d.parent_id} for d in query]
+            data = [{"id": d.id, "kode": d.kode, "nama": d.hierarchy[1:], "status": d.status,
+                     "level_id": d.lvl, "parent_id": d.parent_id} for d in query]
             return {
                 
                 "data": data}

@@ -311,7 +311,8 @@ def get_config(settings):
 
 def init_db(settings):
     engine = engine_from_config(
-        settings, 'sqlalchemy.', client_encoding='utf8',
+        settings, 'sqlalchemy.', 
+        # client_encoding='utf8',
         max_identifier_length=30)  # , convert_unicode=True
 
 
@@ -328,6 +329,13 @@ def init_db(settings):
 
 
 
+def datetime_output_handler(cursor, name, default_type, size, precision, scale):
+    """Intercepts Oracle TSTZ data types and returns them with tzinfo intact."""
+    # DB_TYPE_TIMESTAMP_TZ handles Oracle's 'TIMESTAMP WITH TIME ZONE'
+    import oracledb
+    if default_type == oracledb.DB_TYPE_TIMESTAMP_TZ:
+        return cursor.var(oracledb.DB_TYPE_TIMESTAMP_TZ, arraysize=cursor.arraysize, outconverter=lambda v: v)
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -335,6 +343,21 @@ def main(global_config, **settings):
     #     None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
     if not settings.get('localization', ''):
         settings['localization'] = 'id_ID.UTF-8'
+    
+    if settings.get("lib_dir"):
+        sqlalchemy_url = settings.get("sqlalchemy.url")
+        if  sqlalchemy_url and sqlalchemy_url.find("oracledb") > -1:
+            try:
+                import oracledb
+                oracledb.init_oracle_client(lib_dir=settings.get("lib_dir"))
+                # Apply the global configuration handler to your connection pool
+                oracledb.defaults.outputtypehandler = datetime_output_handler
+                _logging.debug("oracledb initialized")
+            except:
+                pass
+
+
+
 
     locale.setlocale(locale.LC_ALL, settings['localization'])
     if 'timezone' not in settings:

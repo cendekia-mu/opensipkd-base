@@ -174,8 +174,12 @@ def upgrade():
     op.create_table('users',
     sa.Column('last_login_date', sa.DateTime(timezone=True), nullable=True),
     sa.Column('registered_date', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('security_code_date', sa.DateTime(timezone=True),
-                  nullable=True),  # server_default='2000-01-01 01:01+7',
+    # sa.Column('security_code_date', sa.DateTime(timezone=True),
+    #               nullable=True),  # server_default='2000-01-01 01:01+7',
+        # from sqlalchemy.types import TIMESTAMP
+    sa.Column('security_code_date', sa.types.TIMESTAMP(timezone=True),
+                      nullable=True),  # server_default='2000-01-01 01:01+7',
+
     sa.Column('api_key', sa.String(length=256), nullable=True),
     sa.Column('partner_id', sa.Integer(), nullable=True),
     sa.Column('company_id', sa.Integer(), nullable=True),

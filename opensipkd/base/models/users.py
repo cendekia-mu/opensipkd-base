@@ -93,19 +93,20 @@ class _UserResourcePermission(UserResourcePermissionMixin):
 class UserResourcePermission(_UserResourcePermission, Base):
     pass
 
-
+from sqlalchemy import TIMESTAMP
 class _User(UserMixin, BaseModel):
     db_session = DBSession
     last_login_date = Column(DateTime(timezone=True), nullable=True)
     registered_date = Column(DateTime(timezone=True),
                              nullable=False,
                              default=datetime.utcnow)
-    security_code_date = Column(DateTime(timezone=True),
-                                default=datetime(2000, 1, 1,
-                                                 tzinfo=pytz.timezone(
-                                                     'Asia/Jakarta')),
-                                server_default="2000-01-01 01:01+7",
-                                )
+    # security_code_date = Column(DateTime(timezone=True),
+    #                             default=datetime(2000, 1, 1,
+    #                                              tzinfo=pytz.timezone(
+    #                                                  'Asia/Jakarta')),
+    #                             server_default="2000-01-01 01:01+7",
+    #                             )
+    security_code_date = Column(TIMESTAMP(timezone=True))
     api_key = Column(String(256))
     partner_id = Column(Integer)  # , ForeignKey(Partner.id))
     company_id = Column(Integer)  # , ForeignKey(Partner.id))
