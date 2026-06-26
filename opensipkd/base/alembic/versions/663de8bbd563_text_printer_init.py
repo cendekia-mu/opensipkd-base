@@ -30,7 +30,8 @@ def upgrade():
     sa.Column('updated', sa.DateTime(), nullable=True),
     sa.Column('create_uid', sa.Integer(), nullable=True),
     sa.Column('update_uid', sa.Integer(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), sa.Identity(always=True), 
+              primary_key=True , nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_text_printers')),
     # schema='public'
     )

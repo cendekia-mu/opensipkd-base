@@ -59,72 +59,66 @@ class _Departemen(NamaModel):
         eng = cls.db_session.get_bind()
         if eng.dialect.name.lower() == "oracle":
             sql = """
-SELECT
-    --LPAD(' ', (LEVEL - 1) * 2) || nama AS hierarchy,
-    SYS_CONNECT_BY_PATH(nama, '/') AS hierarchy,
-    id,
-    kode,
-    nama,
-    parent_id,
-    status,
-    (LEVEL - 1) AS lvl,
-    SYS_CONNECT_BY_PATH(id, ',') AS path
-FROM
-    departemen
-START WITH 
-    parent_id IS NULL
-CONNECT BY 
-    PRIOR id = parent_id
-ORDER SIBLINGS BY 
-    id"""
+                SELECT
+                    --LPAD(' ', (LEVEL - 1) * 2) || nama AS hierarchy,
+                    SYS_CONNECT_BY_PATH(nama, '/') AS hierarchy,
+                    id,
+                    kode,
+                    nama,
+                    parent_id,
+                    status,
+                    (LEVEL - 1) AS lvl,
+                    SYS_CONNECT_BY_PATH(id, ',') AS path
+                FROM
+                    departemen
+                START WITH 
+                    parent_id IS NULL
+                CONNECT BY 
+                    PRIOR id = parent_id
+                ORDER SIBLINGS BY 
+                    id """
         else:
             sql = """
-WITH RECURSIVE dep_tree AS (
-    SELECT
-        id,
-        kode,
-        nama,
-        parent_id,
-        status,
-        0 AS lvl,
-        ARRAY[id] AS path
-    FROM
-        public.departemen
-    WHERE
-        {str_where}
-    UNION ALL
-
-    SELECT
-            c.id,
-            c.kode,
-            c.nama,
-            c.parent_id,
-            c.status,
-            ct.level + 1,
-            ct.path || c.id
-    FROM
-            public.departemen c
-
-    JOIN
-            dep_tree ct ON c.parent_id = ct.id
-)
-SELECT
-    REPEAT('  ', lvl) || nama AS hierarchy, -- Indent names based on level
+               WITH RECURSIVE dep_tree AS (
+  SELECT
     id,
     kode,
-    nama,
+    nama::text AS nama,
     parent_id,
     status,
-    level,
-    path
-FROM
-    dep_tree
-""".format(str_where=str_where)
+    0 AS lvl,
+    ARRAY[id] AS path
+  FROM departemen
+
+  UNION ALL
+
+  SELECT
+    c.id,
+    c.kode,
+    ct.nama || '/' || c.nama::text AS nama,
+    c.parent_id,
+    c.status,
+    ct.lvl + 1,
+    ct.path || c.id
+  FROM departemen c
+  JOIN dep_tree ct ON c.parent_id = ct.id
+)
+SELECT DISTINCT ON (kode)
+  id,
+  kode,
+  nama as hierarchy,
+  parent_id,
+  status,
+  lvl,
+  path
+FROM dep_tree
+                """
+            #.format(str_where=str_where)
 
             if search:
                 sql = f"{sql} WHERE nama ILIKE '%{search}%' "
 
-            sql = sql+"""ORDER BY path;"""
+            sql = sql+"""ORDER BY kode, path """
 
         return cls.db_session.execute(text(sql)).fetchall()
 

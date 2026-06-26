@@ -1,11 +1,9 @@
 from datetime import datetime
 import logging
-from math import log
 
-from requests import session
-import pytz
 import sqlalchemy as sa
 from pyramid.authorization import (Allow, Authenticated, ALL_PERMISSIONS)
+# from sqlalchemy import TIMESTAMP
 from sqlalchemy import (
     Column, Integer, DateTime, SmallInteger, String)
 from sqlalchemy.orm import (relationship, backref)
@@ -28,7 +26,7 @@ from opensipkd.tools import as_timezone
 from .base import CommonModel, DBSession, DefaultModel
 from .meta import Base
 from .base import TABLE_ARGS
-
+from . import ForceUTCDatetime
 log = logging.getLogger(__name__)
 class _GroupPermission(GroupPermissionMixin):
     pass
@@ -93,7 +91,7 @@ class _UserResourcePermission(UserResourcePermissionMixin):
 class UserResourcePermission(_UserResourcePermission, Base):
     pass
 
-from sqlalchemy import TIMESTAMP
+
 class _User(UserMixin, BaseModel):
     db_session = DBSession
     last_login_date = Column(DateTime(timezone=True), nullable=True)
@@ -106,7 +104,8 @@ class _User(UserMixin, BaseModel):
     #                                                  'Asia/Jakarta')),
     #                             server_default="2000-01-01 01:01+7",
     #                             )
-    security_code_date = Column(TIMESTAMP(timezone=True))
+    # security_code_date = Column(TIMESTAMP(timezone=True))
+    security_code_date = Column(ForceUTCDatetime)
     api_key = Column(String(256))
     partner_id = Column(Integer)  # , ForeignKey(Partner.id))
     company_id = Column(Integer)  # , ForeignKey(Partner.id))
