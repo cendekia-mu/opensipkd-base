@@ -175,7 +175,6 @@ class Views(BaseView):
         return row
     def view_act(self):
         request = self.req
-        params = request.params
         url_dict = request.matchdict
         if url_dict['act'] == 'grid':
             query = Departemen.cte_get()
