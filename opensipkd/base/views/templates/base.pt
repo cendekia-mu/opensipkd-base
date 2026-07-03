@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" tal:define="home request.home;">
+<html lang="en" tal:define="home request.home[:-1];">
 
 <head>
   <meta charset="utf-8">
