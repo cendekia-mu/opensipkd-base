@@ -263,8 +263,9 @@
     <!-- LOOP ON JS RESOURCE -->
     <tal:loop tal:repeat="js_resource js">
         <!--?<script src="${home}${request.static_path(js_resource)}" tal:condition="js_resource[:4]!='http'">A</script>-->
-        <!--?<script src="${js_resource}" tal:condition="js_resource[:4]=='http'">B</script>-->
         <script src="${request.static_url(js_resource)}" tal:condition="js_resource[:4]!='http'"></script>-->
+        <script src="${js_resource}" tal:condition="js_resource[:4]=='http'"></script>
+
     </tal:loop>
 
     <metal:js define-slot="js_files"></metal:js>
