@@ -5,6 +5,14 @@ import os
 import subprocess
 import sys
 from getpass import getpass
+from pyramid.paster import (get_appsettings, setup_logging, )
+from sqlalchemy import (engine_from_config, select, Table, inspect)
+from sqlalchemy import text
+from sqlalchemy.schema import CreateSchema
+from sqlalchemy.sql.sqltypes import BOOLEAN
+from ziggurat_foundations.models.services.user import UserService
+
+from opensipkd.tools import get_ext
 
 import transaction
 from ..models.users import (
@@ -18,15 +26,6 @@ from ..models.meta import Base
 #  Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa,
 #     Menus, Pangkat
 
-from pyramid.paster import (get_appsettings, setup_logging, )
-from sqlalchemy import (desc, engine_from_config, select, Table, inspect)
-from sqlalchemy import text
-from sqlalchemy.dialects import oracle
-from sqlalchemy.schema import CreateSchema
-from sqlalchemy.sql.sqltypes import BOOLEAN
-from ziggurat_foundations.models.services.user import UserService
-
-from opensipkd.tools import get_ext
 
 log = logging.getLogger(__name__)
 
@@ -354,7 +353,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                 db_session.add(row)
                 db_session.flush()
 
-            transaction.commit()  # diperlukan commit per record khususnya untuk yang internal link
+        transaction.commit()  # diperlukan commit per record khususnya untuk yang internal link
 
 
 def ask_password(name):
