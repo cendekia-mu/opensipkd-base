@@ -120,7 +120,7 @@
             <!-- User info -->
             <ul tal:condition="not request.user" class="header-dropdown-list hidden-xs">
                 <li>
-                    <a href="${home}/login" class="dropdown-toggle"><i class="fa fa-lg fa-fw fa-user"></i>Login</a>
+                    <a  href="${request.route_url('base-login')}?next=${home}" class="dropdown-toggle"><i class="fa fa-lg fa-fw fa-user"></i>Login</a>
                 </li>
             </ul>
             <ul tal:condition="request.user" class="header-dropdown-list hidden-xs">

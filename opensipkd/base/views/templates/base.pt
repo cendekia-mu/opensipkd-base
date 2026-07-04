@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" tal:define="home request.home;">
+<html lang="en" tal:define="home request.home.strip('/');">
 
 <head>
   <meta charset="utf-8">
@@ -73,7 +73,7 @@
       <div class="navbar-collapse collapse" tal:condition="not request.user">
         <ul class="nav navbar-nav navbar-right" style="margin-right:0px;">
           <li>
-            <a href="${request.route_url('base-login')}">Login</a>
+            <a href="${request.route_url('base-login')}?next=${home}">Login</a>
           </li>
         </ul>
       </div>
