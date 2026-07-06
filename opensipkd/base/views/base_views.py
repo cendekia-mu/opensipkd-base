@@ -83,6 +83,11 @@ class BaseView(object):
         for key, value in request.headers.items():
             log.debug(f"{key}: {value}")
         log.debug("Init xhr: %s", self.req.is_xhr)
+        log.debug("X-Forwarded-Scheme %s", request.scheme)
+        log.debug("Changes http to https so %s",  request.route_url('base-home'))
+        log.debug("X-Forwarded-Host %s", request.host)
+        log.debug("X-Forwarded-Server %s", request.server_name)
+
         self.ses = self.req.session
         self.db_session = DBSession
         self.base = Base

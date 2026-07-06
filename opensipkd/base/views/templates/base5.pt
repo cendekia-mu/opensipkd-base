@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us" tal:define="
-        home request.home;
+        home request.home.strip('/');
         route_name route_name|request.matched_route.name;
         css css|[];
         js js|[];
@@ -104,7 +104,7 @@
 
             <ul tal:condition="not request.user" class="header-dropdown-list">
                 <li>
-                    <a href="${home}/login" class="dropdown-toggle"><i class="fa fa-lg fa-fw fa-user"></i>Login</a>
+                    <a href="${request.route_url('base-login')}?next=${home}" class="dropdown-toggle"><i class="fa fa-lg fa-fw fa-user"></i>Login</a>
                 </li>
             </ul>
             
@@ -262,8 +262,10 @@
     <script src="${home}/static/v3/js/osipkd.js"></script>
     <!-- LOOP ON JS RESOURCE -->
     <tal:loop tal:repeat="js_resource js">
-        <script src="${home}${request.static_path(js_resource)}" tal:condition="js_resource[:4]!='http'"></script>
+        <!--?<script src="${home}${request.static_path(js_resource)}" tal:condition="js_resource[:4]!='http'">A</script>-->
+        <script src="${request.static_url(js_resource)}" tal:condition="js_resource[:4]!='http'"></script>-->
         <script src="${js_resource}" tal:condition="js_resource[:4]=='http'"></script>
+
     </tal:loop>
 
     <metal:js define-slot="js_files"></metal:js>

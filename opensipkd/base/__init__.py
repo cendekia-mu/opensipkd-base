@@ -152,7 +152,7 @@ def get_menus(request):
 
 
 def get_home(request):
-    return request.route_url('base-home')
+    return request.route_url('base-home').strip('/')
     # [:-1]
 
 
