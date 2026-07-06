@@ -825,8 +825,10 @@ class BaseView(object):
 
     def view_view(self, **kwargs):
         request = self.req
-        row = self.query_id().first()
+        qry = self.query_id()
+        row = qry.first()
         if not row:
+            log.debug(str(qry.statement.compile(compile_kwargs={'literal_binds': True})))
             return self.id_not_found()
 
         self.ses["readonly"] = True
@@ -1196,6 +1198,7 @@ class BaseView(object):
         msg = f"Data yang dicari Tidak Ditemukan ID:" \
             f" {self.req.matchdict['id']}."
         self.req.session.flash(msg, 'error')
+        log.error(msg)
         return self.route_list(**kwargs)
 
     def get_values(self, row, istime=False, null=False):
@@ -1250,6 +1253,8 @@ class BaseView(object):
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
         if not row:
+            log.debug(self.query_id().statement.compile(
+                compile_kwargs={'literal_binds': True}))
             return self.id_not_found(**kwargs)
 
         if self.edit_restrict(row):
@@ -1350,6 +1355,9 @@ class BaseView(object):
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
         if not row:
+            log.debug(str(q.statement.compile(
+                compile_kwargs={'literal_binds': True})))
+
             return self.id_not_found()
         if not self.bindings:
             self.bindings = self.get_bindings(row)
