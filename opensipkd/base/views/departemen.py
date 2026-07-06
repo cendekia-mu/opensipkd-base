@@ -184,7 +184,9 @@ class Views(BaseView):
                      "status": d.status,
                      "level_id": d.lvl, "parent_id": d.parent_id} for d in query]
             return {
-                
+                "draw": "1",
+                "recordsTotal": len(data),
+                "recordsFiltered": len(data),
                 "data": data}
         else:
             return self.next_act()
