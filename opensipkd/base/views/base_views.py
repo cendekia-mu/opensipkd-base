@@ -143,7 +143,7 @@ class BaseView(object):
 
         self.list_form = None  # List dam Form
         self.form_list = None  # Form kemudian detail list
-
+        self.global_search = False
         self.form_scripts = """
          $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
               $('#parent_id').val(datum.id);
@@ -590,9 +590,10 @@ class BaseView(object):
         if not self.columns:
             columns = []
             for d in list_schema():
-                global_search = getattr(d, "global_search", False)
+                global_search = hasattr(d, "global_search") \
+                    and getattr(d, "global_search", self.global_search) or self.global_search
                 search_method = hasattr(d, "search_method") \
-                    and getattr(d, "search_method") or "string_contains"
+                    and getattr(d, "search_method", "string_contains") or "string_contains"
                 if hasattr(d, "field"):
                     if isinstance(d.field, str):
                         columns.append(
