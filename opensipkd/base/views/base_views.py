@@ -57,9 +57,11 @@ log = logging.getLogger(__name__)
 # }
 
 class AddSchema(colander.Schema):
-    kode = colander.SchemaNode(colander.String(), title="Kode", validator=colander.Length(max=50),
+    kode = colander.SchemaNode(colander.String(), title="Kode", 
+                               validator=colander.Length(max=50),
                                search_method = "string_contains",
                                searchable = True,
+                               aligned = "text-left"
                                )
 class UploadSchema(colander.Schema):
     upload = colander.SchemaNode(
