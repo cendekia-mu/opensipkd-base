@@ -5,13 +5,9 @@
         css css|[];
         js js|[];
         ">
-
 <head>
-
     <!--<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">-->
-
     <title>${request.app_name} | ${request.company}</title>
-
     <meta name="description" content="">
     <meta name="author" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -207,8 +203,6 @@
         </span>
     </aside>
     <!-- END NAVIGATION -->
-
-
     <!-- JS -->
     <script src="${home}/static/v3/js/jquery-2.1.1.min.js"></script>
     <script>
