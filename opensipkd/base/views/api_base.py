@@ -223,6 +223,7 @@ class ApiViews(APIView):
         """
         Mengubah data menjadi list dan convert objek menjadi string
         """
+        _log.debug("Response to Client: %s", data)
         if not isinstance(data, list):
             data = [data]
         for i, item in enumerate(data):

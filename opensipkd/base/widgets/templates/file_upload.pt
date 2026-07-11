@@ -2,7 +2,7 @@
     css_class css_class|field.widget.css_class;
     style style|field.widget.style;
     preview_url cstruct.get('preview_url')|'';
-    ext str(cstruct.get('filename').split('.')[-1:][0]).lower()|[];
+    ext str(cstruct.get('filename').split('.')[-1:][0]).lower()|'';
     fname str(cstruct.get('filename'))|'';
     delete cstruct.get('delete')|'';
     maxsize field.widget.size|5242880;
@@ -10,8 +10,12 @@
     video ['avi', 'mov', 'mp4']
     ">
   ${field.start_mapping()}
+  <div class="thumbnail" tal:condition="not ext or ext ==''">
+    <img id="preview-${oid}" alt="" src="${preview_url}" style="${style}"
+          onload="window.URL.revokeObjectURL(this.src);"></img>
+  </div>
   <div class="thumbnail" tal:condition="ext in img or ext in video or ext=='pdf'">
-    <img tal:condition="ext in img" id="preview-${oid}" alt="" src="${preview_url}" style="${style}"
+    <img tal:condition="ext in img or ext" id="preview-${oid}" alt="" src="${preview_url}" style="${style}"
       onload="window.URL.revokeObjectURL(this.src);"></img>
     <video tal:condition="ext in video" style="${style}" controls src="${preview_url}" type="video/${ext}"
       id="preview-${oid}">

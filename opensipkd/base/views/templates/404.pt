@@ -1,5 +1,5 @@
 
-<html tal:define="home '';">
+<html tal:define="home request.home.strip('/');">
 <body>
   <div class="well">
     <h2>${request.app_name}</h2>
