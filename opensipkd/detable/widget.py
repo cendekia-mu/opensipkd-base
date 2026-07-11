@@ -19,7 +19,7 @@ from deform.widget import MappingWidget
 # from deform.compat import text_
 from .i18n import _
 
-# _BLANK = text_("")
+_BLANK = ""
 
 
 class TableWidget(MappingWidget):

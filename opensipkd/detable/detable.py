@@ -6,13 +6,17 @@ import re
 
 import colander
 # import deform
-# from deform import compat, widget as deform_widget, field
-from deform import field, widget as deform_widget
+from deform import widget as deform_widget, field # compat, 
+
 from . import widget
 
 log = logging.getLogger(__name__)
 
-
+sequence_types = (
+        list,
+        tuple,
+        range,
+    )
 class DeTable(field.Field):
     """
     Field representing an entire form.

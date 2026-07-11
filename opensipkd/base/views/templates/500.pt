@@ -1,4 +1,4 @@
-<html>
+<html tal:define="home request.home.strip('/');">
 
 <body>
   <div class="well">

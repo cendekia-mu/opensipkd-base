@@ -57,9 +57,11 @@ log = logging.getLogger(__name__)
 # }
 
 class AddSchema(colander.Schema):
-    kode = colander.SchemaNode(colander.String(), title="Kode", validator=colander.Length(max=50),
+    kode = colander.SchemaNode(colander.String(), title="Kode", 
+                               validator=colander.Length(max=50),
                                search_method = "string_contains",
                                searchable = True,
+                               aligned = "text-left"
                                )
 class UploadSchema(colander.Schema):
     upload = colander.SchemaNode(
@@ -143,7 +145,7 @@ class BaseView(object):
 
         self.list_form = None  # List dam Form
         self.form_list = None  # Form kemudian detail list
-
+        self.global_search = False
         self.form_scripts = """
          $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
               $('#parent_id').val(datum.id);
@@ -590,9 +592,10 @@ class BaseView(object):
         if not self.columns:
             columns = []
             for d in list_schema():
-                global_search = getattr(d, "global_search", False)
+                global_search = hasattr(d, "global_search") \
+                    and getattr(d, "global_search", self.global_search) or self.global_search
                 search_method = hasattr(d, "search_method") \
-                    and getattr(d, "search_method") or "string_contains"
+                    and getattr(d, "search_method", "string_contains") or "string_contains"
                 if hasattr(d, "field"):
                     if isinstance(d.field, str):
                         columns.append(
@@ -825,8 +828,10 @@ class BaseView(object):
 
     def view_view(self, **kwargs):
         request = self.req
-        row = self.query_id().first()
+        qry = self.query_id()
+        row = qry.first()
         if not row:
+            log.debug(str(qry.statement.compile(compile_kwargs={'literal_binds': True})))
             return self.id_not_found()
 
         self.ses["readonly"] = True
@@ -1196,6 +1201,7 @@ class BaseView(object):
         msg = f"Data yang dicari Tidak Ditemukan ID:" \
             f" {self.req.matchdict['id']}."
         self.req.session.flash(msg, 'error')
+        log.error(msg)
         return self.route_list(**kwargs)
 
     def get_values(self, row, istime=False, null=False):
@@ -1250,6 +1256,8 @@ class BaseView(object):
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
         if not row:
+            log.debug(self.query_id().statement.compile(
+                compile_kwargs={'literal_binds': True}))
             return self.id_not_found(**kwargs)
 
         if self.edit_restrict(row):
@@ -1350,6 +1358,9 @@ class BaseView(object):
         is_object = kwargs.get("is_object", self.is_object)
         kwargs["is_object"] = is_object
         if not row:
+            log.debug(str(q.statement.compile(
+                compile_kwargs={'literal_binds': True})))
+
             return self.id_not_found()
         if not self.bindings:
             self.bindings = self.get_bindings(row)

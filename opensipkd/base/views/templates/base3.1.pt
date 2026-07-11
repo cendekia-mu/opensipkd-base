@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us" tal:define="
-        home request.home;
+        home request.home.strip('/');
         user_path  ['user', 'user-add', 'user-edit', 'user-view', 'user-delete'];
         user_area_path  ['user-area', 'user-area-add', 'user-area-edit', 'user-area-view', 'user-area-delete'];
         user_dep_path  ['user-departemen', 'user-departemen-add', 'user-departemen-edit', 'user-departemen-view', 'user-departemen-delete'];

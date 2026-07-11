@@ -1,10 +1,13 @@
+from pyramid.csrf import new_csrf_token, get_csrf_token
+from iso8601.iso8601 import ISO8601_REGEX
+# from deform.widget import str
 import json
 import logging
 from pyramid.csrf import new_csrf_token, get_csrf_token
 from iso8601.iso8601 import ISO8601_REGEX
 
 
-from colander import SchemaNode, null, Mapping, Invalid  # , string_types
+from colander import SchemaNode, null, Mapping, Invalid  # , str
 # from colander import compat # tidak ada di colander 2.0
 from deform import widget
 # from deform.compat import sequence_types, text_type, text_
@@ -16,7 +19,7 @@ from deform.widget import (
 from opensipkd.tools.captcha import img_captcha
 _logging = logging.getLogger(__name__)
 
-
+sequence_types = (list, range,  tuple)
 class DokumenWidget(Widget):
     template = "opensipkd.base:/widgets/templates/dokumen.pt"
     readonly_template = "opensipkd.base:/widgets/templates/readonly/dokumen.pt"
@@ -257,12 +260,12 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
         readonly = kw.get("readonly", self.readonly)
 
         options = {}
-        if isinstance(self.values, str): #string_types
+        if isinstance(self.values, str):
             options["remote"] = "%s?term=%%QUERY" % self.values
         else:
             # vals = []
             # for v in self.values:
-            #     if not isinstance(v, str): #string_types
+            #     if not isinstance(v, str):
             #         vals.append(v[1])
             # if not vals:
             # vals = self.values
@@ -285,7 +288,7 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
             try:
                 validated = self._pstruct_schema.deserialize(pstruct)
             except Invalid as exc:
-                raise Invalid(field.schema, text_("Invalid pstruct: %s" % exc))
+                raise Invalid(field.schema, "Invalid pstruct: %s" % exc)
             auto_id = validated["auto_id"]
             auto_value = validated["auto_value"]
 
@@ -394,7 +397,7 @@ class CaptchaWidget(Widget):
     def deserialize(self, field, pstruct):
         if pstruct is null:
             return null
-        elif not isinstance(pstruct, str): #string_types
+        elif not isinstance(pstruct, str):
             raise Invalid(field.schema, "Pstruct is not a string")
         if self.strip:
             pstruct = pstruct.strip()
@@ -460,7 +463,7 @@ class ImageWidget(Widget):
     def deserialize(self, field, pstruct):
         if pstruct is null:
             return null
-        elif not isinstance(pstruct, str): # string_types
+        elif not isinstance(pstruct, str):
             raise Invalid(field.schema, "Pstruct is not a string")
         if self.strip:
             pstruct = pstruct.strip()
@@ -540,7 +543,7 @@ class MapWidget(Widget):
     def deserialize(self, field, pstruct):
         if pstruct is null:
             return null
-        elif not isinstance(pstruct, str): #string_types
+        elif not isinstance(pstruct, str):
             raise Invalid(field.schema, "Pstruct is not a string")
         if self.strip:
             pstruct = pstruct.strip()
@@ -622,7 +625,7 @@ class MapWidget(Widget):
 #     def deserialize(self, field, pstruct):
 #         if pstruct is null:
 #             return null
-#         elif not isinstance(pstruct, str): #string_types
+#         elif not isinstance(pstruct, str):
 #             raise Invalid(field.schema, "Pstruct is not a string")
 #         if self.strip:
 #             pstruct = pstruct.strip()
@@ -834,7 +837,7 @@ class TextInputWidget(widget.TextInputWidget):
     def __init__(self, **kw):
         super(TextInputWidget, self).__init__(**kw)
 
-        # if isinstance(self.button, compat.string_types):
+        # if isinstance(self.button, compat.str):
         if self.button:
             if isinstance(self.button, str):
                 self.button = Button(self.button, type="button")
@@ -893,10 +896,10 @@ class FilterWidget(Widget):
         """
 
         if self.multiple:
-            if value in map(text_type, cstruct):
+            if value in map(str, cstruct): # text_type
                 return "selected"
         else:
-            if value == text_type(cstruct):
+            if value == str(cstruct): #text_type
                 return "selected"
         return None
 
@@ -973,7 +976,7 @@ class FilterWidget(Widget):
 #     readonly = kw.get("readonly", self.readonly)
 #
 #     options = {}
-#     if isinstance(self.values, string_types):
+#     if isinstance(self.values, str):
 #         options["remote"] = "%s?term=%%QUERY" % self.values
 #     else:
 #         options["local"] = self.values
@@ -1003,7 +1006,7 @@ class CSRFWidget(widget.HiddenWidget):
         cstruct = get_csrf_token(request)
         if pstruct is null:
             return null
-        elif not isinstance(pstruct, str): #string_types
+        elif not isinstance(pstruct, str):
             raise Invalid(field.schema, "Pstruct is not a string")
         if not pstruct:
             return null
