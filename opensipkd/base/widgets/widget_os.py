@@ -1,13 +1,13 @@
-from pyramid.csrf import new_csrf_token, get_csrf_token
-from iso8601.iso8601 import ISO8601_REGEX
-from deform.widget import string_types
 import json
 import logging
+from pyramid.csrf import new_csrf_token, get_csrf_token
+from iso8601.iso8601 import ISO8601_REGEX
+
 
 from colander import SchemaNode, null, Mapping, Invalid  # , string_types
 # from colander import compat # tidak ada di colander 2.0
 from deform import widget
-from deform.compat import sequence_types, text_type, text_
+# from deform.compat import sequence_types, text_type, text_
 from deform.form import Button
 from deform.i18n import _
 from deform.widget import (
@@ -257,12 +257,12 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
         readonly = kw.get("readonly", self.readonly)
 
         options = {}
-        if isinstance(self.values, string_types):
+        if isinstance(self.values, str): #string_types
             options["remote"] = "%s?term=%%QUERY" % self.values
         else:
             # vals = []
             # for v in self.values:
-            #     if not isinstance(v, string_types):
+            #     if not isinstance(v, str): #string_types
             #         vals.append(v[1])
             # if not vals:
             # vals = self.values
@@ -394,7 +394,7 @@ class CaptchaWidget(Widget):
     def deserialize(self, field, pstruct):
         if pstruct is null:
             return null
-        elif not isinstance(pstruct, string_types):
+        elif not isinstance(pstruct, str): #string_types
             raise Invalid(field.schema, "Pstruct is not a string")
         if self.strip:
             pstruct = pstruct.strip()
@@ -460,7 +460,7 @@ class ImageWidget(Widget):
     def deserialize(self, field, pstruct):
         if pstruct is null:
             return null
-        elif not isinstance(pstruct, string_types):
+        elif not isinstance(pstruct, str): # string_types
             raise Invalid(field.schema, "Pstruct is not a string")
         if self.strip:
             pstruct = pstruct.strip()
@@ -540,7 +540,7 @@ class MapWidget(Widget):
     def deserialize(self, field, pstruct):
         if pstruct is null:
             return null
-        elif not isinstance(pstruct, string_types):
+        elif not isinstance(pstruct, str): #string_types
             raise Invalid(field.schema, "Pstruct is not a string")
         if self.strip:
             pstruct = pstruct.strip()
@@ -622,7 +622,7 @@ class MapWidget(Widget):
 #     def deserialize(self, field, pstruct):
 #         if pstruct is null:
 #             return null
-#         elif not isinstance(pstruct, string_types):
+#         elif not isinstance(pstruct, str): #string_types
 #             raise Invalid(field.schema, "Pstruct is not a string")
 #         if self.strip:
 #             pstruct = pstruct.strip()
@@ -1003,7 +1003,7 @@ class CSRFWidget(widget.HiddenWidget):
         cstruct = get_csrf_token(request)
         if pstruct is null:
             return null
-        elif not isinstance(pstruct, string_types):
+        elif not isinstance(pstruct, str): #string_types
             raise Invalid(field.schema, "Pstruct is not a string")
         if not pstruct:
             return null

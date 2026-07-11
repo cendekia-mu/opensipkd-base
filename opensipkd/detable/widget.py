@@ -16,10 +16,10 @@ from iso8601.iso8601 import ISO8601_REGEX
 from translationstring import TranslationString
 
 from deform.widget import MappingWidget
-from deform.compat import text_
+# from deform.compat import text_
 from .i18n import _
 
-_BLANK = text_("")
+# _BLANK = text_("")
 
 
 class TableWidget(MappingWidget):

@@ -6,8 +6,8 @@ import re
 
 import colander
 # import deform
-from deform import compat, widget as deform_widget, field
-
+# from deform import compat, widget as deform_widget, field
+from deform import field, widget as deform_widget
 from . import widget
 
 log = logging.getLogger(__name__)
@@ -219,7 +219,7 @@ class DeTable(field.Field):
         _scripts = []
         # buttons = Params Buttons
         for button in buttons:
-            if isinstance(button, compat.string_types):
+            if isinstance(button, str): #compat.string_types
                 button = Button(button)
             obj_buttons.append(button)
         header_buttons = []
