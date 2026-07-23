@@ -759,6 +759,8 @@ def reset_password_validator(form, value):
 def security_code_age(user):
     now = create_now()
     if user.security_code_date:
+        if not user.security_code_date.tzinfo:
+            return now - user.security_code_date.replace(tzinfo=now.tzinfo)
         return now - user.security_code_date
     return timedelta(minutes=1)
 

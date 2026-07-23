@@ -223,7 +223,7 @@ class DeTable(field.Field):
         _scripts = []
         # buttons = Params Buttons
         for button in buttons:
-            if isinstance(button, str):
+            if isinstance(button, str): #compat.string_types
                 button = Button(button)
             obj_buttons.append(button)
         header_buttons = []

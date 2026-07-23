@@ -48,6 +48,7 @@ class SearchMethods(enum.Enum):
     yadcf_range_number = 10
     yadcf_range_number_slider = 11
     yadcf_range_date = 12
+
 # SEARCH_METHODS = {
 #     'none': lambda expr, value: None,
 #     'string_contains': lambda expr, value: expr.ilike('%' + value + '%'),
@@ -156,7 +157,18 @@ class BaseView(object):
         self.filter_columns = False
         self.action_suffix = "/grid/act"
         self.html_buttons = {}
-        self.new_buttons = {}
+        self.new_buttons = {} 
+        """
+        Additional button for list 
+        {
+          "name":{
+            "obj": BtObject,
+            "js": JavaScript},
+          "name..."{
+          
+          }
+        }
+        """
 
         self.list_form = None  # List dam Form
         self.form_list = None  # Form kemudian detail list
@@ -739,10 +751,10 @@ class BaseView(object):
         data = resp.get("data", [])
         if not data:
             raise HTTPNotFound("No data to export")
-
+        
         selects = {}
         list_schema = self.list_schema()
-        #         schema = self.list_schema()
+            #         schema = self.list_schema()
         if "bindings" in kwargs and kwargs["bindings"]:
             bindings = kwargs["bindings"]
         elif self.bindings:
@@ -751,30 +763,31 @@ class BaseView(object):
             bindings = self.get_bindings()
 
         list_schema = list_schema.bind(request=self.req, **bindings)
-
+        
         for d in list_schema:
             title = hasattr(d, "title") and d.title or d.name
             values = hasattr(d, "widget") \
-                and isinstance(d.widget, (widget.SelectWidget, widget.Select2Widget)) \
+                and isinstance(d.widget , (widget.SelectWidget, widget.Select2Widget)) \
                 and d.widget.values or None
-
+            
             selects[d.name] = {"title": title,
                                "values": values,
                                "visible": hasattr(d, "visible") and d.visible or None}
         header = list(data[0].keys())
         for i, h in enumerate(header):
             header[i] = selects[h]["title"]
-
+        
         rows = []
         for d in data:
             for k, v in d.items():
                 if selects[k]["values"]:
                     select = isinstance(selects[k]["values"], dict) \
                         and selects[k]["values"].items() or dict(selects[k]["values"])
-                    d[k] = select.get(v, v)
+                    d[k] = select.get(v,v)
 
             row = list(d.values())
             rows.append(row)
+
 
         # for i, h in enumerate(header):
         #     for d in list_schema:
@@ -794,6 +807,7 @@ class BaseView(object):
         #             if is_aware_utc:
         #                 value = value.astimezone().replace(tzinfo=None)
         #             row[i] = value
+
 
         value = {
             'header': header,
@@ -1604,4 +1618,4 @@ def email_validator(node, value):
 # def get_url_captcha(request):
 #     captcha = get_captcha(request)
 #     return os.path.join(get_urls(request.route_url('home')), 'captcha', captcha)
-"""
+"""

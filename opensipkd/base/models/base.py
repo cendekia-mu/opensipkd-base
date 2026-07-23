@@ -23,7 +23,8 @@ DBSession = scoped_session(session_factory)
 register(DBSession)
 
 ziggurat_foundations.models.DBSession = DBSession
-TABLE_ARGS = dict(extend_existing=True, schema="public")
+TABLE_ARGS = dict(extend_existing=True,)
+#schema="public")
 
 
 def flush(row, db_session=DBSession):

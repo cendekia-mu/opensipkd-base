@@ -1,10 +1,13 @@
 from pyramid.csrf import new_csrf_token, get_csrf_token
 from iso8601.iso8601 import ISO8601_REGEX
-# from deform.widget import string_types
+# from deform.widget import str
 import json
 import logging
+from pyramid.csrf import new_csrf_token, get_csrf_token
+from iso8601.iso8601 import ISO8601_REGEX
 
-from colander import SchemaNode, null, Mapping, Invalid  # , string_types
+
+from colander import SchemaNode, null, Mapping, Invalid  # , str
 # from colander import compat # tidak ada di colander 2.0
 from deform import widget
 # from deform.compat import sequence_types, text_type, text_
@@ -16,7 +19,7 @@ from deform.widget import (
 from opensipkd.tools.captcha import img_captcha
 _logging = logging.getLogger(__name__)
 
-
+sequence_types = (list, range,  tuple)
 class DokumenWidget(Widget):
     template = "opensipkd.base:/widgets/templates/dokumen.pt"
     readonly_template = "opensipkd.base:/widgets/templates/readonly/dokumen.pt"
@@ -285,7 +288,7 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
             try:
                 validated = self._pstruct_schema.deserialize(pstruct)
             except Invalid as exc:
-                raise Invalid(field.schema, text_("Invalid pstruct: %s" % exc))
+                raise Invalid(field.schema, "Invalid pstruct: %s" % exc)
             auto_id = validated["auto_id"]
             auto_value = validated["auto_value"]
 
@@ -893,10 +896,10 @@ class FilterWidget(Widget):
         """
 
         if self.multiple:
-            if value in map(text_type, cstruct):
+            if value in map(str, cstruct): # text_type
                 return "selected"
         else:
-            if value == text_type(cstruct):
+            if value == str(cstruct): #text_type
                 return "selected"
         return None
 

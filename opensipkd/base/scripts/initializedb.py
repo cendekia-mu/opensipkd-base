@@ -5,6 +5,14 @@ import os
 import subprocess
 import sys
 from getpass import getpass
+from pyramid.paster import (get_appsettings, setup_logging, )
+from sqlalchemy import (engine_from_config, select, Table, inspect)
+from sqlalchemy import text
+from sqlalchemy.schema import CreateSchema
+from sqlalchemy.sql.sqltypes import BOOLEAN
+from ziggurat_foundations.models.services.user import UserService
+
+from opensipkd.tools import get_ext
 
 import transaction
 from ..models.users import (
@@ -18,15 +26,6 @@ from ..models.meta import Base
 #  Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa,
 #     Menus, Pangkat
 
-from pyramid.paster import (get_appsettings, setup_logging, )
-from sqlalchemy import (desc, engine_from_config, select, Table, inspect)
-from sqlalchemy import text
-from sqlalchemy.dialects import oracle
-from sqlalchemy.schema import CreateSchema
-from sqlalchemy.sql.sqltypes import BOOLEAN
-from ziggurat_foundations.models.services.user import UserService
-
-from opensipkd.tools import get_ext
 
 log = logging.getLogger(__name__)
 
@@ -115,6 +114,7 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
     eng = db_session.get_bind()
     q = db_session.query(table)
     if q.first():
+        log.error("Restore discarded")
         return
     with get_file_func(filename) as f:
         reader = csv.DictReader(f)
@@ -135,7 +135,7 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
                         raise e
 
                     fname_orig = t[0]
-                    schema = "public"
+                    schema = None # "public"
                     if t[1:]:
                         t_array = t[1].split('.')
                         if len(t_array) == 2:
@@ -218,7 +218,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
     # print(dir(table.__table__))
     # print("____")
     schema = hasattr(
-        table.__table__, "schema") and table.__table__.schema or "public"
+        table.__table__, "schema") and table.__table__.schema or None # "public"
     columns_table = insp.get_columns(table.__tablename__, schema)
     fields = {}
     for c in columns_table:
@@ -245,7 +245,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                         raise e
 
                     fname_orig = t[0]
-                    schema = "public"
+                    schema = None # "public"
                     if t[1:]:
                         t_array = t[1].split('.')
                         if len(t_array) == 2:
@@ -255,7 +255,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                             schema = t_array[0]
                             foreign_table = t_array[1]
                             foreign_field = t_array[2]
-
+                        log.debug("%s.%s", schema, foreign_table)
                         foreign_table = Table(foreign_table, base.metadata,
                                               # autoload=True, # merubah v1.4 ke v.2
                                               autoload_with=eng,
@@ -286,8 +286,8 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     with eng.connect() as conn:
                         q = conn.execute(sql)
                     row = q.fetchone()
-                    if not row:
-                        raise Exception(f"Foreign key value '{value}' not found in table '{foreign_table.name}' for field '{fname}'")
+                    # if not row:
+                    #     raise Exception(f"Foreign key value '{value}' not found in table '{foreign_table.name}' for field '{fname}'")
                     value = row and row.id or None
                     q.close()
                     # connection.close()
@@ -353,7 +353,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                 db_session.add(row)
                 db_session.flush()
 
-            transaction.commit()  # diperlukan commit per record khususnya untuk yang internal link
+        transaction.commit()  # diperlukan commit per record khususnya untuk yang internal link
 
 
 def ask_password(name):
@@ -377,8 +377,9 @@ def reset_sequence_(cls, seq):
 
 
 def reset_sequences():
-    reset_sequence_(User, 'users_id_seq')
-    reset_sequence_(Group, 'groups_id_seq')
+    pass
+    # reset_sequence_(User, 'users_id_seq')
+    # reset_sequence_(Group, 'groups_id_seq')
 
 
 def alembic_run(ini_file, name=None):
@@ -430,8 +431,9 @@ def main(argv=sys.argv):
             q = DBSession.query(User).filter_by(id=1)
             user = q.first()
             init_model()
-            password = ask_password(user.user_name)
-            UserService.set_password(user, password)
+            if user:
+                password = ask_password(user.user_name)
+                UserService.set_password(user, password)
         append_csv(Group, 'groups.csv', ['group_name'])
         restore_csv(UserGroup, 'users_groups.csv')
         append_csv(Permission, 'permissions.csv', ['perm_name'])

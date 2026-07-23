@@ -27,7 +27,7 @@ from .models.handlers import LogDBSession
 from .models.meta import Base
 from .models.users import init_model
 from .models import Route
-
+# from .models import TABLE_ARGS 
 # from deform import ZPTRendererFactory, Form
 # from deform.widget import default_resource_registry
 
@@ -302,10 +302,25 @@ def get_config(settings):
     return config
 
 
+# def get_schema_for_dialect(engine_dialect_name: str) -> str | None:
+#     """Returns 'public' for PostgreSQL or None for Oracle to match native defaults."""
+#     if "postgresql" in engine_dialect_name.lower():
+#         return "public"
+#     return None  # Triggers default user-schema fallback on Oracle
+
+
 def init_db(settings):
     engine = engine_from_config(
-        settings, 'sqlalchemy.', client_encoding='utf8',
+        settings, 'sqlalchemy.', 
+        # client_encoding='utf8',
         max_identifier_length=30)  # , convert_unicode=True
+
+
+    # global TABLE_ARGS
+    # # Resolve the target schema namespace dynamically based on active engine
+    # TABLE_ARGS = dict(extend_existing=True,
+    #                   schema=get_schema_for_dialect(engine.dialect.name))
+
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     Base.metadata.bind = engine
@@ -314,6 +329,13 @@ def init_db(settings):
 
 
 
+def datetime_output_handler(cursor, name, default_type, size, precision, scale):
+    """Intercepts Oracle TSTZ data types and returns them with tzinfo intact."""
+    # DB_TYPE_TIMESTAMP_TZ handles Oracle's 'TIMESTAMP WITH TIME ZONE'
+    import oracledb
+    if default_type == oracledb.DB_TYPE_TIMESTAMP_TZ:
+        return cursor.var(oracledb.DB_TYPE_TIMESTAMP_TZ, arraysize=cursor.arraysize, outconverter=lambda v: v)
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -321,6 +343,21 @@ def main(global_config, **settings):
     #     None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
     if not settings.get('localization', ''):
         settings['localization'] = 'id_ID.UTF-8'
+    
+    if settings.get("lib_dir"):
+        sqlalchemy_url = settings.get("sqlalchemy.url")
+        if  sqlalchemy_url and sqlalchemy_url.find("oracledb") > -1:
+            try:
+                import oracledb
+                oracledb.init_oracle_client(lib_dir=settings.get("lib_dir"))
+                # Apply the global configuration handler to your connection pool
+                oracledb.defaults.outputtypehandler = datetime_output_handler
+                _logging.debug("oracledb initialized")
+            except:
+                pass
+
+
+
 
     locale.setlocale(locale.LC_ALL, settings['localization'])
     if 'timezone' not in settings:

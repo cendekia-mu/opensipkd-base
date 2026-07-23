@@ -175,14 +175,18 @@ class Views(BaseView):
         return row
     def view_act(self):
         request = self.req
-        params = request.params
         url_dict = request.matchdict
         if url_dict['act'] == 'grid':
             query = Departemen.cte_get()
-            data = [{"id": d.id, "kode": d.kode, "nama": d.nama, "status": d.status,
-                     "level_id":d.level, "parent_id": d.parent_id} for d in query]
+            data = [{"id": d.id, "kode": d.kode, 
+                     "nama": d.hierarchy.startswith(
+                         '/') and d.hierarchy[1:] or d.hierarchy,
+                     "status": d.status,
+                     "level_id": d.lvl, "parent_id": d.parent_id} for d in query]
             return {
-                
+                "draw": "1",
+                "recordsTotal": len(data),
+                "recordsFiltered": len(data),
                 "data": data}
         else:
             return self.next_act()
