@@ -30,8 +30,24 @@ from ..widgets import widget_os
 from ..scripts.initializedb import append_csv
 from ..tools import obj2json
 from ...detable import DeTable
+import enum
 
 log = logging.getLogger(__name__)
+
+class SearchMethods(enum.Enum):
+    none = 0
+    string_contains = 1
+    ilike = 2
+    like = 3
+    numeric = 4
+    date = 5
+    yadcf_text = 6
+    yadcf_autocomplete = 7
+    yadcf_select = 8
+    yadcf_multi_select = 9
+    yadcf_range_number = 10
+    yadcf_range_number_slider = 11
+    yadcf_range_date = 12
 
 # SEARCH_METHODS = {
 #     'none': lambda expr, value: None,
@@ -141,7 +157,18 @@ class BaseView(object):
         self.filter_columns = False
         self.action_suffix = "/grid/act"
         self.html_buttons = {}
-        self.new_buttons = {}
+        self.new_buttons = {} 
+        """
+        Additional button for list 
+        {
+          "name":{
+            "obj": BtObject,
+            "js": JavaScript},
+          "name..."{
+          
+          }
+        }
+        """
 
         self.list_form = None  # List dam Form
         self.form_list = None  # Form kemudian detail list
@@ -725,24 +752,63 @@ class BaseView(object):
         if not data:
             raise HTTPNotFound("No data to export")
         
-        header = list(data[0].keys())
+        selects = {}
         list_schema = self.list_schema()
+            #         schema = self.list_schema()
+        if "bindings" in kwargs and kwargs["bindings"]:
+            bindings = kwargs["bindings"]
+        elif self.bindings:
+            bindings = self.bindings
+        else:
+            bindings = self.get_bindings()
+
+        list_schema = list_schema.bind(request=self.req, **bindings)
+        
+        for d in list_schema:
+            title = hasattr(d, "title") and d.title or d.name
+            values = hasattr(d, "widget") \
+                and isinstance(d.widget , (widget.SelectWidget, widget.Select2Widget)) \
+                and d.widget.values or None
+            
+            selects[d.name] = {"title": title,
+                               "values": values,
+                               "visible": hasattr(d, "visible") and d.visible or None}
+        header = list(data[0].keys())
         for i, h in enumerate(header):
-            for d in list_schema:
-                if d.name == h and hasattr(d, "title"):
-                    header[i] = d.title
-        rows = [list(item.values()) for item in data]
-        for row in rows:
-            for i, value in enumerate(row):
-                if isinstance(value, str):
-                    row[i] = self.remove_tags(value)
-                elif isinstance(value, datetime):
-                    is_aware_utc = value.tzinfo is not None \
-                        and value.tzinfo.utcoffset(value) is not None
-                    if is_aware_utc:
-                        value = value.astimezone().replace(tzinfo=None)
-                    row[i] = value
-                    
+            header[i] = selects[h]["title"]
+        
+        rows = []
+        for d in data:
+            for k, v in d.items():
+                if selects[k]["values"]:
+                    select = isinstance(selects[k]["values"], dict) \
+                        and selects[k]["values"].items() or dict(selects[k]["values"])
+                    d[k] = select.get(v,v)
+
+            row = list(d.values())
+            rows.append(row)
+
+
+        # for i, h in enumerate(header):
+        #     for d in list_schema:
+        #         if d.name == h and hasattr(d, "title"):
+        #             header[i] = d.title
+        #         if hasattr(d, "widget") and isinstance(d.widget , (widget.SelectWidget, widget.Select2Widget)):
+        #             selects[d.name] = d.widget.values
+
+        # rows = [list(item.values()) for item in data]
+        # for row in rows:
+        #     for i, value in enumerate(row):
+        #         if isinstance(value, str):
+        #             row[i] = self.remove_tags(value)
+        #         elif isinstance(value, datetime):
+        #             is_aware_utc = value.tzinfo is not None \
+        #                 and value.tzinfo.utcoffset(value) is not None
+        #             if is_aware_utc:
+        #                 value = value.astimezone().replace(tzinfo=None)
+        #             row[i] = value
+
+
         value = {
             'header': header,
             'rows': rows,
