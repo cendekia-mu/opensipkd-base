@@ -1618,4 +1618,4 @@ def email_validator(node, value):
 # def get_url_captcha(request):
 #     captcha = get_captcha(request)
 #     return os.path.join(get_urls(request.route_url('home')), 'captcha', captcha)
-"""
+"""
