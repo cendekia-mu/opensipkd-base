@@ -1,8 +1,9 @@
 import logging
-from cgi import FieldStorage
+# from cgi import FieldStorage
 import os
 from datetime import datetime
 from email.utils import parseaddr
+from multipart import MultipartPart
 import lxml
 from webob.multidict import MultiDict
 
@@ -830,7 +831,7 @@ class BaseView(object):
 
     def xls_response(self, **kwargs):
         value = self.xls_data()
-        return xls_response(self.req, value)
+        return xls_response(self.req, value, startrow=4)
 
     def csv_response(self, **kwargs):
         value = self.xls_data()
@@ -1096,7 +1097,7 @@ class BaseView(object):
             cloned = self.req.POST.items()
             control = []
             for ctrl in cloned:
-                if isinstance(ctrl[1], FieldStorage):
+                if isinstance(ctrl[1], MultipartPart): # FieldStorage
                     control.append(
                         ("__start__", f"{ctrl[0]}:mapping"))
                     control.append(("upload", ctrl[1]))
@@ -1149,7 +1150,7 @@ class BaseView(object):
                     cloned = self.req.POST.items()
                     control = []
                     for ctrl in cloned:
-                        if isinstance(ctrl[1], FieldStorage):
+                        if isinstance(ctrl[1], File):  # FieldStorage
                             control.append(
                                 ("__start__", f"{ctrl[0]}:mapping"))
                             control.append(("upload", ctrl[1]))
@@ -1356,7 +1357,8 @@ class BaseView(object):
                     cloned = request.POST.items()
                     controls = []
                     for ctrl in cloned:
-                        if isinstance(ctrl[1], FieldStorage):
+                        # FieldStorageFieldStorage):
+                        if isinstance(ctrl[1], MultipartPart):
                             controls.append(
                                 ("__start__", f"{ctrl[0]}:mapping"))
                             controls.append(("upload", ctrl[1]))

@@ -135,14 +135,16 @@ class Views(BaseView):
         return d
     
     def list_join(self, query):
-        return query.join(ResDati2, ResDati2.id == ResKecamatan.dati2_id)
+        return query.outerjoin(ResDati2, ResDati2.id == ResKecamatan.dati2_id)
 
     # @view_config(route_name='kecamatan-upload',
     #              renderer='templates/form.pt', permission='wilayah')
     def view_upload(self):
         return super().view_upload(exts=(".csv", ".tsv"))
 
-
+    def view_upload(self, **kw):
+        kw["update"]=True
+        return self.view_import(**kw)
     #     @view_config(route_name='kecamatan-view',
     #                  renderer='templates/form.pt', permission='wilayah')
     # def view_view(self):  # row = query_id(request).first()

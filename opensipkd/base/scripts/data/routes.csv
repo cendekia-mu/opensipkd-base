@@ -16,6 +16,7 @@ base-user-add,/user/add,base,user,,,,user-edit,base-user,User Add,1,0,,,form6.pt
 base-user-edit,/user/{id}/edit,base,user,,,,user-edit,base-user,User Edit,1,0,,,form6.pt,
 base-user-view,/user/{id}/view,base,user,,,,user-view,base-user,User View,1,0,,,form6.pt,
 base-user-delete,/user/{id}/delete,base,user,,,,user-edit,base-user,User Delete,1,0,,,form6.pt,
+base-user-upload,/user/upload,base,user,,,,user-edit,base-user,User Upload,1,0,,,form6.pt,
 base-partner,/partner,base,partner,,view_list,,admin,base-admin,Partner,1,0,,1,form.pt,
 base-partner-act,/partner/{act}/act,base,partner,,,,admin,base-partner,Partner Action,1,0,,,json,
 base-partner-add,/partner/add,base,partner,,,,admin,base-partner,Partner Add,1,0,,,form6.pt,
@@ -82,7 +83,7 @@ base-user-area-add,/user/area/add,base,user_area,,,,admin,base-user-area,User-ar
 base-user-area-edit,/user/area/{id}/edit,base,user_area,,,,admin,base-user-area,User-area Edit,1,0,,,form6.pt,
 base-user-area-view,/user/area/{id}/view,base,user_area,,,,admin,base-user-area,User-area View,1,0,,,form6.pt,
 base-user-area-delete,/user/area/{id}/delete,base,user_area,,,,admin,base-user-area,User-area Delete,1,0,,,form6.pt,
-base-test,/test,base,web_test_http,,view_add,,,,Test HTTP,1,0,,,test.pt
+,/test,base,web_test_http,,view_add,,,,Test HTTP,1,0,,,test.pt
 base-partner-departemen,/partner/departemen,base,posisi,,view_list,,admin,base-admin,Partner-departemen,1,0,,1,form.pt,
 base-partner-departemen-act,/partner/departemen/{act}/act,base,posisi,,,,admin,base-partner-departemen,Partner-departemen Action,1,0,,,json,
 base-partner-departemen-add,/partner/departemen/add,base,posisi,,,,admin,base-partner-departemen,Partner-departemen Add,1,0,,,form6.pt,
@@ -115,11 +116,3 @@ base-printer-add,/printer/add,base,printers,,,,printers,base-printer,Printer Add
 base-printer-edit,/printer/{id}/edit,base,printers,,,,printers,base-printer,Printer Edit,1,0,,,form6.pt,
 base-printer-view,/printer/{id}/view,base,printers,,,,printers,base-printer,Printer View,1,0,,,form6.pt,
 base-printer-delete,/printer/{id}/delete,base,printers,,,,printers,base-printer,Printer Delete,1,0,,,form6.pt,
-
-base-xhr-test,/xhr/test,,xhr_test,,view_list,,admin,base-admin,Test,1,0,,1,test_list.pt
-base-xhr-test-act,/xhr/test/{act}/act,base,xhr_test,,,,admin,base-test,Test Action,1,0,,,json,
-base-xhr-test-add,/xhr/test/add,base,xhr_test,,,,admin,base-test,Test Add,1,0,,,test_form.pt,
-base-xhr-test-edit,/xhr/test/{id}/edit,base,xhr_test,,,,admin,base-test,Test Edit,1,0,,,test_form.pt,
-base-xhr-test-view,/xhr/test/{id}/view,base,xhr_test,,,,admin,base-test,Test View,1,0,,,test_form.pt,
-base-xhr-test-delete,/xhr/test/{id}/delete,base,xhr_test,,,,admin,base-test,Test Delete,1,0,,,test_form.pt,
-base-xhr-test-api,/xhr/test/api,,xhr_test,ViewsApi,,,admin,,API Test,1,2,,,

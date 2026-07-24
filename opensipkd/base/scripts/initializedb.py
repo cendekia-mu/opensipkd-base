@@ -202,7 +202,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                db_session=DBSession, base=Base, **args):
     eng = db_session.get_bind()
 
-    update_exist = args.get("update_exist")
+    update_exist = args.get("update_exist") or args.get("update")
     callback = args.get("callback")
     delimiter = args.get("delimiter")
     ext = get_ext(filename).lower()
@@ -347,10 +347,11 @@ def append_csv(table, filename, keys, get_file_func=get_file,
             db_session.flush()
             if user:
                 print("Table: ", table.__name__, filter_)
-                row = db_session.query(User).filter_by(id=row.id).first()
+                user_ = db_session.query(User).filter_by(id=row.id).first()
                 init_model()
-                UserService.set_password(row, password)
-                db_session.add(row)
+                # UserService.set_password(user_, password)
+                user_.password = password
+                db_session.add(user_)
                 db_session.flush()
 
         transaction.commit()  # diperlukan commit per record khususnya untuk yang internal link

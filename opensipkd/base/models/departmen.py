@@ -79,48 +79,51 @@ class _Departemen(NamaModel):
                     id """
         else:
             sql = """
-               WITH RECURSIVE dep_tree AS (
-  SELECT
-    id,
-    kode,
-    nama::text AS nama,
-    parent_id,
-    status,
-    0 AS lvl,
-    ARRAY[id] AS path
-  FROM departemen
+                WITH RECURSIVE dep_tree AS (
+                SELECT
+                    id,
+                    kode,
+                    nama::text AS nama,
+                    parent_id,
+                    status,
+                    0 AS lvl,
+                    ARRAY[id] AS path
+                FROM departemen
 
-  UNION ALL
+                UNION ALL
 
-  SELECT
-    c.id,
-    c.kode,
-    ct.nama || '/' || c.nama::text AS nama,
-    c.parent_id,
-    c.status,
-    ct.lvl + 1,
-    ct.path || c.id
-  FROM departemen c
-  JOIN dep_tree ct ON c.parent_id = ct.id
-)
-SELECT DISTINCT ON (kode)
-  id,
-  kode,
-  nama as hierarchy,
-  parent_id,
-  status,
-  lvl,
-  path
-FROM dep_tree
+                SELECT
+                    c.id,
+                    c.kode,
+                    ct.nama || '/' || c.nama::text AS nama,
+                    c.parent_id,
+                    c.status,
+                    ct.lvl + 1,
+                    ct.path || c.id
+                FROM departemen c
+                JOIN dep_tree ct ON c.parent_id = ct.id
+                )
+                SELECT DISTINCT ON (kode)
+                id,
+                kode,
+                nama as hierarchy,
+                parent_id,
+                status,
+                lvl,
+                path
+                FROM dep_tree
                 """
             #.format(str_where=str_where)
 
             if search:
-                sql = f"{sql} WHERE nama ILIKE '%{search}%' "
+                sql = f"{sql} WHERE nama ILIKE :search "
 
             sql = sql+"""ORDER BY kode, path """
+        if search:
+            return cls.db_session.execute(text(sql), {"search": search}).fetchall()
+        else:
+            return cls.db_session.execute(text(sql)).fetchall()
 
-        return cls.db_session.execute(text(sql)).fetchall()
 
 
 class Departemen(_Departemen, Base):

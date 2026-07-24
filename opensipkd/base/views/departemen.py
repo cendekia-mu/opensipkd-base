@@ -1,5 +1,6 @@
 import colander
 from deform import (widget, )
+from sqlalchemy.orm import aliased
 from opensipkd.models import DBSession, Departemen
 from opensipkd.tools.buttons import btn_upload
 from ..views import BaseView
@@ -83,6 +84,7 @@ class EditSchema(AddSchema):
     id = colander.SchemaNode(colander.String(), missing=colander.drop,
                              widget=widget.HiddenWidget(readonly=True))
 
+subq = aliased(Departemen)
 
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.String(), title="Action", visible=False)
@@ -94,12 +96,12 @@ class ListSchema(colander.Schema):
                                  widget=widget.CheckboxWidget())
     level_id = colander.SchemaNode(
         colander.Integer(), title="Level", width='40pt')
-    parent_id = colander.SchemaNode(colander.String(), title="Induk")
+    parent_id = colander.SchemaNode(colander.String(), title="Induk", field=subq.nama)
     # company_nm = colander.SchemaNode(colander.String(), title="Company")
-    def after_bind(self, schema, kw):
-        request = kw.get('request')
-        schema["parent_id"].widget = widget.Select2Widget(
-            values=get_departemen_list())
+    # def after_bind(self, schema, kw):
+    #     request = kw.get('request')
+    #     schema["parent_id"].widget = widget.Select2Widget(
+    #         values=get_departemen_list())
 
 class Views(BaseView):
     def __init__(self, request):
@@ -110,7 +112,7 @@ class Views(BaseView):
         self.table = Departemen
         self.list_route = 'base-departemen'
         self.form_scripts = ""
-        self.list_buttons = self.list_buttons + (btn_upload,)
+        self.list_buttons = self.list_buttons + self.list_report+(btn_upload,)
 
     def form_validator(self, form, value):
         def err_kode():
@@ -173,25 +175,44 @@ class Views(BaseView):
             values["parent_id"] = None
         row = super().save_request(values, row)
         return row
-    def view_act(self):
-        request = self.req
-        url_dict = request.matchdict
-        if url_dict['act'] == 'grid':
-            query = Departemen.cte_get()
-            data = [{"id": d.id, "kode": d.kode, 
-                     "nama": d.hierarchy.startswith(
-                         '/') and d.hierarchy[1:] or d.hierarchy,
-                     "status": d.status,
-                     "level_id": d.lvl, "parent_id": d.parent_id} for d in query]
-            return {
-                "draw": "1",
-                "recordsTotal": len(data),
-                "recordsFiltered": len(data),
-                "data": data}
-        else:
-            return self.next_act()
+    
+    def list_join(self, query, **kwargs):
+        return query.outerjoin(subq, subq.id == self.table.parent_id)
+    
+    # def get_list(self, **kwargs):
+    #     query = Departemen.cte_get()
+    #     data = [{"id": d.id, "kode": d.kode,
+    #              "nama": d.nama,
+    #             #  d.hierarchy.startswith(
+    #             #      '/') and d.hierarchy[1:] or d.hierarchy,
+    #              "status": d.status,
+    #              "level_id": d.lvl, 
+    #              "parent_id": d.parent_id} for d in query]
+    #     return {
+    #         "draw": "1",
+    #         "recordsTotal": len(data),
+    #         "recordsFiltered": len(data),
+    #         "data": data}
 
-    def next_act(self):
+    # def view_act(self):
+    #     request = self.req
+    #     url_dict = request.matchdict
+    #     if url_dict['act'] == 'grid':
+    #         query = Departemen.cte_get()
+    #         data = [{"id": d.id, "kode": d.kode, 
+    #                  "nama": d.hierarchy.startswith(
+    #                      '/') and d.hierarchy[1:] or d.hierarchy,
+    #                  "status": d.status,
+    #                  "level_id": d.lvl, "parent_id": d.parent_id} for d in query]
+    #         return {
+    #             "draw": "1",
+    #             "recordsTotal": len(data),
+    #             "recordsFiltered": len(data),
+    #             "data": data}
+    #     else:
+    #         return self.next_act()
+
+    def next_act(self, **kwargs):
         request = self.req
         params = request.params
         url_dict = request.matchdict
@@ -211,9 +232,7 @@ class Views(BaseView):
                 r.append(d)
             return r
 
-    
-
-    def get_values(self, row, values=None):
+    def get_values(self, row, values=None, istime=False, null=False):
         if not values:
             values = row.to_dict()
         if 'parent_id' in values and values['parent_id']:
@@ -221,6 +240,7 @@ class Views(BaseView):
             values["parent_nm"] = parent.nama
             values["parent_kd"] = parent.kode
         return values
+    
     # def save_upload(self, kode, csv_row):
     #     row = Departemen.query_kode(kode).first()
     #     if not row:

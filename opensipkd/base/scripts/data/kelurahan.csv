@@ -1,0 +1,27 @@
+kode,nama,status,kecamatan_id/res_kecamatan.kode
+010.001,Kelurahan Situbatu,1,010
+010.002,Desa Neglasari,1,010
+010.003,Desa Cibeureum,1,010
+010.004,Desa Balokang,1,010
+010.005,Kelurahan Banjar,1,010
+010.006,Kelurahan Mekarsari,1,010
+010.007,Desa Jajawar,1,010
+020.001,Kelurahan Purwaharja,1,020
+020.002,Kelurahan Karangpanimbal,1,020
+020.003,Desa Raharja,1,020
+020.004,Desa Mekarharja,1,020
+030.001,Desa Binangun,1,030
+030.002,Desa Batulawang,1,030
+030.003,Desa Karyamukti,1,030
+030.004,Desa Mulyasari,1,030
+030.005,Kelurahan Pataruman,1,030
+030.006,Kelurahan Hegarsari,1,030
+030.007,Desa Sukamukti,1,030
+030.008,Desa Sinartanjung,1,030
+040.001,Desa Kujangsari,1,040
+040.002,Kelurahan Bojongkantong,1,040
+040.003,Desa Rejasari,1,040
+040.004,Desa Langensari,1,040
+040.005,Desa Langensari,1,040
+040.006,Kelurahan Muktisari,1,040
+040.007,Desa Waringisari,1,040
