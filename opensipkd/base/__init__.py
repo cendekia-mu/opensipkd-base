@@ -345,16 +345,16 @@ def main(global_config, **settings):
         settings['localization'] = 'id_ID.UTF-8'
     
     if settings.get("lib_dir"):
-        sqlalchemy_url = settings.get("sqlalchemy.url")
-        if  sqlalchemy_url and sqlalchemy_url.find("oracledb") > -1:
-            try:
-                import oracledb
-                oracledb.init_oracle_client(lib_dir=settings.get("lib_dir"))
-                # Apply the global configuration handler to your connection pool
-                oracledb.defaults.outputtypehandler = datetime_output_handler
-                _logging.debug("oracledb initialized")
-            except:
-                pass
+        # sqlalchemy_url = settings.get("sqlalchemy.url")
+        # if  sqlalchemy_url and sqlalchemy_url.find("oracledb") > -1:
+        try:
+            import oracledb
+            oracledb.init_oracle_client(lib_dir=settings.get("lib_dir"))
+            # Apply the global configuration handler to your connection pool
+            oracledb.defaults.outputtypehandler = datetime_output_handler
+            _logging.debug("oracledb initialized")
+        except:
+            pass
 
 
 
@@ -363,7 +363,7 @@ def main(global_config, **settings):
     if 'timezone' not in settings:
         settings['timezone'] = DefaultTimeZone
     # settings["captcha_files"] = "c:\\tmp\\captcha\\"
-    tmp = get_params("temp_files", tempfile.gettempdir(), settings=settings)
+    tmp = settings.get("temp_files", tempfile.gettempdir())
     settings["temp_files"] = tmp
     settings['captcha_files'] = os.path.join(tmp, "captcha") + os.sep
 

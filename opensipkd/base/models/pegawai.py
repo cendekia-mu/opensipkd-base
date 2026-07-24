@@ -13,10 +13,10 @@ from sqlalchemy.orm import (
     backref
 )
 
-from opensipkd.models import Partner
-from ..models import DBSession, Base
-from ..models import (DefaultModel, NamaModel, TABLE_ARGS,
-                      Departemen)
+# from opensipkd.models import 
+# from ..models import DBSession, 
+from . import (DefaultModel, NamaModel, TABLE_ARGS,
+               Departemen, Partner, Base)
 
 
 class Eselon(Base, NamaModel):
@@ -64,7 +64,7 @@ class PartnerDepartemen(Base, DefaultModel):
 
     @classmethod
     def query_jabatan(cls, partner_id, tanggal):
-        query = DBSession.query(cls). \
+        query = self.db_session.query(cls). \
             filter(cls.partner_id == partner_id,
                    tanggal >= cls.mulai,
                    tanggal <= cls.selesai)

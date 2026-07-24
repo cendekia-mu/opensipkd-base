@@ -677,10 +677,11 @@ class BaseView(object):
 
         row_table = DataTables(self.req.GET, query, columns)
         result = row_table.output_result()
+        
         data = result and result.get("data") or {}
+        list_url = self.req.route_url(self.list_route)
         for res in data:
-            if self.list_view_field:
-                list_url = self.req.route_url(self.list_route)
+            if self.list_view_field and kwargs.get("link") is not False:
                 res[self.list_view_field] = f"<a href='{list_url}/{res['id']}/view'>{res[self.list_view_field]}</a>"
             for k in res:
                 if k in select_list.keys():
@@ -688,10 +689,6 @@ class BaseView(object):
                     for r in vals:
                         if r and str(r) == str(res[k]):
                             res[k] = vals[r]
-        #     for k, v in d.items():
-        #         if k in url and v:
-        #             link = "/".join([self.home, nik_url, v])
-        #             d[k] =f'<a href="{link}" target="_blank">View</a>'
         return result
 
     def list_join(self, query, **kwargs):
@@ -744,9 +741,12 @@ class BaseView(object):
     #     response.content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     #     response.content_disposition = 'filename=' + filename
     #     return response.write(output.read())
+    def is_tzaware(self, dt):
+        return dt.tzinfo is not None and dt.tzinfo.utcoffset(dt) is not None
 
     def xls_data(self, **kwargs):
         self.req.GET["length"] = "-1"
+        kwargs["link"] = False
         resp = self.get_list(**kwargs)
         data = resp.get("data", [])
         if not data:
@@ -770,23 +770,36 @@ class BaseView(object):
                 and isinstance(d.widget , (widget.SelectWidget, widget.Select2Widget)) \
                 and d.widget.values or None
             
+            if hasattr(d, "visible") and d.visible is False or d.name=="id":
+                continue
+
             selects[d.name] = {"title": title,
                                "values": values,
                                "visible": hasattr(d, "visible") and d.visible or None}
         header = list(data[0].keys())
-        for i, h in enumerate(header):
-            header[i] = selects[h]["title"]
+        headers = []
+        for h in header:
+            if not selects.get(h, None):
+                continue
+            headers.append(selects[h]["title"])
         
         rows = []
+        row = []
         for d in data:
             for k, v in d.items():
+                if isinstance(v, datetime) and self.is_tzaware(v):
+                    d[k] = v.replace(tzinfo=None)
+                if not selects.get(k, None):
+                    continue
+                    
                 if selects[k]["values"]:
                     select = isinstance(selects[k]["values"], dict) \
                         and selects[k]["values"].items() or dict(selects[k]["values"])
                     d[k] = select.get(v,v)
 
-            row = list(d.values())
+                row.append(d[k])
             rows.append(row)
+            row = []
 
 
         # for i, h in enumerate(header):
@@ -810,7 +823,7 @@ class BaseView(object):
 
 
         value = {
-            'header': header,
+            'header': headers,
             'rows': rows,
         }
         return value
@@ -1618,4 +1631,4 @@ def email_validator(node, value):
 # def get_url_captcha(request):
 #     captcha = get_captcha(request)
 #     return os.path.join(get_urls(request.route_url('home')), 'captcha', captcha)
-"""
+"""
