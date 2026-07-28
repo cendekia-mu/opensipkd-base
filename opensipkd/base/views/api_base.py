@@ -51,6 +51,7 @@ class ApiViews(APIView):
         self.add_permission = None
         self.edit_permission = None
         self.delete_permission = None
+        self.req = None
         
     def get_params(self, key, default=None):
         return self.settings.get(key, default)
@@ -233,8 +234,12 @@ class ApiViews(APIView):
             data.update(msg)
         return data
 
-    def _get(self, request, *args, **kwargs):
-        self.req = request
+    def _get(self, request=None, *args, **kwargs):
+        if not request:
+            request = self.req
+        else:
+            self.req = request
+        
         if "draw" not in self.req.params:
             self.req.GET.add('draw', "1")
         if "length" not in self.req.params:
@@ -247,6 +252,7 @@ class ApiViews(APIView):
         return data
     
     def get(self, request, *args, **kwargs):
+        self.req = request
         if self.list_permission:
             if not request.has_permission(self.list_permission):
                 raise HTTPForbidden("You do not have permission to view this resource.")
@@ -293,7 +299,6 @@ class ApiViews(APIView):
         d.pop("_sa_instance_state", None)
         d.pop("db_session", None)
         return Response(json=self.success(d))
-
 
     def put(self, request, *args, **kwargs):
         if self.edit_permission:
@@ -348,3 +353,4 @@ class ApiViews(APIView):
         self.db_session.add(obj)
         self.db_session.flush()
         return obj
+
