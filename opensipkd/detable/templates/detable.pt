@@ -59,7 +59,7 @@
           -->
           
         <!-- </div> -->
-        <table id="${tableid}" class="table table-bordered table-hover table-condensed dataTable no-footer">
+        <table id="${tableid}" class="table table-bordered table-hover table-condensed no-footer" style="width: 100%;">
           <thead>
           <tr>
             <tal:block tal:repeat="child field">
@@ -258,6 +258,7 @@
         autoWidth: false,
         paginate: ${paginates},
         paging:${field.paging},
+        responsive:true,
         info: ${field.list_info},
         //searching:  ${field.list_info},
         paginationType: "full_numbers",

@@ -318,8 +318,9 @@ class ViewAuth(BaseView):
                 msg = 'Login gagal'
                 set_user_log(msg, request, log, identity)
                 if self.req.is_xhr:
-                    d = {"error": e.error.asdict()}
-                    return Response(json=d)
+                    raise HTTPNotAcceptable(explanation=msg)
+                    # d = {"error": e.error.asdict()}
+                    # return Response(json=d)
                     # d = self.form2dict(e.field)
                     # return Response(json={"data": d["children"]})
                 request.session.flash(msg, 'error')
@@ -347,11 +348,12 @@ class ViewAuth(BaseView):
             else:               
                 login = LoginUser(self.req)
                 if not login.login(values, user):
-                    request.session.flash(login.message, "error")
                     if self.req.is_xhr:
-                        return Response(json={"error": {"code": -1,
-                                                        "msg": login.message},
-                                              "data": []})
+                        raise HTTPNotAcceptable(explanation=login.message)
+                        # return Response(json={"error": {"code": -1,
+                        #                                 "msg": login.message},
+                        #                       "data": []})
+                    request.session.flash(login.message, "error")
 
                     next_url = f"{request.route_url('base-login')}?next={next_url}"
                     return HTTPFound(location=next_url)
@@ -478,6 +480,7 @@ def xhr_response(user, headers):
 
 
     }
+    headers.append(("Content-Type", "application/json"))
     return Response(json=data, headerlist=headers)
 
 

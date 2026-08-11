@@ -117,7 +117,6 @@ def get_menus(request):
             key, val = menu.strip().split('|')
             key = request.route_url(key.strip())
             val = val.strip()
-
         else:
             key = menu.strip()
             val = key.replace('/', '-')
@@ -832,13 +831,13 @@ from pyramid.response import Response
 import json
 @exception_view_config(HTTPBadRequest)
 def bad_request_view(exc, request):
+    _logging.error(f"Bad Request: {exc} from {request.url}")
     if request.matched_route.name=='base-login' :
         # Bersihkan sesi autentikasi (logout)
         headers = forget(request)
 
         # Arahkan ulang ke halaman login (misalnya route 'login')
         request.session.flash("Permintaan tidak valid. Silakan ulangi kembali. atau origin tidak diizinkan.", "error")
-        _logging.debug(f"Bad Request: {exc} from {request.url}")
         referrer = request.route_url('base-login')
         response = HTTPFound(location=referrer)
         response.headers.extend(headers)
