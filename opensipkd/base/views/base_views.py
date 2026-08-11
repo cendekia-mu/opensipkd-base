@@ -613,6 +613,8 @@ class BaseView(object):
                     and getattr(d, "search_method", "string_contains") or "string_contains"
                 if hasattr(d, "field"):
                     if isinstance(d.field, str):
+                        if d.field=="calculated":
+                            continue
                         columns.append(
                             ColumnDT(getattr(self.table, d.field),
                                      mData=d.name,
