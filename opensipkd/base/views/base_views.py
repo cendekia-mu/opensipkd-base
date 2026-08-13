@@ -833,7 +833,12 @@ class BaseView(object):
 
     def xls_response(self, **kwargs):
         value = self.xls_data()
-        return xls_response(self.req, value, startrow=4)
+        # error
+        # return xls_response(self.req, value, startrow=4)
+        
+        # 2026-08-13
+        # by Tatang
+        return xls_response(self.req, value)
 
     def csv_response(self, **kwargs):
         value = self.xls_data()
