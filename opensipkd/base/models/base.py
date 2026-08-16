@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-
+import deform
 from opensipkd.base.models.meta import Base
 import ziggurat_foundations.models
 from opensipkd.tools import as_timezone
@@ -14,9 +14,11 @@ from zope.sqlalchemy import register
 
 _logging = logging.getLogger(__name__)
 
+
 class MySession(Session):
     def execute(self, clause, params=None, mapper=None, **kw):
         return Session.execute(self, clause, params)  # , mapper
+
 
 session_factory = sessionmaker(class_=MySession)
 DBSession = scoped_session(session_factory)
@@ -24,7 +26,7 @@ register(DBSession)
 
 ziggurat_foundations.models.DBSession = DBSession
 TABLE_ARGS = dict(extend_existing=True,)
-#schema="public")
+# schema="public")
 
 
 def flush(row, db_session=DBSession):
@@ -34,6 +36,7 @@ def flush(row, db_session=DBSession):
 
 class CommonModel(object):
     db_session = DBSession
+
     def to_dict_hybrid(self):
         values = {}
         for item in sa_inspect(self.__class__).all_orm_descriptors:
@@ -71,7 +74,8 @@ class CommonModel(object):
     def from_dict(self, values, date_format="%d-%m-%Y"):
         for column in self.__table__.columns:
             if column.name in values:
-                _logging.debug(f"{column.name}: {column.type}: {values[column.name]}")
+                _logging.debug(
+                    f"{column.name}: {column.type}: {values[column.name]}")
                 if type(column.type) is DateTime and date_format:
                     if values[column.name] and type(values[column.name]) is String:
                         setattr(self, column.name,
@@ -82,21 +86,28 @@ class CommonModel(object):
     def as_timezone(self, fieldname):
         date_ = getattr(self, fieldname)
         return date_ and as_timezone(date_) or None
-    
+
     @classmethod
     def upload(cls, file, keys, **kwargs):
         get_file = kwargs.get("get_file", None)
         append_csv(cls, file, keys, get_file_func=get_file,
                    db_session=cls.db_session, dbase=Base, **kwargs)
 
-
+from deform import widget
 class DefaultModel(CommonModel):
-    id = Column(Integer, primary_key=True)
-    
+    id = Column(Integer, primary_key=True,
+                info={
+                    'colanderalchemy': {
+                        'title': 'ACT',
+                        'description': '',
+                        'widget': widget.HiddenWidget(readonly=True)
+                    }})
+
     db_session = DBSession
-    def __init__(self):
-        super().__init__()
-        self.db_session = DBSession
+
+    # def __init__(self):
+    #     super().__init__()
+    #     self.db_session = DBSession
 
     @classmethod
     def save(cls, values, row=None, **kwargs):
@@ -159,20 +170,29 @@ class DefaultModel(CommonModel):
 
 
 class StandarModel(DefaultModel):
-    status = Column(SmallInteger, nullable=False, default=0)
-    created = Column(DateTime, nullable=True, default=datetime.now().astimezone())
+    status = Column(
+        SmallInteger, nullable=False, default=0,
+        info={
+            'colanderalchemy': {
+                'widget': deform.widget.CheckboxWidget(true_val="1", false_val="0"),
+                'default': 0
+            }
+        }
+    )
+    created = Column(DateTime, nullable=True,
+                     default=datetime.now().astimezone())
     updated = Column(DateTime, nullable=True)
     create_uid = Column(Integer, nullable=True, default=1)
     update_uid = Column(Integer, nullable=True)
 
     @classmethod
     def save(cls, values, row=None, **kwargs):
-        user = kwargs.get("user", None) 
+        user = kwargs.get("user", None)
         if not row:
             values['created'] = datetime.now().astimezone()
             if user:
                 values['create_uid'] = user.id
-            status  = values.get('status', None)
+            status = values.get('status', None)
             if status is None:
                 values['status'] = 0
         else:
@@ -181,6 +201,7 @@ class StandarModel(DefaultModel):
                 values['update_uid'] = user.id
         return super().save(values, row, **kwargs)
     # New Method
+
     @classmethod
     def query_status(cls, status=0, db_session=None):
         if not db_session:
@@ -303,7 +324,8 @@ class NamaModel(KodeModel):
         if not db_session:
             db_session = cls.db_session
         return cls.query_list(db_session=db_session).all()
-    
+
+
 class TestModel(NamaModel, Base):
     __tablename__ = 'test_model'
     __table_args__ = TABLE_ARGS

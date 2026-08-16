@@ -174,11 +174,13 @@ class BaseView(object):
         self.list_form = None  # List dam Form
         self.form_list = None  # Form kemudian detail list
         self.global_search = False
-        self.form_scripts = """
-         $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
-              $('#parent_id').val(datum.id);
-              $('#parent_kd').val(datum.kode);
-        });"""
+        self.form_scripts = ""
+
+        # """
+        #  $('#parent_nm').bind('typeahead:selected', function(obj, datum) {
+        #       $('#parent_id').val(datum.id);
+        #       $('#parent_kd').val(datum.kode);
+        # });"""
         self.form_widget = None
 
         self.list_schema = colander.Schema(
@@ -435,7 +437,9 @@ class BaseView(object):
             form_params["widget"] = self.form_widget
 
         schema = class_form(**form_params)
-
+        new_form_fields = kwargs.get("new_form_fields", []) or []
+        for node in new_form_fields:
+            schema.add(node)
         schema = schema.bind(request=self.req, **bindings)
         schema.request = self.req
         if row:
@@ -677,6 +681,8 @@ class BaseView(object):
         if self.req.params.get("order[0][column]") is None:
             self.req.GET.add("order[0][column]",'0')
             self.req.GET.add("order[0][dir]",'desc')
+        
+                    
 
         row_table = DataTables(self.req.GET, query, columns)
         result = row_table.output_result()

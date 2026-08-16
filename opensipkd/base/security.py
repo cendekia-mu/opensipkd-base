@@ -1,4 +1,7 @@
 # import inspect
+from .tools.api import auth_from_rpc
+from pyramid.authorization import ACLHelper, Authenticated, Everyone
+from pyramid.authentication import AuthTktCookieHelper
 import logging
 
 # from opensipkd.tools import get_params
@@ -31,7 +34,7 @@ def get_user(request):
     if user_id:
         q = DBSession.query(User).filter_by(id=user_id)
         row = q.first()
-        #todo restrict multi browser
+        # todo restrict multi browser
         # if row and "g_state" not in request.cookies and \
         #         ("token" not in request.session or
         #             not request.session["token"] or
@@ -53,19 +56,26 @@ def get_user(request):
 #         return user
 
 
-from pyramid.authentication import AuthTktCookieHelper
-from pyramid.authorization import ACLHelper, Authenticated, Everyone
-from .tools.api import auth_from_rpc
-
 class MySecurityPolicy:
-    def __init__(self, secret):
-        self.helper = AuthTktCookieHelper(secret)
+    def __init__(self, secret,
+                #  callback=groupfinder,   # Your function to find user groups
+                 hashalg='sha512',      # Recommended modern hash algorithm
+                 http_only=True,         # Prevents JS access to the cookie
+                 secure=False,          # Set to True for HTTPS production environments
+                 samesite='Lax'):
+        self.helper = AuthTktCookieHelper(
+            secret,
+            hashalg=hashalg,      # Recommended modern hash algorithm
+            http_only=http_only,         # Prevents JS access to the cookie
+            secure=secure,          # Set to True for HTTPS production environments
+            samesite=samesite)
+
 
     def identity(self, request):
         # log.debug("MySecurityPolicy.identity")
         # log.debug(inspect.stack()[1])
         identity = self.helper.identify(request)
-        if identity is None and request.matched_route!='login':
+        if identity is None and request.matched_route != 'login':
             env = request.environ
             if 'HTTP_USERID' in env and 'HTTP_SIGNATURE' in env and 'HTTP_KEY' in env:
                 try:
@@ -73,7 +83,7 @@ class MySecurityPolicy:
                     identity = {'userid': user.id}
                 except Exception as e:
                     log.warning("Failed to authenticate from RPC: %s", e)
-                    return 
+                    return
             else:
                 return
 
@@ -92,7 +102,7 @@ class MySecurityPolicy:
 
     def permits(self, request, context, permission):
         # log.debug(f"MySecurityPolicy.permits: permission={permission}")
-        identity = request.identity                
+        identity = request.identity
         principals = set([Everyone])
         if identity is not None:
             principals.add(Authenticated)

@@ -1,5 +1,5 @@
 import logging
-import stat
+import json
 from translationstring import TranslationStringFactory
 import colander
 from pyramid.httpexceptions import (
@@ -23,6 +23,15 @@ two_minutes = timedelta(1.0 / 24 / 60)
 
 @view_config(context=HTTPNotFound, renderer='templates/404.pt')
 def not_found(request):
+    # if request.is_xhr:
+    #     response = HTTPNotFound()  # Instantiates a 404 Response object
+    #     response.body = json.dumps(
+    #         {'error': 'Not Found', 'status': 404}).encode('utf-8')
+    #     response.content_type = 'application/json'
+    #     return response  # Returning it bypasses the templates/404.pt renderer
+
+
+
     path = request.path
     registry = request.registry
     mapper = registry.queryUtility(IRoutesMapper)

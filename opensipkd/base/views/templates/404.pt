@@ -1,5 +1,8 @@
-
+<!DOCTYPE html>
 <html tal:define="home request.home.strip('/');">
+<head>
+  <title>Not Found</title> <!-- This matches the .contains('not found') check -->
+</head>
 <body>
   <div class="well">
     <h2>${request.app_name}</h2>

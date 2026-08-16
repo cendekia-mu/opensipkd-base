@@ -1,3 +1,8 @@
+from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
+import json
+from pyramid.response import Response
+from pyramid.view import exception_view_config
+from pyramid.security import forget
 import locale
 import logging
 import os
@@ -27,7 +32,7 @@ from .models.handlers import LogDBSession
 from .models.meta import Base
 from .models.users import init_model
 from .models import Route
-# from .models import TABLE_ARGS 
+# from .models import TABLE_ARGS
 # from deform import ZPTRendererFactory, Form
 # from deform.widget import default_resource_registry
 
@@ -72,9 +77,6 @@ def get_params(params, alternate=None, settings=None):
 def has_modules(module_name, context=None):
     modules = get_params("pyramid.includes").split("\n")
     return module_name in modules
-
-
-
 
 
 def get_app_name(request):
@@ -217,11 +219,19 @@ def get_config(settings):
     config = Configurator(settings=settings,
                           root_factory='opensipkd.base.models.users.RootFactory',
                           session_factory=session_factory)
-    allow_no_origin = settings.get("allow_no_origin", "false").lower() == 'true'
+    allow_no_origin = settings.get(
+        "allow_no_origin", "false").lower() == 'true'
     config.set_default_csrf_options(require_csrf=False,
                                     allow_no_origin=allow_no_origin
                                     )
-    config.set_security_policy(MySecurityPolicy(settings["session.secret"]))
+    config.set_security_policy(
+        MySecurityPolicy(
+            settings["session.secret"],
+            http_only=settings.get("session.httponly", False),
+            secure=settings.get("session.secure", False),
+            samesite=settings.get("session.samesite", 'Lax')
+        )
+    )
     config.add_request_method(get_app_name, 'app_name', reify=True)
     config.add_request_method(get_menus, 'menus', reify=True)
     config.add_request_method(get_host, '_host', reify=True)
@@ -310,10 +320,9 @@ def get_config(settings):
 
 def init_db(settings):
     engine = engine_from_config(
-        settings, 'sqlalchemy.', 
+        settings, 'sqlalchemy.',
         # client_encoding='utf8',
         max_identifier_length=30)  # , convert_unicode=True
-
 
     # global TABLE_ARGS
     # # Resolve the target schema namespace dynamically based on active engine
@@ -326,8 +335,6 @@ def init_db(settings):
     init_model()
 
 
-
-
 def datetime_output_handler(cursor, name, default_type, size, precision, scale):
     """Intercepts Oracle TSTZ data types and returns them with tzinfo intact."""
     # DB_TYPE_TIMESTAMP_TZ handles Oracle's 'TIMESTAMP WITH TIME ZONE'
@@ -335,6 +342,33 @@ def datetime_output_handler(cursor, name, default_type, size, precision, scale):
     if default_type == oracledb.DB_TYPE_TIMESTAMP_TZ:
         return cursor.var(oracledb.DB_TYPE_TIMESTAMP_TZ, arraysize=cursor.arraysize, outconverter=lambda v: v)
 
+
+from urllib.parse import unquote
+
+class CookieFixMiddleware(object):
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        # 1. Grab the raw header
+        cookie_str = environ.get('HTTP_COOKIE', '')
+        
+        if cookie_str and '%3A' in cookie_str:
+            # 2. Repair the encoded colons manually 
+            cleaned_cookies = cookie_str.replace('%3A', ':')
+            environ['HTTP_COOKIE'] = cleaned_cookies
+            
+            # 3. CRUCIAL: Obliterate WebOb's internal parsing memoizations
+            # This forces WebOb to re-read the fresh, clean 'HTTP_COOKIE' string
+            environ.pop('webob._parsed_cookies', None)
+            environ.pop('webob._parsed_cookies_raw', None)
+            
+            # Also clear any custom user properties if tracking middleware ran early
+            if 'webob.adhoc_attrs' in environ:
+                environ['webob.adhoc_attrs'].pop('cookies', None)
+
+        return self.app(environ, start_response)
+    
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -342,7 +376,7 @@ def main(global_config, **settings):
     #     None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
     if not settings.get('localization', ''):
         settings['localization'] = 'id_ID.UTF-8'
-    
+
     if settings.get("lib_dir"):
         # sqlalchemy_url = settings.get("sqlalchemy.url")
         # if  sqlalchemy_url and sqlalchemy_url.find("oracledb") > -1:
@@ -354,9 +388,6 @@ def main(global_config, **settings):
             _logging.debug("oracledb initialized")
         except:
             pass
-
-
-
 
     locale.setlocale(locale.LC_ALL, settings['localization'])
     if 'timezone' not in settings:
@@ -377,7 +408,9 @@ def main(global_config, **settings):
     BASE_CLASS.is_pylpr = settings.get("is_pylpr", "false").lower() == "true"
     config.scan(".")
     # _logging.debug(config)
-    return config.make_wsgi_app()
+    app = config.make_wsgi_app()
+    app = CookieFixMiddleware(app) # Must wrap here
+    return app
 
 
 def _add_route(config, route):
@@ -455,6 +488,7 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
                        .format(code=route["kode"], error=str(e)))
     # _logging.debug(f"Route: {route.get('kode')} {route.get('path')}")
 
+
 @subscriber(NewRequest)
 def add_cors_headers_response_callback(event):
     def cors_headers(request, response):
@@ -496,6 +530,7 @@ def add_cors_headers_response_callback(event):
 
     event.request.add_response_callback(cors_headers)
 
+
 @subscriber(NewRequest)
 def check_single_device_session(event):
     request = event.request
@@ -503,8 +538,10 @@ def check_single_device_session(event):
     if BASE_CLASS.single_device and user and not user.multi_device:
         if user.session_id != request.session.id:
             request.session.invalidate()
-            request.session.flash("Sesi Anda telah berakhir karena login dari perangkat lain.", "error")
-            raise HTTPFound(location=request.route_url('base-login'), headers=forget(request))
+            request.session.flash(
+                "Sesi Anda telah berakhir karena login dari perangkat lain.", "error")
+            raise HTTPFound(location=request.route_url(
+                'base-login'), headers=forget(request))
 
 
 @subscriber(BeforeRender)
@@ -513,7 +550,7 @@ def add_global_render(event):
     event['get_base_menus'] = BASE_CLASS.get_menus
     event['has_modules'] = has_modules
     event['get_params'] = get_params_
-    
+
     #     event['urlencode'] = urlencode
     #     event['quote_plus'] = quote_plus
     #     event['quote'] = quote
@@ -824,20 +861,17 @@ def set_routes(config, app_id=None):
     else:
         return _set_routes1(config, app_id)
 
-from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
-from pyramid.security import forget
-from pyramid.view import exception_view_config
-from pyramid.response import Response
-import json
+
 @exception_view_config(HTTPBadRequest)
 def bad_request_view(exc, request):
     _logging.error(f"Bad Request: {exc} from {request.url}")
-    if request.matched_route.name=='base-login' :
+    if request.matched_route.name == 'base-login':
         # Bersihkan sesi autentikasi (logout)
         headers = forget(request)
 
         # Arahkan ulang ke halaman login (misalnya route 'login')
-        request.session.flash("Permintaan tidak valid. Silakan ulangi kembali. atau origin tidak diizinkan.", "error")
+        request.session.flash(
+            "Permintaan tidak valid. Silakan ulangi kembali. atau origin tidak diizinkan.", "error")
         referrer = request.route_url('base-login')
         response = HTTPFound(location=referrer)
         response.headers.extend(headers)
@@ -848,12 +882,11 @@ def bad_request_view(exc, request):
             "message": exc.detail or str(exc)
         }
         return Response(
-        json_body=payload,
-        status=400,
-        content_type='application/json'
-    )
-        
-       
+            json_body=payload,
+            status=400,
+            content_type='application/json'
+        )
+
     return exc
 
 from .depreciated_base import *

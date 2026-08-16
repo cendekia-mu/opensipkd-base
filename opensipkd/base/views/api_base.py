@@ -259,7 +259,8 @@ class ApiViews(APIView):
             
         d = self._get(request, *args, **kwargs)
         d = self.get_custom_render(d)
-        return Response(json=json.loads(json.dumps(d, default=self.json_adapter)))
+        return Response(json=json.loads(json.dumps(d, default=self.json_adapter)),
+                        content_type="application/json")
     
     def post_data(self, *args, **kwargs):
         # digunakan untuk mengambil data post dari request
@@ -298,7 +299,7 @@ class ApiViews(APIView):
         d = row.__dict__
         d.pop("_sa_instance_state", None)
         d.pop("db_session", None)
-        return Response(json=self.success(d))
+        return Response(json=self.success(d), content_type="application/json")
 
     def put(self, request, *args, **kwargs):
         if self.edit_permission:
@@ -327,7 +328,8 @@ class ApiViews(APIView):
         query.delete()
         self.db_session.flush()
         self.req.session.flash("Data deleted")
-        return Response(json=self.success({}, msg={"message": "Data deleted"}))
+        return Response(json=self.success({}, msg={"message": "Data deleted"}), 
+                        content_type="application/json")
     
     
     def patch(self, data):
