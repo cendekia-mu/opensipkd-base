@@ -1,5 +1,5 @@
 import logging
-# from cgi import FieldStorage
+from cgi import FieldStorage
 import os
 from datetime import datetime
 from email.utils import parseaddr
@@ -14,6 +14,7 @@ from deform.widget import SelectWidget
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.request import Response
 from sqlalchemy import Table
+from opensipkd.tools.captcha import img_captcha
 
 # from opensipkd.base.views.upload import tmpstore
 from opensipkd.tools import dmy, get_settings, get_ext, \
@@ -861,20 +862,20 @@ class BaseView(object):
 
     def returned_form(self, form, **kwargs):
         table = kwargs.get("table", None)
-        # if self.req.is_xhr and self.req.params.get("html", "false") == "false":
-        #     data = form.cstruct
-        #     if "captcha" in form:
-        #         kode_captcha, file_name = img_captcha(self.req)
-        #         self.req.session["captcha_code"] = kode_captcha
-        #         url = self.get_captcha_url()
-        #         cstruct = url+file_name
-        #         data["captcha"] = cstruct
-        #     error = kwargs.get("error", "")
-        #     if error:
-        #         error["data"]=data
-        #         return self.resp_xhr({"error": error})
+        if self.req.is_xhr and self.req.params.get("html", "false") == "false":
+            data = form.cstruct
+            if "captcha" in form:
+                kode_captcha, file_name = img_captcha(self.req)
+                self.req.session["captcha_code"] = kode_captcha
+                url = self.get_captcha_url()
+                cstruct = url+file_name
+                data["captcha"] = cstruct
+            error = kwargs.get("error", "")
+            if error:
+                error["data"]=data
+                return self.resp_xhr({"error": error})
 
-        #     return self.resp_xhr({"data": data})
+            return self.resp_xhr({"data": data})
 
         resources = form.get_widget_resources()
         readonly = "readonly" in kwargs and kwargs["readonly"] or False
@@ -1105,7 +1106,7 @@ class BaseView(object):
             cloned = self.req.POST.items()
             control = []
             for ctrl in cloned:
-                if isinstance(ctrl[1], MultipartPart): # FieldStorage
+                if isinstance(ctrl[1], (MultipartPart, FieldStorage)): # 
                     control.append(
                         ("__start__", f"{ctrl[0]}:mapping"))
                     control.append(("upload", ctrl[1]))
@@ -1366,7 +1367,7 @@ class BaseView(object):
                     controls = []
                     for ctrl in cloned:
                         # FieldStorageFieldStorage):
-                        if isinstance(ctrl[1], MultipartPart):
+                        if isinstance(ctrl[1], (MultipartPart, FieldStorage)):
                             controls.append(
                                 ("__start__", f"{ctrl[0]}:mapping"))
                             controls.append(("upload", ctrl[1]))

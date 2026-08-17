@@ -13,8 +13,8 @@ def obj2json(values):
             elif isinstance(val, colander._null):
                 values[key] = ""
             elif isinstance(val, dict):
-                if 'fp' in val:
-                    values[key] = "FILEBLOB"
-                else:
-                    values[key] = obj2json(val)
+                # if 'fp' in val:
+                #     values[key] = val.get('preview_url') or "FILEBLOB"
+                # else:
+                values[key] = obj2json(val)
         return values
