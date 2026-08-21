@@ -109,6 +109,7 @@ class BaseView(object):
         log.debug("X-Forwarded-Server %s", request.server_name)
 
         self.ses = self.req.session
+        self.table = Table
         self.db_session = DBSession
         self.base = Base
         self.params = self.req.params
@@ -204,7 +205,6 @@ class BaseView(object):
         self.upload_exts = (".csv", ".tsv")
         self.upload_keys = ["kode"]
 
-        self.table = Table
         self.home = self.req.home
         self.buttons = None
         self.headers = None
@@ -1279,7 +1279,7 @@ class BaseView(object):
                     values[k] = lxml.html.fromstring(v).text_content()
                 except Exception as e:
                     msg = f"Error cleaning HTML for key {k}: {v} is {e}"
-                    log.error(msg)
+                    log.debug(msg)
                     # raise Exception(msg) from e
                     values[k] = v
                 

@@ -34,6 +34,7 @@ def upgrade():
               primary_key=True , nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_text_printers')),
     # schema='public'
+    if_not_exists = True
     )
     # ### end Alembic commands ###
 

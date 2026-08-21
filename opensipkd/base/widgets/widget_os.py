@@ -234,6 +234,7 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
     url = ""
     slave = ""
     template = "autocomplete_input_ms"
+    out_dict = False
 
     _pstruct_schema = SchemaNode(
         Mapping(),
@@ -251,6 +252,10 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
         if cstruct is null:
             auto_id = ""
             auto_value = ""
+        elif isinstance(cstruct, dict):
+            auto_id = cstruct["id"]
+            auto_value = cstruct["value"]
+                    
         else:
             auto_id, auto_value = cstruct.split("|", 2)
 
@@ -298,7 +303,9 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
             result = "|".join([auto_id, auto_value])
             if not auto_id or not auto_value:
                 raise Invalid(field.schema, _("Incomplete Data"), result)
-
+            if self.out_dict:
+                return {"id": auto_id,
+                        "value": auto_value}
             return result
 
 

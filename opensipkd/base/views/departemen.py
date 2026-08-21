@@ -5,12 +5,12 @@ from opensipkd.models import DBSession, Departemen
 from opensipkd.tools.buttons import btn_upload
 from ..views import BaseView
 # , get_urls
-SESS_ADD_FAILED = 'Tambah departemen gagal'
-SESS_EDIT_FAILED = 'Edit departemen gagal'
+SESS_ADD_FAILED = 'Tambah Instansi gagal'
+SESS_EDIT_FAILED = 'Edit Instansi gagal'
 
 
 def get_departemen_list():
-    r = [("", "--Pilih Departemen--")]
+    r = [("", "--Pilih Instansi--")]
     q = DBSession.query(Departemen).order_by(Departemen.nama)
     for row in q:
         g = (str(row.id), (f"{row.kode}/ {row.nama}"))
@@ -21,7 +21,7 @@ def get_departemen_list():
 @colander.deferred
 def departemen_widget(node, kw):
     values = kw.get('departemen_list', [])
-    return widget.Select2Widget(values=values, placeholder="Pilih Departemen")
+    return widget.Select2Widget(values=values, placeholder="Pilih Instansi")
 
 
 def departemen_widget_form():
@@ -31,6 +31,7 @@ def departemen_widget_form():
                       {"js": "opensipkd.base:static/js/form/departemen_form.js"}),
     )
 
+subq = aliased(Departemen)
 
 class AddSchema(colander.Schema):
     parent_id = colander.SchemaNode(
@@ -63,8 +64,9 @@ class AddSchema(colander.Schema):
     #                                  widget=company_widget,
     #                                  missing=colander.drop,
     #                                  oid="company_id")
-    status = colander.SchemaNode(colander.Integer(), 
-                                 widget=widget.CheckboxWidget(true_val="1", false_val="0"),
+    status = colander.SchemaNode(colander.Integer(),
+                                 widget=widget.CheckboxWidget(
+                                     true_val="1", false_val="0"),
                                  oid="status")
 
     def after_bind(self, schema, kwargs):
@@ -84,7 +86,6 @@ class EditSchema(AddSchema):
     id = colander.SchemaNode(colander.String(), missing=colander.drop,
                              widget=widget.HiddenWidget(readonly=True))
 
-subq = aliased(Departemen)
 
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.String(), title="Action", visible=False)
@@ -96,12 +97,16 @@ class ListSchema(colander.Schema):
                                  widget=widget.CheckboxWidget())
     level_id = colander.SchemaNode(
         colander.Integer(), title="Level", width='40pt')
-    parent_id = colander.SchemaNode(colander.String(), title="Induk", field=subq.nama)
+    parent_id = colander.SchemaNode(colander.String(), title="Induk", field = subq.nama)
     # company_nm = colander.SchemaNode(colander.String(), title="Company")
     # def after_bind(self, schema, kw):
     #     request = kw.get('request')
     #     schema["parent_id"].widget = widget.Select2Widget(
     #         values=get_departemen_list())
+
+    # def after_bind(self, schema, kw):
+    #     schema["parent_id"].field = subq.nama
+
 
 class Views(BaseView):
     def __init__(self, request):
@@ -152,7 +157,6 @@ class Views(BaseView):
         #     err_nama()
         super().form_validator(form, value)
 
-
     def update_children(self, children):
         for child in children:
             child.level_id = child.parent.level_id + 1
@@ -175,10 +179,11 @@ class Views(BaseView):
             values["parent_id"] = None
         row = super().save_request(values, row)
         return row
-    
+
     def list_join(self, query, **kwargs):
+        # subq = aliased(Departemen)
         return query.outerjoin(subq, subq.id == self.table.parent_id)
-    
+
     # def get_list(self, **kwargs):
     #     query = Departemen.cte_get()
     #     data = [{"id": d.id, "kode": d.kode,
@@ -186,7 +191,7 @@ class Views(BaseView):
     #             #  d.hierarchy.startswith(
     #             #      '/') and d.hierarchy[1:] or d.hierarchy,
     #              "status": d.status,
-    #              "level_id": d.lvl, 
+    #              "level_id": d.lvl,
     #              "parent_id": d.parent_id} for d in query]
     #     return {
     #         "draw": "1",
@@ -199,7 +204,7 @@ class Views(BaseView):
     #     url_dict = request.matchdict
     #     if url_dict['act'] == 'grid':
     #         query = Departemen.cte_get()
-    #         data = [{"id": d.id, "kode": d.kode, 
+    #         data = [{"id": d.id, "kode": d.kode,
     #                  "nama": d.hierarchy.startswith(
     #                      '/') and d.hierarchy[1:] or d.hierarchy,
     #                  "status": d.status,
@@ -240,7 +245,7 @@ class Views(BaseView):
             values["parent_nm"] = parent.nama
             values["parent_kd"] = parent.kode
         return values
-    
+
     # def save_upload(self, kode, csv_row):
     #     row = Departemen.query_kode(kode).first()
     #     if not row:
