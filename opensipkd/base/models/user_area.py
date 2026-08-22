@@ -1,11 +1,11 @@
-from . import Base, User, ResDesa, DefaultModel, UserGroup, Group
+from . import Base, User, ResDesa, DefaultModel, UserGroup, Group, TABLE_ARGS
 from sqlalchemy import ForeignKey, Integer, Column
 from sqlalchemy.orm import relationship, backref
 
 
 class UserArea(DefaultModel, Base):
     __tablename__ = "user_area"
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = TABLE_ARGS
     user_id = Column(Integer, ForeignKey(User.id))
     desa_id = Column(Integer, ForeignKey(ResDesa.id))
     desa = relationship(ResDesa, backref=backref("user_area"))

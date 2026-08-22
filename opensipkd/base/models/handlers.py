@@ -1,6 +1,6 @@
 from sqlalchemy import (Column, Integer, String, DateTime, func, Text)
 from sqlalchemy.orm import (scoped_session, sessionmaker, )
-from ..models.base import CommonModel
+from ..models import CommonModel, TABLE_ARGS
 from ..models.meta import Base
 
 factory = sessionmaker(autoflush=True, autocommit=True)
@@ -9,6 +9,8 @@ LogDBSession = scoped_session(factory)
 
 class Log(Base, CommonModel):
     __tablename__ = 'logs'
+    __table_args__ = TABLE_ARGS
+
     id = Column(Integer, primary_key=True)  # auto incrementing
     line_id = Column(String(32), nullable=False, unique=True)
     logger = Column(Text)  # the name of the logger. (e.g. myapp.views)

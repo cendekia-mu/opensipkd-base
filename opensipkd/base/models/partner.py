@@ -8,7 +8,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.orm import backref
 
-from .base import NamaModel, StandarModel
+from .base import TABLE_ARGS, NamaModel, StandarModel
 from .meta import (Base)
 from .wilayah import ResProvinsi, ResDesa, ResKecamatan, ResDati2
 
@@ -37,6 +37,7 @@ class PartnerModel(NamaModel):
 
 class Partner(Base, PartnerModel):
     __tablename__ = 'partner'
+    __table_args__ = TABLE_ARGS
     kelurahan = Column(String(128))
     kecamatan = Column(String(128))
     kota = Column(String(128))

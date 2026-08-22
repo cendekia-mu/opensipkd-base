@@ -12,7 +12,22 @@ from opensipkd.models import Base
 config = context.config
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
+public_schema = "public"
 log = logging.getLogger(__name__)
+url = config.get_main_option("sqlalchemy.url")
+if url.find("oracledb") > -1:
+    log.error("OracleDB used: %s", url)
+    try:
+        import oracledb
+        lib_dir = config.get_main_option("lib_dir")
+        if lib_dir:
+            oracledb.init_oracle_client(lib_dir=lib_dir)
+    except Exception as e:
+        log.error(f"An error occurred: {str(e)}")
+        log.error("Oracle not initialize")
+    public_schema = 'apps'
+context.public_schema = public_schema
+
 url = config.get_main_option("sqlalchemy.url")
 if url.find("oracledb") > -1:
     log.error("OracleDB used: %s", url)
@@ -28,7 +43,12 @@ if url.find("oracledb") > -1:
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-tables = ["text_printers"]
+tables = []
+x_argument = context.get_x_argument(as_dictionary=True)
+if x_argument.get("tables"):
+    tables = x_argument.get("tables").split(",")
+
+# tables = ["text_printers"]
 #alembic revision --autogenerate -m "Initial table creation"
 # add your model's MetaData object here
 # for 'autogenerate' support

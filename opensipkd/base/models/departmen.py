@@ -6,7 +6,7 @@ from ..models import (NamaModel, TABLE_ARGS)
 
 
 class _Departemen(NamaModel):
-    # __table_args__ = (TABLE_ARGS,)
+    __table_args__ = (TABLE_ARGS,)
     id = Column(Integer, primary_key=True)
     # parent_id = Column(Integer, ForeignKey('public.departemen.id'))
     parent_id = Column(Integer, ForeignKey('departemen.id'))
