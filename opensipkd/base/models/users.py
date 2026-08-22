@@ -6,7 +6,7 @@ from pyramid.authorization import (Allow, Authenticated, ALL_PERMISSIONS)
 # from sqlalchemy import TIMESTAMP
 from sqlalchemy import (
     Column, Integer, DateTime, SmallInteger, String)
-from sqlalchemy.orm import (relationship, backref)
+from sqlalchemy.orm import (declared_attr, relationship, backref)
 from ziggurat_foundations import ziggurat_model_init
 from ziggurat_foundations.models.base import BaseModel
 from ziggurat_foundations.models.external_identity import ExternalIdentityMixin
@@ -28,19 +28,92 @@ from .meta import Base
 from .base import TABLE_ARGS
 from . import ForceUTCDatetime
 log = logging.getLogger(__name__)
-class _GroupPermission(GroupPermissionMixin):
-    pass
 
 
-class GroupPermission(_GroupPermission, Base):
-    pass
+class _Resource(ResourceMixin):
+    __table_args__ = TABLE_ARGS
+
+    @declared_attr
+    def groups(self):
+        """ returns all groups that have permissions for this resource"""
+        return sa.orm.relationship(
+            "Group",
+            secondary=f"{TABLE_ARGS['schema']}.groups_resources_permissions",
+            primaryjoin="Resource.resource_id == GroupResourcePermission.resource_id",
+            secondaryjoin="Group.id == GroupResourcePermission.group_id",
+            passive_deletes=True,
+            passive_updates=True,
+            overlaps="groups,resource_permissions,group_permissions",
+        )
+
+    @declared_attr
+    def users(self):
+        """ returns all users that have permissions for this resource"""
+        return sa.orm.relationship(
+            "User",
+            secondary=f"{TABLE_ARGS['schema']}.users_resources_permissions",
+            passive_deletes=True,
+            passive_updates=True,
+            overlaps="user_permissions"
+        )
+
+    @declared_attr
+    def parent_id(self):
+        return sa.Column(
+            sa.Integer(),
+            sa.ForeignKey(
+                f"{TABLE_ARGS['schema']}.resources.resource_id", onupdate="CASCADE", ondelete="SET NULL"
+            ),
+        )
+
+    @declared_attr
+    def owner_group_id(self):
+        return sa.Column(
+            sa.Integer,
+            sa.ForeignKey(
+                f"{TABLE_ARGS['schema']}.groups.id", onupdate="CASCADE", ondelete="SET NULL"),
+            index=True,
+        )
+
+    @declared_attr
+    def owner_user_id(self):
+        return sa.Column(
+            sa.Integer,
+            sa.ForeignKey(f"{TABLE_ARGS['schema']}.users.id",
+                          onupdate="CASCADE", ondelete="SET NULL"),
+            index=True,
+        )
+
+
+class Resource(_Resource, Base):
+    __table_args__ = TABLE_ARGS
 
 
 class _UserGroup(UserGroupMixin, CommonModel):
+    __table_args__ = TABLE_ARGS
+
+    @declared_attr
+    def group_id(self):
+        return sa.Column(
+            sa.Integer,
+            sa.ForeignKey(
+                f"{TABLE_ARGS['schema']}.groups.id", onupdate="CASCADE", ondelete="CASCADE"),
+            primary_key=True,
+        )
+
+    @declared_attr
+    def user_id(self):
+        return sa.Column(
+            sa.Integer,
+            sa.ForeignKey(f"{TABLE_ARGS['schema']}.users.id",
+                          onupdate="CASCADE", ondelete="CASCADE"),
+            primary_key=True,
+        )
+
     @classmethod
     def _get_by_user(cls, user):
         return cls.db_session.query(cls).filter_by(user_id=user.id).all()
-    
+
     @classmethod
     def query(cls):
         return cls.db_session.query(cls)
@@ -52,48 +125,63 @@ class _UserGroup(UserGroupMixin, CommonModel):
             groups.append(g.group_id)
         return groups
 
+
 class UserGroup(_UserGroup, Base):
-    pass
-
-class _GroupResourcePermission(GroupResourcePermissionMixin):
-    __table_args__ = (
-        sa.PrimaryKeyConstraint(
-            "group_id",
-            "resource_id",
-            "perm_name",
-            name="pk_group_resources_permissions ",
-        ),
-        {"mysql_engine": "InnoDB", "mysql_charset": "utf8"},
-    )
+    __table_args__ = TABLE_ARGS
 
 
-class GroupResourcePermission(_GroupResourcePermission, Base):
-    pass
-    
-class _Resource(ResourceMixin):
-    pass
+class _Group(GroupMixin, CommonModel):
+    __table_args__ = TABLE_ARGS
+    member_count = Column(Integer, nullable=True, default=0)
 
-class Resource(_Resource, Base):
-    pass
+    @declared_attr
+    def users(self):
+        """ relationship for users belonging to this group"""
+        return sa.orm.relationship(
+            "User",
+            secondary=f"{TABLE_ARGS['schema']}.users_groups",
+            order_by="User.user_name",
+            passive_deletes=True,
+            passive_updates=True,
+            backref="groups",
+        )
+
+    # dynamic property - useful
+    @declared_attr
+    def users_dynamic(self):
+        """ dynamic relationship for users belonging to this group
+            one can use filter """
+        return sa.orm.relationship(
+            "User", secondary=f"{TABLE_ARGS['schema']}.users_groups", 
+            order_by="User.user_name", lazy="dynamic", overlaps="groups,users"
+        )
+
+    @classmethod
+    def query_group_name(cls, group_name):
+        return cls.db_session.query(cls).filter_by(group_name=group_name)
 
 
-class _UserPermission(UserPermissionMixin):
-    pass
-
-
-class UserPermission(_UserPermission, Base):
-    pass
-
-
-class _UserResourcePermission(UserResourcePermissionMixin):
-    pass
-
-class UserResourcePermission(_UserResourcePermission, Base):
+class Group(_Group, Base, DefaultModel):
     pass
 
 
 class _User(UserMixin, BaseModel):
     db_session = DBSession
+    __table_args__ = TABLE_ARGS
+
+    @declared_attr
+    def groups_dynamic(self):
+        """ returns dynamic relationship for groups - allowing for
+        filtering of data """
+        return sa.orm.relationship(
+            "Group",
+            secondary=f"{TABLE_ARGS['schema']}.users_groups",
+            lazy="dynamic",
+            passive_deletes=True,
+            passive_updates=True,
+            overlaps="groups,users,users_dynamic"
+        )
+
     last_login_date = Column(DateTime(timezone=True), nullable=True)
     registered_date = Column(DateTime(timezone=True),
                              nullable=False,
@@ -174,14 +262,14 @@ class _User(UserMixin, BaseModel):
 
     def get_permissions(self):
         groups = UserGroup.get_by_user(self)
-        perm_names=[]
+        perm_names = []
         for g in groups:
-            group_permissions = DBSession.query(GroupPermission).filter_by(group_id=g).all()
+            group_permissions = DBSession.query(
+                GroupPermission).filter_by(group_id=g).all()
             for gp in group_permissions:
                 if gp.perm_name not in perm_names:
                     perm_names.append(gp.perm_name)
         return perm_names
-
 
     @classmethod
     def get_by_objek(cls, user: object):
@@ -189,12 +277,12 @@ class _User(UserMixin, BaseModel):
         Misal user dari database opensipkd.base.models.users.User"""
         if not user:
             raise Exception("Parameter user is None")
-        
+
         resp = User.get_by_email(user.email)
         if not resp:
             resp = User.get_by_name(user.user_name)
         return resp
-    
+
     @classmethod
     def get_by_request(cls, request_user: object):
         """Berguna jika user berbeda database dengan database session.
@@ -233,10 +321,143 @@ class _User(UserMixin, BaseModel):
 class User(_User, DefaultModel, Base):
     pass
 
-class _ExternalIdentity(ExternalIdentityMixin):
 
-    # ,
-    # overlaps = "external_identities,owner"
+class _Permission(DefaultModel):
+    __tablename__ = 'permissions'
+    __table_args__ = (TABLE_ARGS)
+    id = Column(Integer, primary_key=True)
+    perm_name = Column(String(64), nullable=False, unique=True)
+    description = Column(String(64), nullable=False, unique=True)
+
+
+class Permission(Base,  _Permission):
+    pass
+
+
+
+class _GroupPermission(GroupPermissionMixin):
+    __table_args__ = TABLE_ARGS
+
+    @declared_attr
+    def group_id(self):
+        return sa.Column(
+            sa.Integer(),
+            sa.ForeignKey(
+                f"{TABLE_ARGS['schema']}.groups.id", onupdate="CASCADE", ondelete="CASCADE"),
+            primary_key=True,
+        )
+
+
+class GroupPermission(_GroupPermission, Base):
+    __table_args__ = (
+        sa.PrimaryKeyConstraint("group_id", "perm_name",
+                                name="pk_groups_permissions"),
+        # {"mysql_engine": "InnoDB", "mysql_charset": "utf8"},
+        TABLE_ARGS
+    )
+
+
+class _GroupResourcePermission(GroupResourcePermissionMixin):
+    __table_args__ = (
+        sa.PrimaryKeyConstraint(
+            "group_id",
+            "resource_id",
+            "perm_name",
+            name="pk_group_resources_permissions",
+        ),
+        # {"mysql_engine": "InnoDB", "mysql_charset": "utf8"},
+        TABLE_ARGS
+    )
+
+    resource_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey(
+            f"{TABLE_ARGS['schema']}.resources.resource_id", onupdate="CASCADE", ondelete="CASCADE"
+        ),
+        # primary_key=True,
+        autoincrement=False,
+    )
+
+    group_id = sa.Column(
+        sa.Integer(),  # Perbaikan sa.Integer tanpa tanda kurung juga boleh
+        sa.ForeignKey(
+            f"{TABLE_ARGS['schema']}.groups.id", onupdate="CASCADE", ondelete="CASCADE"
+        ),
+        # primary_key=True,
+    )
+
+
+class GroupResourcePermission(_GroupResourcePermission, Base):
+    """Nothing todo"""
+
+
+class _UserPermission(UserPermissionMixin):
+    __table_args__ = (
+        sa.PrimaryKeyConstraint("user_id", "perm_name",
+                                name="pk_users_permissions"),
+        # {"mysql_engine": "InnoDB", "mysql_charset": "utf8"},
+        TABLE_ARGS
+    )
+
+    @declared_attr
+    def user_id(self):
+        return sa.Column(
+            sa.Integer,
+            sa.ForeignKey(f"{TABLE_ARGS['schema']}.users.id",
+                          onupdate="CASCADE", ondelete="CASCADE"),
+            primary_key=True,
+        )
+
+
+class UserPermission(_UserPermission, Base):
+    __table_args__ = TABLE_ARGS
+
+
+class _UserResourcePermission(UserResourcePermissionMixin):
+    __table_args__ = (
+        sa.PrimaryKeyConstraint(
+            "user_id",
+            "resource_id",
+            "perm_name",
+            name="pk_users_resources_permissions ",
+        ),
+        TABLE_ARGS,
+    )
+
+    @declared_attr
+    def resource_id(self):
+        return sa.Column(
+            sa.Integer(),
+            sa.ForeignKey(
+                f"{TABLE_ARGS['schema']}.resources.resource_id", onupdate="CASCADE", ondelete="CASCADE"
+            ),
+            primary_key=True,
+            autoincrement=False,
+        )
+
+    @declared_attr
+    def user_id(self):
+        return sa.Column(
+            sa.Integer,
+            sa.ForeignKey(f"{TABLE_ARGS['schema']}.users.id",
+                          onupdate="CASCADE", ondelete="CASCADE"),
+            primary_key=True,
+        )
+
+
+class UserResourcePermission(_UserResourcePermission, Base):
+    __table_args__ = TABLE_ARGS
+
+
+class _ExternalIdentity(ExternalIdentityMixin):
+    @declared_attr
+    def local_user_id(self):
+        return sa.Column(
+            sa.Integer,
+            sa.ForeignKey(f"{TABLE_ARGS['schema']}.users.id",
+                          onupdate="CASCADE", ondelete="CASCADE"),
+            primary_key=True,
+        )
     db_session = DBSession
 
     @classmethod
@@ -264,28 +485,9 @@ class ExternalIdentity(Base, _ExternalIdentity, CommonModel):
 #     groups = relationship("Group", backref=backref('grouppermission'))
 
 
-class _Permission(DefaultModel):
-    __tablename__ = 'permissions'
-    __table_args__ = (TABLE_ARGS)
-    id = Column(Integer, primary_key=True)
-    perm_name = Column(String(64), nullable=False, unique=True)
-    description = Column(String(64), nullable=False, unique=True)
-
-
-class Permission(Base,  _Permission):
-    pass
-
-class _Group(GroupMixin, CommonModel):
-    member_count = Column(Integer, nullable=True, default=0)
-
-    @classmethod
-    def query_group_name(cls, group_name):
-        return cls.db_session.query(cls).filter_by(group_name=group_name)
-
-class Group(_Group, Base, DefaultModel):
-    pass
-    
 # It is used when there is a web request.
+
+
 class RootFactory:
     def __init__(self, request):
         if not request.authenticated_userid:
@@ -293,7 +495,7 @@ class RootFactory:
                 # (Allow, Everyone, 'view'),
             ]
             return
-        
+
         gr = DBSession.query(Group).filter_by(group_name="Superuser").first()
         gr_id = gr and gr.id or 1
         self.__acl__ = [

@@ -1358,6 +1358,7 @@ class BaseView(object):
         form = self.get_form(self.edit_schema, **kwargs)
         table = self.get_item_table(parent=row)
         kwargs["table"] = table
+        # kwargs["row"]=row
         values = self.get_values(row)
         if request.POST:
             if 'save' in request.POST:

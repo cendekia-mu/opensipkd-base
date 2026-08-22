@@ -1,2 +1,2 @@
-user_id/users.user_name,group_id/groups.group_name
+user_id/apps.users.user_name,group_id/apps.groups.group_name
 admin,Superuser
