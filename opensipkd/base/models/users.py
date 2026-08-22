@@ -450,6 +450,17 @@ class UserResourcePermission(_UserResourcePermission, Base):
 
 
 class _ExternalIdentity(ExternalIdentityMixin):
+    __table_args__ = (
+        sa.PrimaryKeyConstraint(
+            "external_id",
+            "local_user_id",
+            "provider_name",
+            name="pk_external_identities",
+        ),
+        # {"mysql_engine": "InnoDB", "mysql_charset": "utf8"},
+        TABLE_ARGS
+    )
+        
     @declared_attr
     def local_user_id(self):
         return sa.Column(
