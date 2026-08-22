@@ -9,7 +9,7 @@ class _Departemen(NamaModel):
     __table_args__ = (TABLE_ARGS,)
     id = Column(Integer, primary_key=True)
     # parent_id = Column(Integer, ForeignKey('public.departemen.id'))
-    parent_id = Column(Integer, ForeignKey('departemen.id'))
+    parent_id = Column(Integer, ForeignKey('apps.departemen.id'))
     kategori = Column(String(32))
     alamat = Column(String(255))
     singkat = Column(String(32))
