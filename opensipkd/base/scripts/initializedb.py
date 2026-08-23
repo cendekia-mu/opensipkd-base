@@ -256,10 +256,15 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                             foreign_table = t_array[1]
                             foreign_field = t_array[2]
                         log.debug("%s.%s", schema, foreign_table)
-                        foreign_table = Table(foreign_table, base.metadata,
+                        try:
+                            foreign_table = Table(foreign_table, base.metadata,
                                               # autoload=True, # merubah v1.4 ke v.2
                                               autoload_with=eng,
                                               schema=schema)
+                        except Exception as e:
+                            log.error("FTable: %s", str(e))
+                            raise ValueError(e)
+                        
                         foreign_field = getattr(foreign_table.c, foreign_field)
                         foreigns[fname] = (foreign_table, foreign_field)
 

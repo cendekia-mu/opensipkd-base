@@ -2,19 +2,17 @@ from sqlalchemy import (Column, Integer, ForeignKey,
                         String, SmallInteger, text)
 from sqlalchemy.orm import (relationship, backref, declared_attr)
 from ..models import DBSession, Base
-from ..models import (NamaModel, TABLE_ARGS)
-
+from ..models import (NamaModel, TABLE_ARGS, SCHEMA)
 
 class _Departemen(NamaModel):
     __table_args__ = (TABLE_ARGS,)
+    __tablename__ = 'departemen'
     id = Column(Integer, primary_key=True)
-    # parent_id = Column(Integer, ForeignKey('public.departemen.id'))
-    parent_id = Column(Integer, ForeignKey('apps.departemen.id'))
+    parent_id = Column(Integer, ForeignKey(SCHEMA+'.departemen.id'))
     kategori = Column(String(32))
     alamat = Column(String(255))
     singkat = Column(String(32))
     level_id = Column(SmallInteger)
-    __tablename__ = 'departemen'
 
     @declared_attr
     def children(self):

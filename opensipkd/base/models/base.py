@@ -1,16 +1,18 @@
+import os
 import logging
 from datetime import datetime
 import deform
-from opensipkd.base.models.meta import Base
+from deform import widget
 import ziggurat_foundations.models
-from opensipkd.tools import as_timezone
-from opensipkd.tools.upload import append_csv
 
 from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, func, Numeric
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import (scoped_session, sessionmaker, Session)
 from zope.sqlalchemy import register
+from opensipkd.base.models.meta import Base
+from opensipkd.tools import as_timezone
+from opensipkd.tools.upload import append_csv
 
 _logging = logging.getLogger(__name__)
 
@@ -23,10 +25,10 @@ class MySession(Session):
 session_factory = sessionmaker(class_=MySession)
 DBSession = scoped_session(session_factory)
 register(DBSession)
-
+SCHEMA = os.environ.get("PUBLIC_SCHEMA", "public")
 ziggurat_foundations.models.DBSession = DBSession
 TABLE_ARGS = dict(extend_existing=True,
-schema="apps")
+                  schema=SCHEMA)
 
 
 def flush(row, db_session=DBSession):
@@ -63,6 +65,12 @@ class CommonModel(object):
                         values[column.name] = 0
         return values
 
+    def scalar(self, stmt):
+        return self.db_session.scalar(stmt)
+
+    def execute(self, stmt):
+        return self.db_session.execute(stmt)
+
     def to_dict_without_none(self):
         values = {}
         for column in self.__table__.columns:
@@ -93,7 +101,7 @@ class CommonModel(object):
         append_csv(cls, file, keys, get_file_func=get_file,
                    db_session=cls.db_session, dbase=Base, **kwargs)
 
-from deform import widget
+
 class DefaultModel(CommonModel):
     id = Column(Integer, primary_key=True,
                 info={
@@ -324,6 +332,18 @@ class NamaModel(KodeModel):
         if not db_session:
             db_session = cls.db_session
         return cls.query_list(db_session=db_session).all()
+
+    @classmethod
+    def autocomplete(cls, request):
+        term = request.params.get("term")
+        query = (cls.query()
+                 .filter(cls.nama.ilike(f"%{term}%"))
+                 .order_by(cls.nama)
+                 .limit(100))
+        return [{
+            "id": item.id,
+            "value": item.nama
+        } for item in query.all()]
 
 
 class TestModel(NamaModel, Base):
