@@ -243,6 +243,7 @@
         //scrollY: ${field.scroll_y},
         //dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
         dom: '<"row"<"col-md-8"<"toolbar">>><"row"<"col-md-8"Bl><"col-md-4"fr>>t<"row dt-footer"<"col-md-8 sub-foot" i><"col-md-4"p>>',
+          //dom: '<"row"<"col-md-8"<"toolbar">>><"row"<"col-md-8"B><"col-md-4"f>r>>t<"row dt-footer"<"col-md-8 sub-foot"i><"col-md-4"p>>',
         processing: true,
         serverSide: ${server_side},
         <tal:block tal:condition="filter_columns">
@@ -251,7 +252,7 @@
         data: param_data,
         ajax: param_ajax,
         stateSave: ${state_save},
-        scrollCollapse: true,
+        scrollCollapse: false,
         sort: ${sorts},
         info: true,
         filter: ${filters},

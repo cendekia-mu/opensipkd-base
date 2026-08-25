@@ -333,16 +333,21 @@ class NamaModel(KodeModel):
         return cls.query_list(db_session=db_session).all()
 
     @classmethod
-    def autocomplete(cls, request):
+    def autocomplete(cls, request, all_departemen=False):
         term = request.params.get("term")
-        query = (cls.query()
+        if request.user and request.user.departemens:
+            rows = request.user.departemens
+        elif all_departemen:
+            rows = (cls.query()
                  .filter(cls.nama.ilike(f"%{term}%"))
                  .order_by(cls.nama)
-                 .limit(100))
+                 .limit(100)).all()
+        else:
+            return []
         return [{
             "id": item.id,
             "value": item.nama
-        } for item in query.all()]
+        } for item in rows]
 
 
 class TestModel(NamaModel, Base):

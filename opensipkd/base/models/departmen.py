@@ -1,8 +1,9 @@
 from sqlalchemy import (Column, Integer, ForeignKey,
-                        String, SmallInteger, text)
+                        String, SmallInteger, text, select)
 from typing import List
 from sqlalchemy.orm import (relationship, backref,
-                            declared_attr, mapped_column, Mapped)
+                            declared_attr, mapped_column, Mapped,
+                            )
 from .users import _User
 from ..models import DBSession, Base
 from ..models import (NamaModel, TABLE_ARGS, SCHEMA)
@@ -131,6 +132,7 @@ class _Departemen(NamaModel):
 class _UserDepartemen(object):
     __tablename__ = 'users_departemen'
     __table_args__ = TABLE_ARGS
+    db_session = None
     @declared_attr
     def user_id(self) -> Mapped[int]:
         return mapped_column(Integer, ForeignKey(f"{schema}.users.id"), primary_key=True)
@@ -138,6 +140,10 @@ class _UserDepartemen(object):
     @declared_attr
     def departemen_id(self) -> Mapped[int]:
         return mapped_column(ForeignKey(f"{schema}.departemen.id"), primary_key=True)
+
+    @classmethod
+    def query(cls):
+        return cls.db_session.query(cls)
 
 
 class UserDepartemen(_UserDepartemen, Base):
