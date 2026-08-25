@@ -1,3 +1,6 @@
+import re
+from pyramid.threadlocal import get_current_registry
+from pyramid.interfaces import IRoutesMapper
 import logging
 from cgi import FieldStorage
 import os
@@ -35,6 +38,7 @@ from ...detable import DeTable
 import enum
 
 log = logging.getLogger(__name__)
+
 
 class SearchMethods(enum.Enum):
     none = 0
@@ -74,18 +78,24 @@ class SearchMethods(enum.Enum):
 #     '<=': lambda expr, value: expr <= value,
 # }
 
+
 class AddSchema(colander.Schema):
-    kode = colander.SchemaNode(colander.String(), title="Kode", 
+    kode = colander.SchemaNode(colander.String(), title="Kode",
                                validator=colander.Length(max=50),
-                               search_method = "string_contains",
-                               searchable = True,
-                               aligned = "text-left"
+                               search_method="string_contains",
+                               searchable=True,
+                               aligned="text-left"
                                )
+
+
 class UploadSchema(colander.Schema):
     upload = colander.SchemaNode(
         FileData(),
         widget=widget.FileUploadWidget(mem_tmp_store),
         title='Unggah')
+    update_exists = colander.SchemaNode(
+        colander.Boolean(),
+        title='Update Exists')
 
 
 class CSRFSchema(colander.Schema):
@@ -93,9 +103,7 @@ class CSRFSchema(colander.Schema):
         colander.String(),
         widget=widget_os.CSRFWidget(),
     )
-import re
-from pyramid.interfaces import IRoutesMapper
-from pyramid.threadlocal import get_current_registry
+
 
 class BaseView(object):
     def __init__(self, request):
@@ -104,7 +112,8 @@ class BaseView(object):
             log.debug(f"{key}: {value}")
         log.debug("Init xhr: %s", self.req.is_xhr)
         log.debug("X-Forwarded-Scheme %s", request.scheme)
-        log.debug("Changes http to https so %s",  request.route_url('base-home'))
+        log.debug("Changes http to https so %s",
+                  request.route_url('base-home'))
         log.debug("X-Forwarded-Host %s", request.host)
         log.debug("X-Forwarded-Server %s", request.server_name)
 
@@ -146,7 +155,7 @@ class BaseView(object):
         self.allow_post = False
         self.allow_unpost = False
         self.allow_check = False
-        # Digunakan untuk menentukan operasi spesific check 
+        # Digunakan untuk menentukan operasi spesific check
         self.check_sum = False
         self.check_sum_field = ""
         self.check_field = ""
@@ -160,7 +169,7 @@ class BaseView(object):
         self.filter_columns = False
         self.action_suffix = "/grid/act"
         self.html_buttons = {}
-        self.new_buttons = {} 
+        self.new_buttons = {}
         """
         Additional button for list 
         {
@@ -344,7 +353,7 @@ class BaseView(object):
         reg = get_current_registry()  # b/c
         mapper = reg.getUtility(IRoutesMapper)
         return mapper.get_route(route_name)
-    
+
     def get_routes(self):
         """
         Digunakan untuk mendapatkan default url apabila list_url tidak ada
@@ -379,18 +388,17 @@ class BaseView(object):
         exc = colander.Invalid(form, "Form tidak valid")
         for k, v in value.items():
             if v and self.html_tag_cleaner and isinstance(v, str) and v.strip() != "":
-                try:    
+                try:
                     value[k] = lxml.html.fromstring(v).text_content()
                 except Exception as e:
                     msg = f"Error cleaning HTML for key {k}: {e}"
                     log.error(msg)
                     try:
                         exc[k] = msg
-                        value[k]  = v
+                        value[k] = v
                     except:
                         pass
                     # raise exc from e
-
 
     """
     def form_validate(self, form, err_value, **kwargs):
@@ -478,7 +486,7 @@ class BaseView(object):
         allow_post = kwargs.get("allow_post", self.allow_post)
         allow_unpost = kwargs.get("allow_unpost", self.allow_unpost)
         allow_check = kwargs.get("allow_check", self.allow_check)
-        
+
         check_sum = kwargs.get("check_sum", self.check_sum)
         check_sum_field = kwargs.get("check_sum_field", self.check_sum_field)
         check_field = kwargs.get("check_field", self.check_field)
@@ -502,7 +510,6 @@ class BaseView(object):
         parent = kwargs.get("parent")
 
         list_paging = kwargs.get("list_paging") or self.list_paging
-
 
         kwargs.pop("allow_view", None)
         kwargs.pop("allow_edit", None)
@@ -602,7 +609,7 @@ class BaseView(object):
             return self.csv1_response(**kwargs)
         elif url_dict['act'] == 'pdf':
             return self.pdf_response(**kwargs)
-        
+
         elif url_dict['act'] == 'xls':
             return self.xls_response(**kwargs)
 
@@ -631,7 +638,7 @@ class BaseView(object):
                     and getattr(d, "search_method", "string_contains") or "string_contains"
                 if hasattr(d, "field"):
                     if isinstance(d.field, str):
-                        if d.field=="calculated":
+                        if d.field == "calculated":
                             continue
                         columns.append(
                             ColumnDT(getattr(self.table, d.field),
@@ -680,14 +687,12 @@ class BaseView(object):
         # qry = query.add_columns(*[c.sqla_expr for c in columns])
         # log.debug(str(qry))
         if self.req.params.get("order[0][column]") is None:
-            self.req.GET.add("order[0][column]",'0')
-            self.req.GET.add("order[0][dir]",'desc')
-        
-                    
+            self.req.GET.add("order[0][column]", '0')
+            self.req.GET.add("order[0][dir]", 'desc')
 
         row_table = DataTables(self.req.GET, query, columns)
         result = row_table.output_result()
-        
+
         data = result and result.get("data") or {}
         list_url = self.req.route_url(self.list_route)
         for res in data:
@@ -732,10 +737,10 @@ class BaseView(object):
         # Regular expression pattern to match HTML tags
         clean_text = re.sub(r'<[^>]+>', '', text)
         return clean_text
-    
+
     # def render_xls(self, header, rows):
     #     output = io.BytesIO()
-        
+
     #     workbook = xlsxwriter.Workbook(output)
     #     worksheet = workbook.add_worksheet("Sheet 1")
     #     for col_num, header in enumerate(header):
@@ -761,10 +766,10 @@ class BaseView(object):
         data = resp.get("data", [])
         if not data:
             raise HTTPNotFound("No data to export")
-        
+
         selects = {}
         list_schema = self.list_schema()
-            #         schema = self.list_schema()
+        #         schema = self.list_schema()
         if "bindings" in kwargs and kwargs["bindings"]:
             bindings = kwargs["bindings"]
         elif self.bindings:
@@ -773,14 +778,14 @@ class BaseView(object):
             bindings = self.get_bindings()
 
         list_schema = list_schema.bind(request=self.req, **bindings)
-        
+
         for d in list_schema:
             title = hasattr(d, "title") and d.title or d.name
             values = hasattr(d, "widget") \
-                and isinstance(d.widget , (widget.SelectWidget, widget.Select2Widget)) \
+                and isinstance(d.widget, (widget.SelectWidget, widget.Select2Widget)) \
                 and d.widget.values or None
-            
-            if hasattr(d, "visible") and d.visible is False or d.name=="id":
+
+            if hasattr(d, "visible") and d.visible is False or d.name == "id":
                 continue
 
             selects[d.name] = {"title": title,
@@ -792,7 +797,7 @@ class BaseView(object):
             if not selects.get(h, None):
                 continue
             headers.append(selects[h]["title"])
-        
+
         rows = []
         row = []
         for d in data:
@@ -801,16 +806,15 @@ class BaseView(object):
                     d[k] = v.replace(tzinfo=None)
                 if not selects.get(k, None):
                     continue
-                    
+
                 if selects[k]["values"]:
                     select = isinstance(selects[k]["values"], dict) \
                         and selects[k]["values"].items() or dict(selects[k]["values"])
-                    d[k] = select.get(v,v)
+                    d[k] = select.get(v, v)
 
                 row.append(d[k])
             rows.append(row)
             row = []
-
 
         # for i, h in enumerate(header):
         #     for d in list_schema:
@@ -830,7 +834,6 @@ class BaseView(object):
         #             if is_aware_utc:
         #                 value = value.astimezone().replace(tzinfo=None)
         #             row[i] = value
-
 
         value = {
             'header': headers,
@@ -872,7 +875,7 @@ class BaseView(object):
                 data["captcha"] = cstruct
             error = kwargs.get("error", "")
             if error:
-                error["data"]=data
+                error["data"] = data
                 return self.resp_xhr({"error": error})
 
             return self.resp_xhr({"data": data})
@@ -904,7 +907,7 @@ class BaseView(object):
                     )
 
     def view_buttons(self, row):
-        result =[]
+        result = []
         if self.route_found(self.list_route+"-edit"):
             result.append(btn_edit)
         if self.route_found(self.list_route+"-delete"):
@@ -920,7 +923,8 @@ class BaseView(object):
         qry = self.query_id()
         row = qry.first()
         if not row:
-            log.debug(str(qry.statement.compile(compile_kwargs={'literal_binds': True})))
+            log.debug(str(qry.statement.compile(
+                compile_kwargs={'literal_binds': True})))
             return self.id_not_found()
 
         self.ses["readonly"] = True
@@ -1034,8 +1038,11 @@ class BaseView(object):
 
                 fullpath = os.path.join(folder, file_name)
                 try:
+                    kw["update_exists"] = self.req.POST.get(
+                        "update_exists", False)
                     self.save_upload(fullpath, **kw)
                 except Exception as e:
+                    kw.pop("update_exists", None)
                     self.req.session.flash(str(e), 'error')
                     return self.returned_form(form, **kw)
 
@@ -1050,8 +1057,10 @@ class BaseView(object):
 
     def save_upload(self, file_name, **args):
         args.pop("table", None)
+        update_exists = args.get("update_exists", False)
+        args.pop("update_exists", None)
         return append_csv(self.table, file_name, self.upload_keys,
-                          get_file_func=self.get_file, update_exist=True,
+                          get_file_func=self.get_file, update_exist=update_exists,
                           db_session=self.db_session, base=self.base,
                           **args)
 
@@ -1098,7 +1107,7 @@ class BaseView(object):
             elif val:
                 value[k] = cstruct.get(k)
         return value
-    
+
     def form_validation(self, form, **kwargs):
         table = kwargs.get("table", None)
         controls = self.req.POST.items()
@@ -1106,7 +1115,7 @@ class BaseView(object):
             cloned = self.req.POST.items()
             control = []
             for ctrl in cloned:
-                if isinstance(ctrl[1], (MultipartPart, FieldStorage)): # 
+                if isinstance(ctrl[1], (MultipartPart, FieldStorage)):
                     control.append(
                         ("__start__", f"{ctrl[0]}:mapping"))
                     control.append(("upload", ctrl[1]))
@@ -1141,7 +1150,6 @@ class BaseView(object):
             kwargs["table"] = table
             return self.returned_form(form, **kwargs)
         return dict(c)
-        
 
     def view_add(self, **kwargs):
         # bindings = self.get_bindings()
@@ -1216,14 +1224,14 @@ class BaseView(object):
         self.ses["old_email"] = user and user.email or None
         for k, v in values.items():
             if v and self.html_tag_cleaner and isinstance(v, str) and v.strip() != "":
-                try:    
+                try:
                     values[k] = lxml.html.fromstring(v).text_content()
                 except Exception as e:
                     msg = f"Error cleaning HTML for key {k}: {v} is {e}"
                     log.error(msg)
                     # raise Exception(msg) from e
                     values[k] = v
-                
+
         if not row:
             row = self.table()
             if hasattr(row, "created"):
@@ -1272,19 +1280,18 @@ class BaseView(object):
             if k not in values:
                 if v:
                     values[k] = v
-            
+
         for k, v in values.items():
             if v and self.html_tag_cleaner and isinstance(v, str) and v.strip() != "":
-                try:    
+                try:
                     values[k] = lxml.html.fromstring(v).text_content()
                 except Exception as e:
                     msg = f"Error cleaning HTML for key {k}: {v} is {e}"
                     log.debug(msg)
                     # raise Exception(msg) from e
                     values[k] = v
-                
-        return self.save(values, self.req.user, row)
 
+        return self.save(values, self.req.user, row)
 
     def id_not_found(self, **kwargs):
         msg = f"Data yang dicari Tidak Ditemukan ID:" \
@@ -1428,11 +1435,11 @@ class BaseView(object):
 
     def view_delete(self, **kwargs):
         request = self.req
-        
+
         q = self.query_id()
         if self.allow_check:
-            q=self.query_delete()
-            rcount=q.count()
+            q = self.query_delete()
+            rcount = q.count()
             try:
                 q.delete(synchronize_session='fetch')
                 self.db_session.flush()
@@ -1443,7 +1450,7 @@ class BaseView(object):
                     f"Pastikan data tidak berelasi dengan data lain. "
                     f"Error: {str(e)}", "error")
             return self.route_list()
-        
+
         self.ses["readonly"] = True
         row = q.first()
         is_object = kwargs.get("is_object", self.is_object)
@@ -1467,7 +1474,7 @@ class BaseView(object):
                 q.delete()
                 self.db_session.flush()
                 request.session.flash(msg)
-                
+
             return self.route_list()
         form = self.get_form(
             self.edit_schema, buttons=(btn_delete, btn_cancel))
@@ -1478,14 +1485,13 @@ class BaseView(object):
         kwargs["readonly"] = True
         kwargs["table"] = table
         return self.returned_form(form, **kwargs)
-    
+
     def query_delete(self):
         id_ = self.req.matchdict['id']
         if id_ == 'all':
             ids_ = [int(i) for i in self.req.params.get("ids").split(",")]
             return self.table.query().filter(self.table.id.in_(ids_))
         return self.table.query_id(id_)
-
 
     def query_id(self, id_=None):
         id_ = id_ or self.req.matchdict['id']
@@ -1560,7 +1566,7 @@ class BaseView(object):
     def save_file(self, values, field, path=None, filename=None):
         """digunakan untuk menyimpan file upload dari form
         Args:
-        
+
         """
         if field in values and values[field]:
             value = values[field]

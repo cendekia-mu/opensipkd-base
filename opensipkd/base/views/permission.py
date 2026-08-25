@@ -8,6 +8,7 @@ from ..views import BaseView
 SESS_ADD_FAILED = 'Tambah permission gagal'
 SESS_EDIT_FAILED = 'Edit permission gagal'
 
+
 class ListSchema(colander.Schema):
     id = colander.SchemaNode(
         colander.String(),
@@ -26,13 +27,16 @@ class ListSchema(colander.Schema):
         oid="description",
         title="Diskripsi",
         global_search=True)
-    
+
+
 class EditSchema(ListSchema):
     pass
+
 
 class AddSchema(EditSchema):
     def after_bind(self, schema, kwargs):
         del schema['id']
+
 
 class Views(BaseView):
     def __init__(self, request):
@@ -43,3 +47,5 @@ class Views(BaseView):
         self.edit_schema = EditSchema
         self.table = Permission
         self.list_schema = EditSchema
+        self.list_buttons += self.list_upload
+        self.upload_keys = ["perm_name"]

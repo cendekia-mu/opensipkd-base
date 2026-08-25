@@ -1,12 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
-
+from typing import List
 import sqlalchemy as sa
 from pyramid.authorization import (Allow, Authenticated, ALL_PERMISSIONS)
 # from sqlalchemy import TIMESTAMP
 from sqlalchemy import (
     Column, Integer, DateTime, SmallInteger, String)
-from sqlalchemy.orm import (declared_attr, relationship, backref)
+from sqlalchemy.orm import (
+    declared_attr, relationship, backref, Mapped, mapped_column)
 from ziggurat_foundations import ziggurat_model_init
 from ziggurat_foundations.models.base import BaseModel
 from ziggurat_foundations.models.external_identity import ExternalIdentityMixin
@@ -26,10 +27,29 @@ from opensipkd.tools import as_timezone
 from .base import CommonModel, DBSession, DefaultModel
 from .meta import Base
 from .base import TABLE_ARGS
-from . import ForceUTCDatetime
 log = logging.getLogger(__name__)
 
+class ForceUTCDatetime(sa.TypeDecorator):
+    """Ensures datetimes are timezone-aware UTC objects across both DBs."""
+    impl = sa.TIMESTAMP(timezone=True)
+    cache_ok = True
 
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            if value.tzinfo is None:
+                # Interpret naive datetime as UTC or handle according to business logic
+                value = value.replace(tzinfo=timezone.utc)
+            else:
+                # Convert any other timezone directly to UTC
+                value = value.astimezone(timezone.utc)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None and value.tzinfo is None:
+            # Force the Python object to be aware if Oracle stripped the offset
+            return value.replace(tzinfo=timezone.utc)
+        return value
+    
 class _Resource(ResourceMixin):
     __table_args__ = TABLE_ARGS
 
@@ -152,7 +172,7 @@ class _Group(GroupMixin, CommonModel):
         """ dynamic relationship for users belonging to this group
             one can use filter """
         return sa.orm.relationship(
-            "User", secondary=f"{TABLE_ARGS['schema']}.users_groups", 
+            "User", secondary=f"{TABLE_ARGS['schema']}.users_groups",
             order_by="User.user_name", lazy="dynamic", overlaps="groups,users"
         )
 
@@ -319,7 +339,9 @@ class _User(UserMixin, BaseModel):
 
 
 class User(_User, DefaultModel, Base):
-    pass
+    departemens: Mapped[List["Departemen"]] = relationship(
+        secondary=f"{TABLE_ARGS['schema']}.users_departemen",
+        back_populates="users")
 
 
 class _Permission(DefaultModel):
@@ -332,7 +354,6 @@ class _Permission(DefaultModel):
 
 class Permission(Base,  _Permission):
     pass
-
 
 
 class _GroupPermission(GroupPermissionMixin):
@@ -460,7 +481,7 @@ class _ExternalIdentity(ExternalIdentityMixin):
         # {"mysql_engine": "InnoDB", "mysql_charset": "utf8"},
         TABLE_ARGS
     )
-        
+
     @declared_attr
     def local_user_id(self):
         return sa.Column(

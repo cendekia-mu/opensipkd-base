@@ -43,7 +43,7 @@ class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.Integer(), visible=False, title="Action")
     group_name = colander.SchemaNode(
         colander.String(),
-         global_search=True, )
+        global_search=True, )
     description = colander.SchemaNode(colander.String(),
                                       global_search=True,)
 
@@ -56,6 +56,8 @@ class Views(BaseView):
         self.table = Group
         self.add_schema = AddSchema
         self.edit_schema = EditSchema
+        self.list_buttons += self.list_upload
+        self.upload_keys = ["group_name"]
 
     def get_bindings(self, row=None):
         return dict(group=row,
@@ -77,7 +79,6 @@ class Views(BaseView):
                 r.append(d)
             return r
 
-
     def save_request(self, values, row=None):
         insert = not row
         vals = values.copy()
@@ -97,10 +98,12 @@ class Views(BaseView):
             self.db_session.add(gp)
         data = dict(group_name=row.group_name)
         if insert:
-            ts = _('group-added', default='{group_name} group has been added.', mapping=data)
+            ts = _('group-added',
+                   default='{group_name} group has been added.', mapping=data)
 
         else:
-            ts = _('group-updated', default='${group_name} group profile updated', mapping=data)
+            ts = _('group-updated',
+                   default='${group_name} group profile updated', mapping=data)
         self.ses.flash(ts)
         return row
 
@@ -116,7 +119,6 @@ class Views(BaseView):
             default='{group_name} group has been deleted.',
             mapping=data)
         self.ses.flash(ts)
-
 
 
 def clean_name(s):

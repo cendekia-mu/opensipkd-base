@@ -1,8 +1,13 @@
 from sqlalchemy import (Column, Integer, ForeignKey,
                         String, SmallInteger, text)
-from sqlalchemy.orm import (relationship, backref, declared_attr)
+from typing import List
+from sqlalchemy.orm import (relationship, backref,
+                            declared_attr, mapped_column, Mapped)
+from .users import _User
 from ..models import DBSession, Base
 from ..models import (NamaModel, TABLE_ARGS, SCHEMA)
+
+schema = TABLE_ARGS['schema']
 
 class _Departemen(NamaModel):
     __table_args__ = (TABLE_ARGS,)
@@ -13,7 +18,7 @@ class _Departemen(NamaModel):
     alamat = Column(String(255))
     singkat = Column(String(32))
     level_id = Column(SmallInteger)
-
+    
     @declared_attr
     def children(self):
         return relationship(
@@ -111,7 +116,7 @@ class _Departemen(NamaModel):
                 path
                 FROM dep_tree
                 """
-            #.format(str_where=str_where)
+            # .format(str_where=str_where)
 
             if search:
                 sql = f"{sql} WHERE nama ILIKE :search "
@@ -123,6 +128,24 @@ class _Departemen(NamaModel):
             return cls.db_session.execute(text(sql)).fetchall()
 
 
+class _UserDepartemen(object):
+    __tablename__ = 'users_departemen'
+    __table_args__ = TABLE_ARGS
+    @declared_attr
+    def user_id(self) -> Mapped[int]:
+        return mapped_column(Integer, ForeignKey(f"{schema}.users.id"), primary_key=True)
+    
+    @declared_attr
+    def departemen_id(self) -> Mapped[int]:
+        return mapped_column(ForeignKey(f"{schema}.departemen.id"), primary_key=True)
+
+
+class UserDepartemen(_UserDepartemen, Base):
+    db_session = DBSession
+
 
 class Departemen(_Departemen, Base):
     db_session = DBSession
+    users: Mapped[List["User"]] = relationship(
+        secondary=f"{schema}.users_departemen",
+        back_populates="departemens")
