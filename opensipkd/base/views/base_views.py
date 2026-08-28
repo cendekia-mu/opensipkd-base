@@ -1128,14 +1128,10 @@ class BaseView(object):
         try:
             c = form.validate(controls)
         except ValidationFailure as e:
-            log.error(f"Add cstruct: {e.cstruct}")
-            log.error(f"Add Error: {str(e.error)}")
-            # log.error(f"Add Error: {str(e.asdict)}")
+            log.debug(f"cstruct: {e.cstruct}")
             value = self.before_add()
             if self.req.is_xhr:
                 error = e.error.asdict()
-                # error.update(value)
-                # return self.resp_xhr({"error": error})
                 form.set_appstruct(e.cstruct)
                 return self.returned_form(form, error=error)
 
@@ -1143,8 +1139,6 @@ class BaseView(object):
                 if isinstance(f.typ, colander.Date):
                     e.cstruct[f.name] = date_from_str(
                         e.cstruct[f.name])
-                # if f.name == "captcha":
-                #     e.cstruct[f.name] = self.get_captcha_url()
             value = self.update_value(value, e.cstruct)
             form.set_appstruct(value)
             kwargs["table"] = table

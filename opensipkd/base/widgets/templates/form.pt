@@ -83,7 +83,8 @@
                         replaceTarget: true,
                         success: function () {
                             deform.processCallbacks();
-                            deform.focusFirstInput(target);
+                            //deform.focusFirstInput(target);
+                            deform.load();
                         },
                         beforeSerialize: function () {
                             // See http://bit.ly/1agBs9Z (hack to fix tinymce-related ajax bug)

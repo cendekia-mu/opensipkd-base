@@ -1,0 +1,20 @@
+<span tal:define="name name|field.name;
+    css_class css_class|field.widget.css_class;
+    oid oid|field.oid;
+    style style|field.widget.style;
+    height height|field.widget.height;
+    width width|field.widget.width;
+    " tal:omit-tag="">
+  <div id="${oid}" style="width:${width}; height:${height}; margin-top:15px;"></div>
+<script type="text/javascript">
+  deform.addCallback('${oid}',
+    function (oid) {
+      var qrcode = new QRCode(document.getElementById(oid), {
+        width: 100,
+        height: 100
+      });
+
+      qrcode.makeCode("${cstruct}");
+    });
+</script>
+</span>

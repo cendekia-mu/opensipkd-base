@@ -20,6 +20,8 @@ from opensipkd.tools.captcha import img_captcha
 _logging = logging.getLogger(__name__)
 
 sequence_types = (list, range,  tuple)
+
+
 class DokumenWidget(Widget):
     template = "opensipkd.base:/widgets/templates/dokumen.pt"
     readonly_template = "opensipkd.base:/widgets/templates/readonly/dokumen.pt"
@@ -255,7 +257,7 @@ class AutocompleteMsInputWidget(AutocompleteInputWidget):
         elif isinstance(cstruct, dict):
             auto_id = cstruct["id"]
             auto_value = cstruct["value"]
-                    
+
         else:
             auto_id, auto_value = cstruct.split("|", 2)
 
@@ -903,10 +905,10 @@ class FilterWidget(Widget):
         """
 
         if self.multiple:
-            if value in map(str, cstruct): # text_type
+            if value in map(str, cstruct):  # text_type
                 return "selected"
         else:
-            if value == str(cstruct): #text_type
+            if value == str(cstruct):  # text_type
                 return "selected"
         return None
 
@@ -1019,4 +1021,58 @@ class CSRFWidget(widget.HiddenWidget):
             return null
         _logging.debug("CSRF Token received: %s", pstruct)
         _logging.debug("CSRF Token session: %s", cstruct)
+        return pstruct
+
+
+class QrCodeWidget(Widget):
+    """
+    Renders an ``<img src="src"/>`` widget.
+
+    **Attributes/Arguments**
+
+    template
+       The template name used to render the widget.  Default:
+        ``image``.
+
+    readonly_template
+        The template name used to render the widget in read-only mode.
+        Default: ``readonly/image``.
+
+    strip
+        If true, during deserialization, strip the value of leading
+        and trailing whitespace (default ``True``).
+
+    """
+
+    template = "opensipkd.base:/widgets/templates/qrcode.pt"
+    readonly_template = "qrcode"
+    strip = True
+    requirements = (
+        ("deform", None),
+        {
+            "js": "opensipkd.base:static/js/qrcode/qrcode.min.js",
+        },)
+    height = "100px"
+    width = "100px"
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+
+    def serialize(self, field, cstruct, **kw):
+        if cstruct in (null, None):
+            cstruct = ""
+        readonly = kw.get("readonly", self.readonly)
+        template = readonly and self.readonly_template or self.template
+        values = self.get_template_values(field, cstruct, kw)
+        return field.renderer(template, **values)
+
+    def deserialize(self, field, pstruct):
+        if pstruct is null:
+            return null
+        elif not isinstance(pstruct, str):
+            raise Invalid(field.schema, "Pstruct is not a string")
+        if self.strip:
+            pstruct = pstruct.strip()
+        if not pstruct:
+            return null
         return pstruct
