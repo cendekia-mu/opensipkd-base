@@ -1,10 +1,9 @@
 import logging
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+
 from opensipkd.models import Base
 
 # this is the Alembic Config object, which provides
@@ -23,7 +22,7 @@ if url.find("oracledb") > -1:
         if lib_dir:
             oracledb.init_oracle_client(lib_dir=lib_dir)
     except Exception as e:
-        log.error(f"An error occurred: {str(e)}")
+        log.error(f"An error occurred: {e!s}")
         log.error("Oracle not initialize")
     public_schema = 'apps'
 context.public_schema = public_schema
@@ -37,7 +36,7 @@ if url.find("oracledb") > -1:
         if lib_dir:
             oracledb.init_oracle_client(lib_dir=lib_dir)
     except Exception as e:
-        log.error(f"An error occurred: {str(e)}")
+        log.error(f"An error occurred: {e!s}")
         log.error("Oracle not initialize")
         
 if config.config_file_name is not None:

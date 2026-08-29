@@ -1,7 +1,11 @@
 import colander
-from deform import (widget, )
+from deform import (
+    widget,
+)
+
 from opensipkd.base.models import TestModel
-from . import base_views, api_base
+
+from . import api_base, base_views
 
 
 class AddSchema(colander.Schema):

@@ -1,13 +1,24 @@
 import colander
-from deform import (widget, )
-from opensipkd.models import DBSession, ResDesa, kategori_desa, ResKecamatan, ResProvinsi, ResDati2
-from opensipkd.tools.buttons import btn_upload, btn_close, btn_add, btn_delete
+from deform import (
+    widget,
+)
 from pyramid.i18n import TranslationStringFactory
-from pyramid.view import (view_config, )
+
+from opensipkd.models import (
+    DBSession,
+    ResDati2,
+    ResDesa,
+    ResKecamatan,
+    ResProvinsi,
+    kategori_desa,
+)
+from opensipkd.tools.buttons import btn_add, btn_delete, btn_upload
+
+from ..views import BaseView
 from .dati2 import dati2_widget
 from .kecamatan import kecamatan_widget
 from .provinsi import provinsi_widget
-from ..views import BaseView
+
 _ = TranslationStringFactory("opensipkd")
 SESS_ADD_FAILED = 'Tambah desa gagal'
 SESS_EDIT_FAILED = 'Edit desa gagal'

@@ -1,10 +1,14 @@
 import colander
-from deform import (widget, )
+from deform import (
+    widget,
+)
+from deform.exception import ValidationFailure
+from pyramid.httpexceptions import HTTPFound
+
 from opensipkd.models import Departemen
-from deform.exception import (ValidationFailure)
-from pyramid.httpexceptions import (HTTPFound)
-from urllib3 import request
+
 from ..views import BaseView
+
 SESS_ADD_FAILED = 'Tambah departemen gagal'
 SESS_EDIT_FAILED = 'Edit departemen gagal'
 

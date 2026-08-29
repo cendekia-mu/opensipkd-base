@@ -1,15 +1,15 @@
 import colander
 from deform import widget
 from pyramid.i18n import TranslationStringFactory
-from pyramid.view import view_config
 
-from . import BaseView
 from opensipkd.models import (
     DBSession,
     Group,
-    Permission,
     GroupPermission,
+    Permission,
 )
+
+from . import BaseView
 
 _ = TranslationStringFactory('user')
 
@@ -50,7 +50,7 @@ class ListSchema(colander.Schema):
 
 class Views(BaseView):
     def __init__(self, request):
-        super(Views, self).__init__(request)
+        super().__init__(request)
         self.list_schema = ListSchema
         self.list_route = "base-groups"
         self.table = Group
@@ -70,7 +70,7 @@ class Views(BaseView):
         if url_dict['act'] == 'hon':
             term = 'term' in params and params['term'] or ''
             q = self.db_session.query(Group.id, Group.description).filter(
-                Group.description.ilike('%{}%'.format(term))). \
+                Group.description.ilike(f'%{term}%')). \
                 order_by(Group.group_name)
             rows = q.all()
             r = []
@@ -108,7 +108,7 @@ class Views(BaseView):
         return row
 
     def get_values(self, row, istime=False):
-        values = super(Views, self).get_values(row, istime)
+        values = super().get_values(row, istime)
         values['permissions'] = group_permission_set(row)
         return values
 

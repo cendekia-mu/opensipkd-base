@@ -1,21 +1,28 @@
-import logging
 import json
-from translationstring import TranslationStringFactory
-import colander
-from pyramid.httpexceptions import (
-    HTTPFound, HTTPForbidden, HTTPNotFound, HTTPInternalServerError,
-    HTTPSeeOther)
-from pyramid.interfaces import IRoutesMapper
-from pyramid.view import view_config
-from opensipkd.base import get_params
-from pyramid.renderers import render_to_response
-from .base_views import BaseView
+import logging
 from datetime import timedelta
-from opensipkd.detable import *
-from .common import ColumnDT, DataTables
+
+import colander
+from deform import Button, FileData, Form, ValidationFailure, widget
+from pyramid.httpexceptions import (
+    HTTPForbidden,
+    HTTPFound,
+    HTTPInternalServerError,
+    HTTPNotFound,
+    HTTPSeeOther,
+)
+from pyramid.interfaces import IRoutesMapper
+from pyramid.renderers import render_to_response
+from pyramid.view import view_config
+from translationstring import TranslationStringFactory
+
+from opensipkd.base import get_params
+from opensipkd.detable import DeTable
 from opensipkd.tools import mem_tmp_store
-from deform import (
-    Form, ValidationFailure, widget, Button, FileData)
+
+from .base_views import BaseView
+from .common import ColumnDT, DataTables
+
 _ = TranslationStringFactory('user')
 
 one_hour = timedelta(1.0 / 24)
@@ -68,7 +75,7 @@ def http_forbidden(request):
     return {"url": request.url}
 
 
-class Validator(object):
+class Validator:
     def __init__(self, row):
         self.row = row
 
@@ -105,13 +112,7 @@ class Home(BaseView):
         # request.session['modules_default'] = modules_default
         log.info(request.session.peek_flash())
         if modules_default:
-            if request.user and request.has_permission(modules_default):
-                return HTTPFound(location=request.route_url(modules_default))
-                # return HTTPFound(location=get_urls(request.route_url(modules_default)))
-            elif request.user and len(request.session.peek_flash('error')) < 2:
-                return HTTPFound(location=request.route_url(modules_default))
-                # return HTTPFound(location=get_urls(request.route_url(modules_default)))
-            elif not request.user:
+            if request.user and request.has_permission(modules_default) or request.user and len(request.session.peek_flash('error')) < 2 or not request.user:
                 return HTTPFound(location=request.route_url(modules_default))
                 # return HTTPFound(location=get_urls(request.route_url(modules_default)))
                 

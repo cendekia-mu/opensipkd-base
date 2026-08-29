@@ -1,14 +1,19 @@
 """Detable."""
 import os
 
+from deform import (
+    ZPTRendererFactory,  # API
+    default_renderer,  # API
+)
+from deform.field import Field  # API
 from pkg_resources import resource_filename
 
 from . import detable  # API
-from deform.field import Field  # API
-from .detable import Button  # API
-from .detable import DeTable  # API
-from deform import ZPTRendererFactory  # API
-from deform import default_renderer  # API
+from .detable import (
+    Button,  # API
+    DeTable,  # API
+)
+
 deform_templates = resource_filename('deform', 'templates')
 path = os.path.dirname(__file__)
 path = os.path.join(path, 'templates')

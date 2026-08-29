@@ -1,16 +1,9 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    SmallInteger,
-    DateTime, ForeignKey
-)
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.orm import backref
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, SmallInteger, String
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 
 from .base import TABLE_ARGS, NamaModel, StandarModel
-from .meta import (Base)
-from .wilayah import ResProvinsi, ResDesa, ResKecamatan, ResDati2
+from .meta import Base
+from .wilayah import ResDati2, ResDesa, ResKecamatan, ResProvinsi
 
 
 class PartnerModel(NamaModel):

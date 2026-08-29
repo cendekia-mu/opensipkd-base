@@ -1,22 +1,29 @@
-from pyramid.csrf import new_csrf_token, get_csrf_token
-from iso8601.iso8601 import ISO8601_REGEX
 # from deform.widget import str
 import json
 import logging
-from pyramid.csrf import new_csrf_token, get_csrf_token
-from iso8601.iso8601 import ISO8601_REGEX
 
+from colander import Invalid, Mapping, SchemaNode, null  # , str
 
-from colander import SchemaNode, null, Mapping, Invalid  # , str
 # from colander import compat # tidak ada di colander 2.0
 from deform import widget
+
 # from deform.compat import sequence_types, text_type, text_
 from deform.form import Button
 from deform.i18n import _
 from deform.widget import (
-    Widget, _StrippedString, Select2Widget,  _normalize_choices, OptGroup,
-    DateInputWidget as WidgetDateInputWidget, AutocompleteInputWidget)
+    AutocompleteInputWidget,
+    OptGroup,
+    Select2Widget,
+    Widget,
+    _normalize_choices,
+    _StrippedString,
+)
+from deform.widget import DateInputWidget as WidgetDateInputWidget
+from iso8601.iso8601 import ISO8601_REGEX
+from pyramid.csrf import get_csrf_token, new_csrf_token
+
 from opensipkd.tools.captcha import img_captcha
+
 _logging = logging.getLogger(__name__)
 
 sequence_types = (list, range,  tuple)
@@ -844,7 +851,7 @@ class TextInputWidget(widget.TextInputWidget):
     js = None
 
     def __init__(self, **kw):
-        super(TextInputWidget, self).__init__(**kw)
+        super().__init__(**kw)
 
         # if isinstance(self.button, compat.str):
         if self.button:
@@ -865,11 +872,11 @@ class MoneyInputWidget(widget.MoneyInputWidget):
             decimal = options.get("decimal", '.')
             precision = options.get("precision", 2)
             thousands = options.get("thousands", ',')
-            cstr = cstruct and float(cstruct) or 0
-            cstruct = f"{cstr:,.{precision}f}"\
-                .replace(".", "%")\
-                .replace(",", thousands)\
-                .replace("%", decimal)
+            # cstr = cstruct and float(cstruct) or 0
+            # cstruct = f"{cstr:,.{precision}f}"\
+            #     .replace(".", "%")\
+            #     .replace(",", thousands)\
+            #     .replace("%", decimal)
 
         values = {"cstruct": cstruct, "field": field}
         values.update(kw)

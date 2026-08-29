@@ -1,6 +1,7 @@
-from sqlalchemy import ForeignKey, Integer, Column
-from sqlalchemy.orm import relationship, backref
-from . import Base, User, ResDesa, DefaultModel, UserGroup, Group, TABLE_ARGS
+from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy.orm import backref, relationship
+
+from . import TABLE_ARGS, Base, DefaultModel, Group, ResDesa, User, UserGroup
 
 
 class UserArea(DefaultModel, Base):

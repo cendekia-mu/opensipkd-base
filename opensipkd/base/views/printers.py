@@ -1,22 +1,25 @@
-from pyramid.httpexceptions import HTTPBadRequest
+import asyncio
+import json
 import logging
+import os
+import platform
 import re
 
 import colander
-from deform import (widget,)
-from pyramid.i18n import TranslationStringFactory
-import opensipkd
-import platform
 import websockets
-import json
-import os
-import asyncio
+from deform import (
+    widget,
+)
+from pyramid.httpexceptions import HTTPBadRequest
+from pyramid.i18n import TranslationStringFactory
+
+import opensipkd
 from opensipkd.base import BASE_CLASS
-from opensipkd.tools.buttons import btn_check
 from opensipkd.tools import get_random_string
+from opensipkd.tools.buttons import btn_check
+
 from ..models import TextPrinters, User
 from . import BaseView
-
 
 log = logging.getLogger(__name__)
 _ = TranslationStringFactory("opensipkd")

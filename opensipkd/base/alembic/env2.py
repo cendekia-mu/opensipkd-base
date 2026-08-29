@@ -1,13 +1,15 @@
 """Pyramid bootstrap environment. """
+import importlib.machinery
 import logging
 import os
-import importlib.machinery
+
 from alembic import context
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
 )
 from sqlalchemy import engine_from_config
+
 from opensipkd.base.models.meta import Base
 
 config = context.config

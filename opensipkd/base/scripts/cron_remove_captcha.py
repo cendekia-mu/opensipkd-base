@@ -1,7 +1,12 @@
-import sys
 import os
+import sys
 import time
-from pyramid.paster import (get_appsettings, setup_logging, )
+
+from pyramid.paster import (
+    get_appsettings,
+    setup_logging,
+)
+
 
 def usage(argv):
     cmd = os.path.basename(argv[0])

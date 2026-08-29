@@ -1,15 +1,16 @@
-import os
 import logging
+import os
 from datetime import datetime
-import deform
-from deform import widget
-import ziggurat_foundations.models
 
-from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, func, Numeric
+import deform
+import ziggurat_foundations.models
+from deform import widget
+from sqlalchemy import Column, DateTime, Integer, Numeric, SmallInteger, String, func
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import (scoped_session, sessionmaker, Session)
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
 from zope.sqlalchemy import register
+
 from opensipkd.base.models.meta import Base
 from opensipkd.tools import as_timezone
 from opensipkd.tools.upload import append_csv
@@ -35,7 +36,7 @@ def flush(row, db_session=DBSession):
     db_session.flush()
 
 
-class CommonModel(object):
+class CommonModel:
     db_session = DBSession
 
     def to_dict_hybrid(self):

@@ -1,5 +1,6 @@
 import os
 import sys
+
 from opensipkd.tools import get_settings
 
 
@@ -17,7 +18,7 @@ def get_pid(pidfile):
         pid_int = int(f.read().split()[0])
         f.close()
         return pid_int
-    except IOError:
+    except OSError:
         return
     except ValueError:
         return
@@ -42,7 +43,7 @@ def get_pid_file(pid_name=None, settings=None):
 def make_pid(pid_file, settings=None):
     pid = get_pid(pid_file)
     if pid and is_live(pid):
-        msg = 'PID saya {pid} masih ada.'.format(pid=pid)
+        msg = f'PID saya {pid} masih ada.'
         print(msg)
         sys.exit()
 

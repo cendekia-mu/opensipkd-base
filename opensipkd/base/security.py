@@ -1,11 +1,16 @@
 # import inspect
-from .tools.api import auth_from_rpc
-from pyramid.authorization import ACLHelper, Authenticated, Everyone
-from pyramid.authentication import AuthTktCookieHelper
 import logging
 
+from pyramid.authentication import AuthTktCookieHelper
+from pyramid.authorization import ACLHelper, Authenticated, Everyone
+
 # from opensipkd.tools import get_params
-from .models.users import (User, UserGroup, DBSession, )
+from .models.users import (
+    DBSession,
+    User,
+    UserGroup,
+)
+from .tools.api import auth_from_rpc
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +29,7 @@ def group_finder(user_id, request):
     r = []
     q = DBSession.query(UserGroup).filter_by(user_id=user.id)
     for ug in q:
-        acl_name = 'group:{gid}'.format(gid=ug.group_id)
+        acl_name = f'group:{ug.group_id}'
         r.append(acl_name)
     return r
 

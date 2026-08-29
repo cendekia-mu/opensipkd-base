@@ -1,22 +1,18 @@
 from sqlalchemy import (
-    Column,
-    Integer,
     BigInteger,
+    Column,
     DateTime,
     ForeignKey,
-    UniqueConstraint,
+    Integer,
+    SmallInteger,
     String,
-    SmallInteger
+    UniqueConstraint,
 )
-from sqlalchemy.orm import (
-    relationship,
-    backref
-)
+from sqlalchemy.orm import backref, relationship
 
 # from opensipkd.models import 
 # from ..models import DBSession, 
-from . import (DefaultModel, NamaModel, TABLE_ARGS,
-               Departemen, Partner, Base)
+from . import TABLE_ARGS, Base, DefaultModel, Departemen, NamaModel, Partner
 
 
 class Eselon(Base, NamaModel):

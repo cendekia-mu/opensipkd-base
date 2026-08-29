@@ -1,5 +1,6 @@
-from . import api_base
 from ..models import Partner
+from . import api_base
+
 
 class Views(api_base.ApiViews):
     def __init__(self, request):

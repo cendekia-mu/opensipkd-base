@@ -5,8 +5,10 @@ import logging
 import re
 
 import colander
+from deform import field
+
 # import deform
-from deform import widget as deform_widget, field # compat, 
+from deform import widget as deform_widget  # compat, 
 
 from . import widget
 
@@ -286,8 +288,8 @@ class DeTable(field.Field):
         filter_form = ""
         field_index = 0
         filter_scripts = ""
-        for f in schema:
-            field_index += 1
+        for field_index, f in enumerate(schema):
+            # field_index += 1
             d = {'data': f.name}
             data = []
             if hasattr(f, 'width'):
@@ -352,7 +354,7 @@ class DeTable(field.Field):
                     }
                 """ % self.action_url(f)
 
-            if filter_columns and hasattr(f, "searchable") and getattr(f, "searchable"):
+            if filter_columns and hasattr(f, "searchable") and f.searchable:
                 filter_form += self.get_filter_form(f, field_index)
 
             # if type(f.typ) == colander.Integer:
@@ -373,8 +375,7 @@ class DeTable(field.Field):
             point = thousand and thousand.get("precision", point) or point
             currency = thousand and "currency" in thousand and \
                 thousand["currency"] or ""
-            if thousand or isinstance(f.typ, colander.Float) or \
-                    isinstance(f.typ, colander.Integer):
+            if thousand or isinstance(f.typ, (colander.Float, colander.Integer)):
                 d["render"] = \
                     f"<script>$.fn.dataTable.render.number( '{separator}', " \
                     f"'{decimal}', {point}, '{currency}' )</script>"
@@ -461,7 +462,7 @@ class DeTable(field.Field):
         return act
 
     def get_filter_form(self, f, field_index):
-        field_index -= 1
+        # field_index -= 1
         html = ""
         col_id = f"{self.tableid}-{f.name}"
         txt = f'id="{col_id}" data-index={field_index} '
@@ -508,29 +509,29 @@ class DeTable(field.Field):
             else:
                 html += f'<div class="form-group" {txt}>'
                 html += f'<label class="form-label" style="font-size:12px">{f.title}</label>'
-                html += f'<div class="input-group input-daterange" style="padding: 3px 0px 7px !important;">'
+                html += '<div class="input-group input-daterange" style="padding: 3px 0px 7px !important;">'
                 html += f'<input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
                 html += f'data-index={field_index} placeholder="{f.title} Awal"'
                 html += f'name="{col_id}" id="{col_id}-min"/>'
-                html += f'<div class="input-group-addon">-</div>'
+                html += '<div class="input-group-addon">-</div>'
                 html += f'<input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
                 html += f'data-index={field_index} placeholder="{f.title} Akhir" '
                 html += f'name="{col_id}" id="{col_id}-max" /></span>'
-                html += f'</div>'
-                html += f'</div>'
+                html += '</div>'
+                html += '</div>'
         elif getattr(f, "search_method", None) == "yadcf_range_number":
             html += f'<div class="form-group" {txt}>'
             html += f'<label class="form-label" style="font-size:12px">{f.title}</label>'
-            html += f'<div class="input-group" style="padding: 3px 0px 7px !important;">'
+            html += '<div class="input-group" style="padding: 3px 0px 7px !important;">'
             html += f'<input type="number" class="form-control {self.tableid}-control-filter"'
             html += f'data-index={field_index} placeholder="{f.title} Min" '
             html += f'name="{col_id}" id="{col_id}-min"/>'
-            html += f'<div class="input-group-addon">-</div>'
+            html += '<div class="input-group-addon">-</div>'
             html += f'<input type="number" class="form-control {self.tableid}-control-filter"'
             html += f'data-index={field_index} placeholder="{f.title} Max" '
             html += f'name="{col_id}" id="{col_id}-max" /></span>'
-            html += f'</div>'
-            html += f'</div>'
+            html += '</div>'
+            html += '</div>'
 
         else:
             html += f'<input type="text" class="form-control {self.tableid}-control-filter"'
@@ -558,7 +559,7 @@ for (let co in ${tableid}Columns) {
 """
 
 
-class Button(object):
+class Button:
     """
     A class representing a form submit button.  A sequence of
     :class:`deform.widget.Button` objects may be passed to the
@@ -620,7 +621,7 @@ class Button(object):
             name="view",
             oid=None,
             title=None,
-            type="button",  # noQA
+            typ="button",
             css_class=None,
             icon=None,
             attributes=None,
@@ -637,7 +638,7 @@ class Button(object):
 
         self.name = name
         self.title = title
-        self.type = type  # noQA
+        self.type = typ
         self.disabled = disabled
         self.css_class = css_class
         self.icon = icon

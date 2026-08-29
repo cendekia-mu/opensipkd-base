@@ -26,29 +26,32 @@
 # 4. Form edit registrasi http://server/register/{uid}/edit
 # 5. Form Upload template
 # """
-from calendar import c
 import logging
 from datetime import datetime
-import re
 
 import colander
-from deform import (widget, FileData, ValidationFailure, Button)
-from opensipkd.base import BASE_CLASS
-from opensipkd.tools import Upload, mem_tmp_store, image_validator, date_from_str
-from opensipkd.tools.buttons import btn_cancel, btn_save
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+from deform import Button, FileData, widget
+from pyramid.httpexceptions import HTTPFound
 from pyramid.i18n import TranslationStringFactory
+
 # from pyramid.security import forget
 # from pyramid.view import view_config
 from ziggurat_foundations.models.services.user import UserService
 
+from opensipkd.base import BASE_CLASS
+
 # from opensipkd.base import get_params, get_id_card_folder
-from opensipkd.base.views.user import email_validator, add_member_count
-from ..models import User, DBSession, Partner, Group, UserGroup
+from opensipkd.base.views.user import add_member_count, email_validator
+from opensipkd.tools import Upload, image_validator, mem_tmp_store
+from opensipkd.tools.buttons import btn_cancel, btn_save
+
+from ..models import DBSession, Group, Partner, User, UserGroup
+from ..views import BaseView
 from ..widgets import widget_os
+
 # from .base_views import need_captcha, get_url_captcha
 from .user_login import regenerate_security_code, send_email_security_code
-from ..views import BaseView
+
 # from .. import get_urls
 
 _ = TranslationStringFactory('user')
@@ -351,7 +354,7 @@ class Views(BaseView):
         #         value["idcard"] = value["upload"]
 
 
-        if "idcard" in value and value["idcard"]:
+        if value.get("idcard"):
             idcard = value["idcard"]
             if "fp" in idcard and idcard["fp"] and idcard["fp"] != b'':
                 path = BASE_CLASS.partner_doc
@@ -383,7 +386,7 @@ class Views(BaseView):
         # email = self.req.user and self.req.user.email or ""
         # return {"email": email}
 
-        if "id_info" in self.ses and self.ses['id_info']:
+        if self.ses.get('id_info'):
             result = self.ses["id_info"]
             result.update(dict(
                 nama=" ".join([result["given_name"], result["family_name"]])))
@@ -442,7 +445,7 @@ class Views(BaseView):
             user.registered_date = datetime.now()
             self.db_session.add(user)
             self.db_session.flush()
-            if 'groups' in values and values['groups']:
+            if values.get('groups'):
                 gr = Group.query_group_name(values['groups']).first()
                 ug = UserGroup()
                 ug.user_id = user.id

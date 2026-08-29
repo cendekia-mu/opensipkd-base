@@ -1,12 +1,18 @@
 import os
 
 import colander
-from deform import (widget, )
-from opensipkd.base.models import (
-    DBSession, Jabatan, Eselon, Departemen)
-from opensipkd.tools.report import (
-    csv_response, open_rml_pdf, open_rml_row, pdf_response)
+from deform import (
+    widget,
+)
 from pyramid.i18n import TranslationStringFactory
+
+from opensipkd.base.models import DBSession, Departemen, Eselon, Jabatan
+from opensipkd.tools.report import (
+    csv_response,
+    open_rml_pdf,
+    open_rml_row,
+    pdf_response,
+)
 
 from ..views import BaseView
 

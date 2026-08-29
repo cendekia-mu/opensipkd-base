@@ -1,12 +1,15 @@
-from sqlalchemy import (Column, Integer, ForeignKey,
-                        String, SmallInteger, text, select)
 from typing import List
-from sqlalchemy.orm import (relationship, backref,
-                            declared_attr, mapped_column, Mapped,
-                            )
-from .users import _User
-from ..models import DBSession, Base
-from ..models import (NamaModel, TABLE_ARGS, SCHEMA)
+
+from sqlalchemy import Column, ForeignKey, Integer, SmallInteger, String, text
+from sqlalchemy.orm import (
+    Mapped,
+    backref,
+    declared_attr,
+    mapped_column,
+    relationship,
+)
+
+from ..models import SCHEMA, TABLE_ARGS, Base, DBSession, NamaModel
 
 schema = TABLE_ARGS['schema']
 
@@ -58,8 +61,7 @@ class _Departemen(NamaModel):
         # tahun = kwargs.get('tahun', self.req.params.get(
         #     'tahun', datetime.datetime.now().year-1))
         parent_id = kwargs.get('id', None)
-        str_where = parent_id and " parent_id={} ".format(
-            parent_id) or " parent_id IS NULL"
+        str_where = parent_id and f" parent_id={parent_id} " or " parent_id IS NULL"
         eng = cls.db_session.get_bind()
         if eng.dialect.name.lower() == "oracle":
             sql = """
@@ -129,7 +131,7 @@ class _Departemen(NamaModel):
             return cls.db_session.execute(text(sql)).fetchall()
 
 
-class _UserDepartemen(object):
+class _UserDepartemen:
     __tablename__ = 'users_departemen'
     __table_args__ = TABLE_ARGS
     db_session = None

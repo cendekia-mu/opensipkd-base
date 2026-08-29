@@ -1,13 +1,13 @@
 from sqlalchemy import (
     Column,
     ForeignKey,
-    String,
     SmallInteger,
+    String,
 )
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import backref, relationship
 
 from . import TABLE_ARGS
-from .common import (NamaModel)
+from .common import NamaModel
 from .meta import Base
 
 kategori_provinsi = (

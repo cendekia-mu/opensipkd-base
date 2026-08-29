@@ -1,10 +1,13 @@
-import os
 import logging
-from pyreportjasper import PyReportJasper
+import os
 from platform import python_version
+
+from pyreportjasper import PyReportJasper
+
+from opensipkd.base import get_params
 from opensipkd.tools import get_random_string
 from opensipkd.tools.report import *
-from opensipkd.base import get_params
+
 log = logging.getLogger(__name__)
 log.warning("Opensipkd.base.tools.pbb depreciated use opensipkd.tools.pbb")
 

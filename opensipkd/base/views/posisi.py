@@ -1,14 +1,19 @@
 import colander
-from deform import (widget, )
-from sqlalchemy import Boolean, or_
-from sqlalchemy.orm import aliased
+from deform import (
+    widget,
+)
 
-from opensipkd.base.models import DBSession as PartnerDBSession, DBSession
-from opensipkd.base.models import Departemen, Jabatan
-from opensipkd.base.models import Partner, PartnerDepartemen
+from opensipkd.base.models import (
+    DBSession,
+    Jabatan,
+    Partner,
+    PartnerDepartemen,
+)
 from opensipkd.base.widgets import widget_os
-from opensipkd.tools import dmy, date_from_str
-from ..views import ColumnDT, DataTables, BaseView
+from opensipkd.tools import date_from_str, dmy
+
+from ..views import BaseView
+
 
 class AddSchema(colander.Schema):
     nama_widget = widget.AutocompleteInputWidget(

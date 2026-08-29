@@ -1,8 +1,9 @@
-from sqlalchemy import Column, String, SmallInteger, Integer, DateTime, ForeignKey
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, SmallInteger, String
+from sqlalchemy.orm import backref, relationship
 
-from .base import NamaModel, DefaultModel, DBSession, KodeModel
+from .base import DBSession, DefaultModel, KodeModel, NamaModel
 from .meta import Base
+
 # from .partner import Partner
 from .users import User
 

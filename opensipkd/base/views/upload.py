@@ -1,12 +1,20 @@
 import os
 
 import colander
-from deform import (Form, widget, FileData, )
+from deform import (
+    FileData,
+    Form,
+    widget,
+)
 from deform.interfaces import FileUploadTempStore
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
-from opensipkd.tools import (get_ext, dict_to_str, )
-from .base_views import CSRFSchema
+
+from opensipkd.tools import (
+    dict_to_str,
+    get_ext,
+)
+
 # from .. import get_urls
 
 

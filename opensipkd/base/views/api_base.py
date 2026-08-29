@@ -1,23 +1,24 @@
-from datetime import datetime, date
+import json
 import logging
-import colander
+from datetime import date, datetime
 from decimal import Decimal
-from pyramid.response import Response
-from pyramid.httpexceptions import *
+
 import colander
 from deform import Form, ValidationFailure
 from deform.widget import SelectWidget
-from opensipkd.base.models import DBSession
-from opensipkd.tools.buttons import btn_save, btn_cancel
-from opensipkd.tools import get_settings
-from opensipkd.models import User
-from opensipkd.base.views.common import DataTables, ColumnDT
-from . import api_messages
-from ..tools import obj2json
-
-
+from pyramid.httpexceptions import *
+from pyramid.response import Response
 from pyramid_restful.views import APIView
-import json
+
+from opensipkd.base.models import DBSession
+from opensipkd.base.views.common import ColumnDT, DataTables
+from opensipkd.models import User
+from opensipkd.tools import get_settings
+from opensipkd.tools.buttons import btn_cancel, btn_save
+
+from ..tools import obj2json
+from . import api_messages
+
 _log = logging.getLogger(__name__)
 
 
@@ -86,7 +87,7 @@ class ApiViews(APIView):
             for d in list_schema():
                 global_search = True
                 search_method = hasattr(d, "search_method") \
-                    and getattr(d, "search_method") or "string_contains"
+                    and d.search_method or "string_contains"
                 if hasattr(d, "global_search"):
                     if d.global_search == False:
                         global_search = False
@@ -141,7 +142,7 @@ class ApiViews(APIView):
         data = result and result.get("data") or {}
         for res in data:
             for k in res:
-                if k in select_list.keys():
+                if k in select_list:
                     vals = select_list[k]
                     for r in vals:
                         if r and str(r) == str(res[k]):
@@ -180,7 +181,7 @@ class ApiViews(APIView):
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel),
                  **kwargs):
         buttons = self.buttons and self.buttons or buttons
-        if "bindings" in kwargs and kwargs["bindings"]:
+        if kwargs.get("bindings"):
             bindings = kwargs["bindings"]
         elif self.bindings:
             bindings = self.bindings
@@ -189,12 +190,12 @@ class ApiViews(APIView):
 
         form_params = {}
 
-        if "validator" in kwargs and kwargs["validator"]:
+        if kwargs.get("validator"):
             form_params["validator"] = kwargs["validator"]
         else:
             form_params["validator"] = self.form_validator
 
-        if "after_bind" in kwargs and kwargs["after_bind"]:
+        if kwargs.get("after_bind"):
             form_params["after_bind"] = kwargs["after_bind"]
 
         if self.form_widget:

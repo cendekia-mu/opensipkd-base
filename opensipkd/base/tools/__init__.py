@@ -1,6 +1,7 @@
-import colander
-from datetime import datetime, date
+from datetime import date, datetime
 from decimal import Decimal
+
+import colander
 
 
 def obj2json(values):

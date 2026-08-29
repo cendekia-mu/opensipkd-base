@@ -1,6 +1,5 @@
 from http.client import NOT_FOUND
 
-
 SUCCESS = {
     "error": {
         "code": "0000",

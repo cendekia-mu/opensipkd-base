@@ -1,10 +1,12 @@
 import json
 import os
-import requests
-import pyramid
-from threading import Thread
-from requests.utils import default_headers
 from logging import getLogger
+from threading import Thread
+
+import pyramid
+import requests
+from requests.utils import default_headers
+
 log = getLogger(__name__)
 # irul @ 20240529
 def join_headers(d):

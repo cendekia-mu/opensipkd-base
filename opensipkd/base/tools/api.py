@@ -1,7 +1,5 @@
-from opensipkd.base.models import (DBSession, User, GroupPermission, UserDeviceModel)
-
-from opensipkd.tools import (
-    devel, get_random_string)
+from opensipkd.base.models import DBSession, GroupPermission, User, UserDeviceModel
+from opensipkd.tools import devel, get_random_string
 from opensipkd.tools.api import *
 
 log = logging.getLogger(__name__)
@@ -25,8 +23,8 @@ def auth_from(request, field=None):
         raise JsonRpcInvalidLoginError
 
     # bypass cek authentication for development
-    if http_userid == 'admin' and log.parent.level==logging.DEBUG:
-        return user
+    # if http_userid == 'admin' and log.parent.level==logging.DEBUG:
+    #     return user
 
     time_stamp = validate_time(request)
     if field:

@@ -1,11 +1,19 @@
 import logging
-from datatables.clean_regex import clean_regex
-from datatables.search_methods import SEARCH_METHODS
-from sqlalchemy import (String, Text, or_,)
-from sqlalchemy.dialects import oracle, mssql
-from datatables import DataTables as BaseDataTables, ColumnDT
+import datatables
+import datatables.clean_regex
+from sqlalchemy import (
+    String,
+    Text,
+    or_,
+)
+from sqlalchemy.dialects import mssql, oracle
+
 log = logging.getLogger(__name__)
 log.warning("opensipkd.base.captcha depreciated use opensipkd.tools.captcha")
+
+ColumnDT = datatables.ColumnDT
+BaseDataTables = datatables.DataTables
+clean_regex = datatables.clean_regex.clean_regex
 
 
 class DataTables(BaseDataTables):
@@ -55,47 +63,3 @@ class DataTables(BaseDataTables):
         for k, v in self.yadcf_params:
             output[k] = v
         return output
-
-    # def _set_sort_expressions(self):
-    #     """Construct the query: sorting.
-    #
-    #     Add sorting(ORDER BY) on the columns needed to be applied on.
-    #     """
-    #     sort_expressions = []
-    #     i = 0
-    #     while self.params.get('order[{:d}][column]'.format(i), False):
-    #         column_nr = int(self.params.get('order[{:d}][column]'.format(i)))
-    #         field_name = self.params.get(f"columns[{column_nr}][data]")
-    #         i = 0
-    #         # penambahan looping karena data yang dikirim datatable berupa index
-    #         # column bukan nama column
-    #         for c in range(len(self.columns)):
-    #             if self.columns[c].mData == field_name:
-    #                 column = self.columns[c]
-    #                 direction = self.params.get('order[{:d}][dir]'.format(i))
-    #                 sort_expr = column.sqla_expr
-    #                 if direction == 'asc':
-    #                     sort_expr = sort_expr.asc()
-    #                 elif direction == 'desc':
-    #                     sort_expr = sort_expr.desc()
-    #                 else:
-    #                     raise ValueError(
-    #                         'Invalid order direction: {}'.format(direction))
-    #                 if column.nulls_order:
-    #                     if column.nulls_order == 'nullsfirst':
-    #                         sort_expr = sort_expr.nullsfirst()
-    #                     elif column.nulls_order == 'nullslast':
-    #                         sort_expr = sort_expr.nullslast()
-    #                     else:
-    #                         raise ValueError(
-    #                             'Invalid order direction: {}'.format(direction))
-    #
-    #                 sort_expressions.append(sort_expr)
-    #         i += 1
-    #         log.info("ORDERING")
-    #         # log.info(dir(sort_expressions))
-    #         # log.info(repr(sort_expressions))
-    #         # log.info(str(sort_expressions))
-    #         for e in sort_expressions:
-    #             print(e)
-    #     self.sort_expressions = sort_expressions

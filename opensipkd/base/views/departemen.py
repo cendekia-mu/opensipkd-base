@@ -1,9 +1,14 @@
 import colander
-from deform import (widget, )
+from deform import (
+    widget,
+)
 from sqlalchemy.orm import aliased
+
 from opensipkd.models import DBSession, Departemen
 from opensipkd.tools.buttons import btn_upload
+
 from ..views import BaseView
+
 # , get_urls
 SESS_ADD_FAILED = 'Tambah Instansi gagal'
 SESS_EDIT_FAILED = 'Edit Instansi gagal'
@@ -170,7 +175,7 @@ class Views(BaseView):
             if not v:
                 setattr(row, k, None)
         values["level_id"] = 1
-        if "parent_id" in values and values["parent_id"]:
+        if values.get("parent_id"):
             qry_parent = self.table.query_id(values["parent_id"])
             parent = qry_parent.first()
             if parent and parent.level_id:
@@ -240,7 +245,7 @@ class Views(BaseView):
     def get_values(self, row, values=None, istime=False, null=False):
         if not values:
             values = row.to_dict()
-        if 'parent_id' in values and values['parent_id']:
+        if values.get('parent_id'):
             parent = row.parent
             values["parent_nm"] = parent.nama
             values["parent_kd"] = parent.kode

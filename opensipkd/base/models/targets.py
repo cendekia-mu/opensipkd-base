@@ -1,11 +1,11 @@
 from sqlalchemy import (
+    BigInteger,
     Column,
     Integer,
-    BigInteger,
     func,
 )
 
-from . import NamaModel, Base, DBSession
+from . import Base, DBSession, NamaModel
 
 
 class Targets(Base, NamaModel):

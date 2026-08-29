@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
-from . import Base, NamaModel, TABLE_ARGS
+
+from . import TABLE_ARGS, Base, NamaModel
 
 
 class TextPrinters(Base, NamaModel):

@@ -2,18 +2,30 @@ import os
 import re
 
 import colander
-from deform import (widget, )
+from deform import (
+    widget,
+)
 from pyramid.i18n import TranslationStringFactory
-from sqlalchemy import (func )
+from sqlalchemy import func
 from ziggurat_foundations.models.services.user import UserService
+
 from opensipkd.base import BASE_CLASS
 from opensipkd.tools import create_now
 from opensipkd.tools.buttons import btn_delete, btn_upload
 
+from ..models.users import (
+    DBSession,
+    Group,
+    User,
+    UserGroup,
+)
 from . import BaseView
 from .user_login import (
-    regenerate_security_code, send_email_security_code, generate_api_key, )
-from ..models.users import (DBSession, User, Group, UserGroup,)
+    generate_api_key,
+    regenerate_security_code,
+    send_email_security_code,
+)
+
 # ResCompany, 
 
 _ = TranslationStringFactory('user')
@@ -48,7 +60,7 @@ class ListSchema(colander.Schema):
 
 class Views(BaseView):
     def __init__(self, request):
-        super(Views, self).__init__(request)
+        super().__init__(request)
         self.list_schema = ListSchema
         self.list_route = 'base-user'
         self.table = User
@@ -304,7 +316,7 @@ def save_user(values, user, row=None):
     row.from_dict(values)
     DBSession.add(row)
     DBSession.flush()
-    if 'password' in values and values['password']:
+    if values.get('password'):
         UserService.set_password(row, values['password'])
     return row
 

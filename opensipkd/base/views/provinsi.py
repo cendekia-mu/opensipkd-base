@@ -1,10 +1,14 @@
 import colander
-from deform import (widget, )
+from deform import (
+    widget,
+)
 from pyramid.i18n import TranslationStringFactory
-from pyramid.view import (view_config, )
-from ..widgets import widget_os
+
 from opensipkd.models import DBSession, ResProvinsi, kategori_provinsi
+
 from ..views import BaseView
+from ..widgets import widget_os
+
 _ = TranslationStringFactory("opensipkd")
 SESS_ADD_FAILED = 'Tambah provinsi gagal'
 SESS_EDIT_FAILED = 'Edit provinsi gagal'

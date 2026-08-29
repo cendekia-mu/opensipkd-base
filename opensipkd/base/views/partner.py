@@ -1,16 +1,18 @@
 import logging
+
 import colander
-from deform import (widget,)
+from deform import (
+    widget,
+)
 from pyramid.i18n import TranslationStringFactory
+
 from opensipkd.tools import Upload
 from opensipkd.tools.buttons import btn_delete
 
-from ..models import DBSession, Partner, PartnerFiles
 from .. import BASE_CLASS
-
-from .partner_base import PartnerSchema
+from ..models import DBSession, Partner, PartnerFiles
 from . import BaseView
-
+from .partner_base import PartnerSchema
 
 log = logging.getLogger(__name__)
 _ = TranslationStringFactory("opensipkd")
@@ -223,7 +225,7 @@ class Views(BaseView):
         elif found:
             err_kode()
 
-        if "idcard" in value and value["idcard"]:
+        if value.get("idcard"):
             idcard = value["idcard"]
             if "fp" in idcard and idcard["fp"] and idcard["fp"] != b'':
                 path = BASE_CLASS.partner_doc
@@ -269,7 +271,7 @@ class Views(BaseView):
 
     def get_values(self, row, istime=False):
         d = super().get_values(row, istime)
-        if "idcard" in d and d["idcard"]:
+        if d.get("idcard"):
             filename = d["idcard"]
             url = self.req.static_url(BASE_CLASS.partner_doc)
             preview_url = "/".join([url, filename])

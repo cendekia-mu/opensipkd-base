@@ -1,44 +1,71 @@
-import re
-from pyramid.threadlocal import get_current_registry
-from pyramid.interfaces import IRoutesMapper
+import enum
 import logging
-from cgi import FieldStorage
+
+# from cgi import FieldStorage
+# from multipart import MultipartPart
 import os
+import re
 from datetime import datetime
 from email.utils import parseaddr
-from multipart import MultipartPart
-import lxml
-from webob.multidict import MultiDict
 
 import colander
+import lxml
 from datatables import ColumnDT
-from deform import (widget, Form, ValidationFailure, FileData, )
+from deform import (
+    FileData,
+    Form,
+    ValidationFailure,
+    widget,
+)
 from deform.widget import SelectWidget
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+from pyramid.interfaces import IRoutesMapper
 from pyramid.request import Response
+from pyramid.threadlocal import get_current_registry
 from sqlalchemy import Table
-from opensipkd.tools.captcha import img_captcha
+from webob.multidict import MultiDict
+
+from opensipkd.base import BASE_CLASS
 
 # from opensipkd.base.views.upload import tmpstore
-from opensipkd.tools import dmy, get_settings, get_ext, \
-    date_from_str, get_random_string, Upload, InvalidExtension, mem_tmp_store
+from opensipkd.tools import (
+    InvalidExtension,
+    Upload,
+    date_from_str,
+    dmy,
+    get_ext,
+    get_random_string,
+    get_settings,
+    mem_tmp_store,
+)
 from opensipkd.tools.buttons import (
-    btn_save, btn_cancel, btn_close, btn_delete, btn_add, btn_csv, btn_edit,
-    btn_pdf, btn_upload, btn_xls)
+    btn_add,
+    btn_cancel,
+    btn_close,
+    btn_csv,
+    btn_delete,
+    btn_edit,
+    btn_pdf,
+    btn_save,
+    btn_upload,
+    btn_xls,
+)
+from opensipkd.tools.captcha import img_captcha
 
 # from opensipkd.tools.captcha import get_captcha
 from opensipkd.tools.report import csv_response, file_response, xls_response
-from opensipkd.base import BASE_CLASS
-from .common import DataTables
-from ..models import DBSession, Partner, Base
-from ..widgets import widget_os
+
+from ...detable import DeTable
+from ..models import Base, DBSession, Partner
 from ..scripts.initializedb import append_csv
 from ..tools import obj2json
-from ...detable import DeTable
-import enum
+from ..widgets import widget_os
+from .common import DataTables
 
 log = logging.getLogger(__name__)
 
+def is_file_upload(val): 
+    return hasattr(val, 'file') and hasattr(val, 'filename')
 
 class SearchMethods(enum.Enum):
     none = 0
@@ -105,7 +132,7 @@ class CSRFSchema(colander.Schema):
     )
 
 
-class BaseView(object):
+class BaseView:
     def __init__(self, request):
         self.req = request
         for key, value in request.headers.items():
@@ -425,7 +452,7 @@ class BaseView(object):
     def get_form(self, class_form, row=None, buttons=(btn_save, btn_cancel),
                  **kwargs):
         buttons = self.buttons and self.buttons or buttons
-        if "bindings" in kwargs and kwargs["bindings"]:
+        if kwargs.get("bindings"):
             bindings = kwargs["bindings"]
         elif self.bindings:
             bindings = self.bindings
@@ -433,13 +460,13 @@ class BaseView(object):
             bindings = self.get_bindings(row)
         form_params = {"request": self.req}
         # form_params["after_bind"] = after_bind
-        if "validator" in kwargs and kwargs["validator"]:
+        if kwargs.get("validator"):
             form_params["validator"] = kwargs["validator"]
             # schema = class_form(validator=kwargs["validator"])
         else:
             form_params["validator"] = self.form_validator
             # schema = class_form(validator=self.form_validator)
-        if "after_bind" in kwargs and kwargs["after_bind"]:
+        if kwargs.get("after_bind"):
             form_params["after_bind"] = kwargs["after_bind"]
             # schema = class_form(validator=kwargs["validator"])
         if self.form_widget:
@@ -539,7 +566,7 @@ class BaseView(object):
                 action_suffix += f'?parent_id={parent.id}'
 
             schema = self.list_schema()
-            if "bindings" in kwargs and kwargs["bindings"]:
+            if kwargs.get("bindings"):
                 bindings = kwargs["bindings"]
             elif self.bindings:
                 bindings = self.bindings
@@ -636,10 +663,14 @@ class BaseView(object):
                     and getattr(d, "global_search", self.global_search) or self.global_search
                 search_method = hasattr(d, "search_method") \
                     and getattr(d, "search_method", "string_contains") or "string_contains"
+                # if hasattr(d, "visible"):
+                #     if d.visible == False:
+                #        continue
                 if hasattr(d, "field"):
                     if isinstance(d.field, str):
                         if d.field == "calculated":
                             continue
+                                                
                         columns.append(
                             ColumnDT(getattr(self.table, d.field),
                                      mData=d.name,
@@ -699,7 +730,7 @@ class BaseView(object):
             if self.list_view_field and kwargs.get("link") is not False:
                 res[self.list_view_field] = f"<a href='{list_url}/{res['id']}/view'>{res[self.list_view_field]}</a>"
             for k in res:
-                if k in select_list.keys():
+                if k in select_list:
                     vals = select_list[k]
                     for r in vals:
                         if r and str(r) == str(res[k]):
@@ -770,7 +801,7 @@ class BaseView(object):
         selects = {}
         list_schema = self.list_schema()
         #         schema = self.list_schema()
-        if "bindings" in kwargs and kwargs["bindings"]:
+        if kwargs.get("bindings"):
             bindings = kwargs["bindings"]
         elif self.bindings:
             bindings = self.bindings
@@ -1115,7 +1146,8 @@ class BaseView(object):
             cloned = self.req.POST.items()
             control = []
             for ctrl in cloned:
-                if isinstance(ctrl[1], (MultipartPart, FieldStorage)):
+                # if isinstance(ctrl[1], (MultipartPart, FieldStorage)):
+                if is_file_upload(ctrl[1]):
                     control.append(
                         ("__start__", f"{ctrl[0]}:mapping"))
                     control.append(("upload", ctrl[1]))
@@ -1161,7 +1193,8 @@ class BaseView(object):
                     cloned = self.req.POST.items()
                     control = []
                     for ctrl in cloned:
-                        if isinstance(ctrl[1], File):  # FieldStorage
+                        # if isinstance(ctrl[1], File):  # FieldStorage
+                        if is_file_upload(ctrl[1]):
                             control.append(
                                 ("__start__", f"{ctrl[0]}:mapping"))
                             control.append(("upload", ctrl[1]))
@@ -1175,7 +1208,7 @@ class BaseView(object):
                     c = form.validate(controls)
                 except ValidationFailure as e:
                     log.error(f"Add cstruct: {e.cstruct}")
-                    log.error(f"Add Error: {str(e.error)}")
+                    log.error(f"Add Error: {e.error!s}")
                     # log.error(f"Add Error: {str(e.asdict)}")
                     value = self.before_add()
                     if self.req.is_xhr:
@@ -1369,7 +1402,8 @@ class BaseView(object):
                     controls = []
                     for ctrl in cloned:
                         # FieldStorageFieldStorage):
-                        if isinstance(ctrl[1], (MultipartPart, FieldStorage)):
+                        if is_file_upload(ctrl[1]):
+                            # if isinstance(ctrl[1], (MultipartPart, FieldStorage)):
                             controls.append(
                                 ("__start__", f"{ctrl[0]}:mapping"))
                             controls.append(("upload", ctrl[1]))
@@ -1384,7 +1418,7 @@ class BaseView(object):
                 try:
                     controls = form.validate(controls)
                 except ValidationFailure as e:
-                    log.error(f"Edit Error: {str(e.error)}")
+                    log.error(f"Edit Error: {e.error!s}")
                     if self.req.is_xhr:
                         return self.resp_xhr({"error": e.error.asdict()})
 
@@ -1442,7 +1476,7 @@ class BaseView(object):
                 request.session.flash(
                     f"Gagal menghapus data. "
                     f"Pastikan data tidak berelasi dengan data lain. "
-                    f"Error: {str(e)}", "error")
+                    f"Error: {e!s}", "error")
             return self.route_list()
 
         self.ses["readonly"] = True
@@ -1562,7 +1596,7 @@ class BaseView(object):
         Args:
 
         """
-        if field in values and values[field]:
+        if values.get(field):
             value = values[field]
             file_name = value["filename"]
             ext = get_ext(file_name)

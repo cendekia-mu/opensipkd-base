@@ -1,17 +1,18 @@
-from sqlalchemy import true
 import colander
 from deform import FileData, widget
-from opensipkd.tools import mem_tmp_store
 from translationstring import TranslationStringFactory
+
+from opensipkd.tools import mem_tmp_store
+
+# from .. import get_urls
+from ..models import Partner
+
 # from opensipkd.base.views.dati2 import dati2_widget
 # from opensipkd.base.views.desa import desa_widget
 # from opensipkd.base.views.kecamatan import kecamatan_widget
 # from opensipkd.base.views.provinsi import provinsi_widget
 # from opensipkd.models import Partner
 from . import Validator
-# from .. import get_urls
-from ..models import Partner
-
 
 _ = TranslationStringFactory('partner')
 

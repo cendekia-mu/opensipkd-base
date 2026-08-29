@@ -1,9 +1,8 @@
 import colander
 from deform import widget
-from pyramid.view import view_config
 
-from . import BaseView
 from ..models import ResDesa, User, UserArea
+from . import BaseView
 
 
 class ListSchema(colander.Schema):

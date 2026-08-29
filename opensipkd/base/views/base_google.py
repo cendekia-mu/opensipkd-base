@@ -1,13 +1,12 @@
+import json
 import logging
 
-from google.auth.transport import requests
-from google.oauth2 import id_token
-from opensipkd.base import get_params
-from pyramid.view import (view_config, )
+from pyramid.view import (
+    view_config,
+)
 
+from opensipkd.base import get_params
 from opensipkd.models import User
-from opensipkd.tools import get_settings
-import json
 
 _logging = logging.getLogger(__name__)
 

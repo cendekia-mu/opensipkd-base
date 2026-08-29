@@ -1,8 +1,9 @@
-# http://www.derstappen-it.de/tech-blog/sqlalchemie-alembic-check-if-table-has-column
-
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.engine import reflection
+
+# http://www.derstappen-it.de/tech-blog/sqlalchemie-alembic-check-if-table-has-column
+
 
 def get_insp():
     engine = op.get_bind()
@@ -58,33 +59,33 @@ def table_has_seq(table, name, schema=None):
         has_seq = True
     return has_seq
 
-def create_unique_constraint(*args, **kw):
-    const_name = args[0]
-    if const_name:
-        table_name = args[1]
-        existing_constraints = kw["insp"].get_unique_constraints(table_name, schema=kw["schema"])
-        constraint_names = [c['name'] for c in existing_constraints]
-        if const_name not in constraint_names:
-            kw.pop("insp", None)
-            op.create_unique_constraint(*args, **kw)
-        else:
-            print(f"Skipping: {const_name} already exists.")
+def create_unique_constraint(const_name, table_name, *args, **kw):
+    # const_name = args[0]
+    # if const_name:
+        # table_name = args[1]
+    existing_constraints = kw["insp"].get_unique_constraints(table_name, schema=kw["schema"])
+    constraint_names = [c['name'] for c in existing_constraints]
+    if const_name not in constraint_names:
+        kw.pop("insp", None)
+        op.create_unique_constraint(*args, **kw)
     else:
-        raise Exception(f"{const_name} Wajib ada")
+        print(f"Skipping: {const_name} already exists.")
+    # else:
+    #     raise Exception(f"{const_name} Wajib ada")
 
-def create_index(*args, **kw):
-    idx_name = args[0]
-    if idx_name:
-        table_name = args[1]
-        existing_names = kw["insp"].get_indexes(table_name, schema=kw["schema"])
-        existings = [c['name'] for c in existing_names]
-        if idx_name not in existings:
-            kw.pop("insp", None)
-            op.create_index(*args, **kw)
-        else:
-            print(f"Skipping: {idx_name} already exists.")
+def create_index(idx_name, table_name, *args, **kw):
+    # idx_name = args[0]
+    # if idx_name:
+        # table_name = args[1]
+    existing_names = kw["insp"].get_indexes(table_name, schema=kw["schema"])
+    existings = [c['name'] for c in existing_names]
+    if idx_name not in existings:
+        kw.pop("insp", None)
+        op.create_index(*args, **kw)
     else:
-        raise Exception(f"{idx_name} Wajib ada")
+        print(f"Skipping: {idx_name} already exists.")
+    # else:
+    #     raise Exception(f"{idx_name} Wajib ada")
 
     
 def fields_update(table, field, typ,  schema="pad", **kw):
@@ -99,3 +100,5 @@ def fields_update(table, field, typ,  schema="pad", **kw):
                 op.execute(
                     f"UPDATE {schema}.{table} SET {field} = {default}")
                 op.alter_column(table, field, nullable=False, schema=schema)
+
+

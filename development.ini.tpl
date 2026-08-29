@@ -4,8 +4,9 @@
 ###
 
 
+# Pilih jenis aplikasi sebagai main atau virtual dir 
 [app:main]
-;[app:opensipkd_base]
+;[app:app_main] 
 use = egg:opensipkd_base
 reload_templates = true
 pyramid.debug_all = true
@@ -41,38 +42,37 @@ localization = English_Australia.1252
 # Base Configuration
 temp_files = C:\tmp
 partner_doc = C:\\tmp\\docs\\partner\\
-# Registrasi User
-allow_register = 1
-reg_form = 
-reg_idcard = 1
-reg_captcha = 1
-reg_verify = 1
 
+# MAIL
+; mail.host = smtp.gmail.com
+; mail.port = 465
+; mail.ssl = True
+; mail.tls = True
+; mail.username = opensipkd@gmail.com
+; mail.password = ajmyoksxeiprmtyc
+; mail.sender_name = "openSIPKD"
+
+# Registrasi dan Login User
+; allow_register = 1
+; reg_idcard = 1
+; reg_captcha = 1
+; reg_verify = 1
 ;reg_form =
-login_tpl =
-login_captcha = 1
-
-;login_tpl = opensipkd.samsat.jabar.views:templates/login.pt
+;login_tpl =
+;login_captcha = 1
+;captcha_files = /tmp/captcha
 
 ;static_files = %(here)s/../files
-;captcha_files = /tmp/captcha
 ;company = Opensipkd
 ;ibukota = Bekasi
 ;departement = IT
 ;address_1 = Jalan....
 ;address_2 = Bekasi ...
-;
-;center.phone = 021123456789
-;center.mobile = 081311045668
-;center.email = aa.gustiana@gmail.com
-;center.email_password =
-;center.smtp_server =
-;
+
 ;#_host = http://localhost:5433/demo2
-;
 ;unoconv_py = C:\Program Files\LibreOffice\program\python.exe
 ;unoconv_bin = C:\product\venv-lates\Scripts\unoconv
-;
+
 ;modules =
 menus = login:Login
    register:PJDL

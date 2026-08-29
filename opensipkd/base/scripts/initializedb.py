@@ -5,23 +5,33 @@ import os
 import subprocess
 import sys
 from getpass import getpass
-from pyramid.paster import (get_appsettings, setup_logging, )
-from sqlalchemy import (engine_from_config, select, Table, inspect)
-from sqlalchemy import text
+
+import transaction
+from pyramid.paster import (
+    get_appsettings,
+    setup_logging,
+)
+from sqlalchemy import Table, engine_from_config, inspect, select, text
 from sqlalchemy.schema import CreateSchema
 from sqlalchemy.sql.sqltypes import BOOLEAN
 from ziggurat_foundations.models.services.user import UserService
 
 from opensipkd.tools import get_ext
 
-import transaction
+from ..models import (
+    DBSession,
+)
+from ..models.handlers import LogDBSession
+from ..models.meta import Base
 from ..models.users import (
-    init_model, Group, UserGroup, Permission, GroupPermission, User, 
-    UserPermission, ExternalIdentityMixin)
-from ..models import (Partner, )
-from ..models import (DBSession)
-from ..models.handlers import (LogDBSession)
-from ..models.meta import Base  
+    Group,
+    GroupPermission,
+    Permission,
+    User,
+    UserGroup,
+    init_model,
+)
+
 # from ..models import (Base, LogDBSession)
 #  Route, Eselon, Jabatan, ResProvinsi, ResDati2, ResKecamatan, ResDesa,
 #     Menus, Pangkat
@@ -285,7 +295,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     # merubah v1.4 ke v.2
                     # sql = select([foreign_table]).where(foreign_field == value)
                     sql = select(foreign_table).where(foreign_field == value)
-                    log.debug(f"Query Foreignkey: {str(sql)}")
+                    log.debug(f"Query Foreignkey: {sql!s}")
                     # merubah v1.4 ke v.2
                     # q = Base.metadata.bind.execute(sql)
                     with eng.connect() as conn:
@@ -346,7 +356,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     # by tatang 2024-10-12
                     # log.debug(data)
                     raise Exception(
-                        f"Table {str(table.__name__)} Field '{c['name']}' wajib ada {c['type']} ")
+                        f"Table {table.__name__!s} Field '{c['name']}' wajib ada {c['type']} ")
 
             db_session.add(row)
             db_session.flush()
@@ -364,10 +374,10 @@ def append_csv(table, filename, keys, get_file_func=get_file,
 
 def ask_password(name):
     while True:
-        pass1 = getpass('Tulis password untuk {}: '.format(name))
+        pass1 = getpass(f'Tulis password untuk {name}: ')
         if not pass1:
             continue
-        pass2 = getpass('Ulangi password untuk {}: '.format(name))
+        pass2 = getpass(f'Ulangi password untuk {name}: ')
         if pass1 == pass2:
             return pass1
         print('Maaf kedua password tidak sama')
@@ -376,7 +386,7 @@ def ask_password(name):
 def reset_sequence_(cls, seq):
     q = DBSession.query(cls)
     if not q.first():
-        sql = "SELECT setval('{}', 1, false)".format(seq)
+        sql = f"SELECT setval('{seq}', 1, false)"
         # DBSession.bind.execute(sql)
         # sqlalchemy 2
         DBSession.execute(text(sql))

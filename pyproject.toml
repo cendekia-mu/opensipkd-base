@@ -41,7 +41,7 @@ dependencies = [
     'ziggurat-foundations',
     'zope.sqlalchemy',
     'websockets',
-    "asyncio",
+    # "asyncio",
     "pdfkit",
     "lxml",
     "pandas"
@@ -69,9 +69,11 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    'pyramid_debugtoolbar',
-    'pytest', 'webtest']
+# dev = [
+#     'pyramid_debugtoolbar',
+#     'pytest', 'webtest']
+dev = ['pyramid_debugtoolbar', 'pytest', 'webtest', 
+        'pytest-cov', 'mypy', 'ruff' ]
 
 [project.entry-points."paste.app_factory"]
 main = 'opensipkd.base:main'

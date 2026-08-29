@@ -1,7 +1,10 @@
 create user apps identified by aa;
 create user webr identified by aa;
 ALTER USER apps QUOTA UNLIMITED ON USERS;
+create user pad identified by ap4d;
 GRANT DBA TO webr;
+GRANT DBA TO pad;
+
 BEGIN
    -- Loop through every existing table in the APPS schema
    FOR t IN (SELECT table_name FROM all_tables WHERE owner = 'APPS') LOOP

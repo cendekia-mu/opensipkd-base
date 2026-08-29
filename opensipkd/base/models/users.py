@@ -1,32 +1,35 @@
-from datetime import datetime, timezone
 import logging
+from datetime import datetime, timezone
 from typing import List
+
 import sqlalchemy as sa
-from pyramid.authorization import (Allow, Authenticated, ALL_PERMISSIONS)
+from pyramid.authorization import ALL_PERMISSIONS, Allow, Authenticated
+
 # from sqlalchemy import TIMESTAMP
-from sqlalchemy import (
-    Column, Integer, DateTime, SmallInteger, String)
-from sqlalchemy.orm import (
-    declared_attr, relationship, backref, Mapped, mapped_column)
+from sqlalchemy import Column, DateTime, Integer, SmallInteger, String
+from sqlalchemy.orm import Mapped, backref, declared_attr, relationship
 from ziggurat_foundations import ziggurat_model_init
 from ziggurat_foundations.models.base import BaseModel
 from ziggurat_foundations.models.external_identity import ExternalIdentityMixin
 from ziggurat_foundations.models.group import GroupMixin
 from ziggurat_foundations.models.group_permission import GroupPermissionMixin
-from ziggurat_foundations.models.group_resource_permission import \
-    GroupResourcePermissionMixin
+from ziggurat_foundations.models.group_resource_permission import (
+    GroupResourcePermissionMixin,
+)
 from ziggurat_foundations.models.resource import ResourceMixin
 from ziggurat_foundations.models.services.user import UserService
 from ziggurat_foundations.models.user import UserMixin
 from ziggurat_foundations.models.user_group import UserGroupMixin
 from ziggurat_foundations.models.user_permission import UserPermissionMixin
-from ziggurat_foundations.models.user_resource_permission import \
-    UserResourcePermissionMixin
+from ziggurat_foundations.models.user_resource_permission import (
+    UserResourcePermissionMixin,
+)
+
 from opensipkd.tools import as_timezone
 
-from .base import CommonModel, DBSession, DefaultModel
+from .base import TABLE_ARGS, CommonModel, DBSession, DefaultModel
 from .meta import Base
-from .base import TABLE_ARGS
+
 log = logging.getLogger(__name__)
 
 class ForceUTCDatetime(sa.TypeDecorator):
@@ -534,7 +537,7 @@ class RootFactory:
             (Allow, f'group:{gr_id}', ALL_PERMISSIONS),
             (Allow, Authenticated, 'view')]
         for gp in DBSession.query(GroupPermission):
-            acl_name = 'group:{}'.format(gp.group_id)
+            acl_name = f'group:{gp.group_id}'
             self.__acl__.append((Allow, acl_name, gp.perm_name))
         # log.debug(f"RootFactory ACL: {self.__acl__}")
 

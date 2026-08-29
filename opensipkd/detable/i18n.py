@@ -1,5 +1,5 @@
-"""I18n."""
-from translationstring import TranslationStringFactory
+# """I18n."""
+# from translationstring import TranslationStringFactory
 
 
-_ = TranslationStringFactory("detable")
+# _ = TranslationStringFactory("detable")

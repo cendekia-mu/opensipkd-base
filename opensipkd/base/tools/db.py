@@ -1,4 +1,5 @@
 from sqlalchemy import func
+
 from opensipkd.base.models import Parameter
 
 

@@ -1,37 +1,49 @@
-from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
+from urllib.parse import unquote
+import csv
+import datetime
+import decimal
+import importlib
 import json
-from pyramid.response import Response
-from pyramid.view import exception_view_config
-from pyramid.security import forget
 import locale
 import logging
 import os
-import importlib
-import csv
 import re
-import datetime
-import decimal
-import deform
-import traceback
-import opensipkd
 import tempfile
-from pkg_resources import resource_filename
-from pyramid.renderers import JSON
-from pyramid_beaker import session_factory_from_settings
+import traceback
+
+# from pkg_resources import resource_filename
+from importlib import resources
+
+import deform
 from pyramid.config import Configurator
-from pyramid.events import NewRequest, BeforeRender, subscriber, NewResponse
-from pyramid.csrf import new_csrf_token, get_csrf_token
+from pyramid.csrf import get_csrf_token, new_csrf_token
+from pyramid.events import BeforeRender, NewRequest, NewResponse, subscriber
+from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
+from pyramid.renderers import JSON
+from pyramid.response import Response
+from pyramid.security import forget
+from pyramid.view import exception_view_config
+from pyramid_beaker import session_factory_from_settings
 from pyramid_mailer import mailer_factory_from_settings
 from sqlalchemy import engine_from_config, or_
 
+import opensipkd
 from opensipkd.tools import (
-    get_settings, DefaultTimeZone, dmy, dmyhms, get_ext, thousand)
-from .security import MySecurityPolicy, get_user
+    DefaultTimeZone,
+    dmy,
+    dmyhms,
+    get_ext,
+    get_settings,
+    thousand,
+)
+
+from .models import Route
 from .models.base import DBSession
 from .models.handlers import LogDBSession
 from .models.meta import Base
 from .models.users import init_model
-from .models import Route
+from .security import MySecurityPolicy, get_user
+
 # from .models import TABLE_ARGS
 # from deform import ZPTRendererFactory, Form
 # from deform.widget import default_resource_registry
@@ -39,19 +51,16 @@ from .models import Route
 _logging = logging.getLogger(__name__)
 
 # version 2.0.0 digunakan untuk change default template
-deform_templates = resource_filename('deform', 'templates')
+# deform_templates = resource_filename('deform', 'templates')
+deform_templates = str(resources.files('deform') / 'templates')
 path = os.path.dirname(__file__)
 path = os.path.join(path, 'widgets', 'templates')
 search_path = (path, deform_templates)  # ,
 renderer = deform.ZPTRendererFactory(search_path)
 deform.Form.set_zpt_renderer(search_path)
-
-
 main_title = 'openSIPKD'
 titles = {}
 static_route = []
-
-titles = {}
 
 
 def get_params(params, alternate=None, settings=None):
@@ -221,8 +230,15 @@ def get_config(settings):
                           session_factory=session_factory)
     allow_no_origin = settings.get(
         "allow_no_origin", "false").lower() == 'true'
-    config.set_default_csrf_options(require_csrf=False,
-                                    allow_no_origin=allow_no_origin
+    config_csrf = settings.get(
+        "require_csrf", "false").lower() == 'true'
+    config.set_default_csrf_options(
+        # require_csrf=False,
+        allow_no_origin=allow_no_origin,
+        require_csrf=config_csrf,        # Aktifkan validasi otomatis di semua view
+        token='csrf_token',       # Nama parameter POST yang dicari
+        header='X-CSRF-Token',    # Nama HTTP Header yang dicari
+        safe_methods=('GET', 'HEAD', 'OPTIONS', 'TRACE')
                                     )
     config.set_security_policy(
         MySecurityPolicy(
@@ -245,19 +261,19 @@ def get_config(settings):
     config.add_request_method(get_address, 'address', reify=True)
     config.add_request_method(get_address2, 'address2', reify=True)
 
-    #     config.add_request_method(get_modules, 'modules', reify=True)
     config.add_request_method(has_modules, 'has_modules', reify=True)
-    #     config.add_request_method(thousand, 'thousand', reify=True)
-    #     config.add_request_method(is_devel, 'devel', reify=True)
     config.add_request_method(google_signin_client_id,
                               'google_signin_client_id', reify=True)
     config.add_request_method(google_signin_client_ids,
                               'google_signin_client_ids', reify=True)
     config.add_request_method(allow_register, 'allow_register', reify=True)
+    #     config.add_request_method(get_modules, 'modules', reify=True)
+    #     config.add_request_method(thousand, 'thousand', reify=True)
+    #     config.add_request_method(is_devel, 'devel', reify=True)
     #     config.add_request_method(disable_responsive, 'disable_responsive',
     #                               reify=True)
     #     config.add_request_method(_get_ini, 'get_ini', reify=True)
-    # config.add_request_method(get_params, 'get_params', reify=True)
+    #     config.add_request_method(get_params, 'get_params', reify=True)
     #     config.add_request_method(get_csrf_token, 'get_csrf_token', reify=True)
 
     #     # Penambahan Module Auto Generate Menu
@@ -343,51 +359,58 @@ def datetime_output_handler(cursor, name, default_type, size, precision, scale):
         return cursor.var(oracledb.DB_TYPE_TIMESTAMP_TZ, arraysize=cursor.arraysize, outconverter=lambda v: v)
 
 
-from urllib.parse import unquote
-
-class CookieFixMiddleware(object):
+class CookieFixMiddleware:
     def __init__(self, app):
         self.app = app
 
     def __call__(self, environ, start_response):
         # 1. Grab the raw header
         cookie_str = environ.get('HTTP_COOKIE', '')
-        
+
         if cookie_str and '%3A' in cookie_str:
-            # 2. Repair the encoded colons manually 
+            # 2. Repair the encoded colons manually
             cleaned_cookies = cookie_str.replace('%3A', ':')
             environ['HTTP_COOKIE'] = cleaned_cookies
-            
+
             # 3. CRUCIAL: Obliterate WebOb's internal parsing memoizations
             # This forces WebOb to re-read the fresh, clean 'HTTP_COOKIE' string
             environ.pop('webob._parsed_cookies', None)
             environ.pop('webob._parsed_cookies_raw', None)
-            
+
             # Also clear any custom user properties if tracking middleware ran early
             if 'webob.adhoc_attrs' in environ:
                 environ['webob.adhoc_attrs'].pop('cookies', None)
 
         return self.app(environ, start_response)
-    
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     # default_resource_registry.registry['jquery.maskMoney'] = {
     #     None: {"js": "opensipkd.base:static/jquery/jquery.maskMoney.min.js"}}
+    # Menambah security kedalam environment
+    if os.environ.get("SQLALCHEMY_URL"):
+        settings["sqlalchemy.url"]=os.environ["SQLALCHEMY_URL"]
+    if os.environ.get("SESSION_URL"):
+        settings["session.url"] = os.environ["SESSION_URL"]
+    if os.environ.get("SESSION_SECRET"):
+        settings["session.secret"]=os.environ["SESSION_SECRET"]
+                
     if not settings.get('localization', ''):
         settings['localization'] = 'id_ID.UTF-8'
 
     if settings.get("lib_dir"):
-        # sqlalchemy_url = settings.get("sqlalchemy.url")
-        # if  sqlalchemy_url and sqlalchemy_url.find("oracledb") > -1:
         try:
-            import oracledb
+            import oracledb # pylint: disable=import-outside-toplevel
             oracledb.init_oracle_client(lib_dir=settings.get("lib_dir"))
             # Apply the global configuration handler to your connection pool
             oracledb.defaults.outputtypehandler = datetime_output_handler
             _logging.debug("oracledb initialized")
-        except:
-            pass
+        except ValueError as e:
+            _logging.error(str(e))
+        except TypeError as e:
+            _logging.error(str(e))
 
     locale.setlocale(locale.LC_ALL, settings['localization'])
     if 'timezone' not in settings:
@@ -409,7 +432,7 @@ def main(global_config, **settings):
     config.scan(".")
     # _logging.debug(config)
     app = config.make_wsgi_app()
-    app = CookieFixMiddleware(app) # Must wrap here
+    app = CookieFixMiddleware(app)  # Must wrap here
     return app
 
 
@@ -498,11 +521,11 @@ def add_cors_headers_response_callback(event):
         # _logging.warning("request post data %s",
         #                  request.POST)
         # pass
-        # origin = request.headers.get("Origin", None)
-        # allowed_origin = get_params("allowed_origin", None)
-        # if allowed_origin:
-        #     if origin not in allowed_origin.split('\n'):
-        #         origin = "null"
+        origin = request.headers.get("Origin", None)
+        allowed_origin = get_params("allowed_origin", None)
+        if allowed_origin:
+            if origin not in allowed_origin.split('\n'):
+                origin = "null"
 
         headers = {
             'Access-Control-Allow-Methods': '*',
@@ -577,7 +600,7 @@ def add_global_render(event):
 #         csrf = new_csrf_token(request)
 #     event.response.headers['X-CSRF-Token'] = csrf
 
-class BaseApp():
+class BaseApp:
     def __init__(self):
         self.menus = []
         self.temp_files = ""

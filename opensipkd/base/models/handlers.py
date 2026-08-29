@@ -1,6 +1,10 @@
-from sqlalchemy import (Column, Integer, String, DateTime, func, Text)
-from sqlalchemy.orm import (scoped_session, sessionmaker, )
-from ..models import CommonModel, TABLE_ARGS
+from sqlalchemy import Column, DateTime, Integer, String, Text, func
+from sqlalchemy.orm import (
+    scoped_session,
+    sessionmaker,
+)
+
+from ..models import TABLE_ARGS, CommonModel
 from ..models.meta import Base
 
 factory = sessionmaker(autoflush=True, autocommit=True)

@@ -1,8 +1,9 @@
 # http://www.derstappen-it.de/tech-blog/sqlalchemie-alembic-check-if-table-has-column
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.engine import reflection
-import sqlalchemy as sa
+
 
 def has_table(table, schema=None, insp=None):
     if not insp:

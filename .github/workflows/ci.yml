@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "v5.0", "oracle.apps", "latest", "main", "master" ]
+  pull_request:
+    branches: [ "v5.0", "oracle.apps", "latest", "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-dev libxslt1-dev libjpeg-dev zlib1g-dev libfreetype6-dev
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install ruff mypy pytest webtest pytest-cov
+          pip install -e .
+
+      - name: 1. Syntax & Lint Check (Ruff)
+        run: |
+          ruff check opensipkd/
+
+      - name: 2. Type Check (Mypy)
+        run: |
+          mypy opensipkd/base --ignore-missing-imports
+
+      - name: 3. Run Pytest Suite
+        run: |
+          pytest -v --ignore=bak
+
+
+# 4. How to Test Locally Before Pushing
+# Run these commands in your virtual environment:
+
+# # 1. Install dev packages pip install -e ".[dev]"
+
+# # 2. Check syntax & code quality ruff check opensipkd/
+
+# # 3. Check types mypy opensipkd/base --ignore-missing-imports
+
+# # 4. Run tests pytest -v --ignore=bak

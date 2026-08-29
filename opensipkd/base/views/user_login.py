@@ -19,38 +19,42 @@ Perubahan Mendasar dari fungsi login adalah:
 
     result object dari fungsi tersebut harus berupa class User()
 """
-from operator import ge
-from google.oauth2 import id_token
-from google.auth.transport import requests
 import os
-from random import Random
 import re
-from datetime import date, timedelta, datetime
+from datetime import datetime, timedelta
 from importlib import import_module
+from random import Random
 
-from pyramid.request import Response
 import colander
-from deform import widget, Form, ValidationFailure, Button
-from pyramid.csrf import new_csrf_token, get_csrf_token
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound, HTTPNotAcceptable
+from deform import Button, Form, ValidationFailure, widget
+from google.auth.transport import requests
+from google.oauth2 import id_token
+from pyramid.csrf import get_csrf_token, new_csrf_token
+from pyramid.httpexceptions import HTTPFound, HTTPNotAcceptable, HTTPNotFound
+from pyramid.i18n import TranslationStringFactory
 from pyramid.renderers import render_to_response
-from pyramid.security import remember, forget
+from pyramid.request import Response
+from pyramid.security import forget, remember
 from pyramid_mailer.message import Message
-from ziggurat_foundations.models.services.external_identity import \
-    ExternalIdentityService
+from ziggurat_foundations.models.services.external_identity import (
+    ExternalIdentityService,
+)
 from ziggurat_foundations.models.services.user import UserService
 
-from opensipkd.base import BASE_CLASS, DBSession, get_params
-from . import one_hour, two_minutes
-from ..models.users import User, ExternalIdentity
-from ..models import Partner
+from opensipkd.base import BASE_CLASS, get_params
+
 # , Partner
-from opensipkd.tools import create_now, set_user_log, get_settings, dmyhms
+from opensipkd.tools import create_now, dmyhms, get_settings, set_user_log
 from opensipkd.tools.buttons import btn_cancel
-# from .. import get_urls
-from .base_views import CSRFSchema, BaseView
-from pyramid.i18n import TranslationStringFactory
+
+from ..models import Partner
+from ..models.users import ExternalIdentity, User
 from ..widgets import widget_os
+from . import one_hour, two_minutes
+
+# from .. import get_urls
+from .base_views import BaseView, CSRFSchema
+
 _ = TranslationStringFactory('login')
 
 log = __import__("logging").getLogger(__name__)
@@ -82,12 +86,11 @@ class Login(CSRFSchema):
 def login_validator(form, value):
     exc = colander.Invalid(form, 'Terlalu banyak percobaan')
     request = form.request
-    
 
 
 def get_login_headers(request, user):
     if not request.is_xhr and BASE_CLASS.single_device and \
-        not user.multi_device:
+            not user.multi_device:
         # if user.session_id and user.session_id != request.session.id:
         #         from beaker.session import Session
         #         Session(request.headers, id=user.session_id).delete()
@@ -106,7 +109,7 @@ def get_login_headers(request, user):
     return headers
 
 
-class LoginUser(object):
+class LoginUser:
     def __init__(self, request):
         # self.user = user
         self.request = request
@@ -122,10 +125,10 @@ class LoginUser(object):
         if self.login_failed > 3:
             # message = "Login Gagal, terlalu banyak percobaan"
             if self.login_blocked and self.login_blocked > datetime.now():
-                self.message= 'Login Gagal, terlalu banyak percobaan, silahkan coba lagi setelah {}'\
-                    .format(dmyhms(self.login_blocked))
-                return 
-            
+                self.message = f'Login Gagal, terlalu banyak percobaan, silahkan coba lagi setelah {dmyhms(self.login_blocked)}'\
+                    
+                return
+
         self.user = user and user or User.get_by_identity(values["username"])
         if not self.user or not UserService.check_password(
                 self.user, values["password"]):
@@ -134,8 +137,9 @@ class LoginUser(object):
             self.ses["login_failed"] = self.login_failed + 1
             if self.ses["login_failed"] > 3:
                 self.ses["login_blocked"] = datetime.now() + \
-                    timedelta(minutes=int(settings.get("login_blocked_minutes", 1)))
-                self.message= 'Login Gagal, terlalu banyak percobaan, silahkan coba lagi setelah {}'\
+                    timedelta(minutes=int(settings.get(
+                        "login_blocked_minutes", 1)))
+                self.message = 'Login Gagal, terlalu banyak percobaan, silahkan coba lagi setelah {}'\
                     .format(dmyhms(self.ses["login_blocked"]))
             return
         self.ses["login_failed"] = 0
@@ -314,7 +318,7 @@ class ViewAuth(BaseView):
             controls = request.POST.items()
             try:
                 c = form.validate(controls)
-            except ValidationFailure as e:
+            except ValidationFailure:
                 msg = 'Login gagal'
                 set_user_log(msg, request, log, identity)
                 if self.req.is_xhr:
@@ -342,10 +346,10 @@ class ViewAuth(BaseView):
                 try:
                     user = m.login(identity, values['password'], user)
                 except Exception as e:
-                    log.warn(str(e))
+                    log.warning(str(e))
                     request.session.flash(str(e), "error")
                     return HTTPFound(location=request.route_url('base-login'))
-            else:               
+            else:
                 login = LoginUser(self.req)
                 if not login.login(values, user):
                     if self.req.is_xhr:
@@ -361,7 +365,7 @@ class ViewAuth(BaseView):
                 #     user = login.user
                 #     headers = get_login_headers(request, user)
                 #     return xhr_response(user, headers)
-                
+
             return redirect_login(request, user)
 
         elif 'register' in request.POST:
@@ -373,7 +377,7 @@ class ViewAuth(BaseView):
             del request.session['login failed']
             return r
 
-        elif "provider_name" in request.params and request.params["provider_name"]:
+        elif request.params.get("provider_name"):
             try:
                 user = oauth2_login(request)
             except Oauth2ParseExc as e:
@@ -460,7 +464,7 @@ class ViewAuth(BaseView):
             form.set_appstruct({"message": "Sukses Logout"})
             request.session["login"] = False
 
-        return dict(form=form.render())
+        return {"form": form.render()}
 
 
 def xhr_response(user, headers):
@@ -527,8 +531,8 @@ class ViewPassword(BaseView):
         if request.authenticated_userid:
             return HTTPFound(location=f"{request.home}")
 
-        resp = dict(title=_('Reset password'))
-        resp['scripts'] = ""
+        resp = {"title": _('Reset password'),
+                'scripts': ""}
         schema = ResetPassword(validator=reset_password_validator)
         btn_submit = Button('submit', _('Send password reset email'))
         form = Form(schema, buttons=(btn_submit, btn_cancel))
@@ -538,18 +542,18 @@ class ViewPassword(BaseView):
             q = self.db_session.query(User).filter_by(email=identity)
             schema.user = user = q.first()
             try:
-                c = form.validate(controls)
+                form.validate(controls)
             except ValidationFailure:
                 resp['form'] = form.render()
                 return resp
             remain = regenerate_security_code(user)
-            set_user_log("Reset password to {}".format(user.email), request, log,
+            set_user_log(f"Reset password to {user.email}", request, log,
                          user.user_name)
             send_email_security_code(
                 request, user, remain, 'Reset password', 'reset-password-body',
                 'reset-password-body.tpl')
             self.ses.flash(
-                'Email reset password sudah dikirim ke {}'.format(user.email))
+                'Email reset password sudah dikirim ke {user.email}')
             return HTTPFound(location=request.home)
         elif 'cancel' in request.POST:
             return HTTPFound(location=request.route_url('base-login'))
@@ -585,22 +589,24 @@ class ViewPassword(BaseView):
 
         user = request.user
         user.security_code = None
-        
+
         if get_params('external-uim'):
             pckgs = get_params('external-uim')
             m = import_module(pckgs)
             try:
-                m.change_password(user.user_name, c['password'], c['new_password'])
+                m.change_password(
+                    user.user_name, c['password'], c['new_password'])
             except Exception as e:
-                log.warn(str(e))
+                log.warning(str(e))
                 request.session.flash(str(e), "error")
-                return HTTPFound(location=request.route_url('base-password'))  
+                return HTTPFound(location=request.route_url('base-password'))
             headers = forget(request)
             request.session.delete()
             request.response.headers.update(headers)
-            request.session.flash("Password berhasil diubah, Silahkan login ulang")
+            request.session.flash(
+                "Password berhasil diubah, Silahkan login ulang")
             return HTTPFound(location=request.route_url('base-login'), headers=headers)
-        
+
         if not UserService.check_password(user, c['password']):
             request.session.flash('Password lama tidak sesuai', 'error')
             return HTTPFound(location=request.route_url('base-password'))
@@ -673,7 +679,7 @@ class ViewPassword(BaseView):
             return HTTPFound(location=f"{request.home}")
         request.user.api_key = api_key = generate_api_key()
         self.db_session.add(request.user)
-        msg = 'API Key Anda yang baru {}'.format(api_key)
+        msg = f'API Key Anda yang baru {api_key}'
         request.session.flash(msg)
         return HTTPFound(location=f"{request.home}")
 
@@ -776,8 +782,7 @@ def send_email_security_code(
     if 'mail.sender_name' not in settings or 'mail.username' not in settings:
         return
 
-    url = '{}/password/{}/request?key={}'.format(
-        request.home, user.security_code, password)
+    url = f'{request.home}/password/{user.security_code}/request?key={password}'
 
     minutes = int(time_remain.seconds / 60)
     data = dict(url=url, minutes=minutes, password=user.security_code)

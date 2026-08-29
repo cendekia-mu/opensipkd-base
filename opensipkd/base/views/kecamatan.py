@@ -1,12 +1,17 @@
 import colander
-from deform import (widget, )
-from opensipkd.base.views.provinsi import provinsi_widget
-from opensipkd.models import DBSession, ResKecamatan, ResDati2, ResProvinsi
-from opensipkd.tools.buttons import btn_upload, btn_add, btn_delete
+from deform import (
+    widget,
+)
 from pyramid.i18n import TranslationStringFactory
+
+from opensipkd.base.views.provinsi import provinsi_widget
+from opensipkd.models import DBSession, ResDati2, ResKecamatan, ResProvinsi
+from opensipkd.tools.buttons import btn_add, btn_delete, btn_upload
+
+from ..views import BaseView
 from ..widgets import widget_os
 from .dati2 import dati2_widget
-from ..views import BaseView
+
 SESS_ADD_FAILED = 'Tambah kecamatan gagal'
 SESS_EDIT_FAILED = 'Edit kecamatan gagal'
 _ = TranslationStringFactory("opensipkd")
@@ -62,7 +67,7 @@ class ListSchema(colander.Schema):
 
 class Views(BaseView):
     def __init__(self, request):
-        super(Views, self).__init__(request)
+        super().__init__(request)
         self.form_params = dict(scripts="")
         self.list_route = 'base-kecamatan'
         self.add_schema = AddSchema
