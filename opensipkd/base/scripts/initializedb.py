@@ -13,7 +13,7 @@ from pyramid.paster import (
 )
 from sqlalchemy import Table, engine_from_config, inspect, select, text
 from sqlalchemy.schema import CreateSchema
-from sqlalchemy.sql.sqltypes import BOOLEAN
+from sqlalchemy.sql.sqltypes import BOOLEAN, DATE, DATETIME, DateTime
 from ziggurat_foundations.models.services.user import UserService
 
 from opensipkd.tools import get_ext
@@ -145,7 +145,7 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
                         raise e
 
                     fname_orig = t[0]
-                    schema = None # "public"
+                    schema = None  # "public"
                     if t[1:]:
                         t_array = t[1].split('.')
                         if len(t_array) == 2:
@@ -228,7 +228,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
     # print(dir(table.__table__))
     # print("____")
     schema = hasattr(
-        table.__table__, "schema") and table.__table__.schema or None # "public"
+        table.__table__, "schema") and table.__table__.schema or None  # "public"
     columns_table = insp.get_columns(table.__tablename__, schema)
     fields = {}
     for c in columns_table:
@@ -255,7 +255,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                         raise e
 
                     fname_orig = t[0]
-                    schema = None # "public"
+                    schema = None  # "public"
                     if t[1:]:
                         t_array = t[1].split('.')
                         if len(t_array) == 2:
@@ -274,7 +274,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                         except Exception as e:
                             log.error("FTable: %s", str(e))
                             raise ValueError(e)
-                        
+
                         foreign_field = getattr(foreign_table.c, foreign_field)
                         foreigns[fname] = (foreign_table, foreign_field)
 
@@ -336,12 +336,16 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                 if fname_orig == "user_password":
                     user = True
                     password = val
-                
+
                 else:
                     if fname_orig in fields and type(fields[fname_orig]) is BOOLEAN:
                         val = (val == 'true' or val ==
                                '1' or val == 1) and True or False
+
+                    if fname_orig in fields and isinstance(fields[fname_orig], (DATE,DATETIME, DateTime)):
+                        val = datetime.datetime.strptime(val, "%Y-%m-%d %H:%M:%S")
                     setattr(row, fname_orig, val)
+                    
 
             # Penambahan checking field nullable false wajib ada datanya 2024-09-05
             for c in columns_table:
@@ -355,7 +359,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     # Jika default=None berarti wajib ada nilainya
                     # by tatang 2024-10-12
                     # log.debug(data)
-                    raise Exception(
+                    raise ValueError(
                         f"Table {table.__name__!s} Field '{c['name']}' wajib ada {c['type']} ")
 
             db_session.add(row)
