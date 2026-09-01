@@ -275,7 +275,7 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                                               autoload_with=eng,
                                               schema=schema)
                         except Exception as e:
-                            msg = f"Foreign Table {foreign_table}: {str(e)}",
+                            msg = f"Error Foreign Table {schema}.{foreign_table}: {str(e)}",
                             log.error(msg)
                             raise ValueError(msg) from e
 
