@@ -1,9 +1,11 @@
 import colander
+from datatables import search_methods
 from deform import (
     widget,
 )
 from sqlalchemy.orm import aliased
 
+from opensipkd.base.views.base_views import SearchMethods
 from opensipkd.models import DBSession, Departemen
 from opensipkd.tools.buttons import btn_upload
 
@@ -36,7 +38,9 @@ def departemen_widget_form():
                       {"js": "opensipkd.base:static/js/form/departemen_form.js"}),
     )
 
+
 subq = aliased(Departemen)
+
 
 class AddSchema(colander.Schema):
     parent_id = colander.SchemaNode(
@@ -98,19 +102,19 @@ class ListSchema(colander.Schema):
                                global_search=True,)
     nama = colander.SchemaNode(colander.String(), title="Nama",
                                global_search=True,)
-    status = colander.SchemaNode(colander.Boolean(), title="Status", width='50pt',
-                                 widget=widget.CheckboxWidget())
+    status = colander.SchemaNode(
+        colander.Integer(), title="Status", width='50pt',
+        widget=widget.CheckboxWidget(true_val="1", false_val="0"),
+        searchable=True,
+        global_search=False,
+        search_method=SearchMethods.numeric.name)
     level_id = colander.SchemaNode(
-        colander.Integer(), title="Level", width='40pt')
-    parent_id = colander.SchemaNode(colander.String(), title="Induk", field = subq.nama)
-    # company_nm = colander.SchemaNode(colander.String(), title="Company")
-    # def after_bind(self, schema, kw):
-    #     request = kw.get('request')
-    #     schema["parent_id"].widget = widget.Select2Widget(
-    #         values=get_departemen_list())
-
-    # def after_bind(self, schema, kw):
-    #     schema["parent_id"].field = subq.nama
+        colander.Integer(), title="Level", width='40pt',
+        searchable=True,
+        global_search=False,
+        search_method=SearchMethods.numeric.name)
+    parent_id = colander.SchemaNode(
+        colander.String(), title="Induk", field=subq.nama)
 
 
 class Views(BaseView):
@@ -123,6 +127,7 @@ class Views(BaseView):
         self.list_route = 'base-departemen'
         self.form_scripts = ""
         self.list_buttons = self.list_buttons + self.list_report+(btn_upload,)
+        self.filter_columns = True
 
     def form_validator(self, form, value):
         def err_kode():
