@@ -85,6 +85,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         version_table='alembic_base',
+        version_table_schema=public_schema,
         include_object=include_object
     )
 

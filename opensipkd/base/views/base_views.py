@@ -480,8 +480,9 @@ class BaseView:
         schema.request = self.req
         if row:
             schema.deserialize(row)
-
-        return Form(schema, buttons=buttons, autocomplete=self.autocomplete, use_ajax=self.use_ajax)
+        ajax_options = kwargs.get("ajax_options", "{}")
+        return Form(schema, buttons=buttons, autocomplete=self.autocomplete, 
+                    use_ajax=self.use_ajax, ajax_options=ajax_options)
 
     """    
     def session_failed(self, session_name):
@@ -1174,6 +1175,7 @@ class BaseView:
             value = self.update_value(value, e.cstruct)
             form.set_appstruct(value)
             kwargs["table"] = table
+            kwargs["error"]=True
             return self.returned_form(form, **kwargs)
         return dict(c)
 
@@ -1216,7 +1218,7 @@ class BaseView:
                         # error.update(value)
                         # return self.resp_xhr({"error": error})
                         form.set_appstruct(e.cstruct)
-                        return self.returned_form(form, error=error)
+                        return self.returned_form(form, error=error, **kwargs)
 
                     for f in e.field.children:
                         if isinstance(f.typ, colander.Date):
