@@ -1,5 +1,6 @@
 import logging
 from logging.config import fileConfig
+import os
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -11,7 +12,7 @@ from opensipkd.models import Base
 config = context.config
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-public_schema = "public"
+public_schema = os.environ.get("PUBLIC_SCHEMA", "public")
 log = logging.getLogger(__name__)
 url = config.get_main_option("sqlalchemy.url")
 if url.find("oracledb") > -1:
