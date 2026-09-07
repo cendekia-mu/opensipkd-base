@@ -110,6 +110,7 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection, target_metadata=target_metadata,
             version_table='alembic_base',
+            version_table_schema=public_schema,
             include_object=include_object
         )
 
