@@ -1,3 +1,4 @@
+import importlib
 import logging
 from logging.config import fileConfig
 import os
@@ -61,6 +62,10 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+current_dir = os.path.split(__file__)[0]
+helper_file = os.path.join(current_dir, 'helpers.py')
+loader = importlib.machinery.SourceFileLoader('alembic_helpers', helper_file)
+helpers = loader.load_module()
 
 def include_object(object, name, type_, reflected, compare_to):
     if tables and type_ == "table" and name not in tables:
