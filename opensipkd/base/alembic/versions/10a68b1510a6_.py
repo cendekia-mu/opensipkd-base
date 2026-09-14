@@ -98,7 +98,6 @@ def upgrade():
                         'id', name=op.f('pk_partner_departemen')),
                     sa.UniqueConstraint('partner_id', 'departemen_id',
                                         'jabatan_id', 'mulai', name='partner_dept_uq'),
-                    if_not_exists=True,
                     schema=public_schema
                     )
 
