@@ -18,6 +18,14 @@ db_driver_port = {
 
 }
 
+def get_root_path():
+    _here = os.path.dirname(__file__)
+    return _here
+
+
+def get_logo():
+    path = os.path.join(os.path.dirname(get_root_path()), 'static/img')
+    return path + "/logo.png", path + "/line.png"
 
 def jasper_compile(input_file):
     pyreportjasper = PyReportJasper()
