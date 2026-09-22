@@ -1,4 +1,3 @@
-from urllib.parse import unquote
 import csv
 import datetime
 import decimal
@@ -10,6 +9,7 @@ import os
 import re
 import tempfile
 import traceback
+from urllib.parse import unquote
 
 # from pkg_resources import resource_filename
 from importlib import resources

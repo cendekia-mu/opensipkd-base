@@ -141,8 +141,10 @@ def restore_csv(table, filename, get_file_func=get_file, db_session=DBSession):
                     try:
                         t = fieldname.split('/')
                     except Exception as e:
+                        msg = "Field {fieldname} tidak bisa di split"
                         # print(fieldname, cf.keys())
-                        raise e
+                        log.error(msg)
+                        raise ValueError(msg)
 
                     fname_orig = t[0]
                     schema = None  # "public"
@@ -251,8 +253,9 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                     try:
                         t = fname.split('/')
                     except Exception as e:
-                        # log.debug(fname, cf.keys())
-                        raise e
+                        msg = f"Tidak dapat melakukan split {fname}, {str(e)}"
+                        log.error(msg)
+                        raise ValueError(e) from e
 
                     fname_orig = t[0]
                     schema = None  # "public"
@@ -272,8 +275,9 @@ def append_csv(table, filename, keys, get_file_func=get_file,
                                               autoload_with=eng,
                                               schema=schema)
                         except Exception as e:
-                            log.error("FTable: %s", str(e))
-                            raise ValueError(e)
+                            msg = f"Error Foreign Table {schema}.{foreign_table}: {str(e)}",
+                            log.error(msg)
+                            raise ValueError(msg) from e
 
                         foreign_field = getattr(foreign_table.c, foreign_field)
                         foreigns[fname] = (foreign_table, foreign_field)
@@ -316,7 +320,10 @@ def append_csv(table, filename, keys, get_file_func=get_file,
 
             for key in keys:
                 if key not in data or not data[key]:
-                    raise Exception(f"Key Field '{key}' wajib ada")
+                    msg = f"Key Field '{key}' wajib ada"
+                    log.error(msg)
+                    raise ValueError(msg)
+                
                 filter_[key] = data[key]
             q = db_session.query(table).filter_by(**filter_)
             row = q.first()
@@ -440,7 +447,7 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     LogDBSession.configure(bind=engine)
     # Base.metadata.create_all(bind=engine)
-    alembic_run(config_uri, "alembic_base")
+    # alembic_run(config_uri, "alembic_base")
     # base_alembic_run(config_uri)
 
     reset_sequences()

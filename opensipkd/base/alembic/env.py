@@ -1,5 +1,7 @@
+import importlib
 import logging
 from logging.config import fileConfig
+import os
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -11,7 +13,7 @@ from opensipkd.models import Base
 config = context.config
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-public_schema = "public"
+public_schema = os.environ.get("PUBLIC_SCHEMA", "public")
 log = logging.getLogger(__name__)
 url = config.get_main_option("sqlalchemy.url")
 if url.find("oracledb") > -1:
@@ -60,6 +62,10 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+current_dir = os.path.split(__file__)[0]
+helper_file = os.path.join(current_dir, 'helpers.py')
+loader = importlib.machinery.SourceFileLoader('alembic_helpers', helper_file)
+helpers = loader.load_module()
 
 def include_object(object, name, type_, reflected, compare_to):
     if tables and type_ == "table" and name not in tables:
@@ -85,6 +91,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         version_table='alembic_base',
+        version_table_schema=public_schema,
         include_object=include_object
     )
 
@@ -109,6 +116,7 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection, target_metadata=target_metadata,
             version_table='alembic_base',
+            version_table_schema=public_schema,
             include_object=include_object
         )
 
