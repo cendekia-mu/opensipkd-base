@@ -39,7 +39,7 @@ def departemen_widget_form():
     )
 
 
-subq = aliased(Departemen)
+
 
 
 class AddSchema(colander.Schema):
@@ -114,8 +114,10 @@ class ListSchema(colander.Schema):
         global_search=False,
         search_method=SearchMethods.numeric.name)
     parent_id = colander.SchemaNode(
-        colander.String(), title="Induk", field=subq.nama)
-
+        colander.String(), title="Induk", )
+    def after_bind(self, schema, kwargs):
+        subq = aliased(Departemen)
+        schema["parent_id"].field = subq.nama
 
 class Views(BaseView):
     def __init__(self, request):
@@ -191,7 +193,7 @@ class Views(BaseView):
         return row
 
     def list_join(self, query, **kwargs):
-        # subq = aliased(Departemen)
+        subq = aliased(Departemen)
         return query.outerjoin(subq, subq.id == self.table.parent_id)
 
     # def get_list(self, **kwargs):

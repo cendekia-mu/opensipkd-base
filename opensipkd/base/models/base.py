@@ -39,6 +39,20 @@ def flush(row, db_session=DBSession):
 class CommonModel:
     db_session = DBSession
 
+    @classmethod
+    def get_schema(cls):
+        """Return the schema name for this model, if defined in __table_args__."""
+        schema = None
+        table_args = getattr(cls, '__table_args__', {})
+        if isinstance(table_args, dict):
+            schema = table_args.get('schema', None)
+        else:
+            for arg in table_args if isinstance(table_args, (list, tuple)) else []:
+                if isinstance(arg, dict) and 'schema' in arg:
+                    schema = arg['schema']
+                    break
+        return schema
+
     def to_dict_hybrid(self):
         values = {}
         for item in sa_inspect(self.__class__).all_orm_descriptors:

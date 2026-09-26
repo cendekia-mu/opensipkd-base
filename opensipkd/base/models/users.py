@@ -32,6 +32,7 @@ from .meta import Base
 
 log = logging.getLogger(__name__)
 
+
 class ForceUTCDatetime(sa.TypeDecorator):
     """Ensures datetimes are timezone-aware UTC objects across both DBs."""
     impl = sa.TIMESTAMP(timezone=True)
@@ -52,16 +53,16 @@ class ForceUTCDatetime(sa.TypeDecorator):
             # Force the Python object to be aware if Oracle stripped the offset
             return value.replace(tzinfo=timezone.utc)
         return value
-    
-class _Resource(ResourceMixin):
-    __table_args__ = TABLE_ARGS
 
+
+class _Resource(ResourceMixin, CommonModel):
     @declared_attr
     def groups(self):
         """ returns all groups that have permissions for this resource"""
+        schema = self.get_schema()  # Get the schema name for this model
         return sa.orm.relationship(
             "Group",
-            secondary=f"{TABLE_ARGS['schema']}.groups_resources_permissions",
+            secondary=f"{schema}.groups_resources_permissions",
             primaryjoin="Resource.resource_id == GroupResourcePermission.resource_id",
             secondaryjoin="Group.id == GroupResourcePermission.group_id",
             passive_deletes=True,
@@ -74,7 +75,7 @@ class _Resource(ResourceMixin):
         """ returns all users that have permissions for this resource"""
         return sa.orm.relationship(
             "User",
-            secondary=f"{TABLE_ARGS['schema']}.users_resources_permissions",
+            secondary=f"{self.get_schema()}.users_resources_permissions",
             passive_deletes=True,
             passive_updates=True,
             overlaps="user_permissions"
@@ -85,7 +86,7 @@ class _Resource(ResourceMixin):
         return sa.Column(
             sa.Integer(),
             sa.ForeignKey(
-                f"{TABLE_ARGS['schema']}.resources.resource_id", onupdate="CASCADE", ondelete="SET NULL"
+                f"{self.get_schema()}.resources.resource_id", onupdate="CASCADE", ondelete="SET NULL"
             ),
         )
 
@@ -94,7 +95,7 @@ class _Resource(ResourceMixin):
         return sa.Column(
             sa.Integer,
             sa.ForeignKey(
-                f"{TABLE_ARGS['schema']}.groups.id", onupdate="CASCADE", ondelete="SET NULL"),
+                f"{self.get_schema()}.groups.id", onupdate="CASCADE", ondelete="SET NULL"),
             index=True,
         )
 
@@ -102,13 +103,14 @@ class _Resource(ResourceMixin):
     def owner_user_id(self):
         return sa.Column(
             sa.Integer,
-            sa.ForeignKey(f"{TABLE_ARGS['schema']}.users.id",
+            sa.ForeignKey(f"{self.get_schema()}.users.id",
                           onupdate="CASCADE", ondelete="SET NULL"),
             index=True,
         )
 
 
 class Resource(_Resource, Base):
+    db_session = DBSession
     __table_args__ = TABLE_ARGS
 
 
@@ -120,7 +122,7 @@ class _UserGroup(UserGroupMixin, CommonModel):
         return sa.Column(
             sa.Integer,
             sa.ForeignKey(
-                f"{TABLE_ARGS['schema']}.groups.id", onupdate="CASCADE", ondelete="CASCADE"),
+                f"{self.get_schema()}.groups.id", onupdate="CASCADE", ondelete="CASCADE"),
             primary_key=True,
         )
 
@@ -128,7 +130,7 @@ class _UserGroup(UserGroupMixin, CommonModel):
     def user_id(self):
         return sa.Column(
             sa.Integer,
-            sa.ForeignKey(f"{TABLE_ARGS['schema']}.users.id",
+            sa.ForeignKey(f"{self.get_schema()}.users.id",
                           onupdate="CASCADE", ondelete="CASCADE"),
             primary_key=True,
         )
@@ -162,7 +164,7 @@ class _Group(GroupMixin, CommonModel):
         """ relationship for users belonging to this group"""
         return sa.orm.relationship(
             "User",
-            secondary=f"{TABLE_ARGS['schema']}.users_groups",
+            secondary=f"{self.get_schema()}.users_groups",
             order_by="User.user_name",
             passive_deletes=True,
             passive_updates=True,
@@ -175,7 +177,7 @@ class _Group(GroupMixin, CommonModel):
         """ dynamic relationship for users belonging to this group
             one can use filter """
         return sa.orm.relationship(
-            "User", secondary=f"{TABLE_ARGS['schema']}.users_groups",
+            "User", secondary=f"{self.get_schema()}.users_groups",
             order_by="User.user_name", lazy="dynamic", overlaps="groups,users"
         )
 
@@ -195,17 +197,7 @@ class _User(UserMixin, BaseModel):
     def groups_dynamic(self):
         """ returns dynamic relationship for groups - allowing for
         filtering of data """
-        schema = None
-        if hasattr(self, '__table_args__'):
-            if isinstance(self.__table_args__, dict):
-                schema = self.__table_args__.get('schema')
-            elif isinstance(self.__table_args__, tuple):
-                # Search for a dictionary inside a table_args tuple
-                for arg in self.__table_args__:
-                    if isinstance(arg, dict):
-                        schema = arg.get('schema')
-                        break
-                        
+        schema = self.get_schema()
         secondary_table = f"{schema}.users_groups" if schema else "users_groups"
 
         return sa.orm.relationship(
@@ -323,6 +315,13 @@ class _User(UserMixin, BaseModel):
         """Berguna jika user berbeda database dengan database session.
         Misal user dari database opensipkd.base.models.users.User"""
         return cls.get_by_objek(request_user)
+
+    @declared_attr
+    def departemens(self) -> Mapped[List["Departemen"]]:
+        return relationship(
+            secondary=f"{self.get_schema()}.users_departemen",
+            back_populates="users"
+        )
     # @classmethod
     # def get_departemen_id(cls, user_id):
     #     partner = Partner.query_user_id(user_id).first()
@@ -354,11 +353,11 @@ class _User(UserMixin, BaseModel):
 
 
 class User(_User, DefaultModel, Base):
-    __table_args__ = TABLE_ARGS
     db_session = DBSession
-    departemens: Mapped[List["Departemen"]] = relationship(
-        secondary=f"{TABLE_ARGS['schema']}.users_departemen",
-        back_populates="users")
+    __table_args__ = TABLE_ARGS
+    # departemens: Mapped[List["Departemen"]] = relationship(
+    #     secondary=f"{self.get_schema()}.users_departemen",
+    #     back_populates="users")
 
 
 class _Permission(DefaultModel):
@@ -373,29 +372,30 @@ class Permission(Base,  _Permission):
     pass
 
 
-class _GroupPermission(GroupPermissionMixin):
-    __table_args__ = TABLE_ARGS
+class _GroupPermission(GroupPermissionMixin, CommonModel):
+    __table_args__ = (
+        sa.PrimaryKeyConstraint("group_id", "perm_name",
+                                name="pk_groups_permissions"),
+
+    )
 
     @declared_attr
     def group_id(self):
         return sa.Column(
             sa.Integer(),
             sa.ForeignKey(
-                f"{TABLE_ARGS['schema']}.groups.id", onupdate="CASCADE", ondelete="CASCADE"),
+                f"{self.get_schema()}.groups.id", onupdate="CASCADE", ondelete="CASCADE"),
             primary_key=True,
         )
 
 
 class GroupPermission(_GroupPermission, Base):
-    __table_args__ = (
-        sa.PrimaryKeyConstraint("group_id", "perm_name",
-                                name="pk_groups_permissions"),
-        # {"mysql_engine": "InnoDB", "mysql_charset": "utf8"},
-        TABLE_ARGS
-    )
+    _constraints = [
+        arg for arg in _GroupPermission.__table_args__ if not isinstance(arg, dict)]
+    __table_args__ = tuple(_constraints + [TABLE_ARGS])
 
 
-class _GroupResourcePermission(GroupResourcePermissionMixin):
+class _GroupResourcePermission(GroupResourcePermissionMixin, CommonModel):
     __table_args__ = (
         sa.PrimaryKeyConstraint(
             "group_id",
@@ -404,32 +404,38 @@ class _GroupResourcePermission(GroupResourcePermissionMixin):
             name="pk_group_resources_permissions",
         ),
         # {"mysql_engine": "InnoDB", "mysql_charset": "utf8"},
-        TABLE_ARGS
     )
 
-    resource_id = sa.Column(
-        sa.Integer(),
-        sa.ForeignKey(
-            f"{TABLE_ARGS['schema']}.resources.resource_id", onupdate="CASCADE", ondelete="CASCADE"
-        ),
-        # primary_key=True,
-        autoincrement=False,
-    )
+    @declared_attr
+    def resource_id(self):
+        return sa.Column(
+            sa.Integer(),
+            sa.ForeignKey(
+                f"{self.get_schema()}.resources.resource_id", onupdate="CASCADE", ondelete="CASCADE"
+            ),
+            # primary_key=True,
+            autoincrement=False,
+        )
 
-    group_id = sa.Column(
-        sa.Integer(),  # Perbaikan sa.Integer tanpa tanda kurung juga boleh
-        sa.ForeignKey(
-            f"{TABLE_ARGS['schema']}.groups.id", onupdate="CASCADE", ondelete="CASCADE"
-        ),
-        # primary_key=True,
-    )
+    @declared_attr
+    def group_id(self):
+        return sa.Column(
+            sa.Integer(),  # Perbaikan sa.Integer tanpa tanda kurung juga boleh
+            sa.ForeignKey(
+                f"{self.get_schema()}.groups.id", onupdate="CASCADE", ondelete="CASCADE"
+            ),
+            # primary_key=True,
+        )
 
 
 class GroupResourcePermission(_GroupResourcePermission, Base):
     """Nothing todo"""
+    _constraints = [
+        arg for arg in _GroupResourcePermission.__table_args__ if not isinstance(arg, dict)]
+    __table_args__ = tuple(_constraints + [TABLE_ARGS])
 
 
-class _UserPermission(UserPermissionMixin):
+class _UserPermission(UserPermissionMixin, CommonModel):
     __table_args__ = (
         sa.PrimaryKeyConstraint("user_id", "perm_name",
                                 name="pk_users_permissions"),
@@ -441,7 +447,7 @@ class _UserPermission(UserPermissionMixin):
     def user_id(self):
         return sa.Column(
             sa.Integer,
-            sa.ForeignKey(f"{TABLE_ARGS['schema']}.users.id",
+            sa.ForeignKey(f"{self.get_schema()}.users.id",
                           onupdate="CASCADE", ondelete="CASCADE"),
             primary_key=True,
         )
@@ -451,7 +457,7 @@ class UserPermission(_UserPermission, Base):
     __table_args__ = TABLE_ARGS
 
 
-class _UserResourcePermission(UserResourcePermissionMixin):
+class _UserResourcePermission(UserResourcePermissionMixin, CommonModel):
     __table_args__ = (
         sa.PrimaryKeyConstraint(
             "user_id",
@@ -467,7 +473,7 @@ class _UserResourcePermission(UserResourcePermissionMixin):
         return sa.Column(
             sa.Integer(),
             sa.ForeignKey(
-                f"{TABLE_ARGS['schema']}.resources.resource_id", onupdate="CASCADE", ondelete="CASCADE"
+                f"{self.get_schema()}.resources.resource_id", onupdate="CASCADE", ondelete="CASCADE"
             ),
             primary_key=True,
             autoincrement=False,
@@ -477,7 +483,7 @@ class _UserResourcePermission(UserResourcePermissionMixin):
     def user_id(self):
         return sa.Column(
             sa.Integer,
-            sa.ForeignKey(f"{TABLE_ARGS['schema']}.users.id",
+            sa.ForeignKey(f"{self.get_schema()}.users.id",
                           onupdate="CASCADE", ondelete="CASCADE"),
             primary_key=True,
         )
@@ -503,7 +509,7 @@ class _ExternalIdentity(ExternalIdentityMixin):
     def local_user_id(self):
         return sa.Column(
             sa.Integer,
-            sa.ForeignKey(f"{TABLE_ARGS['schema']}.users.id",
+            sa.ForeignKey(f"{self.get_schema()}.users.id",
                           onupdate="CASCADE", ondelete="CASCADE"),
             primary_key=True,
         )
