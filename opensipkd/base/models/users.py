@@ -2,7 +2,6 @@ import logging
 from datetime import datetime, timezone
 from typing import List
 
-from pyramid_rpc import mapper
 import sqlalchemy as sa
 from pyramid.authorization import ALL_PERMISSIONS, Allow, Authenticated
 
