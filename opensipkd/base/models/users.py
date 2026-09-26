@@ -2,11 +2,12 @@ import logging
 from datetime import datetime, timezone
 from typing import List
 
+from pyramid_rpc import mapper
 import sqlalchemy as sa
 from pyramid.authorization import ALL_PERMISSIONS, Allow, Authenticated
 
 # from sqlalchemy import TIMESTAMP
-from sqlalchemy import Column, DateTime, Integer, SmallInteger, String
+from sqlalchemy import Column, DateTime, Integer, SmallInteger, String, inspect
 from sqlalchemy.orm import Mapped, backref, declared_attr, relationship
 from ziggurat_foundations import ziggurat_model_init
 from ziggurat_foundations.models.base import BaseModel
@@ -189,16 +190,28 @@ class Group(_Group, Base, DefaultModel):
 
 
 class _User(UserMixin, BaseModel):
-    db_session = DBSession
-    __table_args__ = TABLE_ARGS
+    db_session = None
 
     @declared_attr
     def groups_dynamic(self):
         """ returns dynamic relationship for groups - allowing for
         filtering of data """
+        schema = None
+        if hasattr(self, '__table_args__'):
+            if isinstance(self.__table_args__, dict):
+                schema = self.__table_args__.get('schema')
+            elif isinstance(self.__table_args__, tuple):
+                # Search for a dictionary inside a table_args tuple
+                for arg in self.__table_args__:
+                    if isinstance(arg, dict):
+                        schema = arg.get('schema')
+                        break
+                        
+        secondary_table = f"{schema}.users_groups" if schema else "users_groups"
+
         return sa.orm.relationship(
             "Group",
-            secondary=f"{TABLE_ARGS['schema']}.users_groups",
+            secondary=secondary_table,
             lazy="dynamic",
             passive_deletes=True,
             passive_updates=True,
@@ -342,6 +355,8 @@ class _User(UserMixin, BaseModel):
 
 
 class User(_User, DefaultModel, Base):
+    __table_args__ = TABLE_ARGS
+    db_session = DBSession
     departemens: Mapped[List["Departemen"]] = relationship(
         secondary=f"{TABLE_ARGS['schema']}.users_departemen",
         back_populates="users")
