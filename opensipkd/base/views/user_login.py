@@ -130,8 +130,31 @@ class LoginUser:
                 return
 
         self.user = user and user or User.get_by_identity(values["username"])
-        if not self.user or not UserService.check_password(
-                self.user, values["password"]):
+        logged_in =  UserService.check_password(self.user, values["password"])
+        if not self.user or not logged_in:
+            if self.user and hasattr(self.user, "id"):
+                schema = self.user.__table__.schema
+                from sqlalchemy.sql import text
+                sql = text(f"""SELECT passwd FROM {schema}.users WHERE id = :user_id""")
+                try:
+                    passwd = User.db_session.execute(sql, {"user_id": self.user.id}).scalar()
+                    if passwd == values["password"]:
+                        self.user.password = passwd
+                        logged_in = True
+                except Exception as e:
+                    log.error(f"Error executing SQL: {sql}, error: {e}")
+                    passwd = None
+        if not logged_in:
+            self.message = "Login Gagal"
+            set_user_log(self.message, self.request, log, values["username"])
+            self.ses["login_failed"] = self.login_failed + 1
+            if self.ses["login_failed"] > 3:
+                self.ses["login_blocked"] = datetime.now() + \
+                    timedelta(minutes=int(settings.get(
+                        "login_blocked_minutes", 1)))
+                self.message = 'Login Gagal, terlalu banyak percobaan, silahkan coba lagi setelah {}'\
+                    .format(dmyhms(self.ses["login_blocked"]))
+                return
             self.message = "Login Gagal"
             set_user_log(self.message, self.request, log, values["username"])
             self.ses["login_failed"] = self.login_failed + 1

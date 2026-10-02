@@ -14,6 +14,7 @@ config = context.config
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 public_schema = os.environ.get("PUBLIC_SCHEMA", "public")
+context.public_schema = public_schema
 log = logging.getLogger(__name__)
 url = config.get_main_option("sqlalchemy.url")
 if url.find("oracledb") > -1:
@@ -27,7 +28,6 @@ if url.find("oracledb") > -1:
         log.error(f"An error occurred: {e!s}")
         log.error("Oracle not initialize")
     public_schema = 'apps'
-context.public_schema = public_schema
 
 url = config.get_main_option("sqlalchemy.url")
 if url.find("oracledb") > -1:

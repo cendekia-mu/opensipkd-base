@@ -344,7 +344,7 @@ class DeTable(field.Field):
             if f.name == "id" and self.action:
                 if not d.get("orderable"):
                     d["orderable"] = True
-                d["width"] = "30pt"
+                d["width"] = hasattr(f, "width") and f.width or "30pt"
                 d["className"] = "text-center"
                 d["visible"] = True
                 d["render"] = """

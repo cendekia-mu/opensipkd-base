@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timezone
 from typing import List
 
+from deform import schema
 import sqlalchemy as sa
 from pyramid.authorization import ALL_PERMISSIONS, Allow, Authenticated
 
@@ -76,6 +77,8 @@ class _Resource(ResourceMixin, CommonModel):
         return sa.orm.relationship(
             "User",
             secondary=f"{self.get_schema()}.users_resources_permissions",
+            primaryjoin="Resource.resource_id == UserResourcePermission.resource_id",
+            secondaryjoin="User.id == UserResourcePermission.user_id",
             passive_deletes=True,
             passive_updates=True,
             overlaps="user_permissions"
@@ -153,6 +156,7 @@ class _UserGroup(UserGroupMixin, CommonModel):
 
 class UserGroup(_UserGroup, Base):
     __table_args__ = TABLE_ARGS
+    __tablename__ = "users_groups"
 
 
 class _Group(GroupMixin, CommonModel):
@@ -190,19 +194,30 @@ class Group(_Group, Base, DefaultModel):
     pass
 
 
-class _User(UserMixin, BaseModel):
+class _User(UserMixin, BaseModel, CommonModel):
     db_session = None
+    __table_args__ = TABLE_ARGS
 
     @declared_attr
     def groups_dynamic(self):
         """ returns dynamic relationship for groups - allowing for
         filtering of data """
         schema = self.get_schema()
-        secondary_table = f"{schema}.users_groups" if schema else "users_groups"
-
+        
+        sec_name = f"{schema}.users_groups" if schema else "users_groups"
+        grp_name = f"{schema}.groups" if schema else "groups"
+        secondary_table = self.metadata.tables.get(sec_name)
+        group_table = self.metadata.tables.get(grp_name)
+        if secondary_table is None:
+            raise RuntimeError(f"Table '{sec_name}' not found in metadata.")
+        if group_table is None:
+            raise RuntimeError(f"Table '{grp_name}' not found in metadata.")
         return sa.orm.relationship(
             "Group",
             secondary=secondary_table,
+            primaryjoin=lambda: self.__table__.c.id == secondary_table.c.user_id,
+            secondaryjoin=lambda: secondary_table.c.group_id == group_table.c.id,
+      
             lazy="dynamic",
             passive_deletes=True,
             passive_updates=True,
@@ -316,12 +331,7 @@ class _User(UserMixin, BaseModel):
         Misal user dari database opensipkd.base.models.users.User"""
         return cls.get_by_objek(request_user)
 
-    @declared_attr
-    def departemens(self) -> Mapped[List["Departemen"]]:
-        return relationship(
-            secondary=f"{self.get_schema()}.users_departemen",
-            back_populates="users"
-        )
+
     # @classmethod
     # def get_departemen_id(cls, user_id):
     #     partner = Partner.query_user_id(user_id).first()
@@ -350,14 +360,20 @@ class _User(UserMixin, BaseModel):
     #     result = list(((row[0], row[1]) for row in rows))
     #     result.insert(0, (0, "All"))
     #     return result
-
+    # @declared_attr
+    # def departemens(self) -> Mapped[List["Departemen"]]:
+    #     return relationship(
+    #         secondary=f"{self.get_schema()}.users_departemen",
+    #         back_populates="users"
+    #     )
 
 class User(_User, DefaultModel, Base):
     db_session = DBSession
     __table_args__ = TABLE_ARGS
-    # departemens: Mapped[List["Departemen"]] = relationship(
-    #     secondary=f"{self.get_schema()}.users_departemen",
-    #     back_populates="users")
+    departemens: Mapped[List["Departemen"]] = relationship(
+        secondary=f"{TABLE_ARGS['schema']}.users_departemen",
+        back_populates="users")
+
 
 
 class _Permission(DefaultModel):
@@ -369,7 +385,7 @@ class _Permission(DefaultModel):
 
 
 class Permission(Base,  _Permission):
-    pass
+    db_session = DBSession
 
 
 class _GroupPermission(GroupPermissionMixin, CommonModel):
@@ -390,6 +406,7 @@ class _GroupPermission(GroupPermissionMixin, CommonModel):
 
 
 class GroupPermission(_GroupPermission, Base):
+    db_session = DBSession
     _constraints = [
         arg for arg in _GroupPermission.__table_args__ if not isinstance(arg, dict)]
     __table_args__ = tuple(_constraints + [TABLE_ARGS])
@@ -430,6 +447,7 @@ class _GroupResourcePermission(GroupResourcePermissionMixin, CommonModel):
 
 class GroupResourcePermission(_GroupResourcePermission, Base):
     """Nothing todo"""
+    db_session = DBSession
     _constraints = [
         arg for arg in _GroupResourcePermission.__table_args__ if not isinstance(arg, dict)]
     __table_args__ = tuple(_constraints + [TABLE_ARGS])
@@ -440,7 +458,6 @@ class _UserPermission(UserPermissionMixin, CommonModel):
         sa.PrimaryKeyConstraint("user_id", "perm_name",
                                 name="pk_users_permissions"),
         # {"mysql_engine": "InnoDB", "mysql_charset": "utf8"},
-        TABLE_ARGS
     )
 
     @declared_attr
@@ -454,7 +471,11 @@ class _UserPermission(UserPermissionMixin, CommonModel):
 
 
 class UserPermission(_UserPermission, Base):
-    __table_args__ = TABLE_ARGS
+    db_session = DBSession
+    _constraints = [
+        arg for arg in _UserPermission.__table_args__ if not isinstance(arg, dict)]
+    __table_args__ = tuple(_constraints + [TABLE_ARGS])
+
 
 
 class _UserResourcePermission(UserResourcePermissionMixin, CommonModel):
@@ -465,7 +486,6 @@ class _UserResourcePermission(UserResourcePermissionMixin, CommonModel):
             "perm_name",
             name="pk_users_resources_permissions ",
         ),
-        TABLE_ARGS,
     )
 
     @declared_attr
@@ -490,10 +510,11 @@ class _UserResourcePermission(UserResourcePermissionMixin, CommonModel):
 
 
 class UserResourcePermission(_UserResourcePermission, Base):
+    db_session = DBSession
     __table_args__ = TABLE_ARGS
 
 
-class _ExternalIdentity(ExternalIdentityMixin):
+class _ExternalIdentity(ExternalIdentityMixin, CommonModel):
     __table_args__ = (
         sa.PrimaryKeyConstraint(
             "external_id",
@@ -528,7 +549,8 @@ class _ExternalIdentity(ExternalIdentityMixin):
         return cls.query_user(user).count() > 0
 
 
-class ExternalIdentity(Base, _ExternalIdentity, CommonModel):
+class ExternalIdentity(_ExternalIdentity, Base):
+    db_session = DBSession
     user = relationship(User, backref=backref("external"))
 
 # class GroupRoutePermission(Base, CommonModel):
