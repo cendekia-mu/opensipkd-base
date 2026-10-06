@@ -257,6 +257,7 @@ class BaseView:
         self.html_tag_cleaner = True
         # 2026-04-13
         self.use_ajax = False
+        self.renderer = None #2026-10-03
 
     def init_session(self, request):
         #         # if not request.user:
@@ -481,6 +482,10 @@ class BaseView:
         if row:
             schema.deserialize(row)
         ajax_options = kwargs.get("ajax_options", "{}")
+        if hasattr(self, "renderer") and self.renderer:
+            return Form(schema, buttons=buttons, autocomplete=self.autocomplete, 
+                        use_ajax=self.use_ajax, ajax_options=ajax_options, 
+                        renderer=self.renderer)
         return Form(schema, buttons=buttons, autocomplete=self.autocomplete, 
                     use_ajax=self.use_ajax, ajax_options=ajax_options)
 
@@ -893,6 +898,8 @@ class BaseView:
         Returns:
             _type_: _description_
         """
+        if self.use_ajax:
+            return self.resp_xhr({"data": form.cstruct})
         return self.route_list(**kwargs)
 
     def returned_form(self, form, **kwargs):
@@ -1122,6 +1129,9 @@ class BaseView:
         Returns:
             HTTPFound: URL yang akan ditampilkan atau procedure tampilan yang lain
         """
+        if self.use_ajax:
+            return self.resp_xhr({"data": {"status": "success"}})
+        
         return self.route_list(**kwargs)
 
     def get_captcha_url(self):
@@ -1504,7 +1514,9 @@ class BaseView:
                 q.delete()
                 self.db_session.flush()
                 request.session.flash(msg)
-
+            if self.use_ajax or self.req.is_xhr:
+                return self.resp_xhr({"data": {"status": "success"}})
+            
             return self.route_list()
         form = self.get_form(
             self.edit_schema, buttons=(btn_delete, btn_cancel))
