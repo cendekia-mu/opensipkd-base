@@ -1,3 +1,5 @@
+
+
 <div tal:define="
      oid oid|field.oid;
      true_val true_val|field.widget.true_val;"
@@ -5,9 +7,15 @@
   <p class="deform-readonly-true" 
        id="${oid}"
        tal:condition="cstruct == true_val"
-       i18n:translate=""><i class="fas fa-check-square" aria-hidden="true" style="color:green;"></i></p>
+       i18n:translate="">
+       <i class="fas fa-check-square" aria-hidden="true" style="color:green;"></i>
+       <tal:block tal:condition="hasattr(field.schema, 'label')">${field.schema.label}</tal:block>
+  </p>
   <p class="deform-readonly-false" 
        id="${oid}"
        tal:condition="cstruct != true_val"
-       i18n:translate=""><i class="fas fa-window-close" aria-hidden="true" style="color:red;"></i></p>
+       i18n:translate="">
+       <i class="fas fa-window-close" aria-hidden="true" style="color:red;"></i>
+       <tal:block tal:condition="hasattr(field.schema, 'label')">${field.schema.label}</tal:block>
+      </p>
 </div>

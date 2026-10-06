@@ -16,8 +16,8 @@ class ListSchema(colander.Schema):
         colander.String(),
         missing=colander.drop,
         widget=widget.HiddenWidget(),
-        visible=False,
-        title="ACT")
+        width="85px",
+        title="Aksi")
     perm_name = colander.SchemaNode(
         colander.String(),
         oid="perm_name",

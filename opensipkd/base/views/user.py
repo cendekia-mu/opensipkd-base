@@ -35,7 +35,8 @@ class ListSchema(colander.Schema):
     id = colander.SchemaNode(colander.String(),
                              title="Action",
                              searchable=False)
-    email = colander.SchemaNode(colander.String(),
+    email = colander.SchemaNode(
+        colander.String(),
                                 global_search=True)
     user_name = colander.SchemaNode(colander.String(),
                                     title=_("user-name", default="User Name"),
@@ -43,10 +44,10 @@ class ListSchema(colander.Schema):
     status = colander.SchemaNode(colander.Integer(),
                                  widget=widget.CheckboxWidget(),
                                  width=50, searchable=False)
-    last_login = colander.SchemaNode(colander.String(), width=100,
+    last_login = colander.SchemaNode(colander.String(), width="120px",
                                      field="last_login_date",
                                      searchable=False)
-    registered = colander.SchemaNode(colander.String(), width=100,
+    registered = colander.SchemaNode(colander.String(), width="120px",
                                      field="registered_date",
                                      searchable=False)
     multi_device = colander.SchemaNode(colander.Integer(), width=50,
@@ -226,13 +227,13 @@ def status_widget(node, kw):
 @colander.deferred
 def group_widget(node, kw):
     values = kw.get('group_list', [])
-    return widget.CheckboxChoiceWidget(values=values)
+    return widget.CheckboxChoiceWidget(values=values, item_css_class="group-list")
 
 
 @colander.deferred
 def api_key_widget(node, kw):
     values = kw.get('api_key_list', [])
-    return widget.SelectWidget(values=values)
+    return widget.SelectWidget(values=values, item_css_class ="inline-form-row")
 
 
 class Validator:
@@ -324,21 +325,37 @@ def save_user(values, user, row=None):
 class AddSchema(colander.Schema):
     email = colander.SchemaNode(
         colander.String(), title=_('Email'),
+        widget=widget.TextInputWidget(item_css_class ="inline-form-row"),
         validator=email_validator)
-    user_name = colander.SchemaNode(colander.String(), title=_('Username'),
+    user_name = colander.SchemaNode(
+        colander.String(), title=_('Username'),
+        widget=widget.TextInputWidget(item_css_class ="inline-form-row"),
                                     validator=username_validator)
     groups = colander.SchemaNode(
         colander.Set(), widget=group_widget, title=_('Group'))
     is_api_key = colander.SchemaNode(
         colander.String(), widget=api_key_widget, title=_('API Key'),
         missing=colander.drop)
-    multi_device = colander.SchemaNode(colander.Integer(), title=_('Multi Device'),
-                                       widget=widget.CheckboxWidget(true_val="1", false_val="0"),)
+    multi_device = colander.SchemaNode(
+        colander.Integer(), 
+        label=_('Multi Device'),
+        widget=widget.CheckboxWidget(true_val="1", false_val="0",
+        category="structural",
+        missing=colander.drop),
+    )
+    status = colander.SchemaNode(
+        colander.String(), 
+        widget=widget.CheckboxWidget(
+            true_val="1", false_val="0",
+            category="structural"),
+        title="",
+        label="Status",
+        missing=colander.drop)
     password = colander.SchemaNode(
         colander.String(), widget=widget.CheckedPasswordWidget(),
         missing=colander.drop)
-    status = colander.SchemaNode(
-        colander.String(), widget=widget.CheckboxWidget(true_val="1", false_val="0"), title=_('Status'))
+
+    
     def after_bind(self, node, kw):
         if not BASE_CLASS.single_device:
             del node['multi_device']
@@ -359,6 +376,7 @@ def get_group_list():
 
 
 def add_member_count(gid):
+    gid = int(gid)
     q = DBSession.query(Group).filter_by(id=gid)
     group = q.first()
     group.member_count += 1

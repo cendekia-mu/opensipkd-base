@@ -310,7 +310,7 @@ def get_config(settings):
 
     config.add_static_view('mobi', mobile_static_path +
                            os.sep, cache_max_age=3600)
-    config.add_static_view('deform_static', 'deform:static')
+    config.add_static_view('deform_static', 'deform:static/')
 
     #     config.add_static_view(partner_idcard_url,
     #                            get_id_card_folder("/", settings=settings),

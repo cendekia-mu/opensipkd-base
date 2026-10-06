@@ -74,6 +74,7 @@ def partner_kode_validator(node, kw):
 class NamaSchema(colander.Schema):
     kode = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         validator=partner_kode_validator,
         oid="kode",
         title="NIK",
@@ -81,14 +82,17 @@ class NamaSchema(colander.Schema):
     nama = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=64),
+        widget=widget.TextInputWidget(),
         oid="nama")
     mobile = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         validator=colander.Length(max=16),
         oid="mobile")
 
     email = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         validator=partner_email_validator,
         oid="email")
 
@@ -96,6 +100,7 @@ class NamaSchema(colander.Schema):
 class PartnerSchema(NamaSchema):
     nip = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         missing=colander.drop,
         validator=colander.Length(max=32),
         oid="nip")
@@ -108,31 +113,37 @@ class PartnerSchema(NamaSchema):
 
     alamat_1 = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         missing=colander.drop,
         validator=colander.Length(max=128),
         oid="alamat_1")
     alamat_2 = colander.SchemaNode(
         colander.String(),
         missing=colander.drop,
+        widget=widget.TextInputWidget(),
         validator=colander.Length(max=128),
         oid="alamat_2")
     kelurahan = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         missing=colander.drop,
         validator=colander.Length(max=64),
         oid="kelurahan")
     kecamatan = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         missing=colander.drop,
         validator=colander.Length(max=64),
         oid="kecamatan")
     kota = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         validator=colander.Length(max=64),
         missing=colander.drop,
         oid="kota")
     provinsi = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         validator=colander.Length(max=64),
         missing=colander.drop,
         oid="provinsi")
@@ -171,21 +182,25 @@ class PartnerSchema(NamaSchema):
 
     phone = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         validator=colander.Length(max=16),
         missing=colander.drop,
         oid="phone")
     fax = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         validator=colander.Length(max=16),
         missing=colander.drop,
         oid="fax")
     mobile = colander.SchemaNode(
         colander.String(),
+        widget=widget.TextInputWidget(),
         validator=colander.Length(max=16),
         oid="mobile")
     website = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(max=128),
+        widget=widget.TextInputWidget(),
         missing=colander.drop,
         oid="website")
     idcard = colander.SchemaNode(

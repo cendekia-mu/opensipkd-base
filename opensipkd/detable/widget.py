@@ -20,10 +20,14 @@ class TableWidget(MappingWidget):
     template = "detable.pt"
     readonly_template = "detable.pt"
     requirements = (("deform", None),
-                    {"js": ["opensipkd.base:static/v3/js/plugin/datatables/jquery.dataTables.min.js",
-                        "opensipkd.base:static/v3/js/plugin/datatables/dataTables.colVis.min.js",
+                    {"js": [
+                        # "opensipkd.base:static/v3/js/plugin/datatables/jquery.dataTables.min.js",
+                        "opensipkd.base:static/v5/js/datatables.min.js",
+                        "opensipkd.base:static/v5/js/datatables.bootstrap5.min.js",
+                        # "opensipkd.base:static/v3/js/plugin/datatables/dataTables.colVis.min.js",
                         # "opensipkd.base:static/v3/js/plugin/datatables/dataTables.tableTools.min.js",
-                        "opensipkd.base:static/v3/js/plugin/datatables/dataTables.bootstrap.min.js",
-                        "opensipkd.base:static/v3/js/plugin/datatable-responsive/datatables.responsive.min.js",
-                    ]
+                        # "opensipkd.base:static/v3/js/plugin/datatables/dataTables.bootstrap.min.js",
+                        # "opensipkd.base:static/v3/js/plugin/datatable-responsive/datatables.responsive.min.js",
+                    ],
+                    "css":["opensipkd.base:static/v5/css/datatables.bootstrap5.min.css"],
                     })
