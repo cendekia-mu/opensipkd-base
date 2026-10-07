@@ -314,7 +314,7 @@
                                     alt="Alexander Pierce"> -->
                                 <p>
                                     ${user_name}
-                                    <small>Terdaftar sejak ${request.user and
+                                    <small>Terdaftar sejak ${request.user and request.user.registered_date and 
                                         request.user.registered_date.strftime("%d-%m-%Y") or""}</small>
                                 </p>
                             </li>
@@ -381,7 +381,7 @@
                             </a>
                         </li>
                     </ul> -->
-                    <!-- <ul metal:define-slot="navs"></ul> -->
+                    <tal:block metal:define-slot="navs"></tal:block>
                     <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu">
                         <li class="nav-item" tal:repeat="menu get_base_menus()">
                             <a class="nav-link ${route_name in menu['route_name'] and 'active' or ''}"

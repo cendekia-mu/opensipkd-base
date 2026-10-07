@@ -1,3 +1,13 @@
+2026-10-06
+Migrasi ke Bootstrap 5
+- bootstrap versi 5.3
+- datatable 3.x.x
+- deform versi 3.x.x
+- jquery minimal 2.x.x
+- sqlalchemy 2.x.x
+- admin lte4
+
+
 5.0.5 2027-07-11
 Penyesuaian ke deform 3.x
 

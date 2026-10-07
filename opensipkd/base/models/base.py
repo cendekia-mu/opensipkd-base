@@ -163,7 +163,7 @@ class DefaultModel(CommonModel):
     @classmethod
     def query_id(cls, id_, db_session=None):
         db_session = db_session or cls.db_session
-        if isinstance(cls.id.type, Integer):
+        if not isinstance(cls.id.type, Integer):
             id_=int(id_)
         return cls.query(db_session).filter_by(id=id_)
 

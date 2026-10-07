@@ -336,8 +336,7 @@ class ViewAuth(BaseView):
         elif 'login' in request.POST:
             for key, value in request.headers.items():
                 log.debug(f"{key}: {value}")
-            identity = request.POST.get('username')
-            user = schema.user = User.get_by_identity(identity)
+           
             controls = request.POST.items()
             try:
                 c = form.validate(controls)
@@ -356,6 +355,10 @@ class ViewAuth(BaseView):
             values = dict(c)
 
             # start cek external module
+            identity = request.POST.get('username')
+            user = schema.user = User.get_by_identity(identity)
+            if not user:
+               return HTTPFound(location=request.route_url('base-login'))
             pckgs = get_params('external-uim')
             if user:
                 external_user = self.db_session.query(ExternalIdentity).\

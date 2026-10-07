@@ -1402,6 +1402,7 @@ class BaseView:
             self.bindings = self.get_bindings(row)
 
         form = self.get_form(self.edit_schema, **kwargs)
+        
         table = self.get_item_table(parent=row)
         kwargs["table"] = table
         # kwargs["row"]=row

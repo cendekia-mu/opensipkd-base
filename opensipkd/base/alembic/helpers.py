@@ -3,6 +3,8 @@
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.engine import reflection
+from sqlalchemy.sql.schema import Column
+from typing import Any
 
 
 def has_table(table, schema=None, insp=None):
@@ -31,3 +33,20 @@ def fields_update(table, field, typ, schema="public"):
     if not helpers.table_has_column(table, field, schema):
         op.add_column(table,
                       sa.Column(field, typ), schema=schema)
+
+
+def add_column(table_name: str,
+    column: Column[Any],
+    *,
+    schema: str | None = None,
+    if_not_exists: bool | None = None,
+    inline_references: bool | None = None,
+    inline_primary_key: bool | None = None,) -> None:
+    if not table_has_column(table_name, column.name, schema=schema):
+            op.add_column(table_name,
+                column,
+                schema= schema,
+                if_not_exists= if_not_exists,
+                inline_references= inline_references,
+                inline_primary_key= inline_primary_key,
+            ) 

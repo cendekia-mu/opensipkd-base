@@ -56,8 +56,10 @@ deform_templates = str(resources.files('deform') / 'templates')
 path = os.path.dirname(__file__)
 path = os.path.join(path, 'widgets', 'templates')
 search_path = (path, deform_templates)  # ,
+_logging.debug("Templates %s", search_path)
 renderer = deform.ZPTRendererFactory(search_path)
 deform.Form.set_zpt_renderer(search_path)
+deform.Form.default_renderer = renderer
 main_title = 'openSIPKD'
 titles = {}
 static_route = []
@@ -438,7 +440,7 @@ def main(global_config, **settings):
 
 def _add_route(config, route):
     if titles.get(route.get("kode")):
-        _logging.warning(f"Route {route.get('kode')} sudah ada di titles")
+        _logging.warning(f"Route %s sudah ada di titles", route.get('kode'))
         return
 
     if int(route.get("typ", 0)) in [0, 2]:
@@ -456,12 +458,11 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
     if not route.get("func_name"):
         func_name = "".join(route.get("kode").split('-')[-1:])
         route["func_name"] = "_".join(["view", func_name])
-
-    file_name = f"{paket}.{route.get('file_name')}"
+    file_name = route.get('file_name')
     if not file_name:
-        _logging.error(f"File not found: {file_name}")
+        _logging.error("File not found: %s", file_name)
         return
-    # _logging.debug(f"File Name: {file_name}")
+    file_name = f"{paket}.{file_name}"
     attr = f"{route.get('func_name')}"
     try:
 
@@ -472,7 +473,7 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
         _views = importlib.import_module(file_name)
         if not hasattr(_views, class_name):
             _logging.error(
-                f"Class {class_name} not found in {file_name}")
+                "Class %s not found in %s", class_name, file_name)
             return
 
         views = getattr(_views, class_name)
@@ -507,9 +508,7 @@ def _add_view_config(config, paket, route, template_path="views/templates/"):
 
     except Exception as e:
         # traceback.print_exc()
-        _logging.error("Add View Config :{code} Kode {error}"
-                       .format(code=route["kode"], error=str(e)))
-    # _logging.debug(f"Route: {route.get('kode')} {route.get('path')}")
+        _logging.error("Add View Config :%s Kode %s", route["kode"], str(e))
 
 
 @subscriber(NewRequest)
@@ -693,22 +692,21 @@ class BaseApp:
                 path_split = route.get("kode").split("-")
                 path_last = path_split[len(path_split) - 1]
                 if path_last in ["edit", "view", "delete"]:
-                    path = "/".join(path_split[:-1])
-                    path += "/{id}/"+path_last
+                    apath = "/".join(path_split[:-1])
+                    apath += "/{id}/"+path_last
                 elif path_last in ["act"]:
-                    path = "/".join(path_split[:-1])
-                    path += "/{act}/"+path_last
+                    apath = "/".join(path_split[:-1])
+                    apath += "/{act}/"+path_last
                 else:
-                    path = "/".join(path_split)
-                url_path = '/'+path
+                    apath = "/".join(path_split)
+                url_path = '/'+apath
 
             route["path"] = url_path
 
             children = route.get("children", [])
             route["children"] = []
             if route.get("file_name"):
-                _add_view_config(config, paket, route,
-                                 template_path=template_path)
+                _add_view_config(config, paket, route, template_path=template_path)
             elif route["path"] != "#":
                 _add_route(config, route)
 
@@ -735,7 +733,7 @@ class BaseApp:
                 if p["children"]:
                     self.route_children(p["children"], row)
 
-    def route_from_csv_(self, config, paket="opensipkd.base.views", rows=[], template_path="views/templates/"):
+    def route_from_csv_(self, config, paket="opensipkd.base.views", rows=None, template_path="views/templates/"):
         new_routes = []
         for row in rows:
             status = row.get("status", 0) or 0
@@ -744,21 +742,22 @@ class BaseApp:
 
             status = int(status)
             row["children"] = []
-            parent_id = row.get("parent_id") or row.get(
-                "parent_id/routes.kode")
+            parent_id = row.get("parent_id") or row.get("parent_id/routes.kode")
             if parent_id:
                 self.route_children(new_routes, row)
             else:
                 new_routes.append(row)
 
+        _logging.info("Paket %s ada %s menus", paket, len(new_routes))
         self.add_menu(config, new_routes, None, paket,
                       template_path=template_path)
 
     def route_from_csv(self, config, paket="opensipkd.base.views", filename="routes.csv",
                        template_path="views/templates/"):
+        _logging.debug("Loading %s with views %s routes from %s", paket, template_path, filename)
         fullpath = os.path.join(self.base_dir, 'scripts', 'data', filename)
         if get_ext(filename) == ".csv":
-            with open(fullpath) as f:
+            with open(fullpath, encoding="utf-8") as f:
                 rows = csv.DictReader(f, skipinitialspace=True)
                 self.route_from_csv_(
                     config, paket, rows=rows, template_path=template_path)
@@ -879,7 +878,7 @@ def _set_routes2(config, module="base"):
 def set_routes(config, app_id=None):
     """Compatibility
     """
-    if app_id and type(app_id) == str:
+    if app_id and isinstance(app_id, str):
         return _set_routes2(config, app_id)
     else:
         return _set_routes1(config, app_id)
