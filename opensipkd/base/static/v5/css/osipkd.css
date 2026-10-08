@@ -24,6 +24,7 @@ table{
 /* Makes sure the text/input box expands dynamically */
 .inline-form-row .form-control,
 .inline-form-row .form-select,
+.inline-form-row .input-group,
 .inline-form-row input[type="file"]
  {
     flex-grow: 1;
@@ -47,4 +48,14 @@ table{
     margin-left: 136px !important; /* Matches label min-width (120px) + gap (16px) */
     margin-top: 0.15rem !important; /* Tightens the spacing below the input box */
     margin-bottom: 0rem !important; /* Tightens the spacing below the input box */
+}
+
+input[readonly] {
+  background-color: #cdcdcd;
+  
+}
+
+input[readonly]:focus {
+  background-color: #cdcdcd;
+  
 }

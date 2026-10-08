@@ -9,7 +9,6 @@
      id="item-${oid}"
      tal:omit-tag="structural"
      i18n:domain="deform">
-
   <label for="${oid}"
          class="form-label"
          tal:condition="not structural"
