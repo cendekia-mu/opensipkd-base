@@ -57,7 +57,7 @@ table{
     display: flex;
     flex-wrap: wrap;       /* Allows invalid-feedback to drop to the next line */
     align-items: center;   /* Perfectly centers labels and inputs vertically */
-    gap: 1rem;             /* Standardizes the gap space between label and input */
+    /*gap: 1rem;*/             /* Standardizes the gap space between label and input */
     margin-bottom: 1rem;   /* Clean replacement for old Bootstrap 3 spacing */
 }
 
@@ -97,12 +97,34 @@ table{
     flex-basis: 100% !important;   
     width: 100% !important;   
     /* Matches label width (120px) + the flex gap (16px / 1rem) */
-    margin-left: 136px !important; 
+    margin-left: 120px !important; 
     margin-top: 0.15rem !important; 
     margin-bottom: 0rem !important; 
 }
 
-
+.inline-form-row .form-text,
+.inline-form-row .text-muted,
+.inline-form-row .deform-desc,
+.inline-form-row p.help-block { 
+    display: block !important;
+    flex-basis: 100% !important;   /* Forces the element to take up a full row */
+    width: 100% !important;   
+    
+    /* Perfect alignment layout: Matches label width (120px) + the flex gap (16px / 1rem) */
+    margin-left: 120px !important; 
+    margin-top: 0.25rem !important; 
+    margin-bottom: 0.1rem !important;
+    
+    /* Fixes the text wrapping boundary constraints */
+    white-space: normal !important; 
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+/* .inline-form-row .select2-container .select2-selection--single {
+    display: flex;
+    align-items: center;
+    height: calc(3.5rem + 2px); /* Matches your exact Bootstrap 5 input height profile */
+    /* width: 100% !important; */ 
 input[readonly] {
   background-color: #cdcdcd;
   
