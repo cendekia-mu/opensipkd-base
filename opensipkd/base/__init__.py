@@ -715,12 +715,13 @@ class BaseApp:
                     self.menus.append(route)
                 else:
                     parent["children"].append(route)
+            route_names.append(route["kode"])
             if children:
                 route["route_name"].extend(
                     self.add_menu(config, children, route, paket,
                                   template_path=template_path)
                 )
-            route_names.append(route["kode"])
+                route_names.extend(route["route_name"])
         return route_names
 
     def route_children(self, parent, row):
