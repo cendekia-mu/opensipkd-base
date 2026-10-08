@@ -14,32 +14,36 @@
 
     <div class="input-group" tal:condition="button">
         <input type="text" name="${name}" value="${cstruct}" tal:attributes="class string: form-control ${css_class or ''};
-                       style style;
-                       attributes|field.widget.attributes|{};" id="${oid}" />
-        <span class="input-group-btn">
-            <button tal:define="btn_disposition 'btn-default';" tal:attributes="disabled button.disabled if button.disabled else None;
-                                attributes|button.attributes|{};" id="${oid+button.name}" name="${button.name}"
-                type="${button.type}" class="btn ${button.css_class or btn_disposition}" value="${button.value}"
-                tal:condition="button.type != 'link'">
-                <span tal:condition="button.icon" class="glyphicon glyphicon-${button.icon}"></span>
-                ${button.title}
-            </button>
-            <a tal:define="btn_disposition 'btn-default';
-                btn_href button.value|''" class="btn ${button.css_class or btn_disposition}" id="${oid + button.name}"
-                href="${btn_href}" tal:condition="button.type == 'link'">
-                <span tal:condition="button.icon" class="glyphicon glyphicon-${button.icon}"></span>
-                ${button.title}
-            </a>
-        </span>
+                           style style;
+                           attributes|field.widget.attributes|{};" id="${oid}" />
+
+        <!-- Bootstrap 5: Removed wrapping span.input-group-btn. Buttons live directly in the group -->
+        <button tal:define="btn_disposition 'btn-secondary';" tal:attributes="disabled button.disabled if button.disabled else None;
+                            attributes|button.attributes|{};" id="${oid+button.name}" name="${button.name}"
+            type="${button.type}" class="btn ${button.css_class or btn_disposition or 'btn-primary'}" value="${button.value}"
+            tal:condition="button.type != 'link'">
+            <!-- Bootstrap 5: Changed Glyphicon to Bootstrap Icons syntax -->
+            <i tal:condition="button.icon" class="bi bi-${button.icon}"></i>
+            ${button.title}
+        </button>
+
+        <a tal:define="btn_disposition 'btn-secondary'; btn_href button.value|''"
+            class="btn ${button.css_class or btn_disposition}" id="${oid + button.name}" href="${btn_href}"
+            tal:condition="button.type == 'link'">
+            <!-- Bootstrap 5: Changed Glyphicon to Bootstrap Icons syntax -->
+            <i tal:condition="button.icon" class="bi bi-${button.icon}"></i>
+            ${button.title}
+        </a>
+
         <script tal:condition="js" type="text/javascript">
             deform.addCallback(
                 '${oid+button.name}',
                 function (oid) {
-                    ${structure:js}
+                ${ structure: js }
                 });
-
         </script>
     </div><!-- /input-group -->
+
 
     <script tal:condition="mask" type="text/javascript">
         deform.addCallback(

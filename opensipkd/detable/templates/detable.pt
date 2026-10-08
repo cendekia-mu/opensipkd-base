@@ -203,19 +203,19 @@
             //<tal:block tal:condition="allow_check=='false'">
                id = data[${tableid}Columns[co].data];
               //<tal:block tal:condition="allow_view=='true'">
-                  result += '<a href="${url}/' + id + '/view"><i class="fas fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
+                  result += '<a href="${url}/' + id + '/view"><i class="fas fa-sm fa-eye" aria-hidden="true" title="View"></i></a>&nbsp;';
               //</tal:block>
               //<tal:block tal:condition="allow_edit=='true'">
-                  result += '<a href="${url}/' + id + '/edit"><i class="fas fa-edit" aria-hidden="true" title="Edit"></i></a>&nbsp;'
+                  result += '<a href="${url}/' + id + '/edit"><i class="fas fa-sm fa-edit" aria-hidden="true" title="Edit"></i></a>&nbsp;'
               //</tal:block>
               //<tal:block tal:condition="allow_delete=='true'">
-                  result += '<a href="${url}/' + id + '/delete"><i class="fas fa-trash" aria-hidden="true" title="Delete"></i></a>';
+                  result += '<a href="${url}/' + id + '/delete"><i class="fas fa-sm fa-trash" aria-hidden="true" title="Delete"></i></a>';
               //</tal:block>
               //<tal:block tal:condition="allow_post=='true'">
-                  result += '<a href="${url}/' + id + '/post"><i class="fas fa-signs-post" aria-hidden="true" title="Post"></i></a>';
+                  result += '<a href="${url}/' + id + '/post"><i class="fas fa-sm fa-signs-post" aria-hidden="true" title="Post"></i></a>';
               //</tal:block>
               //<tal:block tal:condition="allow_post=='true'">
-                  result += '<a href="${url}/' + id + '/unpost"><i class="fas fa-delete-left" aria-hidden="true" title="Unpost"></i></a>';
+                  result += '<a href="${url}/' + id + '/unpost"><i class="fas fa-sm fa-delete-left" aria-hidden="true" title="Unpost"></i></a>';
               //</tal:block>
             //</tal:block>
             return result;

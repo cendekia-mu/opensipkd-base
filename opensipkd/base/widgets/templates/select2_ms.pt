@@ -9,23 +9,12 @@
     url url|field.widget.url;
     slave slave|field.widget.slave;" tal:omit-tag="">
 
-  <style>
-    .select2-selection.form-control {
-      padding: 0px 0px;
-    }
-
-    .select2-container--default .select2-selection--multiple,
-    .select2-container--default .select2-selection--single {
-      border: 1px solid #ccc;
-    }
-  </style>
-
   <input type="hidden" name="__start__" value="${name}:sequence" tal:condition="multiple" />
 
   <select tal:attributes="
       name name;
       id oid;
-      class string: form-control ${css_class or ''};
+      class string: form-select ${css_class or ''};
       data-placeholder field.widget.placeholder|None;
       multiple multiple;
       style style;
@@ -51,7 +40,6 @@
       '${field.oid}',
       function (oid) {
         $('#' + oid).select2({
-          containerCssClass: 'form-control',
           placeholder: "${str(field.widget.placeholder).replace('"','\\"')|""}" || undefined,
           allowClear: "${hasattr(field.widget, 'placeholder')}",
           tags: ${ str(getattr(field.widget, 'tags', 'undefined')).lower()
