@@ -40,7 +40,7 @@
     <div role="content">
       <div class="widget-body">
         <div class="row" tal:condition="filter_columns">
-          <div id="${tableid}-form-filter-container" class="col-md-3">
+          <div id="${tableid}-form-filter-container" class="col-md-6">
             <div id="${tableid}-form-filter" class="collapse">
               ${structure:filter_form}
             </div>
@@ -177,7 +177,8 @@
           else if (${tableid}Columns[co].wg_select === true) {
            ${tableid}Columns[co].render = function (value) {
              if (value != null)
-               return ${tableid}Columns[co].wg_select_val[value];
+                return value;
+            //    return ${tableid}Columns[co].wg_select_val[value];
              return "";
            }
         }else if (${tableid}Columns[co].hasOwnProperty("url")) {

@@ -314,7 +314,7 @@
                                     alt="Alexander Pierce"> -->
                                 <p>
                                     ${user_name}
-                                    <small>Terdaftar sejak ${request.user and request.user.registered_date and 
+                                    <small>Terdaftar sejak ${request.user and request.user.registered_date and
                                         request.user.registered_date.strftime("%d-%m-%Y") or""}</small>
                                 </p>
                             </li>
@@ -387,14 +387,14 @@
                             <a class="nav-link ${route_name in menu['route_name'] and 'active' or ''}"
                                 tal:condition="python:not menu['children'] and (not menu['permission'] or has_permission(request, menu['permission']))"
                                 href="${home}${menu['path']}">
-                                <i tal:condition="menu['icon']" class="nav-icon fa fa-lg fa-fw ${menu['icon']}"></i>
                                 <p>${menu['nama']}</p>
                             </a>
                             <a class="nav-link ${route_name in menu['route_name'] and 'active' or ''}"
                                 tal:condition="python:menu['children'] and (not menu['permission'] or has_permission(request, menu['permission']))"
                                 href="#">
-                                <i tal:condition="menu['icon']" class="fa fa-lg fa-fw ${menu['icon']}"></i>
+                                <i tal:condition="menu['icon']" class="${menu['icon']}"></i>
                                 <span class="menu-item-parent">${menu['nama']}</span>
+                                <i class="nav-arrow bi bi-chevron-right"></i>
                             </a>
 
                             <ul class="nav nav-treeview"
@@ -404,15 +404,13 @@
                                     <a class="nav-link ${route_name in submenu['route_name'] and 'active' or ''}"
                                         tal:condition="python:not submenu['children'] and (not menu['permission'] or has_permission(request, submenu['permission']))"
                                         href="${home}${submenu['path']}">
-                                        <i tal:condition="submenu['icon']"
-                                            class="fa fa-lg fa-fw ${submenu['icon']}"></i>
+                                        <i tal:condition="submenu['icon']" class="nav-icon ${submenu['icon']}"></i>
                                         <span>${submenu['nama']}</span>
                                     </a>
 
                                     <a class="nav-link  ${route_name in submenu['route_name'] and 'active' or ''}"
                                         tal:condition="submenu['children']" href="#">
-                                        <i tal:condition="submenu['icon']"
-                                            class="fa fa-lg fa-fw ${submenu['icon']}"></i>
+                                        <i tal:condition="submenu['icon']" class="nav-icon ${submenu['icon']}"></i>
                                         <span class="menu-item-parent">${submenu['nama']}</span>
                                     </a>
 
@@ -429,8 +427,10 @@
                     </ul>
                     <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu">
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fa fa-lg fa-fw fa-shield"></i>
-                                <span class="menu-item-parent">Module Lainnya</span></a>
+                            <a class="nav-link" href="#">
+                                <span class="menu-item-parent">Module Lainnya</span>
+                                <i class="nav-arrow bi bi-chevron-right"></i>
+                            </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item" tal:repeat="menu request.menus">
                                     <a class="nav-link" href="${menu}">${request.menus[menu]}</a>
