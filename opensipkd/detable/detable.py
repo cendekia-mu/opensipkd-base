@@ -256,7 +256,7 @@ class DeTable(field.Field):
         if filter_columns:
             button = f"""
                         <a href="#{tableid}-form-filter"
-                            data-toggle="collapse"
+                            data-bs-toggle="collapse"
                             class= "btn btn-warning dropdown">Filters</a>
                     """
             header_buttons.insert(0, button)
@@ -466,7 +466,7 @@ class DeTable(field.Field):
         html = ""
         col_id = f"{self.tableid}-{f.name}"
         txt = f'id="{col_id}" data-index={field_index} '
-        html += '<div class="form-group">'
+        html += '<div class="mb-3">'
         if isinstance(f.widget, deform_widget.CheckboxWidget):
             wg_check_val = [f.widget.true_val, f.widget.false_val]
             radio_val = [["", f'Semua {f.title}'], [wg_check_val[0],
@@ -487,8 +487,8 @@ class DeTable(field.Field):
             html += '</div>'
         elif isinstance(f.widget, deform_widget.SelectWidget):
             wg_select_val = f.widget.values
-            html += f'<select class="form-control {self.tableid}-control-filter"'
-            html += f'placeholder="{f.title}" {txt}/>'
+            html += f'<select class="form-select {self.tableid}-control-filter"'
+            html += f'aria-label="{f.title}" {txt}/>'
             html += f'<option value="">Semua {f.title}</option>'
             if type(wg_select_val) == list:
                 wg_select_val = dict(wg_select_val)
@@ -500,25 +500,22 @@ class DeTable(field.Field):
         elif isinstance(f.typ, colander.Date):
             search_method = getattr(f, "search_method", None)
             if search_method == "date":
-                # html += f'<div class="tooltip">'
                 html += f'<label class="form-label" style="font-size:12px">{f.title}</label>'
                 html += f'<input type="date" class="form-control {self.tableid}-control-filter"'
                 html += f'{txt}/>'
-                # html += f'<span class="tooltiptext">{f.title}</span>'
-                # html += f'</div>'
             else:
-                html += f'<div class="form-group" {txt}>'
+                # html += f'<div class="mb-3" {txt}>'
                 html += f'<label class="form-label" style="font-size:12px">{f.title}</label>'
                 html += '<div class="input-group input-daterange" style="padding: 3px 0px 7px !important;">'
                 html += f'<input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
                 html += f'data-index={field_index} placeholder="{f.title} Awal"'
                 html += f'name="{col_id}" id="{col_id}-min"/>'
-                html += '<div class="input-group-addon">-</div>'
+                html += '<div class="input-group-text">-</div>'
                 html += f'<input type="date" class="form-control {self.tableid}-control-filter hasDatePicker"'
                 html += f'data-index={field_index} placeholder="{f.title} Akhir" '
                 html += f'name="{col_id}" id="{col_id}-max" /></span>'
                 html += '</div>'
-                html += '</div>'
+                # html += '</div>'
         elif getattr(f, "search_method", None) == "yadcf_range_number":
             html += f'<div class="form-group" {txt}>'
             html += f'<label class="form-label" style="font-size:12px">{f.title}</label>'

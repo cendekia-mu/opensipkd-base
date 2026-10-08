@@ -1,0 +1,16 @@
+<p class="form-control-static" id="${oid|field.oid}">
+</p>
+
+<script>
+    deform.addCallback(
+        '${field.oid}',
+        function (oid) {
+            const rawValue = parseFloat('${cstruct or 0}'.trim());
+            const pElement = document.getElementById("${field.oid}");
+            pElement.textContent = rawValue.toLocaleString(navigator.language, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
+    );
+</script>
