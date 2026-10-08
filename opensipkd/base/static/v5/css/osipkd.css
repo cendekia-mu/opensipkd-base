@@ -22,33 +22,86 @@ table{
 }
 
 /* Makes sure the text/input box expands dynamically */
-.inline-form-row .form-control,
+/* .inline-form-row .form-control,
 .inline-form-row .form-select,
 .inline-form-row .input-group,
 .inline-form-row input[type="file"]
  {
     flex-grow: 1;
     width: auto !important;
-}
+} */
 
 /* .inline-form-row .form-group.w-100 .form-control {
     width: 100% !important;
 } */
 
-.inline-form-row input[type="file"] {
+/* .inline-form-row input[type="file"] {
     flex-basis: 0;
     min-width: 0;
-}
+} */
 
 /* Force the validation message to the second line right below the textbox */
-.inline-form-row .invalid-feedback {
+/* .inline-form-row .invalid-feedback {
     display: block !important; 
     flex-basis: 100% !important;   
     width: 100% !important;   
-    margin-left: 136px !important; /* Matches label min-width (120px) + gap (16px) */
-    margin-top: 0.15rem !important; /* Tightens the spacing below the input box */
-    margin-bottom: 0rem !important; /* Tightens the spacing below the input box */
+    margin-left: 136px !important; 
+    margin-top: 0.15rem !important;
+    margin-bottom: 0rem !important;
+}*/
+
+
+/* Versi 2
+1. Turn the row container into a modern flexbox row layout */
+.inline-form-row {
+    display: flex;
+    flex-wrap: wrap;       /* Allows invalid-feedback to drop to the next line */
+    align-items: center;   /* Perfectly centers labels and inputs vertically */
+    gap: 1rem;             /* Standardizes the gap space between label and input */
+    margin-bottom: 1rem;   /* Clean replacement for old Bootstrap 3 spacing */
 }
+
+/* 2. Style the Label to have a consistent structural base width */
+.inline-form-row .form-label {
+    min-width: 120px;
+    width: 120px;
+    margin-bottom: 0 !important; /* Prevents labels from jumping upward */
+}
+
+/* 3. Force inputs, selectors, and plain texts to expand and fill the layout */
+.inline-form-row .form-control,
+.inline-form-row .form-control-plaintext,  /* Added to fix your Date text padding collapse */
+.inline-form-row .form-select,
+.inline-form-row .input-group,
+.inline-form-row input[type="file"] {
+    flex-grow: 1;
+    flex-basis: 0;         /* Ensures all inputs share remaining space equally */
+    width: auto !important;
+}
+
+/* Fix for plain text controls so they don't break the vertical alignment grid line */
+.inline-form-row .form-control-plaintext {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+}
+
+/* 4. Files layout handling configuration block */
+.inline-form-row input[type="file"] {
+    min-width: 0;
+}
+
+/* 5. Force validation messages cleanly to a fresh line right beneath the text block */
+.inline-form-row .invalid-feedback,
+.inline-form-row .errorli { /* Covers standard Deform error tag fallbacks too */
+    display: block !important; 
+    flex-basis: 100% !important;   
+    width: 100% !important;   
+    /* Matches label width (120px) + the flex gap (16px / 1rem) */
+    margin-left: 136px !important; 
+    margin-top: 0.15rem !important; 
+    margin-bottom: 0rem !important; 
+}
+
 
 input[readonly] {
   background-color: #cdcdcd;

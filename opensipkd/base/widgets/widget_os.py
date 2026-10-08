@@ -849,7 +849,17 @@ class TextInputWidget(widget.TextInputWidget):
     template = "textinput_btn"
     button = None
     js = None
-
+    masking=None
+    requirements = (
+        ('deform', None),
+        {
+            "js": (
+                "opensipkd.base:static/v5/js/jquery.mask.min.js",
+            ),
+            "css": (
+            ),
+        }
+    )
     def __init__(self, **kw):
         super().__init__(**kw)
 

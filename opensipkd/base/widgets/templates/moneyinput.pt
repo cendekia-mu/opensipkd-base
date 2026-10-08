@@ -1,0 +1,27 @@
+<span tal:define="oid oid|field.oid;
+                  name name|field.name;
+                  mask_options mask_options|'{}';
+                  style style|field.widget.style;
+                  error_class error_class|field.widget.error_class;
+                  css_class css_class|field.widget.css_class;
+                  style style|field.widget.style|False;
+                  autofocus autofocus|field.autofocus" tal:omit-tag="">
+    <input type="text" name="${name}" value="${cstruct}" tal:attributes="style style;
+                           class string:form-control ${field.error and error_class or css_class};
+                           autofocus autofocus;
+                           required field.required and 'required' or None;
+                           attributes|field.widget.attributes|{};" id="${oid}" />
+    <script type="text/javascript">
+        deform.addCallback(
+            '${oid}',
+            function (oid) {
+                  var $el = $("#" + oid);
+                $el.maskMoney(${mask_options});
+                var rawValue = parseFloat($el.val());
+                if (!isNaN(rawValue)) {
+                    $el.val(Math.round(rawValue));
+                    $el.maskMoney('mask');
+                }
+            });
+    </script>
+</span>

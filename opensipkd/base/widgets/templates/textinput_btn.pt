@@ -2,6 +2,7 @@
                   css_class css_class|field.widget.css_class;
                   oid oid|field.oid;
                   mask mask|field.widget.mask;
+                  masking masking|field.widget.masking;
                   button button|field.widget.button;
                   mask_placeholder mask_placeholder|field.widget.mask_placeholder;
                   style style|field.widget.style;
@@ -20,8 +21,8 @@
         <!-- Bootstrap 5: Removed wrapping span.input-group-btn. Buttons live directly in the group -->
         <button tal:define="btn_disposition 'btn-secondary';" tal:attributes="disabled button.disabled if button.disabled else None;
                             attributes|button.attributes|{};" id="${oid+button.name}" name="${button.name}"
-            type="${button.type}" class="btn ${button.css_class or btn_disposition or 'btn-primary'}" value="${button.value}"
-            tal:condition="button.type != 'link'">
+            type="${button.type}" class="btn ${button.css_class or btn_disposition or 'btn-primary'}"
+            value="${button.value}" tal:condition="button.type != 'link'">
             <!-- Bootstrap 5: Changed Glyphicon to Bootstrap Icons syntax -->
             <i tal:condition="button.icon" class="bi bi-${button.icon}"></i>
             ${button.title}
@@ -49,8 +50,19 @@
         deform.addCallback(
             '${oid}',
             function (oid) {
-                $("#" + oid).mask("${mask}",
-                    { placeholder: "${mask_placeholder}" });
+                // var maskPattern = $('#${oid}').attr('data-custom-mask');
+                var maskPattern = '${mask}';
+                var standardPattern = maskPattern.replace(/9/g, '0');
+                $('#${oid}').mask(standardPattern);
+                $('#${oid}').attr("placeholder", standardPattern.replace(/0/g, '${mask_placeholder}'));
+            });
+    </script>
+    <script tal:condition="masking" type="text/javascript">
+        deform.addCallback(
+            '${oid}',
+            function (oid) {
+                var masking = '${masking}';
+                $('#${oid}').mask(masking);
             });
     </script>
 </span>
