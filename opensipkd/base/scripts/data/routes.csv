@@ -1,5 +1,6 @@
 kode,path,icon,file_name,class_name,func_name,order_id,permission,parent_id/routes.kode,nama,status,type,app_id,is_menu,template,csrf
 base-home,/,,__init__,Home,view_home,1,,,Home,1,0,,0,home.pt,
+base-csrf,/csrf,,__init__,Home,view_csrf,1,,,CSRF,1,0,,0,json,
 base-login,/login,,user_login,ViewAuth,view_login,1,,,Login,1,0,,0,form6.pt,1
 base-logout,/logout,,user_login,ViewAuth,view_logout,1,,,Logout,1,0,,0,logout.pt,
 base-passcode,/passcode,,user_login,ViewPassword,get_passcode,,view,,Get Passcode,1,0,,0,json,
