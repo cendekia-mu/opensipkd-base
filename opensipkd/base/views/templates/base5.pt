@@ -508,5 +508,29 @@
     <!-- Define Script-->
     <script metal:define-slot="scripts"></script>
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        window.getCsrfToken = function () {
+            var result = {};
+            $.ajax({
+                url: '${home}/csrf',
+                type: 'GET',
+                async: false,
+                success: function (response) {
+                    if (response && typeof response === 'object' && response.name && response.hash) {
+                        result = response;
+                    } else {
+                        console.error('Invalid CSRF token response:', response);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Failed to refresh CSRF token:', error);
+                }
+            });
+            return result;
+        };
+    });
+
+</script>
 
 </html>

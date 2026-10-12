@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import timedelta
-
+from pyramid.csrf import get_csrf_token
 import colander
 from deform import Button, FileData, Form, ValidationFailure, widget
 from pyramid.httpexceptions import (
@@ -125,6 +125,11 @@ class Home(BaseView):
                 request=request
             )
         return dict(modules=modules, logo=logo, submodules=[])
+
+    def view_csrf(self):
+        token = get_csrf_token(self.req)
+        return {'name':'csrf_token',
+                'hash': token}
 
 
 class KodeSchema(colander.Schema):
