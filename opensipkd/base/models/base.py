@@ -117,6 +117,7 @@ class CommonModel:
 
 
 class DefaultModel(CommonModel):
+    db_session = DBSession
     id = Column(Integer, primary_key=True,
                 info={
                     'colanderalchemy': {
@@ -125,8 +126,7 @@ class DefaultModel(CommonModel):
                         'widget': widget.HiddenWidget(readonly=True)
                     }})
 
-    db_session = DBSession
-
+      
     # def __init__(self):
     #     super().__init__()
     #     self.db_session = DBSession
@@ -142,14 +142,12 @@ class DefaultModel(CommonModel):
 
     @classmethod
     def count(cls,  db_session=None):
-        if not db_session:
-            db_session = cls.db_session
+        db_session = db_session or cls.db_session
         return db_session.query(func.count('id')).scalar()
 
     @classmethod
     def query(cls, db_session=None, filters=None):
-        if not db_session:
-            db_session = cls.db_session
+        db_session = db_session or cls.db_session
         query = db_session.query(cls)
         if filters:
             filter_expressions = []
@@ -161,6 +159,13 @@ class DefaultModel(CommonModel):
             query = query.filter(
                 *[e for i, e in enumerate(filter_expressions) if e is not None])
         return query
+    
+    @classmethod
+    def query_id(cls, id_, db_session=None):
+        db_session = db_session or cls.db_session
+        if isinstance(cls.id.type, Integer):
+            id_=int(id_)
+        return cls.query(db_session).filter_by(id=id_)
 
     @classmethod
     def query_from(cls, db_session=None, columns=[], filters=None):
@@ -171,11 +176,7 @@ class DefaultModel(CommonModel):
             query = query.add_columns(c)
         return query
 
-    @classmethod
-    def query_id(cls, row_id, db_session=None):
-        if not db_session:
-            db_session = cls.db_session
-        return cls.query(db_session).filter_by(id=row_id)
+
 
     @classmethod
     def delete(cls, row_id, db_session=None):
