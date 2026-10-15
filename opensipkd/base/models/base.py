@@ -365,6 +365,19 @@ class NamaModel(KodeModel):
             "value": item.nama
         } for item in rows]
 
+    @classmethod
+    def ilike_nama(cls, nama=None, request=None):
+        query = cls.query()
+        if nama:
+            query=query.filter(cls.nama.ilike(f"%{nama}%"))
+        elif request:
+            term = request.params.get("term")
+            if term:
+                query=query.filter(cls.nama.ilike(f"%{term}%"))
+
+        return query
+
+    
 
 class TestModel(NamaModel, Base):
     __tablename__ = 'test_model'
