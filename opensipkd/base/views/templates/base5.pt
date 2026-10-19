@@ -5,6 +5,7 @@
         css css|[];
         js js|[];
         ">
+
 <head>
     <!--<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">-->
     <title>${request.app_name} | ${request.company}</title>
@@ -100,10 +101,11 @@
 
             <ul tal:condition="not request.user" class="header-dropdown-list">
                 <li>
-                    <a href="${request.route_url('base-login')}?next=${home}" class="dropdown-toggle"><i class="fa fa-lg fa-fw fa-user"></i>Login</a>
+                    <a href="${request.route_url('base-login')}?next=${home}" class="dropdown-toggle"><i
+                            class="fa fa-lg fa-fw fa-user"></i>Login</a>
                 </li>
             </ul>
-            
+
             <ul tal:condition="request.user" class="header-dropdown-list">
                 <li>
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-lg fa-fw fa-user"></i>
@@ -308,6 +310,31 @@
     <!-- END MAIN PANEL -->
 
     <!-- Define Script-->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            window.getCsrfToken = function () {
+                // expected result {'name':'csrf_token',
+                //                  'hash': token}
+                var result = {};
+                $.ajax({
+                    url: '${home}/csrf',
+                    type: 'GET',
+                    async: false,
+                    success: function (response) {
+                        if (response && typeof response === 'object' && response.name && response.hash) {
+                            result = response;
+                        } else {
+                            console.error('Invalid CSRF token response:', response);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Failed to refresh CSRF token:', error);
+                    }
+                });
+                return result;
+            };
+        });
+    </script>
     <script metal:define-slot="scripts"></script>
 </body>
 

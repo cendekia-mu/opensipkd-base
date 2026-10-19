@@ -3,6 +3,7 @@ import logging
 from datetime import timedelta
 
 import colander
+from pyramid.csrf import get_csrf_token
 from deform import Button, FileData, Form, ValidationFailure, widget
 from pyramid.httpexceptions import (
     HTTPForbidden,
@@ -10,10 +11,11 @@ from pyramid.httpexceptions import (
     HTTPInternalServerError,
     HTTPNotFound,
     HTTPSeeOther,
+    HTTPException
 )
 from pyramid.interfaces import IRoutesMapper
 from pyramid.renderers import render_to_response
-from pyramid.view import view_config
+from pyramid.view import view_config, exception_view_config
 from translationstring import TranslationStringFactory
 
 from opensipkd.base import get_params
@@ -28,8 +30,38 @@ _ = TranslationStringFactory('user')
 one_hour = timedelta(1.0 / 24)
 two_minutes = timedelta(1.0 / 24 / 60)
 
-@view_config(context=HTTPNotFound, renderer='templates/404.pt')
-def not_found(request):
+
+@exception_view_config(HTTPException, renderer='json', accept='application/json')
+def json_http_exception_view(exception, request):
+    # 1. Match the response status code to the raised exception (e.g., 404, 400, 403)
+    request.response.status_code = exception.code
+
+    # 2. Return a clean JSON-serializable dictionary
+    return {
+        'status': 'error',
+        'code': exception.code,
+        'title': exception.title,
+        'message': getattr(exception, 'explanation', 'An error occurred')
+    }
+
+
+# @exception_view_config(HTTPNotFound, renderer='json', accept='application/json')
+# def json_not_found(exception, request):
+#     # 1. Match the response status code to the raised exception (e.g., 404, 400, 403)
+#     request.response.status_code = exception.code
+
+#     # 2. Return a clean JSON-serializable dictionary
+#     return {
+#         'status': 'error',
+#         'code': exception.code,
+#         'title': exception.title,
+#         'message': getattr(exception, 'explanation', 'An error occurred')
+#     }
+# @view_config(context=HTTPNotFound, renderer='templates/404.pt')
+
+
+@exception_view_config(HTTPNotFound, renderer='templates/404.pt')
+def not_found(exception, request):
     # if request.is_xhr:
     #     response = HTTPNotFound()  # Instantiates a 404 Response object
     #     response.body = json.dumps(
@@ -37,8 +69,18 @@ def not_found(request):
     #     response.content_type = 'application/json'
     #     return response  # Returning it bypasses the templates/404.pt renderer
 
+    if request.accept.best_match(['application/json', 'text/html']) == 'application/json':
 
-
+        # Manually construct and return a JSON Response
+        request.response.content_type = 'application/json'
+        request.response.status = 404
+        request.response.json_body={
+            'status': 'error',
+            'code': exception.code,
+            'title': exception.title,
+            'message': getattr(exception, 'explanation', 'An error occurred')
+        }
+        return request.response
     path = request.path
     registry = request.registry
     mapper = registry.queryUtility(IRoutesMapper)
@@ -54,12 +96,13 @@ def not_found(request):
     request.response.status = 404
     return {}
 
+
 log = logging.getLogger(__name__)
+
 
 @view_config(context=HTTPInternalServerError, renderer='templates/500.pt')
 def internal_server_error(request):
     return {}
-
 
 
 @view_config(context=HTTPForbidden, renderer='templates/403.pt')
@@ -68,7 +111,8 @@ def http_forbidden(request):
         # next_url = get_urls(
         #     request.route_url(
         #     'login', _query={'next': request.url}))
-        next_url = request.route_url('base-login', _query={'next': request.url})
+        next_url = request.route_url(
+            'base-login', _query={'next': request.url})
         return HTTPSeeOther(location=next_url)
 
     request.response.status = 403
@@ -100,6 +144,7 @@ class FilesSchema(colander.SequenceSchema):
     def after_bin(self, node, kw):
         self["file_name"].title = ""
 
+
 class Home(BaseView):
     # @view_config(route_name='home', renderer='templates/home.pt')
     def view_home(self):
@@ -115,7 +160,7 @@ class Home(BaseView):
             if request.user and request.has_permission(modules_default) or request.user and len(request.session.peek_flash('error')) < 2 or not request.user:
                 return HTTPFound(location=request.route_url(modules_default))
                 # return HTTPFound(location=get_urls(request.route_url(modules_default)))
-                
+
         logo = get_params('logo', "static/img/logo.png")
         home_tpl = get_params("home_tpl")
         if home_tpl:
@@ -126,19 +171,25 @@ class Home(BaseView):
             )
         return dict(modules=modules, logo=logo, submodules=[])
 
+    def view_csrf(self):
+        token = get_csrf_token(self.req)
+        return {'name': 'csrf_token',
+                'hash': token}
+
 
 class KodeSchema(colander.Schema):
     kode = colander.SchemaNode(
         colander.String(),
-        validator = colander.Length(max=32),
+        validator=colander.Length(max=32),
         title="Kode",
         global_search=True
     )
 
+
 class NamaSchema(KodeSchema):
     nama = colander.SchemaNode(
         colander.String(),
-        validator = colander.Length(max=100),
+        validator=colander.Length(max=100),
         title="Nama",
         global_search=True
     )

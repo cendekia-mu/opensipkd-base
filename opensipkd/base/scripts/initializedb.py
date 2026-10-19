@@ -371,6 +371,8 @@ def append_csv(table, filename, keys, get_file_func=get_file,
 
             db_session.add(row)
             db_session.flush()
+            if callback:
+                value = callback("after", data=row, field=fname_orig)
             if user:
                 print("Table: ", table.__name__, filter_)
                 user_ = db_session.query(User).filter_by(id=row.id).first()

@@ -186,8 +186,7 @@ class DefaultModel(CommonModel):
 
     @classmethod
     def flush(cls, row, db_session=None):
-        if not db_session:
-            db_session = cls.db_session
+        db_session = db_session or cls.db_session
         db_session.add(row)
         db_session.flush()
 

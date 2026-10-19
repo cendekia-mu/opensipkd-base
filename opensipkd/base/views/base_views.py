@@ -257,6 +257,8 @@ class BaseView:
         self.html_tag_cleaner = True
         # 2026-04-13
         self.use_ajax = False
+        # 2026-10-16
+        self.is_admin = request.has_permission('admin')
 
     def init_session(self, request):
         #         # if not request.user:
@@ -882,7 +884,7 @@ class BaseView:
         return csv_response(self.req, value)
 
     def get_bindings(self, row=None):
-        return {"row": row}
+        return {"row": row, "is_admin": self.is_admin}
 
     def next_edit(self, form, **kwargs):
         """Digunakan untuk memproses button post yang lainnya
