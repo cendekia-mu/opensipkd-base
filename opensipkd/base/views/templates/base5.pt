@@ -4,6 +4,8 @@
         route_name route_name|request.matched_route.name;
         css css|[];
         js js|[];
+        user_agent request.headers.get('User-Agent', '').lower();
+        wv wv|'wv' in user_agent|'iphone' in user_agent|'ipad' in user_agent;
         ">
 
 <head>
@@ -84,7 +86,7 @@
                 </ul>
             </div>
             <!-- collapse menu button -->
-            <div id="hide-menu" class="btn-header pull-right">
+            <div id="hide-menu" tal:condition="not wv" class="btn-header pull-right">
                 <span> <a href="javascript:void(0);" data-action="toggleMenu" title="Collapse Menu"><i
                             class="fa fa-reorder"></i></a> </span>
             </div>
@@ -99,14 +101,14 @@
 
             <!-- User info -->
 
-            <ul tal:condition="not request.user" class="header-dropdown-list">
+            <ul tal:condition="not request.user and not wv" class="header-dropdown-list">
                 <li>
                     <a href="${request.route_url('base-login')}?next=${home}" class="dropdown-toggle"><i
                             class="fa fa-lg fa-fw fa-user"></i>Login</a>
                 </li>
             </ul>
 
-            <ul tal:condition="request.user" class="header-dropdown-list">
+            <ul tal:condition="request.user and not wv" class="header-dropdown-list">
                 <li>
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-lg fa-fw fa-user"></i>
                         <span style="text-transform:capitalize"> ${request.user and request.user.nice_username() or ""}
@@ -301,6 +303,54 @@
             <!-- End Global Alert -->
 
             <!-- SLOT KONTEN -->
+            <dialog id="message-dialog" aria-labelledby="message-dialog-title">
+                <div class="message-dialog-content">
+                    <h4 id="message-dialog-title">Informasi</h4>
+                    <p id="message-dialog-message"></p>
+                    <form method="dialog">
+                        <button type="submit" class="btn btn-primary">OK</button>
+                    </form>
+                </div>
+            </dialog>
+            <style>
+                #message-dialog {
+                    border: 0;
+                    border-radius: 6px;
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+                    max-width: calc(100% - 32px);
+                    padding: 0;
+                    width: 420px;
+                }
+
+                #message-dialog::backdrop {
+                    background: rgba(0, 0, 0, 0.5);
+                }
+
+                .message-dialog-content {
+                    padding: 20px;
+                }
+
+                .message-dialog-content h4 {
+                    margin: 0 0 12px;
+                }
+
+                .message-dialog-content form {
+                    margin: 16px 0 0;
+                    text-align: right;
+                }
+            </style>
+            <script>
+                window.addEventListener('load', () => {
+                    const messageDialog = document.getElementById('message-dialog');
+                    const messageDialogText = document.getElementById('message-dialog-message');
+                    window.showDialog = (message) => {
+                        messageDialogText.textContent = message;
+                        if (!messageDialog.open) {
+                            messageDialog.showModal();
+                        }
+                    };
+                });
+            </script>
             <div metal:define-slot="content"></div>
             <!-- END SLOT KONTEN -->
 

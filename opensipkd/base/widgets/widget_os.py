@@ -1059,8 +1059,9 @@ class QrCodeWidget(Widget):
         {
             "js": "opensipkd.base:static/js/qrcode/qrcode.min.js",
         },)
-    height = "100px"
-    width = "100px"
+    height = "100"
+    width = "100"
+    image = None
 
     def __init__(self, **kw):
         super().__init__(**kw)

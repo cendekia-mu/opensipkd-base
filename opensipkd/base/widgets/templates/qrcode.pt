@@ -4,17 +4,51 @@
     style style|field.widget.style;
     height height|field.widget.height;
     width width|field.widget.width;
+    image image|field.widget.image
     " tal:omit-tag="">
-  <div id="${oid}" style="width:${width}; height:${height}; margin-top:15px;"></div>
-<script type="text/javascript">
-  deform.addCallback('${oid}',
-    function (oid) {
-      var qrcode = new QRCode(document.getElementById(oid), {
-        width: 100,
-        height: 100
-      });
+    <div id="${oid}" style="width:${width}px; height:${height}px; margin-top:15px;"></div>
+    <button type="button" id="${oid}-download" class="btn btn-default btn-sm" style="margin-top:8px;">
+        Download / Save
+    </button>
+    <script type="text/javascript">
+        deform.addCallback('${oid}',
+            function (oid) {
+                var qrcode = new QRCode(document.getElementById(oid), {
+                    width: "${width}",
+                    height: "${height}",
+                    //<tal:block tal:condition="image">
+                    // image: "${image}"
+                    //</tal:block>
+                });
 
-      qrcode.makeCode("${cstruct}");
-    });
-</script>
+                qrcode.makeCode("${cstruct}");
+
+                document.getElementById(oid + "-download").addEventListener("click", function () {
+                    var container = document.getElementById(oid);
+                    var image = container.querySelector("img");
+                    var canvas = container.querySelector("canvas");
+                    var dataUrl = image && image.src ? image.src :
+                        (canvas ? canvas.toDataURL("image/png") : null);
+
+                    if (!dataUrl) {
+                        return;
+                    }
+                    fileName= "${cstruct[:20]}.png";
+                    var payload = {
+                            "base64": dataUrl,
+                            "filename": fileName
+                        };
+                    if (window.FileSaveChannel) {
+                        window.FileSaveChannel.postMessage(JSON.stringify(payload));
+                    } else {
+                        var link = document.createElement("a");
+                        link.href = dataUrl;
+                        link.download = fileName;
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                    }
+                });
+            });
+    </script>
 </span>

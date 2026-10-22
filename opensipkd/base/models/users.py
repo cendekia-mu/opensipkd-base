@@ -493,7 +493,7 @@ class UserResourcePermission(_UserResourcePermission, Base):
     __table_args__ = TABLE_ARGS
 
 
-class _ExternalIdentity(ExternalIdentityMixin):
+class _ExternalIdentity(ExternalIdentityMixin, CommonModel):
     __table_args__ = (
         sa.PrimaryKeyConstraint(
             "external_id",
