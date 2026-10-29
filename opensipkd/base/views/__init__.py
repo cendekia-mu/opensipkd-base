@@ -31,18 +31,18 @@ one_hour = timedelta(1.0 / 24)
 two_minutes = timedelta(1.0 / 24 / 60)
 
 
-@exception_view_config(HTTPException, renderer='json', accept='application/json')
-def json_http_exception_view(exception, request):
-    # 1. Match the response status code to the raised exception (e.g., 404, 400, 403)
-    request.response.status_code = exception.code
+# @exception_view_config(HTTPException, renderer='json', accept='application/json')
+# def json_http_exception_view(exception, request):
+#     # 1. Match the response status code to the raised exception (e.g., 404, 400, 403)
+#     request.response.status_code = exception.code
 
-    # 2. Return a clean JSON-serializable dictionary
-    return {
-        'status': 'error',
-        'code': exception.code,
-        'title': exception.title,
-        'message': getattr(exception, 'explanation', 'An error occurred')
-    }
+#     # 2. Return a clean JSON-serializable dictionary
+#     return {
+#         'status': 'error',
+#         'code': exception.code,
+#         'title': exception.title,
+#         'message': getattr(exception, 'explanation', 'An error occurred')
+#     }
 
 
 # @exception_view_config(HTTPNotFound, renderer='json', accept='application/json')

@@ -209,8 +209,7 @@ class DeTable(field.Field):
                 paramString = $.param(params);
                 console.log(params);
                 window.location = o%sUri+'/xls/act%s&'+paramString;}
-            """ % (
-                tableid, tableid, params),
+            """ % (tableid, tableid, params),
             "pdf": "{window.open(o%sUri+'/pdf/act%s');}" % (tableid, params),
             "upload": "{window.location = o%sUri+'/upload%s';}" % (
                 tableid, params),
