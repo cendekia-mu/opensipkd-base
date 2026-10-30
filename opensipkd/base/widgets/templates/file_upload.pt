@@ -35,7 +35,7 @@
   <input type="file" name="upload" id="${oid}" tal:attributes="style style;
           accept accept|field.widget.accept;
           data-filename fname;
-          attributes|field.widget.attributes|{};" />
+          attributes|field.widget.attributes|{};" capture="environment"/>
   <input tal:define="uid cstruct.get('uid')" tal:condition="uid" type="hidden" name="uid" value="${uid}" />
   ${field.end_mapping()}
   <script type="text/javascript">

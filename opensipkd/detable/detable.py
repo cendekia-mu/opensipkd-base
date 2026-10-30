@@ -136,6 +136,7 @@ class DeTable(field.Field):
         super().__init__(schema, **kw)
         self.request = kw.get("request")
         self.rows = kw.get("rows")
+        self.auto_width = json.dumps(kw.get("auto_width", False))
         self.action = action
         self.tableid = tableid
         self.data = data

@@ -59,7 +59,7 @@
           -->
           
         <!-- </div> -->
-        <table id="${tableid}" class="table table-bordered table-hover table-condensed no-footer" style="width: 100%;">
+        <table id="${tableid}" class="table table-bordered table-hover table-condensed no-footer mobile-table-responsive " style="width: 100%;">
           <thead>
           <tr>
             <tal:block tal:repeat="child field">
@@ -97,6 +97,37 @@
     table.dataTable tbody tr.checked-row > * {
         box-shadow: inset 0 0 0 9999px rgb(255, 255, 0, 0.9) !important; /* Yellow with some opacity */
     }
+    @media (max-width: 767px) {
+    /* Ensure the filter container fits nicely with some breathing room */
+    div.dataTables_wrapper div.dataTables_filter {
+        text-align: left !important;
+        float: none !important;
+        margin-top: 10px !important;
+        margin-left: 5px !important;
+        margin-right: 15px !important; /* Adds safety space on the right */
+        width: calc(100% - 15px) !important;
+    }
+
+    /* Keep label and input on one row using flexbox */
+    div.dataTables_wrapper div.dataTables_filter label {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        text-align: left !important;
+        width: 100% !important;
+        white-space: nowrap !important;
+    }
+
+    /* Restrict the input box so it never overflows past the right edge */
+    div.dataTables_wrapper div.dataTables_filter input {
+        display: inline-block !important;
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 !important;
+        box-sizing: border-box !important; /* Ensures padding doesn't push it out of bounds */
+    }
+}
   </style>
   <script type="text/javascript">
     var m${tableid}ID;
@@ -229,7 +260,7 @@
             }
         } 
       }
-
+    
       //end column definition loop
       
       let ${tableid}Params = {};
@@ -240,10 +271,8 @@
 
       o${tableid} = $('#${tableid}').DataTable({
         scrollX: ${field.scroll_x},
-        //scrollY: ${field.scroll_y},
-        //dom: '<"row"<"col-md-8"<"toolbar">Bl><"col-md-4"fr>>tip',
-        dom: '<"row"<"col-md-8"<"toolbar">>><"row"<"col-md-8"Bl><"col-md-4"fr>>t<"row dt-footer"<"col-md-8 sub-foot" i><"col-md-4"p>>',
-          //dom: '<"row"<"col-md-8"<"toolbar">>><"row"<"col-md-8"B><"col-md-4"f>r>>t<"row dt-footer"<"col-md-8 sub-foot"i><"col-md-4"p>>',
+        scrollY: ${field.scroll_y},
+        dom: '<"row"<"col-xs-12 col-md-8"<"toolbar">>><"row"<"col-xs-12 col-md-8"Bl><"col-md-4"fr>>t<"row dt-footer"<"col-xs-12 col-md-8 sub-foot" i><"col-xs-12 col-md-4"p>>',
         processing: true,
         serverSide: ${server_side},
         // <tal:block tal:condition="filter_columns">
@@ -256,7 +285,7 @@
         sort: ${sorts},
         info: true,
         filter: ${filters},
-        autoWidth: false,
+        autoWidth: ${field.auto_width},
         paginate: ${paginates},
         paging:${field.paging},
         responsive:true,
@@ -272,24 +301,24 @@
         columns: ${tableid}Columns,
         language: ${tableid}Language,
         initComplete: function () {
-          $('.dataTables_filter input').unbind()
-            .bind('keyup', function (e) {
+            $('.dataTables_filter input').unbind()
+              .bind('keyup', function (e) {
               var code = e.keyCode || e.which;
-              if (code === 13) {
-                        o${tableid}.search(this.value).draw();
-              }
+                if (code === 13 || e.type === 'search' || e.type === 'change') {
+                    filter_table();
+                }
             });
+            
         }
       });
-
       let tb = tb_array.join(' ');
       $("div.toolbar").html(tb);
       $("div.toolbar").attr('style', 'display:block; float: left; margin-bottom:6px; line-height:16px;');
       $("div.dt-footer").attr('style', 'margin-left: -7px;');
       $("div.sub-foot").attr('style', 'position:unset;');
       $(".dataTables_scrollBody").attr('style', 'margin-top: -10px;');
-    //   <tal:block tal:condition="allow_check=='true'">
-      
+      o${tableid}.columns.adjust().draw();
+      //   <tal:block tal:condition="allow_check=='true'">
       //Begin Allow Check
   $('#${tableid} tbody').on('click', ':checkbox', function () {
     var checkboxValue = $(this).val();
@@ -400,10 +429,12 @@
 
       //<tal:block tal:condition="filter_columns">
       //Begin Filter Columns
-      $(".${tableid}-control-filter").on('keyup', function (e) {
+    $(".${tableid}-control-filter").on('keyup change search', function (e) {
         var code = e.keyCode || e.which;
-      if (code === 13) filter_table();
-      });
+        if (code === 13 || e.type === 'search' || e.type === 'change') {
+            filter_table();
+        }
+    });
 
       $("#${tableid}_length").append('<label>&emsp;${structure:edit_buttons}</label>');
 
@@ -506,11 +537,19 @@
         }
       });
       $(".${tableid}-control-filter").on('change', function (e) {
-        var typ = $(this).prop("nodeName").toLowerCase();
-        if (typ === "select") filter_table();
+        var nodeName = $(this).prop("nodeName").toLowerCase();
+        if (nodeName === "select") {
+            filter_table();
+            return;
+        }
 
-        var typ = $(this).attr("type").toLowerCase();
-        if (("date", "number").indexOf(typ) > -1) filter_table();
+        var typ = $(this).attr("type");
+        if (typ) {
+            typ = typ.toLowerCase();
+            if (["date", "number"].includes(typ)) {
+                filter_table();
+            }
+        }
       });
 
       console.log("Read Data");
